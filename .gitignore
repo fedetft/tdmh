@@ -13,3 +13,11 @@ main.map
 # Exclude Mac OS X temporary
 ._*
 .DS_Store
+
+# Netbeans non-needed project files
+miosix_np_2/nbproject/private/
+miosix_np_2/build/
+miosix_np_2/nbbuild/
+miosix_np_2/dist/
+miosix_np_2/nbdist/
+miosix_np_2/.nb-gradle/
