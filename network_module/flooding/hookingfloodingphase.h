@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2013 by Terraneo Federico                               *
+ *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,28 +25,42 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include <cstdio>
-#include <miosix.h>
-#include "network_module/macround/mastermacround.h"
-#include "network_module/mediumaccesscontroller.h"
+#ifndef HOOKINGFLOODINGPHASE_H
+#define HOOKINGFLOODINGPHASE_H
 
-using namespace std;
-using namespace miosix;
+#include "floodingphase.h"
+#include "time_synchronizers/synchronizer.h"
+#include "time_synchronizers/flopsync2.h"
+#include "../maccontext.h"
+#include "syncstatus.h"
+#include <utility>
 
-const int hop=1;
-
-void flopsyncRadio(void*){    
-    printf("Dynamic node\n");
-    MediumAccessController& controller = MediumAccessController::instance(new MasterMACRound::MasterMACRoundFactory(), 6, 1, 2450, true);
-    controller.run();
+namespace miosix {
+class HookingFloodingPhase : public FloodingPhase {
+public:
+    /**
+     * This function creates a HookingFloodingPhase as first phase
+     * @param mac
+     */
+    explicit HookingFloodingPhase(const MediumAccessController& mac, bool debug = true) :
+            HookingFloodingPhase(mac, 0, debug) {};
+    /**
+     * This function creates a HookingFloodingPhase as first phase with known frameStart and theoreticalFrameStart
+     * @param mac
+     * @param frameStart
+     */
+    HookingFloodingPhase(const MediumAccessController& mac, long long frameStart, bool debug = true) :
+            FloodingPhase(frameStart, mac.getPanId(), debug) {};
+    HookingFloodingPhase() = delete;
+    HookingFloodingPhase(const HookingFloodingPhase& orig) = delete;
+    void execute(MACContext& ctx) override;
+    virtual ~HookingFloodingPhase();
+protected:
+    HookingFloodingPhase(unsigned short panId, long long frameStart, bool debug = true) :
+            HookingFloodingPhase(frameStart, panId, debug) {};
+private:
+};
 }
 
-int main()
-{
-    auto t1 = Thread::create(flopsyncRadio,2048,PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-    
-    t1->join();
-    printf("Dying now...\n");
-    
-    return 0;
-}
+#endif /* HOOKINGFLOODINGPHASE_H */
+

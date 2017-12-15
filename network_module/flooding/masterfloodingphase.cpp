@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2013 by Terraneo Federico                               *
+ *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,28 +25,40 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include <cstdio>
-#include <miosix.h>
-#include "network_module/macround/mastermacround.h"
-#include "network_module/mediumaccesscontroller.h"
+#include "masterfloodingphase.h"
+#include "../maccontext.h"
+#include "../macround/macround.h"
+#include <stdio.h>
 
-using namespace std;
-using namespace miosix;
+namespace miosix {
 
-const int hop=1;
+    MasterFloodingPhase::~MasterFloodingPhase() {
+    }
 
-void flopsyncRadio(void*){    
-    printf("Dynamic node\n");
-    MediumAccessController& controller = MediumAccessController::instance(new MasterMACRound::MasterMACRoundFactory(), 6, 1, 2450, true);
-    controller.run();
-}
-
-int main()
-{
-    auto t1 = Thread::create(flopsyncRadio,2048,PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-    
-    t1->join();
-    printf("Dying now...\n");
-    
-    return 0;
+    void MasterFloodingPhase::execute(MACContext& ctx)
+    {
+        auto sendTime = startTime + rootNodeWakeupAdvance;
+        ledOn();
+        transceiver.configure(*ctx.getTransceiverConfig());
+        const unsigned char syncPacket[]=
+        {
+            0x46, //frame type 0b110 (reserved), intra pan
+            0x08, //no source addressing, short destination addressing
+            0x00, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
+            static_cast<unsigned char>(panId>>8),
+            static_cast<unsigned char>(panId & 0xff), //destination pan ID
+            0xff, 0xff                                //destination addr (broadcast)
+        };
+        pm.deepSleepUntil(startTime);
+        transceiver.turnOn();
+        //Sending synchronization start packet
+        try {
+            transceiver.sendAt(syncPacket, sizeof(syncPacket), sendTime);
+        } catch(std::exception& e) {
+            if(debug) printf("%s\n", e.what());
+        }
+        if (debug) printf("Sync packet sent at %lld\n", sendTime);
+        transceiver.turnOff();
+        ledOff();
+    }
 }

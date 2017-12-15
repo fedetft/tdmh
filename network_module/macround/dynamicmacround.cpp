@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2013 by Terraneo Federico                               *
+ *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,28 +25,46 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include <cstdio>
-#include <miosix.h>
-#include "network_module/macround/mastermacround.h"
-#include "network_module/mediumaccesscontroller.h"
+#include "dynamicmacround.h"
+#include "../flooding/periodiccheckfloodingphase.h"
+#include "../flooding/syncstatus.h"
 
-using namespace std;
-using namespace miosix;
+namespace miosix {
+    DynamicMACRound::~DynamicMACRound() {
+    }
+    
+    void DynamicMACRound::run(MACContext& ctx) {
+        auto* nextRound = new DynamicMACRound();
+        ctx.setNextRound(nextRound);
+        flooding->execute(ctx);
+        SyncStatus* syncStatus = ctx.getSyncStatus();
+        auto& mac = ctx.getMediumAccessController();
+        switch (syncStatus->getInternalStatus()) {
+            case SyncStatus::MacroStatus::DESYNCHRONIZED:
+                roundtrip = nullptr;
+                break;
+            case SyncStatus::MacroStatus::IN_SYNC:
+                //TODO add phase changes
+                roundtrip = new ListeningRoundtripPhase(mac, syncStatus->measuredFrameStart + FloodingPhase::phaseDuration, debug);
+                break;
+        }
+        if (roundtrip != nullptr) roundtrip->execute(ctx);
+        syncStatus->next();
+        switch (syncStatus->getInternalStatus()) {
+            case SyncStatus::MacroStatus::DESYNCHRONIZED:
+                nextRound->setFloodingPhase(new HookingFloodingPhase(mac, syncStatus->computedFrameStart, debug));
+                break;
+            case SyncStatus::MacroStatus::IN_SYNC:
+                nextRound->setFloodingPhase(new PeriodicCheckFloodingPhase(mac, syncStatus->getWakeupTime(), debug));
+                break;
+        }
+    }
+        
+    MACRound* DynamicMACRound::DynamicMACRoundFactory::create(MACContext& ctx, bool debug) const {
+        ctx.initializeSyncStatus(new SyncStatus());
+        return new DynamicMACRound(ctx.getMediumAccessController(), debug);
+    }
 
-const int hop=1;
 
-void flopsyncRadio(void*){    
-    printf("Dynamic node\n");
-    MediumAccessController& controller = MediumAccessController::instance(new MasterMACRound::MasterMACRoundFactory(), 6, 1, 2450, true);
-    controller.run();
 }
 
-int main()
-{
-    auto t1 = Thread::create(flopsyncRadio,2048,PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-    
-    t1->join();
-    printf("Dying now...\n");
-    
-    return 0;
-}

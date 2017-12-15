@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2013 by Terraneo Federico                               *
+ *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,28 +25,46 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include <cstdio>
-#include <miosix.h>
-#include "network_module/macround/mastermacround.h"
-#include "network_module/mediumaccesscontroller.h"
+#ifndef MASTERMACROUND_H
+#define MASTERMACROUND_H
 
-using namespace std;
-using namespace miosix;
+#include "macround.h"
+#include "macroundfactory.h"
+#include "../flooding/masterfloodingphase.h"
+#include "../roundtrip/listeningroundtripphase.h"
 
-const int hop=1;
+namespace miosix {
+    class MasterMACRound : public MACRound {
+    public:
+        MasterMACRound() = delete;
+        explicit MasterMACRound(const MediumAccessController& mac, bool debug = true) :
+                MasterMACRound(mac, getTime() + initializationDelay, debug) {}
+        MasterMACRound(const MasterMACRound& orig) = delete;
+        virtual ~MasterMACRound();
+        virtual void run(MACContext& ctx) override;
 
-void flopsyncRadio(void*){    
-    printf("Dynamic node\n");
-    MediumAccessController& controller = MediumAccessController::instance(new MasterMACRound::MasterMACRoundFactory(), 6, 1, 2450, true);
-    controller.run();
+        class MasterMACRoundFactory : public MACRoundFactory {
+        public:
+            MasterMACRoundFactory() {};
+            MACRound* create(MACContext& ctx, bool debug = true) const override;
+            virtual ~MasterMACRoundFactory() {};
+        };
+        
+    protected:
+        MasterMACRound(const MediumAccessController& mac, long long roundStart, bool debug = true) :
+                MACRound(
+                    new MasterFloodingPhase(mac, roundStart, debug),
+                    new ListeningRoundtripPhase(
+                        mac, roundStart + FloodingPhase::phaseDuration + FloodingPhase::syncNodeWakeupAdvance, debug)),
+                debug(debug), roundStart(roundStart) {}
+                
+        long long initializationDelay = 200000;
+
+    private:
+        bool debug;
+        long long roundStart;
+    };
 }
 
-int main()
-{
-    auto t1 = Thread::create(flopsyncRadio,2048,PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-    
-    t1->join();
-    printf("Dying now...\n");
-    
-    return 0;
-}
+#endif /* MASTERMACROUND_H */
+
