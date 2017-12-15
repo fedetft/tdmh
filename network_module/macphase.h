@@ -21,7 +21,7 @@ namespace miosix {
     class MACPhase {
     public:
         MACPhase();
-        MACPhase(long long startTime) : startTime(std::move(startTime)) {};
+        MACPhase(long long startTime) : startTime(startTime) {};
         MACPhase(const MACPhase& orig);
         virtual ~MACPhase();
         virtual void execute(MACContext& ctx) = 0;
