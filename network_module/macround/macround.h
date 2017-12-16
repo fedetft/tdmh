@@ -28,10 +28,10 @@ namespace miosix {
         MACRound(const MACRound& orig) = delete;
         virtual ~MACRound();
 
-        void setFloodingPhase(FloodingPhase* fp) { flooding = fp; }
+        void setFloodingPhase(FloodingPhase* fp);
         inline FloodingPhase* getFloodingPhase() { return flooding; }
 
-        void setRoundTripPhase(RoundtripPhase* rtp) { roundtrip = rtp; }
+        void setRoundTripPhase(RoundtripPhase* rtp);
         inline RoundtripPhase* getRoundtripPhase() { return roundtrip; }
 
         virtual void run(MACContext& ctx);

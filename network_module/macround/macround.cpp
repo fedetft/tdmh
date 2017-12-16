@@ -17,11 +17,23 @@
 
 namespace miosix {
     MACRound::~MACRound() {
+        delete flooding;
+        delete roundtrip;
     }
     
     void MACRound::run(MACContext& ctx) {
         if (flooding != nullptr) flooding->execute(ctx);
         if (roundtrip != nullptr) roundtrip->execute(ctx);
+    }
+
+    void MACRound::setFloodingPhase(FloodingPhase* fp) {
+        delete flooding;
+        flooding = fp;
+    }
+
+    void MACRound::setRoundTripPhase(RoundtripPhase* rtp) {
+        delete roundtrip;
+        roundtrip = rtp;
     }
 
 }

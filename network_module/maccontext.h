@@ -33,7 +33,7 @@ namespace miosix {
         inline const MediumAccessController& getMediumAccessController() { return mac; }
         void setHop(short num) { hop = num; }
         short getHop() { return hop; }
-        void setNextRound(MACRound* round) { nextRound = round; }
+        void setNextRound(MACRound* round);
         void initializeSyncStatus(SyncStatus* syncStatus);
         inline SyncStatus* getSyncStatus() { return syncStatus; }
         inline const TransceiverConfiguration* getTransceiverConfig() { return transceiverConfig; }
@@ -41,7 +41,7 @@ namespace miosix {
         short hop;
         const MediumAccessController& mac;
         SyncStatus* syncStatus;
-        const TransceiverConfiguration* transceiverConfig;
+        const TransceiverConfiguration* const transceiverConfig;
         MACRound* currentRound;
         MACRound* nextRound;
     };

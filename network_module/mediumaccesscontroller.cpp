@@ -36,6 +36,7 @@ namespace miosix {
     }
 
     MediumAccessController::~MediumAccessController() {
+        delete ctx;
     }
 
     void MediumAccessController::run() {

@@ -21,15 +21,27 @@ namespace miosix {
     MACContext::MACContext(const MACRoundFactory* const roundFactory, const miosix::MediumAccessController& mac, bool debug) :
             mac(mac),
             transceiverConfig(new TransceiverConfiguration(mac.getRadioFrequency(), mac.getTxPower(), true, false)),
-            currentRound(roundFactory->create(*this, debug)) {}
+            currentRound(roundFactory->create(*this, debug)) {
+        delete roundFactory;
+    }
 
     MACContext::~MACContext() {
+        delete currentRound;
+        delete nextRound;
+        delete transceiverConfig;
+        delete syncStatus;
     }
 
     MACRound* MACContext::shiftRound() {
+        delete currentRound;
         currentRound = nextRound;
         nextRound = nullptr;
         return currentRound;
+    }
+    
+    void MACContext::setNextRound(MACRound* round) {
+        delete nextRound;
+        nextRound = round;
     }
     
     void MACContext::initializeSyncStatus(SyncStatus* syncStatus) { this->syncStatus = syncStatus; }
