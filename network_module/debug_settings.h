@@ -29,10 +29,10 @@
 #define DEBUG_SETTINGS_H
 
 //prints info if receiving a packet
-#define ENABLE_PKT_INFO_DBG
+//#define ENABLE_PKT_INFO_DBG
 
 //dumps the contents of the packets, ENABLE_BAD_PKT_INFO must be defined
-#define ENABLE_PKT_DUMP_DBG
+//#define ENABLE_PKT_DUMP_DBG
 
 //prints the exception if any while using the radio
 #define ENABLE_RADIO_EXCEPTION_DBG
