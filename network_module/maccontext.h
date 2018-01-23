@@ -42,8 +42,8 @@ namespace miosix {
         const MediumAccessController& mac;
         SyncStatus* syncStatus;
         const TransceiverConfiguration* const transceiverConfig;
-        MACRound* currentRound;
-        MACRound* nextRound;
+        MACRound* currentRound = nullptr;
+        MACRound* nextRound = nullptr;
     };
 }
 
