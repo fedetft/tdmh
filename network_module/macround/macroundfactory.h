@@ -29,7 +29,7 @@ namespace miosix {
          * @param ctx
          * @return 
          */
-        virtual MACRound* create(MACContext& ctx, bool debug) const = 0;
+        virtual MACRound* create(MACContext& ctx) const = 0;
     };
 }
 

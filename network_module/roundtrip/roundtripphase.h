@@ -27,12 +27,11 @@ public:
      * @param mac
      * @param startTime
      */
-    RoundtripPhase(const MediumAccessController& mac, long long startTime, bool debug = true) :
-            RoundtripPhase(startTime, mac.getPanId(), debug) {};
-    RoundtripPhase(long long startTime, short panId, bool debug = true) : 
+    RoundtripPhase(const MediumAccessController& mac, long long startTime) :
+            RoundtripPhase(startTime, mac.getPanId()) {};
+    RoundtripPhase(long long startTime, short panId) : 
             MACPhase(startTime),
             transceiver(Transceiver::instance()),
-            debug(debug),
             panId(panId) {};
     RoundtripPhase() = delete;
     RoundtripPhase(const RoundtripPhase& orig) = delete;
@@ -55,7 +54,6 @@ public:
     static const int accuracy = 15;
 protected:
     Transceiver& transceiver;
-    bool debug;
     unsigned short panId;
     long long lastDelay;
     long long totalDelay;

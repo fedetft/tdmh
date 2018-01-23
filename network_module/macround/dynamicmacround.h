@@ -38,26 +38,24 @@ namespace miosix {
     class DynamicMACRound : public MACRound {
     public:
         DynamicMACRound(const DynamicMACRound& orig) = delete;
-        explicit DynamicMACRound(const MediumAccessController& mac, bool debug = true) :
+        explicit DynamicMACRound(const MediumAccessController& mac) :
                 MACRound(
-                    new HookingFloodingPhase(mac, debug),
+                    new HookingFloodingPhase(mac),
                     new ListeningRoundtripPhase(
-                        mac, getTime() + FloodingPhase::phaseDuration + FloodingPhase::syncNodeWakeupAdvance, debug)),
-                debug(debug) {}
+                        mac, getTime() + FloodingPhase::phaseDuration + FloodingPhase::syncNodeWakeupAdvance)) {}
         virtual void run(MACContext& ctx) override;
         virtual ~DynamicMACRound();
 
         class DynamicMACRoundFactory : public MACRoundFactory {
         public:
             DynamicMACRoundFactory() {};
-            MACRound* create(MACContext& ctx, bool debug = true) const override;
+            MACRound* create(MACContext& ctx) const override;
             virtual ~DynamicMACRoundFactory() {};
         };
 
     protected:
         DynamicMACRound() {};
     private:
-        bool debug;
     };
 }
 

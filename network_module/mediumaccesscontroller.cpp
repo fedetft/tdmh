@@ -30,8 +30,8 @@
 #include "macround/macround.h"
 
 namespace miosix {
-    MediumAccessController::MediumAccessController(const MACRoundFactory* const roundFactory, unsigned short panId, short txPower, unsigned int radioFrequency, bool debug) :
-        panId(panId), txPower(txPower), radioFrequency(radioFrequency), debug(debug), ctx(new MACContext(roundFactory, *this, debug)) {
+    MediumAccessController::MediumAccessController(const MACRoundFactory* const roundFactory, unsigned short panId, short txPower, unsigned int radioFrequency) :
+        panId(panId), txPower(txPower), radioFrequency(radioFrequency), ctx(new MACContext(roundFactory, *this)) {
 
     }
 
@@ -45,8 +45,8 @@ namespace miosix {
         }
     }
 
-    miosix::MediumAccessController& miosix::MediumAccessController::instance(const miosix::MACRoundFactory *const roundFactory, unsigned short panId, short txPower, unsigned int radioFrequency, bool debug) {
-        static MediumAccessController instance(roundFactory, panId, txPower, radioFrequency, debug);
+    miosix::MediumAccessController& miosix::MediumAccessController::instance(const miosix::MACRoundFactory *const roundFactory, unsigned short panId, short txPower, unsigned int radioFrequency) {
+        static MediumAccessController instance(roundFactory, panId, txPower, radioFrequency);
         return instance;
     }
 

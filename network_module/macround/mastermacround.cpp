@@ -34,11 +34,11 @@ namespace miosix {
 
     void MasterMACRound::run(MACContext& ctx) {
         MACRound::run(ctx);
-        ctx.setNextRound(new MasterMACRound(ctx.getMediumAccessController(), roundStart + roundDuration, debug));
+        ctx.setNextRound(new MasterMACRound(ctx.getMediumAccessController(), roundStart + roundDuration));
     }
 
-    MACRound* MasterMACRound::MasterMACRoundFactory::create(MACContext& ctx, bool debug) const {
-        return new MasterMACRound(ctx.getMediumAccessController(), debug);
+    MACRound* MasterMACRound::MasterMACRoundFactory::create(MACContext& ctx) const {
+        return new MasterMACRound(ctx.getMediumAccessController());
     }
 
 

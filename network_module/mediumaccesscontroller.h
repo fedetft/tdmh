@@ -23,18 +23,17 @@ namespace miosix {
     public:
         MediumAccessController() = delete;
         MediumAccessController(const MediumAccessController& orig) = delete;
-        static MediumAccessController& instance(const MACRoundFactory *const roundFactory, unsigned short panId, short txPower, unsigned int radioFrequency, bool debug = true);
+        static MediumAccessController& instance(const MACRoundFactory *const roundFactory, unsigned short panId, short txPower, unsigned int radioFrequency);
         unsigned int getRadioFrequency() const { return radioFrequency; }
         short getTxPower() const { return txPower; }
         unsigned short getPanId() const { return panId; }
         void run();
     private:
-        MediumAccessController(const MACRoundFactory* const roundFactory, unsigned short panId, short txPower, unsigned int radioFrequency, bool debug);
+        MediumAccessController(const MACRoundFactory* const roundFactory, unsigned short panId, short txPower, unsigned int radioFrequency);
         virtual ~MediumAccessController();
         unsigned short panId;
         short txPower;
         unsigned int radioFrequency;
-        bool debug;
         MACContext* ctx;
     };
 }

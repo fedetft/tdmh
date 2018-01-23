@@ -25,7 +25,7 @@ namespace miosix {
     public:
         MACContext() = delete;
         MACContext(const MACContext& orig) = delete;
-        MACContext(const MACRoundFactory* const roundFactory, const MediumAccessController& mac, bool debug = true);
+        MACContext(const MACRoundFactory* const roundFactory, const MediumAccessController& mac);
         virtual ~MACContext();
         MACRound* getCurrentRound() const { return currentRound; }
         MACRound* getNextRound() const { return nextRound; }

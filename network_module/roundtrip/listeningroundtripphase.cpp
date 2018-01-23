@@ -40,33 +40,25 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
             result = transceiver.recv(packet, replyPacketSize, timeoutTime);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
-            if(debug) printf("%s\n", e.what());
+            printf("%s\n", e.what());
 #endif /* ENABLE_RADIO_EXCEPTION_DBG */
         }
         now = getTime();
 #ifdef ENABLE_PKT_INFO_DBG
-        if(debug) {
-            if(result.size){
-                printf("[RTT] Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+        if(result.size){
+            printf("[RTT] Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
 #ifdef ENABLE_PKT_DUMP_DBG
-                memDump(packet, result.size);
+            memDump(packet, result.size);
 #endif /* ENABLE_PKT_DUMP_DBG */
-            } else printf("[RTT] No packet received, timeout reached\n");
-        }
+        } else printf("[RTT] No packet received, timeout reached\n");
 #endif /* ENABLE_PKT_INFO_DBG */
-        if(isRoundtripPacket(result, packet) && (packet[2] == ctx.getHop() + 1))
-        {
-            success = true;
-        }
-        if(now >= timeoutTime)
-        {
-            isTimeout = true;
-        }
+        success = isRoundtripPacket(result, packet) && (packet[2] == ctx.getHop() + 1);
+        isTimeout = now >= timeoutTime;
     }
     
     if(!isTimeout && result.error == RecvResult::OK && result.timestampValid){
 #ifdef ENABLE_ROUNDTRIP_INFO_DBG
-        if(debug) printf("[RTT] Replying ledbar packet\n");
+        printf("[RTT] Replying ledbar packet\n");
 #endif /* ENABLE_ROUNDTRIP_INFO_DBG */
         LedBar<125> p;
         p.encode(7); //TODO: 7?! should check what's received, increment the led bar and filter it with a LPF
@@ -74,12 +66,12 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
             transceiver.sendAt(p.getPacket(), p.getPacketSize(), result.timestamp + replyDelay);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
-            if(debug) puts(e.what());
+            puts(e.what());
 #endif /* ENABLE_RADIO_EXCEPTION_DBG */
         }
 #ifdef ENABLE_ROUNDTRIP_INFO_DBG
     } else {
-        if(debug) printf("[RTT] Roundtrip packet not received\n");
+        printf("[RTT] Roundtrip packet not received\n");
 #endif /* ENABLE_ROUNDTRIP_INFO_DBG */
     }
     

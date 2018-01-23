@@ -42,22 +42,22 @@ public:
      * This function creates a HookingFloodingPhase as first phase
      * @param mac
      */
-    explicit HookingFloodingPhase(const MediumAccessController& mac, bool debug = true) :
-            HookingFloodingPhase(mac, 0, debug) {};
+    explicit HookingFloodingPhase(const MediumAccessController& mac) :
+            HookingFloodingPhase(mac, 0) {};
     /**
      * This function creates a HookingFloodingPhase as first phase with known frameStart and theoreticalFrameStart
      * @param mac
      * @param frameStart
      */
-    HookingFloodingPhase(const MediumAccessController& mac, long long frameStart, bool debug = true) :
-            FloodingPhase(frameStart, mac.getPanId(), debug) {};
+    HookingFloodingPhase(const MediumAccessController& mac, long long frameStart) :
+            FloodingPhase(frameStart, mac.getPanId()) {};
     HookingFloodingPhase() = delete;
     HookingFloodingPhase(const HookingFloodingPhase& orig) = delete;
     void execute(MACContext& ctx) override;
     virtual ~HookingFloodingPhase();
 protected:
-    HookingFloodingPhase(unsigned short panId, long long frameStart, bool debug = true) :
-            HookingFloodingPhase(frameStart, panId, debug) {};
+    HookingFloodingPhase(unsigned short panId, long long frameStart) :
+            HookingFloodingPhase(frameStart, panId) {};
 private:
 };
 }

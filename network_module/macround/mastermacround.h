@@ -37,8 +37,8 @@ namespace miosix {
     class MasterMACRound : public MACRound {
     public:
         MasterMACRound() = delete;
-        explicit MasterMACRound(const MediumAccessController& mac, bool debug = true) :
-                MasterMACRound(mac, getTime() + initializationDelay, debug) {}
+        explicit MasterMACRound(const MediumAccessController& mac) :
+                MasterMACRound(mac, getTime() + initializationDelay) {}
         MasterMACRound(const MasterMACRound& orig) = delete;
         virtual ~MasterMACRound();
         virtual void run(MACContext& ctx) override;
@@ -46,22 +46,21 @@ namespace miosix {
         class MasterMACRoundFactory : public MACRoundFactory {
         public:
             MasterMACRoundFactory() {};
-            MACRound* create(MACContext& ctx, bool debug = true) const override;
+            MACRound* create(MACContext& ctx) const override;
             virtual ~MasterMACRoundFactory() {};
         };
         
     protected:
-        MasterMACRound(const MediumAccessController& mac, long long roundStart, bool debug = true) :
+        MasterMACRound(const MediumAccessController& mac, long long roundStart) :
                 MACRound(
-                    new MasterFloodingPhase(mac, roundStart, debug),
+                    new MasterFloodingPhase(mac, roundStart),
                     new ListeningRoundtripPhase(
-                        mac, roundStart + FloodingPhase::phaseDuration + FloodingPhase::syncNodeWakeupAdvance, debug)),
-                debug(debug), roundStart(roundStart) {}
+                        mac, roundStart + FloodingPhase::phaseDuration + FloodingPhase::syncNodeWakeupAdvance)),
+                roundStart(roundStart) {}
                 
         long long initializationDelay = 200000;
 
     private:
-        bool debug;
         long long roundStart;
     };
 }

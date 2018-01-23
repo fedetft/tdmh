@@ -43,10 +43,10 @@ public:
      * @param frameStart
      * @param theoreticalFrameStart
      */
-    PeriodicCheckFloodingPhase(const MediumAccessController& mac, long long frameStart, bool debug = true) :
-            PeriodicCheckFloodingPhase(frameStart, mac.getPanId(), debug) {};
-    PeriodicCheckFloodingPhase(long long frameStart, unsigned short panId, bool debug = true) :
-            FloodingPhase(frameStart, panId, debug) { };
+    PeriodicCheckFloodingPhase(const MediumAccessController& mac, long long frameStart) :
+            PeriodicCheckFloodingPhase(frameStart, mac.getPanId()) {};
+    PeriodicCheckFloodingPhase(long long frameStart, unsigned short panId) :
+            FloodingPhase(frameStart, panId) { };
     PeriodicCheckFloodingPhase() = delete;
     PeriodicCheckFloodingPhase(const PeriodicCheckFloodingPhase& orig) = delete;
     void execute(MACContext& ctx) override;

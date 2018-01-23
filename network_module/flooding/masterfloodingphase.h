@@ -34,12 +34,12 @@
 namespace miosix {
 class MasterFloodingPhase : public FloodingPhase {
 public:
-    MasterFloodingPhase(const MediumAccessController& mac, long long startTime, bool debug = true) :
-            MasterFloodingPhase(startTime, mac.getPanId(), debug) {};
+    MasterFloodingPhase(const MediumAccessController& mac, long long startTime) :
+            MasterFloodingPhase(startTime, mac.getPanId()) {};
     MasterFloodingPhase() = delete;
     MasterFloodingPhase(const MasterFloodingPhase& orig) = delete;
-    MasterFloodingPhase(long long startTime, unsigned short panId, bool debug = true) :
-            FloodingPhase(startTime, panId, debug) {};
+    MasterFloodingPhase(long long startTime, unsigned short panId) :
+            FloodingPhase(startTime, panId) {};
     void execute(MACContext& ctx) override;
     virtual ~MasterFloodingPhase();
 protected:

@@ -21,10 +21,10 @@
 namespace miosix {
 class AskingRoundtripPhase : public RoundtripPhase {
 public:
-    AskingRoundtripPhase(const MediumAccessController& mac, long long startTime, bool debug = true) :
-            AskingRoundtripPhase(startTime, mac.getPanId(), debug) {};
-    AskingRoundtripPhase(long long startTime, short panId, bool debug = true) :
-            RoundtripPhase(startTime, panId, debug) {};
+    AskingRoundtripPhase(const MediumAccessController& mac, long long startTime) :
+            AskingRoundtripPhase(startTime, mac.getPanId()) {};
+    AskingRoundtripPhase(long long startTime, short panId) :
+            RoundtripPhase(startTime, panId) {};
     AskingRoundtripPhase() = delete;
     AskingRoundtripPhase(const AskingRoundtripPhase& orig) = delete;
     virtual ~AskingRoundtripPhase();

@@ -62,7 +62,7 @@ namespace miosix {
 #endif /* ENABLE_RADIO_EXCEPTION_DBG */
         }
 #ifdef ENABLE_ROUNDTRIP_INFO_DBG
-        if (debug) printf("Asked Roundtrip\n");
+        printf("Asked Roundtrip\n");
 #endif /* ENABLE_ROUNDTRIP_INFO_DBG */
 
         //Expecting a ledbar reply from any node of the previous hop, crc disabled
@@ -74,18 +74,16 @@ namespace miosix {
             result = transceiver.recv(p.getPacket(), p.getPacketSize(), sendTime + replyDelay + senderDelay);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
-            if(debug) puts(e.what());
+            puts(e.what());
 #endif /* ENABLE_RADIO_EXCEPTION_DBG */
         }
 #ifdef ENABLE_PKT_INFO_DBG
-        if(debug) {
-            if(result.error != RecvResult::ErrorCode::UNINITIALIZED){
-                printf("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+        if(result.error != RecvResult::ErrorCode::UNINITIALIZED){
+            printf("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
 #ifdef ENABLE_PKT_DUMP_DBG
-                memDump(p.getPacket(), result.size);
+            memDump(p.getPacket(), result.size);
 #endif /* ENABLE_PKT_DUMP_DBG */
-            } else printf("No packet received, timeout reached\n");
-        }
+        } else printf("No packet received, timeout reached\n");
 #endif /* ENABLE_PKT_INFO_DBG */
         transceiver.turnOff();
         greenLed::low();
@@ -94,9 +92,9 @@ namespace miosix {
             lastDelay = result.timestamp - (sendTime + replyDelay);
             totalDelay = p.decode().first * accuracy + lastDelay;
 #ifdef ENABLE_ROUNDTRIP_INFO_DBG
-            if(debug) printf("delay=%lld total=%lld\n", lastDelay, totalDelay);
+            printf("delay=%lld total=%lld\n", lastDelay, totalDelay);
         } else {
-            if(debug) printf("No roundtrip reply received\n");
+            printf("No roundtrip reply received\n");
 #endif /* ENABLE_ROUNDTRIP_INFO_DBG */
         }
     }

@@ -36,7 +36,7 @@ HookingFloodingPhase::~HookingFloodingPhase() {
 void HookingFloodingPhase::execute(MACContext& ctx)
 {   
 #ifdef ENABLE_FLOODING_INFO_DBG
-    if(debug) printf("Resynchronize...\n");
+    printf("Resynchronize...\n");
 #endif /* ENABLE_FLOODING_INFO_DBG */
     auto* status = ctx.getSyncStatus();
     auto* synchronizer = status->synchronizer;
@@ -52,18 +52,16 @@ void HookingFloodingPhase::execute(MACContext& ctx)
             result = transceiver.recv(packet, syncPacketSize, infiniteTimeout);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
-            if(debug) printf("%s\n", e.what());
+            printf("%s\n", e.what());
 #endif /* ENABLE_RADIO_EXCEPTION_DBG */
         }
 #ifdef ENABLE_PKT_INFO_DBG
-        if(debug){
-            if(result.size){
-                printf("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+        if(result.size){
+            printf("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
 #ifdef ENABLE_PKT_DUMP_DBG
-                memDump(packet, result.size);
+            memDump(packet, result.size);
 #endif /* ENABLE_PKT_DUMP_DBG */
-            } else printf("No packet received, timeout reached\n");
-        }
+        } else printf("No packet received, timeout reached\n");
 #endif /* ENABLE_PKT_INFO_DBG */
     }
     ++packet[2];
@@ -73,7 +71,7 @@ void HookingFloodingPhase::execute(MACContext& ctx)
     transceiver.turnOff();
     
 #ifdef ENABLE_FLOODING_INFO_DBG
-    if (debug) printf("Expected receiving time: %lld, actual: %lld\n", status->computedFrameStart, result.timestamp);
+    printf("Expected receiving time: %lld, actual: %lld\n", status->computedFrameStart, result.timestamp);
 #endif /* ENABLE_FLOODING_INFO_DBG */
     
     status->initialize(synchronizer->getReceiverWindow(), result.timestamp);
@@ -82,7 +80,7 @@ void HookingFloodingPhase::execute(MACContext& ctx)
     //Correct frame start considering hops
     //measuredFrameStart-=hop*packetRebroadcastTime;
 #ifdef ENABLE_FLOODING_INFO_DBG
-    if(debug) printf("Resynchronized: hop=%d, w=%d, rssi=%d.\n", packet[2], status->receiverWindow, result.rssi);
+    printf("Resynchronized: hop=%d, w=%d, rssi=%d.\n", packet[2], status->receiverWindow, result.rssi);
 #endif /* ENABLE_FLOODING_INFO_DBG */
 }
 }

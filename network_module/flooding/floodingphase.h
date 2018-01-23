@@ -50,12 +50,6 @@ public:
     
     virtual ~FloodingPhase();
     
-    /**
-     * Enables/disables the debug mode
-     * \param enabled if true, this class prints debug data
-     */
-    void setDebug(bool enabled) { debug = enabled; }
-    
     //Minimum ~550us, 200us of slack added
     static const int rootNodeWakeupAdvance = 750000;
     static const unsigned short maxMissedPackets = 3;
@@ -69,12 +63,11 @@ public:
     static const long long phaseDuration = 500000000; //duration of the flooding phase, 500ms
     
 protected:
-    FloodingPhase(long long startTime, unsigned short panId, bool debug = true) :
+    FloodingPhase(long long startTime, unsigned short panId) :
             MACPhase(startTime),
             transceiver(Transceiver::instance()),
             pm(PowerManager::instance()),
-            panId(panId),
-            debug(debug) {};
+            panId(panId) {};
     /**
      * Rebroadcst the synchronization packet using glossy
      * \param receivedTimestamp the timestamp when the packet was received
@@ -102,7 +95,6 @@ protected:
     Transceiver& transceiver;
     PowerManager& pm;
     unsigned short panId;
-    bool debug;
     
 private:
 

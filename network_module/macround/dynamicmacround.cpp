@@ -45,24 +45,24 @@ namespace miosix {
                 break;
             case SyncStatus::MacroStatus::IN_SYNC:
                 //TODO add phase changes
-                roundtrip = new ListeningRoundtripPhase(mac, syncStatus->measuredFrameStart + FloodingPhase::phaseDuration, debug);
+                roundtrip = new ListeningRoundtripPhase(mac, syncStatus->measuredFrameStart + FloodingPhase::phaseDuration);
                 break;
         }
         if (roundtrip != nullptr) roundtrip->execute(ctx);
         syncStatus->next();
         switch (syncStatus->getInternalStatus()) {
             case SyncStatus::MacroStatus::DESYNCHRONIZED:
-                nextRound->setFloodingPhase(new HookingFloodingPhase(mac, syncStatus->computedFrameStart, debug));
+                nextRound->setFloodingPhase(new HookingFloodingPhase(mac, syncStatus->computedFrameStart));
                 break;
             case SyncStatus::MacroStatus::IN_SYNC:
-                nextRound->setFloodingPhase(new PeriodicCheckFloodingPhase(mac, syncStatus->getWakeupTime(), debug));
+                nextRound->setFloodingPhase(new PeriodicCheckFloodingPhase(mac, syncStatus->getWakeupTime()));
                 break;
         }
     }
         
-    MACRound* DynamicMACRound::DynamicMACRoundFactory::create(MACContext& ctx, bool debug) const {
+    MACRound* DynamicMACRound::DynamicMACRoundFactory::create(MACContext& ctx) const {
         ctx.initializeSyncStatus(new SyncStatus());
-        return new DynamicMACRound(ctx.getMediumAccessController(), debug);
+        return new DynamicMACRound(ctx.getMediumAccessController());
     }
 
 
