@@ -49,8 +49,9 @@ namespace miosix {
             static_cast<unsigned char>(panId & 0xff), //destination pan ID
             0xff, 0xff                                //destination addr (broadcast)
         };
-        pm.deepSleepUntil(startTime);
         transceiver.turnOn();
+        //Thread::nanoSleep(startTime - getTime());
+        pm.deepSleepUntil(startTime);
         //Sending synchronization start packet
         try {
             transceiver.sendAt(syncPacket, sizeof(syncPacket), sendTime);
