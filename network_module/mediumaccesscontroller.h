@@ -14,6 +14,8 @@
 #ifndef NETWORKMANAGER_H
 #define NETWORKMANAGER_H
 
+#include "debug_settings.h"
+
 namespace miosix {
     class MACRoundFactory;
     class MACContext;

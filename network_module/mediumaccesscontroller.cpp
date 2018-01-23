@@ -40,8 +40,9 @@ namespace miosix {
     }
 
     void MediumAccessController::run() {
-        for(MACRound* round = ctx->getCurrentRound(); ; round = ctx->shiftRound())
+        for(MACRound* round = ctx->getCurrentRound(); ; round = ctx->shiftRound()){
             round->run(*ctx);
+        }
     }
 
     miosix::MediumAccessController& miosix::MediumAccessController::instance(const miosix::MACRoundFactory *const roundFactory, unsigned short panId, short txPower, unsigned int radioFrequency, bool debug) {

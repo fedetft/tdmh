@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2018 by Terraneo Federico, Polidori Paolo              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,23 +25,29 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "floodingphase.h"
-#include <stdio.h>
+#ifndef DEBUG_SETTINGS_H
+#define DEBUG_SETTINGS_H
 
-namespace miosix{
+//prints info if receiving a packet
+#define ENABLE_PKT_INFO_DBG
 
-FloodingPhase::~FloodingPhase() {
-}
+//dumps the contents of the packets, ENABLE_BAD_PKT_INFO must be defined
+#define ENABLE_PKT_DUMP_DBG
 
-void FloodingPhase::rebroadcast(long long receivedTimestamp, unsigned char* packet){
-    //TODO add check for maximum hop number
-    try {
-        transceiver.sendAt(packet, syncPacketSize, receivedTimestamp + rebroadcastInterval);
-    } catch(std::exception& e) {
-#ifdef ENABLE_RADIO_EXCEPTION_DBG
-        printf("%s\n", e.what());
-#endif /* ENABLE_RADIO_EXCEPTION_DBG */
-    }
-}
-}
+//prints the exception if any while using the radio
+#define ENABLE_RADIO_EXCEPTION_DBG
+
+//prints the flooding phase debug info
+#define ENABLE_FLOODING_INFO_DBG
+
+//prints the flooding phase errors
+#define ENABLE_FLOODING_ERROR_DBG
+
+//prints the flooding phase debug info
+#define ENABLE_ROUNDTRIP_INFO_DBG
+
+//prints the flooding phase errors
+#define ENABLE_ROUNDTRIP_ERROR_DBG
+
+#endif /* DEBUG_SETTINGS_H */
 

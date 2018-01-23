@@ -30,22 +30,30 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
     unsigned char packet[replyPacketSize];
     bool isTimeout = false;
     long long now=0;
+#ifdef ENABLE_ROUNDTRIP_INFO_DBG
     printf("[RTT] Receiving until %lld\n", timeoutTime);
+#endif /* ENABLE_ROUNDTRIP_INFO_DBG */
     RecvResult result;
     for(bool success = false; !(success || isTimeout);)
     {
         try {
             result = transceiver.recv(packet, replyPacketSize, timeoutTime);
         } catch(std::exception& e) {
+#ifdef ENABLE_RADIO_EXCEPTION_DBG
             if(debug) printf("%s\n", e.what());
+#endif /* ENABLE_RADIO_EXCEPTION_DBG */
         }
         now = getTime();
+#ifdef ENABLE_PKT_INFO_DBG
         if(debug) {
             if(result.size){
                 printf("[RTT] Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+#ifdef ENABLE_PKT_DUMP_DBG
                 memDump(packet, result.size);
+#endif /* ENABLE_PKT_DUMP_DBG */
             } else printf("[RTT] No packet received, timeout reached\n");
         }
+#endif /* ENABLE_PKT_INFO_DBG */
         if(isRoundtripPacket(result, packet) && (packet[2] == ctx.getHop() + 1))
         {
             success = true;
@@ -57,16 +65,22 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
     }
     
     if(!isTimeout && result.error == RecvResult::OK && result.timestampValid){
+#ifdef ENABLE_ROUNDTRIP_INFO_DBG
         if(debug) printf("[RTT] Replying ledbar packet\n");
+#endif /* ENABLE_ROUNDTRIP_INFO_DBG */
         LedBar<125> p;
         p.encode(7); //TODO: 7?! should check what's received, increment the led bar and filter it with a LPF
         try {
             transceiver.sendAt(p.getPacket(), p.getPacketSize(), result.timestamp + replyDelay);
         } catch(std::exception& e) {
+#ifdef ENABLE_RADIO_EXCEPTION_DBG
             if(debug) puts(e.what());
+#endif /* ENABLE_RADIO_EXCEPTION_DBG */
         }
+#ifdef ENABLE_ROUNDTRIP_INFO_DBG
     } else {
         if(debug) printf("[RTT] Roundtrip packet not received\n");
+#endif /* ENABLE_ROUNDTRIP_INFO_DBG */
     }
     
     transceiver.turnOff();

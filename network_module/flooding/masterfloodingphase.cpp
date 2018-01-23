@@ -55,9 +55,13 @@ namespace miosix {
         try {
             transceiver.sendAt(syncPacket, sizeof(syncPacket), sendTime);
         } catch(std::exception& e) {
+#ifdef ENABLE_RADIO_EXCEPTION_DBG
             if(debug) printf("%s\n", e.what());
+#endif /* ENABLE_RADIO_EXCEPTION_DBG */
         }
+#ifdef ENABLE_FLOODING_INFO_DBG
         if (debug) printf("Sync packet sent at %lld\n", sendTime);
+#endif /* ENABLE_FLOODING_INFO_DBG */
         transceiver.turnOff();
         ledOff();
     }

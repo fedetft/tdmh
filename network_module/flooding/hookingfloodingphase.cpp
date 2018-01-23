@@ -35,7 +35,9 @@ HookingFloodingPhase::~HookingFloodingPhase() {
 
 void HookingFloodingPhase::execute(MACContext& ctx)
 {   
+#ifdef ENABLE_FLOODING_INFO_DBG
     if(debug) printf("Resynchronize...\n");
+#endif /* ENABLE_FLOODING_INFO_DBG */
     auto* status = ctx.getSyncStatus();
     auto* synchronizer = status->synchronizer;
     synchronizer->reset();
@@ -49,14 +51,20 @@ void HookingFloodingPhase::execute(MACContext& ctx)
         try {
             result = transceiver.recv(packet, syncPacketSize, infiniteTimeout);
         } catch(std::exception& e) {
+#ifdef ENABLE_RADIO_EXCEPTION_DBG
             if(debug) printf("%s\n", e.what());
+#endif /* ENABLE_RADIO_EXCEPTION_DBG */
         }
-        /*if(debug){
+#ifdef ENABLE_PKT_INFO_DBG
+        if(debug){
             if(result.size){
                 printf("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+#ifdef ENABLE_PKT_DUMP_DBG
                 memDump(packet, result.size);
+#endif /* ENABLE_PKT_DUMP_DBG */
             } else printf("No packet received, timeout reached\n");
-        }*/
+        }
+#endif /* ENABLE_PKT_INFO_DBG */
     }
     ++packet[2];
     rebroadcast(result.timestamp, packet);
@@ -64,14 +72,18 @@ void HookingFloodingPhase::execute(MACContext& ctx)
     ledOff();
     transceiver.turnOff();
     
+#ifdef ENABLE_FLOODING_INFO_DBG
     if (debug) printf("Expected receiving time: %lld, actual: %lld\n", status->computedFrameStart, result.timestamp);
+#endif /* ENABLE_FLOODING_INFO_DBG */
     
     status->initialize(synchronizer->getReceiverWindow(), result.timestamp);
     ctx.setHop(packet[2]);
     
     //Correct frame start considering hops
     //measuredFrameStart-=hop*packetRebroadcastTime;
+#ifdef ENABLE_FLOODING_INFO_DBG
     if(debug) printf("Resynchronized: hop=%d, w=%d, rssi=%d.\n", packet[2], status->receiverWindow, result.rssi);
+#endif /* ENABLE_FLOODING_INFO_DBG */
 }
 }
 

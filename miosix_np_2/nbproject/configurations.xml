@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="time_synchronizers"
+                   displayName="time_synchronizers"
+                   projectFiles="true"
+                   root="../../miosix-kernel-unofficial/network_module/flooding/time_synchronizers">
+      <itemPath>../../miosix-kernel-unofficial/network_module/flooding/time_synchronizers/flopsync2.cpp</itemPath>
+      <itemPath>../../miosix-kernel-unofficial/network_module/flooding/time_synchronizers/flopsync2.h</itemPath>
+      <itemPath>../../miosix-kernel-unofficial/network_module/flooding/time_synchronizers/synchronizer.cpp</itemPath>
+      <itemPath>../../miosix-kernel-unofficial/network_module/flooding/time_synchronizers/synchronizer.h</itemPath>
+    </logicalFolder>
     <df root=".." name="0">
       <df name="miosix-kernel-unofficial">
         <df name="miosix">
@@ -488,10 +497,12 @@
           <in>mastermacround.cpp</in>
         </df>
         <df name="roundtrip">
+          <in>askingroundtripphase.cpp</in>
           <in>led_bar.cpp</in>
           <in>listeningroundtripphase.cpp</in>
           <in>roundtripphase.cpp</in>
         </df>
+        <in>debug_settings.h</in>
         <in>maccontext.cpp</in>
         <in>macphase.cpp</in>
         <in>mediumaccesscontroller.cpp</in>
@@ -1388,6 +1399,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
     </conf>
     <conf name="lpc2138_miosix_board" type="0">
       <toolsSet>
@@ -1838,6 +1851,8 @@
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
           </incDir>
         </ccTool>
+      </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/arm7_lpc2000">
         <ccTool>
@@ -2447,6 +2462,8 @@
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
           </incDir>
         </ccTool>
+      </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -3095,6 +3112,8 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
           <incDir>
@@ -3584,6 +3603,8 @@
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
           </incDir>
         </ccTool>
+      </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -4231,6 +4252,8 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
           <incDir>
@@ -4877,6 +4900,8 @@
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
           </incDir>
         </ccTool>
+      </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -5545,6 +5570,8 @@
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
           </incDir>
         </ccTool>
+      </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -6225,6 +6252,8 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
           <incDir>
@@ -6882,6 +6911,8 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
           <incDir>
@@ -7350,6 +7381,8 @@
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
           </incDir>
         </ccTool>
+      </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -7851,6 +7884,8 @@
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
           </incDir>
         </ccTool>
+      </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -8513,6 +8548,8 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
           <incDir>
@@ -9036,6 +9073,8 @@
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
           </incDir>
         </ccTool>
+      </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -9682,6 +9721,8 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
           <incDir>
@@ -10226,6 +10267,8 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
           <incDir>
@@ -10730,6 +10773,8 @@
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
           </incDir>
         </ccTool>
+      </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -11430,6 +11475,8 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
           <incDir>
@@ -11642,31 +11689,6 @@
           </cTool>
           <ccTool flags="0">
             <standard>8</standard>
-            <incDir>
-              <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
-              <pElem>../../miosix-kernel-unofficial</pElem>
-              <pElem>../../miosix-kernel-unofficial</pElem>
-              <pElem>../../network_module/flooding/time_synchronizers</pElem>
-              <pElem>../../network_module/roundtrip</pElem>
-              <pElem>../../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
-              <pElem>../../network_module</pElem>
-              <pElem>../../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
-              <pElem>../../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
-              <pElem>../../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
-              <pElem>../../miosix-kernel-unofficial/miosix/kernel</pElem>
-              <pElem>../../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
-              <pElem>../../miosix-kernel-unofficial/miosix/kernel/scheduler</pElem>
-              <pElem>../../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common</pElem>
-              <pElem>../../miosix-kernel-unofficial/miosix/config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
-              <pElem>../../miosix-kernel-unofficial/miosix/config</pElem>
-              <pElem>../../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
-              <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
-              <pElem>../../miosix-kernel-unofficial/miosix/util</pElem>
-              <pElem>../../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
-              <pElem>../../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
-              <pElem>../../miosix-kernel-unofficial/miosix</pElem>
-              <pElem>../../miosix-kernel-unofficial</pElem>
-            </incDir>
           </ccTool>
         </makeTool>
         <preBuild>
@@ -11674,6 +11696,27 @@
           <preBuildCommand></preBuildCommand>
         </preBuild>
       </makefileType>
+      <item path="../../miosix-kernel-unofficial/network_module/flooding/time_synchronizers/flopsync2.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+        <ccTool>
+          <incDir>
+            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>../../miosix-kernel-unofficial</pElem>
+          </incDir>
+        </ccTool>
+      </item>
+      <item path="../../miosix-kernel-unofficial/network_module/flooding/time_synchronizers/synchronizer.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+        <ccTool>
+          <incDir>
+            <pElem>../../miosix-kernel-unofficial</pElem>
+          </incDir>
+        </ccTool>
+      </item>
       <item path="../main.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <incDir>
@@ -11684,6 +11727,7 @@
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler</pElem>
+            <pElem>../network_module/flooding</pElem>
             <pElem>../network_module</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common</pElem>
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
@@ -11693,6 +11737,7 @@
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>..</pElem>
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
           </incDir>
         </ccTool>
       </item>
@@ -12938,6 +12983,34 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/roundtrip/askingroundtripphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+        <ccTool>
+          <incDir>
+            <pElem>../network_module/roundtrip</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
+            <pElem>../network_module</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common</pElem>
+            <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
+            <pElem>../config</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
+            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/util</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix</pElem>
+            <pElem>..</pElem>
+          </incDir>
+        </ccTool>
+      </item>
       <item path="../network_module/roundtrip/led_bar.cpp"
             ex="false"
             tool="1"
@@ -12971,11 +13044,10 @@
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
             <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/util</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix</pElem>
             <pElem>..</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix</pElem>
           </incDir>
         </ccTool>
       </item>
@@ -13008,6 +13080,26 @@
       <folder path="0/miosix-kernel-unofficial/miosix/_tools">
         <ccTool>
           <incDir>
+            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>../../miosix-kernel-unofficial</pElem>
+            <pElem>../../network_module/flooding/time_synchronizers</pElem>
+            <pElem>../../network_module/roundtrip</pElem>
+            <pElem>../../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
+            <pElem>../../network_module</pElem>
+            <pElem>../../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
+            <pElem>../../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
+            <pElem>../../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
+            <pElem>../../miosix-kernel-unofficial/miosix/kernel</pElem>
+            <pElem>../../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
+            <pElem>../../miosix-kernel-unofficial/miosix/kernel/scheduler</pElem>
+            <pElem>../../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common</pElem>
+            <pElem>../../miosix-kernel-unofficial/miosix/config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
+            <pElem>../../miosix-kernel-unofficial/miosix/config</pElem>
+            <pElem>../../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
+            <pElem>../../miosix-kernel-unofficial/miosix/util</pElem>
+            <pElem>../../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
+            <pElem>../../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
+            <pElem>../../miosix-kernel-unofficial/miosix</pElem>
             <pElem>../flopsync_v4</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
@@ -13020,7 +13112,6 @@
             <pElem>../miosix-kernel-unofficial/miosix/config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
-            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
             <pElem>..</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
@@ -13330,6 +13421,13 @@
         <ccTool>
           <incDir>
             <pElem>../network_module/macround</pElem>
+          </incDir>
+        </ccTool>
+      </folder>
+      <folder path="time_synchronizers">
+        <ccTool>
+          <incDir>
+            <pElem>../../miosix-kernel-unofficial/network_module/flooding/time_synchronizers</pElem>
           </incDir>
         </ccTool>
       </folder>
@@ -13887,6 +13985,8 @@
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
           </incDir>
         </ccTool>
+      </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -14461,6 +14561,8 @@
             ex="false"
             tool="1"
             flavor2="8">
+      </item>
+      <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common">
         <ccTool>
