@@ -33,24 +33,29 @@
 #include "time_synchronizers/flopsync2.h"
 #include "../maccontext.h"
 #include "syncstatus.h"
+#include <stdexcept>
 
 namespace miosix{
 class PeriodicCheckFloodingPhase : public FloodingPhase {
 public:
     /**
      * This function creates a PeriodicCheckFloodingPhase as first phase
-     * @param mac
      * @param frameStart
-     * @param theoreticalFrameStart
      */
-    PeriodicCheckFloodingPhase(const MediumAccessController& mac, long long frameStart) :
-            PeriodicCheckFloodingPhase(frameStart, mac.getPanId()) {};
-    PeriodicCheckFloodingPhase(long long frameStart, unsigned short panId) :
-            FloodingPhase(frameStart, panId) { };
+    explicit PeriodicCheckFloodingPhase(long long frameStart) :
+            PeriodicCheckFloodingPhase(frameStart) {};
     PeriodicCheckFloodingPhase() = delete;
     PeriodicCheckFloodingPhase(const PeriodicCheckFloodingPhase& orig) = delete;
     void execute(MACContext& ctx) override;
     virtual ~PeriodicCheckFloodingPhase();
+    inline virtual long long getNextRoundStart() override {
+        if(!consumed) throw std::logic_error("Can't predict next round start before synchronizing the clock.");
+        return syncStatus->getWakeupTime() - rootNodeWakeupAdvance;
+    }
+
+protected:
+    bool consumed = false;
+    SyncStatus* syncStatus = nullptr;
 private:
 };
 }

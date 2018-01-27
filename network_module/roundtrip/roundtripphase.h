@@ -27,21 +27,23 @@ public:
      * @param mac
      * @param startTime
      */
-    RoundtripPhase(const MediumAccessController& mac, long long startTime) :
-            RoundtripPhase(startTime, mac.getPanId()) {};
-    RoundtripPhase(long long startTime, short panId) : 
-            MACPhase(startTime),
-            transceiver(Transceiver::instance()),
-            panId(panId) {};
+    RoundtripPhase(long long startTime, long long wakeupTime) : 
+            MACPhase(startTime, wakeupTime),
+            transceiver(Transceiver::instance()) {};
     RoundtripPhase() = delete;
     RoundtripPhase(const RoundtripPhase& orig) = delete;
     virtual ~RoundtripPhase();
+    
+    inline static const long long getStartTime(long long previousPhaseEnd) {
+        return previousPhaseEnd + MediumAccessController::receivingNodeWakeupAdvance;
+    }
     
     static const int receiverWindow = 100000; //100us
     static const int senderDelay = 50000; //50us
     static const int replyDelay = 100000; //100us
     static const int askPacketSize = 7;
     static const int replyPacketSize = 125;
+    static const long long phaseDuration = 5000000; //duration of the roundtrip phase, 5ms
     
     /**
      * We are very limited with possible value to send through led bar, 
@@ -54,14 +56,14 @@ public:
     static const int accuracy = 15;
 protected:
     Transceiver& transceiver;
-    unsigned short panId;
     long long lastDelay;
     long long totalDelay;
     
-    inline bool isRoundtripPacket(RecvResult& result, unsigned char *packet) {
+    inline bool isRoundtripPacket(RecvResult& result, unsigned char *packet, unsigned short panId, unsigned char myHop) {
         return result.error == RecvResult::OK && result.timestampValid
                 && result.size == askPacketSize
                 && packet[0] == 0x46 && packet[1] == 0x08
+                && packet[2] == myHop + 1
                 && packet[3] == static_cast<unsigned char> (panId >> 8)
                 && packet[4] == static_cast<unsigned char> (panId & 0xff)
                 && packet[5] == 0xff && packet[6] == 0xfe;

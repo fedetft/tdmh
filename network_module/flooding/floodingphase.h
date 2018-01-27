@@ -50,24 +50,25 @@ public:
     
     virtual ~FloodingPhase();
     
+    /**
+     * Calculates the next round start. Must be called after the flooding phase ends.
+     * 
+     * @return 
+     */
+    virtual long long getNextRoundStart() = 0;
+    
     //Minimum ~550us, 200us of slack added
-    static const int rootNodeWakeupAdvance = 750000;
+    static const int rootNodeWakeupAdvance = 750000; //TODO remove or reduce this nonsense advance and speculatively sleep
     static const unsigned short maxMissedPackets = 3;
     static const int syncPacketSize = 7;
     static const int rebroadcastInterval = 1016000; //32us per-byte + 600us total delta
-    //5 byte (4 preamble, 1 SFD) * 32us/byte
-    static const int packetPreambleTime = 160000;
-    //350us and forced receiverWindow=1 fails, keeping this at minimum
-    //This is dependent on the optimization level, i usually use level -O2
-    static const int syncNodeWakeupAdvance = 450000;
     static const long long phaseDuration = 500000000; //duration of the flooding phase, 500ms
     
 protected:
-    FloodingPhase(long long startTime, unsigned short panId) :
-            MACPhase(startTime),
+    FloodingPhase(long long startTime) :
+            MACPhase(startTime, startTime + rootNodeWakeupAdvance),
             transceiver(Transceiver::instance()),
-            pm(PowerManager::instance()),
-            panId(panId) {};
+            pm(PowerManager::instance()) {};
     /**
      * Rebroadcst the synchronization packet using glossy
      * \param receivedTimestamp the timestamp when the packet was received
@@ -75,10 +76,11 @@ protected:
      */
     void rebroadcast(long long receivedTimestamp, unsigned char *packet);
         
-    inline bool isSyncPacket(RecvResult& result, unsigned char *packet) {
+    inline virtual bool isSyncPacket(RecvResult& result, unsigned char *packet, unsigned short panId, unsigned char myHop) {
         return result.error == RecvResult::OK
                 && result.timestampValid && result.size == syncPacketSize
                 && packet[0] == 0x46 && packet[1] == 0x08
+                && packet[2] == myHop - 1
                 && packet[3] == static_cast<unsigned char>(panId >> 8)
                 && packet[4] == static_cast<unsigned char>(panId & 0xff)
                 && packet[5] == 0xff && packet[6] == 0xff;
@@ -94,10 +96,9 @@ protected:
     
     Transceiver& transceiver;
     PowerManager& pm;
-    unsigned short panId;
     
 private:
-
+    
 };
 }
 

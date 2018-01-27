@@ -21,10 +21,8 @@
 namespace miosix{
 class ListeningRoundtripPhase : public RoundtripPhase  {
 public:
-    ListeningRoundtripPhase(const MediumAccessController& mac, long long startTime) :
-            ListeningRoundtripPhase(startTime, mac.getPanId()) {};
-    ListeningRoundtripPhase(long long startTime, short panId) :
-            RoundtripPhase(startTime, panId) {};
+    explicit ListeningRoundtripPhase(long long startTime) :
+            ListeningRoundtripPhase(startTime) {};
     ListeningRoundtripPhase() = delete;
     ListeningRoundtripPhase(const ListeningRoundtripPhase& orig) = delete;
     virtual ~ListeningRoundtripPhase();

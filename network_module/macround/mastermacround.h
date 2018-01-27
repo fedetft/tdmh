@@ -53,11 +53,13 @@ namespace miosix {
     protected:
         MasterMACRound(const MediumAccessController& mac, long long roundStart) :
                 MACRound(
-                    new MasterFloodingPhase(mac, roundStart),
-                    new ListeningRoundtripPhase(
-                        mac, roundStart + FloodingPhase::phaseDuration + FloodingPhase::syncNodeWakeupAdvance)),
+                    new MasterFloodingPhase(roundStart),
+                    new ListeningRoundtripPhase(RoundtripPhase::getStartTime(roundStart + FloodingPhase::phaseDuration))),
                 roundStart(roundStart) {}
                 
+        /**
+         * Initial skew for allowing the master to boot the network module before starting the first network round
+         */
         long long initializationDelay = 200000;
 
     private:

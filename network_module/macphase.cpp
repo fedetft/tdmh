@@ -28,12 +28,6 @@
 #include "macphase.h"
 
 namespace miosix {
-MACPhase::MACPhase() {
-}
-
-MACPhase::MACPhase(const MACPhase& orig) {
-}
-
 MACPhase::~MACPhase() {
 }
 }

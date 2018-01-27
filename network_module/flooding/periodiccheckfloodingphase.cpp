@@ -38,17 +38,17 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     printf("Synchronizing...\n");
 #endif /* ENABLE_FLOODING_INFO_DBG */
     
-    auto* status = ctx.getSyncStatus();
+    syncStatus = ctx.getSyncStatus();
     
     //This is fully corrected
-    long long timeoutTime = status->getTimeoutTime();  
+    long long timeoutTime = syncStatus->getTimeoutTime();  
     
     //check if we skipped the synchronization time
-    if (getTime() >= startTime) {
+    if (getTime() >= wakeupTime) {
 #ifdef ENABLE_FLOODING_ERROR_DBG
         printf("PeriodicFloodingCheck started too late\n");
 #endif /* ENABLE_FLOODING_ERROR_DBG */
-        status->missedPacket();
+        syncStatus->missedPacket();
         return;
     }
     
@@ -56,21 +56,21 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     transceiver.configure(*ctx.getTransceiverConfig());
     unsigned char packet[syncPacketSize];
     
-    //Awaiting a time sync packet
-    bool timeout = false;
-    
 #ifdef ENABLE_FLOODING_INFO_DBG
-    printf("Will wake up @ %lld\n", startTime);
+    printf("Will wake up @ %lld\n", wakeupTime);
     printf("Will await sync packet until %lld (uncorrected)\n", timeoutTime);
 #endif /* ENABLE_FLOODING_INFO_DBG */
 
     ledOn();
     transceiver.turnOn();
-    pm.deepSleepUntil(startTime);
+    pm.deepSleepUntil(wakeupTime);
     
     RecvResult result;
-    for (bool success = false; !(success || timeout);) {
-        try {    
+    bool success = false;
+    for (; !(success || result.error == RecvResult::ErrorCode::TIMEOUT);
+            success = isSyncPacket(result, packet, ctx.getMediumAccessController().getPanId(), ctx.getHop())) {
+        try {
+            //uncorrected TS needed for computing the correction with flopsync
             result = transceiver.recv(packet, syncPacketSize, timeoutTime, Transceiver::Unit::NS, HardwareTimer::Correct::UNCORR);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
@@ -85,35 +85,30 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
 #endif /* ENABLE_PKT_DUMP_DBG */
         } else printf("No packet received, timeout reached\n");
 #endif /* ENABLE_PKT_INFO_DBG */
-        if (isSyncPacket(result, packet) && packet[2] == ctx.getHop() - 1)
-        {
-            success = true;
-        } else {
-            timeout = getTime() >= timeoutTime;
-        }
     }
     
     transceiver.idle(); //Save power waiting for rebroadcast time
     
     //This conversion is really necessary to get the corrected time in NS, to pass to transceiver
-    long long correctedMeasuredFrameStart = status->correct(result.timestamp);
+    long long correctedMeasuredFrameStart = syncStatus->correct(result.timestamp);
     //Rebroadcast the sync packet
-    if (!timeout) rebroadcast(correctedMeasuredFrameStart, packet);
+    if (success) rebroadcast(correctedMeasuredFrameStart, packet);
+    consumed = true;
     transceiver.turnOff();
     ledOff();
     
-    if (!timeout) {
-        status->receivedPacket(result.timestamp);
+    if (success) {
+        syncStatus->receivedPacket(result.timestamp);
 #ifdef ENABLE_FLOODING_INFO_DBG
         printf("sync time: [%lld]\n", result.timestamp);
         printf("e=%lld u=%d w=%d rssi=%d\n",
-                status->getError(),
-                status->clockCorrection,
-                status->receiverWindow, 
+                syncStatus->getError(),
+                syncStatus->clockCorrection,
+                syncStatus->receiverWindow, 
                result.rssi);
     } else {
-        printf("miss u=%d w=%d\n", status->clockCorrection, status->receiverWindow);
-        if (status->missedPacket() >= maxMissedPackets)
+        printf("miss u=%d w=%d\n", syncStatus->clockCorrection, syncStatus->receiverWindow);
+        if (syncStatus->missedPacket() >= maxMissedPackets)
         {
             printf("Lost sync\n");
         }

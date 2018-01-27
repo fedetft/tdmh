@@ -30,21 +30,33 @@
 
 #include "floodingphase.h"
 #include <utility>
+#include <array>
 
 namespace miosix {
 class MasterFloodingPhase : public FloodingPhase {
 public:
     MasterFloodingPhase(const MediumAccessController& mac, long long startTime) :
-            MasterFloodingPhase(startTime, mac.getPanId()) {};
+            MasterFloodingPhase(startTime) {};
     MasterFloodingPhase() = delete;
     MasterFloodingPhase(const MasterFloodingPhase& orig) = delete;
-    MasterFloodingPhase(long long startTime, unsigned short panId) :
-            FloodingPhase(startTime, panId) {};
+    MasterFloodingPhase(long long startTime) :
+            FloodingPhase(startTime) {};
     void execute(MACContext& ctx) override;
     virtual ~MasterFloodingPhase();
+    
+    inline virtual long long getNextRoundStart() override;
 protected:
+    inline std::array<unsigned char, syncPacketSize> getSyncPkt(int panId) {
+        return {{
+            0x46, //frame type 0b110 (reserved), intra pan
+            0x08, //no source addressing, short destination addressing
+            0x00, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
+            static_cast<unsigned char>(panId>>8),
+            static_cast<unsigned char>(panId & 0xff), //destination pan ID
+            0xff, 0xff                                //destination addr (broadcast)
+                }};
+    }
 private:
-
 };
 }
 

@@ -34,7 +34,7 @@ namespace miosix {
 
     void MasterMACRound::run(MACContext& ctx) {
         MACRound::run(ctx);
-        ctx.setNextRound(new MasterMACRound(ctx.getMediumAccessController(), roundStart + roundDuration));
+        ctx.setNextRound(new MasterMACRound(ctx.getMediumAccessController(), flooding->getNextRoundStart()));
     }
 
     MACRound* MasterMACRound::MasterMACRoundFactory::create(MACContext& ctx) const {

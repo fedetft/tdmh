@@ -35,27 +35,14 @@ namespace miosix {
     }
 
     void AskingRoundtripPhase::execute(MACContext& ctx) {
-
-        const unsigned char roundtripPacket[]=
-        {
-            0x46, //frame type 0b110 (reserved), intra pan
-            0x08, //no source addressing, short destination addressing
-            static_cast<unsigned char>(ctx.getHop()),          //seq no reused as glossy hop count, 0=root node, set the previous hop
-            static_cast<unsigned char>(panId>>8),
-            static_cast<unsigned char>(panId & 0xff),   //destination pan ID
-            0xff, 0xfe                                  //destination addr (broadcast)
-        };
-
         //Sending led bar request to the previous hop
         //Transceiver configured with non strict timeout
         greenLed::high();
         transceiver.configure(*ctx.getTransceiverConfig());
-        //120000 correspond to 2.5us enough to do the sendAt
-        //modified to 1ms
-        auto sendTime = startTime + senderDelay;
         transceiver.turnOn();
         try {
-            transceiver.sendAt(roundtripPacket, askPacketSize, sendTime);
+            transceiver.sendAt(
+                getRoundtripAskPacket(ctx.getMediumAccessController().getPanId()).data(), askPacketSize, wakeupTime);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
             printf("%s\n", e.what());
@@ -68,10 +55,11 @@ namespace miosix {
         //Expecting a ledbar reply from any node of the previous hop, crc disabled
         auto* tc = ctx.getTransceiverConfig();
         transceiver.configure(TransceiverConfiguration(tc->frequency, tc->txPower, false, false));
-        LedBar<125> p;
+        LedBar<replyPacketSize> p;
         RecvResult result;
+        //TODO missing a cycle for skipping bad pkts
         try {
-            result = transceiver.recv(p.getPacket(), p.getPacketSize(), sendTime + replyDelay + senderDelay);
+            result = transceiver.recv(p.getPacket(), p.getPacketSize(), wakeupTime + replyDelay);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
             puts(e.what());
@@ -89,7 +77,7 @@ namespace miosix {
         greenLed::low();
 
         if(result.size == p.getPacketSize() && result.error == RecvResult::ErrorCode::OK && result.timestampValid) {
-            lastDelay = result.timestamp - (sendTime + replyDelay);
+            lastDelay = result.timestamp - (wakeupTime + replyDelay);
             totalDelay = p.decode().first * accuracy + lastDelay;
 #ifdef ENABLE_ROUNDTRIP_INFO_DBG
             printf("delay=%lld total=%lld\n", lastDelay, totalDelay);

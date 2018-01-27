@@ -38,24 +38,26 @@ namespace miosix {
         ctx.setNextRound(nextRound);
         flooding->execute(ctx);
         SyncStatus* syncStatus = ctx.getSyncStatus();
-        auto& mac = ctx.getMediumAccessController();
         switch (syncStatus->getInternalStatus()) {
             case SyncStatus::MacroStatus::DESYNCHRONIZED:
                 roundtrip = nullptr;
                 break;
             case SyncStatus::MacroStatus::IN_SYNC:
                 //TODO add phase changes
-                roundtrip = new ListeningRoundtripPhase(mac, syncStatus->measuredFrameStart + FloodingPhase::phaseDuration);
+                roundtrip = new ListeningRoundtripPhase(
+                        RoundtripPhase::getStartTime(syncStatus->measuredFrameStart + FloodingPhase::phaseDuration));
                 break;
         }
         if (roundtrip != nullptr) roundtrip->execute(ctx);
+        
+        //switch to next round programming
         syncStatus->next();
         switch (syncStatus->getInternalStatus()) {
             case SyncStatus::MacroStatus::DESYNCHRONIZED:
-                nextRound->setFloodingPhase(new HookingFloodingPhase(mac, syncStatus->computedFrameStart));
+                nextRound->setFloodingPhase(new HookingFloodingPhase(flooding->getNextRoundStart()));
                 break;
             case SyncStatus::MacroStatus::IN_SYNC:
-                nextRound->setFloodingPhase(new PeriodicCheckFloodingPhase(mac, syncStatus->getWakeupTime()));
+                nextRound->setFloodingPhase(new PeriodicCheckFloodingPhase(flooding->getNextRoundStart()));
                 break;
         }
     }

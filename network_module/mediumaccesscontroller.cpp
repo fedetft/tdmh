@@ -31,7 +31,7 @@
 
 namespace miosix {
     MediumAccessController::MediumAccessController(const MACRoundFactory* const roundFactory, unsigned short panId, short txPower, unsigned int radioFrequency) :
-        panId(panId), txPower(txPower), radioFrequency(radioFrequency), ctx(new MACContext(roundFactory, *this)) {
+        panId(panId), txPower(txPower), baseFrequency(radioFrequency), ctx(new MACContext(roundFactory, *this)) {
 
     }
 

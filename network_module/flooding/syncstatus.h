@@ -78,11 +78,11 @@ namespace miosix {
         }
         
         inline long long getUncorrectedTimeout() {
-            return computedFrameStart + receiverWindow + FloodingPhase::packetPreambleTime;
+            return computedFrameStart + receiverWindow + MediumAccessController::packetPreambleTime;
         }
         
         inline long long getWakeupTime() {
-            return computedFrameStart - (FloodingPhase::syncNodeWakeupAdvance + receiverWindow);
+            return computedFrameStart - (MediumAccessController::receivingNodeWakeupAdvance + receiverWindow);
         }
         
         inline unsigned char missedPacket() {

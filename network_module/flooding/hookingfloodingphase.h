@@ -34,30 +34,40 @@
 #include "../maccontext.h"
 #include "syncstatus.h"
 #include <utility>
+#include <stdexcept>
 
 namespace miosix {
 class HookingFloodingPhase : public FloodingPhase {
 public:
     /**
      * This function creates a HookingFloodingPhase as first phase
-     * @param mac
      */
-    explicit HookingFloodingPhase(const MediumAccessController& mac) :
-            HookingFloodingPhase(mac, 0) {};
+    HookingFloodingPhase() :
+            HookingFloodingPhase(0) {};
     /**
      * This function creates a HookingFloodingPhase as first phase with known frameStart and theoreticalFrameStart
-     * @param mac
      * @param frameStart
      */
-    HookingFloodingPhase(const MediumAccessController& mac, long long frameStart) :
-            FloodingPhase(frameStart, mac.getPanId()) {};
-    HookingFloodingPhase() = delete;
+    explicit HookingFloodingPhase(long long frameStart) :
+            FloodingPhase(frameStart) {};
     HookingFloodingPhase(const HookingFloodingPhase& orig) = delete;
     void execute(MACContext& ctx) override;
     virtual ~HookingFloodingPhase();
+    inline virtual long long getNextRoundStart() override {
+        if(!consumed) throw std::logic_error("Can't predict next round start before synchronizing the clock.");
+        return syncStatus->getWakeupTime() - rootNodeWakeupAdvance;
+    }
+    inline virtual bool isSyncPacket(RecvResult& result, unsigned char *packet, unsigned short panId) {
+        return result.error == RecvResult::OK
+                && result.timestampValid && result.size == syncPacketSize
+                && packet[0] == 0x46 && packet[1] == 0x08
+                && packet[3] == static_cast<unsigned char>(panId >> 8)
+                && packet[4] == static_cast<unsigned char>(panId & 0xff)
+                && packet[5] == 0xff && packet[6] == 0xff;
+    }
 protected:
-    HookingFloodingPhase(unsigned short panId, long long frameStart) :
-            HookingFloodingPhase(frameStart, panId) {};
+    bool consumed = false;
+    SyncStatus* syncStatus = nullptr;
 private:
 };
 }

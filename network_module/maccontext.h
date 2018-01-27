@@ -31,14 +31,15 @@ namespace miosix {
         MACRound* getNextRound() const { return nextRound; }
         MACRound* shiftRound();
         inline const MediumAccessController& getMediumAccessController() { return mac; }
-        void setHop(short num) { hop = num; }
-        short getHop() { return hop; }
+        void setHop(unsigned char num) { hop = num; }
+        unsigned char getHop() { return hop; }
         void setNextRound(MACRound* round);
         void initializeSyncStatus(SyncStatus* syncStatus);
         inline SyncStatus* getSyncStatus() { return syncStatus; }
         inline const TransceiverConfiguration* getTransceiverConfig() { return transceiverConfig; }
+        unsigned char networkId;
     private:
-        short hop;
+        unsigned char hop;
         const MediumAccessController& mac;
         SyncStatus* syncStatus;
         const TransceiverConfiguration* const transceiverConfig;

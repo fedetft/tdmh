@@ -37,33 +37,26 @@ namespace miosix {
 
     void MasterFloodingPhase::execute(MACContext& ctx)
     {
-        auto sendTime = startTime + rootNodeWakeupAdvance;
         ledOn();
         transceiver.configure(*ctx.getTransceiverConfig());
-        const unsigned char syncPacket[]=
-        {
-            0x46, //frame type 0b110 (reserved), intra pan
-            0x08, //no source addressing, short destination addressing
-            0x00, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
-            static_cast<unsigned char>(panId>>8),
-            static_cast<unsigned char>(panId & 0xff), //destination pan ID
-            0xff, 0xff                                //destination addr (broadcast)
-        };
         transceiver.turnOn();
-        //Thread::nanoSleep(startTime - getTime());
-        pm.deepSleepUntil(startTime);
+        //Thread::nanoSleepUntil(startTime);
+        pm.deepSleepUntil(startTime); //TODO don't deepsleep if there's no time or it's inconvenient
         //Sending synchronization start packet
         try {
-            transceiver.sendAt(syncPacket, sizeof(syncPacket), sendTime);
+            transceiver.sendAt(getSyncPkt(ctx.getMediumAccessController().getPanId()).data(), syncPacketSize, wakeupTime);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
             printf("%s\n", e.what());
 #endif /* ENABLE_RADIO_EXCEPTION_DBG */
         }
 #ifdef ENABLE_FLOODING_INFO_DBG
-        printf("Sync packet sent at %lld\n", sendTime);
+        printf("Sync packet sent at %lld\n", wakeupTime);
 #endif /* ENABLE_FLOODING_INFO_DBG */
         transceiver.turnOff();
         ledOff();
     }
+    
+    inline long long MasterFloodingPhase::getNextRoundStart()  { return startTime + MACRound::roundDuration; }
+
 }

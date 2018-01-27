@@ -27,14 +27,15 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
     transceiver.configure(*ctx.getTransceiverConfig());
     transceiver.turnOn();
     
-    unsigned char packet[replyPacketSize];
-    bool isTimeout = false;
+    unsigned char packet[askPacketSize];
     long long now=0;
 #ifdef ENABLE_ROUNDTRIP_INFO_DBG
     printf("[RTT] Receiving until %lld\n", timeoutTime);
 #endif /* ENABLE_ROUNDTRIP_INFO_DBG */
     RecvResult result;
-    for(bool success = false; !(success || isTimeout);)
+    bool success = false;
+    for(; !(success || result.error == RecvResult::ErrorCode::TIMEOUT);
+            success = isRoundtripPacket(result, packet, ctx.getMediumAccessController().getPanId(), ctx.getHop()))
     {
         try {
             result = transceiver.recv(packet, replyPacketSize, timeoutTime);
@@ -43,7 +44,6 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
             printf("%s\n", e.what());
 #endif /* ENABLE_RADIO_EXCEPTION_DBG */
         }
-        now = getTime();
 #ifdef ENABLE_PKT_INFO_DBG
         if(result.size){
             printf("[RTT] Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
@@ -52,15 +52,14 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
 #endif /* ENABLE_PKT_DUMP_DBG */
         } else printf("[RTT] No packet received, timeout reached\n");
 #endif /* ENABLE_PKT_INFO_DBG */
-        success = isRoundtripPacket(result, packet) && (packet[2] == ctx.getHop() + 1);
-        isTimeout = now >= timeoutTime;
     }
     
-    if(!isTimeout && result.error == RecvResult::OK && result.timestampValid){
+    if(success){
 #ifdef ENABLE_ROUNDTRIP_INFO_DBG
         printf("[RTT] Replying ledbar packet\n");
 #endif /* ENABLE_ROUNDTRIP_INFO_DBG */
-        LedBar<125> p;
+        //TODO sto pacchetto non e` compatibile manco con se stesso, servono header di compatibilita`, indirizzo, etc etc
+        LedBar<replyPacketSize> p;
         p.encode(7); //TODO: 7?! should check what's received, increment the led bar and filter it with a LPF
         try {
             transceiver.sendAt(p.getPacket(), p.getPacketSize(), result.timestamp + replyDelay);
