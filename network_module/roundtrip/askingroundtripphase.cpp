@@ -40,9 +40,10 @@ namespace miosix {
         greenLed::high();
         transceiver.configure(*ctx.getTransceiverConfig());
         transceiver.turnOn();
+        //TODO deepsleep missing
         try {
             transceiver.sendAt(
-                getRoundtripAskPacket(ctx.getMediumAccessController().getPanId()).data(), askPacketSize, wakeupTime);
+                getRoundtripAskPacket(ctx.getMediumAccessController().getPanId()).data(), askPacketSize, globalFirstActivityTime);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
             printf("%s\n", e.what());
@@ -59,7 +60,7 @@ namespace miosix {
         RecvResult result;
         //TODO missing a cycle for skipping bad pkts
         try {
-            result = transceiver.recv(p.getPacket(), p.getPacketSize(), wakeupTime + replyDelay);
+            result = transceiver.recv(p.getPacket(), p.getPacketSize(), globalFirstActivityTime + replyDelay);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
             puts(e.what());
@@ -77,7 +78,7 @@ namespace miosix {
         greenLed::low();
 
         if(result.size == p.getPacketSize() && result.error == RecvResult::ErrorCode::OK && result.timestampValid) {
-            lastDelay = result.timestamp - (wakeupTime + replyDelay);
+            lastDelay = result.timestamp - (globalFirstActivityTime + replyDelay);
             totalDelay = p.decode().first * accuracy + lastDelay;
 #ifdef ENABLE_ROUNDTRIP_INFO_DBG
             printf("delay=%lld total=%lld\n", lastDelay, totalDelay);

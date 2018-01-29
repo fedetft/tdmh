@@ -21,8 +21,8 @@
 namespace miosix{
 class ListeningRoundtripPhase : public RoundtripPhase  {
 public:
-    explicit ListeningRoundtripPhase(long long startTime) :
-            ListeningRoundtripPhase(startTime) {};
+    explicit ListeningRoundtripPhase(long long masterFloodingEndTime) :
+            RoundtripPhase(masterFloodingEndTime) {};
     ListeningRoundtripPhase() = delete;
     ListeningRoundtripPhase(const ListeningRoundtripPhase& orig) = delete;
     virtual ~ListeningRoundtripPhase();

@@ -50,23 +50,26 @@ public:
     
     virtual ~FloodingPhase();
     
-    /**
-     * Calculates the next round start. Must be called after the flooding phase ends.
-     * 
-     * @return 
-     */
-    virtual long long getNextRoundStart() = 0;
+    long long getPhaseEnd() const { return globalFirstActivityTime + phaseDuration; }
     
     //Minimum ~550us, 200us of slack added
+    //TODO move to maccontroller as sendingnodewakeupadvance
     static const int rootNodeWakeupAdvance = 750000; //TODO remove or reduce this nonsense advance and speculatively sleep
+    static const int phaseStartupTime = 450000;
     static const unsigned short maxMissedPackets = 3;
     static const int syncPacketSize = 7;
     static const int rebroadcastInterval = 1016000; //32us per-byte + 600us total delta
     static const long long phaseDuration = 500000000; //duration of the flooding phase, 500ms
     
 protected:
-    FloodingPhase(long long startTime) :
-            MACPhase(startTime, startTime + rootNodeWakeupAdvance),
+    /**
+     * Used only for the master node
+     * @param masterSendTime
+     */
+    FloodingPhase(long long masterSendTime) :
+            FloodingPhase(masterSendTime, masterSendTime) {};
+    FloodingPhase(long long masterSendTime, long long expectedReceivingTime) :
+            MACPhase(masterSendTime - phaseStartupTime, masterSendTime, expectedReceivingTime),
             transceiver(Transceiver::instance()),
             pm(PowerManager::instance()) {};
     /**

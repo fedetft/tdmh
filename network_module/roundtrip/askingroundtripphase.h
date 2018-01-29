@@ -22,8 +22,8 @@
 namespace miosix {
 class AskingRoundtripPhase : public RoundtripPhase {
 public:
-    AskingRoundtripPhase(long long startTime) :
-            RoundtripPhase(startTime, startTime + senderDelay) {};
+    AskingRoundtripPhase(long long masterFloodingEndTime) :
+            RoundtripPhase(masterFloodingEndTime) {};
     AskingRoundtripPhase() = delete;
     AskingRoundtripPhase(const AskingRoundtripPhase& orig) = delete;
     virtual ~AskingRoundtripPhase();

@@ -27,16 +27,15 @@ public:
      * @param mac
      * @param startTime
      */
-    RoundtripPhase(long long startTime, long long wakeupTime) : 
-            MACPhase(startTime, wakeupTime),
-            transceiver(Transceiver::instance()) {};
+    RoundtripPhase(long long masterFloodingEndTime) : 
+            MACPhase(masterFloodingEndTime, masterFloodingEndTime + senderDelay),
+            transceiver(Transceiver::instance()),
+            pm(PowerManager::instance()) {};
     RoundtripPhase() = delete;
     RoundtripPhase(const RoundtripPhase& orig) = delete;
     virtual ~RoundtripPhase();
     
-    inline static const long long getStartTime(long long previousPhaseEnd) {
-        return previousPhaseEnd + MediumAccessController::receivingNodeWakeupAdvance;
-    }
+    long long getPhaseEnd() const { return globalStartTime + phaseDuration; }
     
     static const int receiverWindow = 100000; //100us
     static const int senderDelay = 50000; //50us
@@ -56,6 +55,7 @@ public:
     static const int accuracy = 15;
 protected:
     Transceiver& transceiver;
+    PowerManager& pm;
     long long lastDelay;
     long long totalDelay;
     

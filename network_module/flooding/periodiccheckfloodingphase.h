@@ -42,16 +42,12 @@ public:
      * This function creates a PeriodicCheckFloodingPhase as first phase
      * @param frameStart
      */
-    explicit PeriodicCheckFloodingPhase(long long frameStart) :
-            PeriodicCheckFloodingPhase(frameStart) {};
+    explicit PeriodicCheckFloodingPhase(long long masterSendTime, long long expectedReceivingTime) :
+            FloodingPhase(masterSendTime, expectedReceivingTime) {};
     PeriodicCheckFloodingPhase() = delete;
     PeriodicCheckFloodingPhase(const PeriodicCheckFloodingPhase& orig) = delete;
     void execute(MACContext& ctx) override;
     virtual ~PeriodicCheckFloodingPhase();
-    inline virtual long long getNextRoundStart() override {
-        if(!consumed) throw std::logic_error("Can't predict next round start before synchronizing the clock.");
-        return syncStatus->getWakeupTime() - rootNodeWakeupAdvance;
-    }
 
 protected:
     bool consumed = false;

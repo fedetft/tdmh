@@ -35,16 +35,13 @@
 namespace miosix {
 class MasterFloodingPhase : public FloodingPhase {
 public:
-    MasterFloodingPhase(const MediumAccessController& mac, long long startTime) :
-            MasterFloodingPhase(startTime) {};
+    explicit MasterFloodingPhase(long long masterSendTime) :
+            FloodingPhase(masterSendTime) {};
     MasterFloodingPhase() = delete;
     MasterFloodingPhase(const MasterFloodingPhase& orig) = delete;
-    MasterFloodingPhase(long long startTime) :
-            FloodingPhase(startTime) {};
     void execute(MACContext& ctx) override;
     virtual ~MasterFloodingPhase();
     
-    inline virtual long long getNextRoundStart() override;
 protected:
     inline std::array<unsigned char, syncPacketSize> getSyncPkt(int panId) {
         return {{

@@ -77,12 +77,18 @@ namespace miosix {
             computedFrameStart += MACRound::roundDuration + clockCorrection;
         }
         
-        inline long long getUncorrectedTimeout() {
+        /*inline long long getUncorrectedTimeout() {
             return computedFrameStart + receiverWindow + MediumAccessController::packetPreambleTime;
         }
         
         inline long long getWakeupTime() {
             return computedFrameStart - (MediumAccessController::receivingNodeWakeupAdvance + receiverWindow);
+        }*/
+        
+        inline std::pair<long long, long long> getWakeupAndTimeout(long long sendTime) {
+            return std::make_pair(
+                    sendTime - (MediumAccessController::receivingNodeWakeupAdvance + receiverWindow),
+                    sendTime + receiverWindow + MediumAccessController::packetPreambleTime);
         }
         
         inline unsigned char missedPacket() {
@@ -112,9 +118,9 @@ namespace miosix {
             return tc->tick2ns(vt.uncorrected2corrected(tc->ns2tick(uncorrected)));
         }
         
-        inline long long getTimeoutTime() {
+        /*inline long long getTimeoutTime() {
             return correct(getUncorrectedTimeout());
-        }
+        }*/
         
         inline long long getError() {
             return computedFrameStart - measuredFrameStart;

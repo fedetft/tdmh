@@ -41,29 +41,32 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     syncStatus = ctx.getSyncStatus();
     
     //This is fully corrected
-    long long timeoutTime = syncStatus->getTimeoutTime();  
-    
-    //check if we skipped the synchronization time
-    if (getTime() >= wakeupTime) {
-#ifdef ENABLE_FLOODING_ERROR_DBG
-        printf("PeriodicFloodingCheck started too late\n");
-#endif /* ENABLE_FLOODING_ERROR_DBG */
-        syncStatus->missedPacket();
-        return;
-    }
+    auto wakeupTimeout = syncStatus->getWakeupAndTimeout(localFirstActivityTime);
+    auto timeoutTime = syncStatus->correct(wakeupTimeout.second);
     
     //Transceiver configured with non strict timeout
     transceiver.configure(*ctx.getTransceiverConfig());
     unsigned char packet[syncPacketSize];
     
 #ifdef ENABLE_FLOODING_INFO_DBG
-    printf("Will wake up @ %lld\n", wakeupTime);
-    printf("Will await sync packet until %lld (uncorrected)\n", timeoutTime);
+    printf("WU @ %lld\n", wakeupTimeout.first);
+    printf("TO %lld\n", timeoutTime);
 #endif /* ENABLE_FLOODING_INFO_DBG */
 
     ledOn();
     transceiver.turnOn();
-    pm.deepSleepUntil(wakeupTime);
+    
+    auto now = getTime();
+    //check if we skipped the synchronization time
+    if (now >= localFirstActivityTime - syncStatus->receiverWindow) {
+#ifdef ENABLE_FLOODING_ERROR_DBG
+        printf("PeriodicFloodingCheck started too late\n");
+#endif /* ENABLE_FLOODING_ERROR_DBG */
+        syncStatus->missedPacket();
+        return;
+    }
+    if(now < wakeupTimeout.first)
+        pm.deepSleepUntil(wakeupTimeout.first);
     
     RecvResult result;
     bool success = false;

@@ -14,6 +14,7 @@
 #ifndef NETWORKPHASE_H
 #define NETWORKPHASE_H
 
+#include "mediumaccesscontroller.h"
 #include <utility>
 
 namespace miosix {
@@ -21,23 +22,41 @@ namespace miosix {
     class MACPhase {
     public:
         MACPhase() = delete;
-        explicit MACPhase(long long startTime) : startTime(startTime), wakeupTime(startTime) {};
-        MACPhase(long long startTime, long long wakeupTime) : startTime(startTime), wakeupTime(wakeupTime) {};
+        /**
+         * Constructor to be used if the node is the first one sending in this phase
+         * @param startTime
+         * @param activityTime
+         */
+        MACPhase(long long startTime, long long activityTime) :
+                MACPhase(startTime, activityTime, activityTime) {};
+        /**
+         * Constructor to be used if the node has to wait before acting in this phase
+         * @param startTime
+         * @param globalActivityTime
+         * @param activityTime
+         */
+        MACPhase(long long startTime, long long globalActivityTime, long long activityTime) :
+                globalStartTime(startTime),
+                globalFirstActivityTime(globalActivityTime),
+                localFirstActivityTime(activityTime) {};
         MACPhase(const MACPhase& orig) = delete;
         virtual ~MACPhase();
         virtual void execute(MACContext& ctx) = 0;
     protected:
-        /**
-         * Represents when the whole network must start this phase.
-         * Based on the node's role it can be the scheduling wakeup deadline (in the worst case)
-         */
-        long long startTime;
         
         /**
-         * Represents when the node must start his turn in the network.
-         * It is an upper bound for the completion of the activity in the network.
+         * Represents when the network theoretically switched to this phase.
+         * Can be considered a worst case start time of execution.
          */
-        long long wakeupTime;
+        const long long globalStartTime;
+        /**
+         * Represents when the node making the first action of the phase must do it.
+         */
+        const long long globalFirstActivityTime;
+        /**
+         * Represents when at least one node in the network starts this phase.
+         */
+        const long long localFirstActivityTime;
     private:
 
     };

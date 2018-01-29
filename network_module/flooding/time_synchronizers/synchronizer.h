@@ -67,7 +67,7 @@ public:
      * \return the receiver window (w)
      */
     virtual int getReceiverWindow() const=0;
-
+    
     /**
      * Destructor
      */

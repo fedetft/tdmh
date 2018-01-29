@@ -43,20 +43,16 @@ public:
      * This function creates a HookingFloodingPhase as first phase
      */
     HookingFloodingPhase() :
-            HookingFloodingPhase(0) {};
+            HookingFloodingPhase(0, 0) {};
     /**
-     * This function creates a HookingFloodingPhase as first phase with known frameStart and theoreticalFrameStart
-     * @param frameStart
+     * This function creates a HookingFloodingPhase as first phase with known startTime and expectedReceivingTime
+     * @param startTime
      */
-    explicit HookingFloodingPhase(long long frameStart) :
-            FloodingPhase(frameStart) {};
+    explicit HookingFloodingPhase(long long masterSendTime, long long expectedReceivingTime) :
+            FloodingPhase(masterSendTime, expectedReceivingTime) {};
     HookingFloodingPhase(const HookingFloodingPhase& orig) = delete;
     void execute(MACContext& ctx) override;
     virtual ~HookingFloodingPhase();
-    inline virtual long long getNextRoundStart() override {
-        if(!consumed) throw std::logic_error("Can't predict next round start before synchronizing the clock.");
-        return syncStatus->getWakeupTime() - rootNodeWakeupAdvance;
-    }
     inline virtual bool isSyncPacket(RecvResult& result, unsigned char *packet, unsigned short panId) {
         return result.error == RecvResult::OK
                 && result.timestampValid && result.size == syncPacketSize

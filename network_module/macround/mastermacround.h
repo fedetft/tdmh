@@ -32,6 +32,8 @@
 #include "macroundfactory.h"
 #include "../flooding/masterfloodingphase.h"
 #include "../roundtrip/listeningroundtripphase.h"
+#include "../reservation/masterreservationphase.h"
+#include "../assignment/masterassignmentphase.h"
 
 namespace miosix {
     class MasterMACRound : public MACRound {
@@ -54,7 +56,9 @@ namespace miosix {
         MasterMACRound(const MediumAccessController& mac, long long roundStart) :
                 MACRound(
                     new MasterFloodingPhase(roundStart),
-                    new ListeningRoundtripPhase(RoundtripPhase::getStartTime(roundStart + FloodingPhase::phaseDuration))),
+                    new ListeningRoundtripPhase(flooding->getPhaseEnd()),
+                    new MasterReservationPhase(roundtrip->getPhaseEnd()),
+                    new MasterAssignmentPhase(reservation->getPhaseEnd())),
                 roundStart(roundStart) {}
                 
         /**

@@ -41,8 +41,7 @@ namespace miosix {
         explicit DynamicMACRound(const MediumAccessController& mac) :
                 MACRound(
                     new HookingFloodingPhase(),
-                    new ListeningRoundtripPhase(
-                        getTime() + FloodingPhase::phaseDuration + MediumAccessController::receivingNodeWakeupAdvance)) {}
+                    nullptr) {}
         virtual void run(MACContext& ctx) override;
         virtual ~DynamicMACRound();
 

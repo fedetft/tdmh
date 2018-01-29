@@ -45,7 +45,7 @@ namespace miosix {
             case SyncStatus::MacroStatus::IN_SYNC:
                 //TODO add phase changes
                 roundtrip = new ListeningRoundtripPhase(
-                        RoundtripPhase::getStartTime(syncStatus->measuredFrameStart + FloodingPhase::phaseDuration));
+                        syncStatus->measuredFrameStart + FloodingPhase::phaseDuration);
                 break;
         }
         if (roundtrip != nullptr) roundtrip->execute(ctx);
@@ -54,10 +54,16 @@ namespace miosix {
         syncStatus->next();
         switch (syncStatus->getInternalStatus()) {
             case SyncStatus::MacroStatus::DESYNCHRONIZED:
-                nextRound->setFloodingPhase(new HookingFloodingPhase(flooding->getNextRoundStart()));
+                nextRound->setFloodingPhase(
+                    new HookingFloodingPhase(
+                        syncStatus->computedFrameStart - (ctx.getHop() - 1) * FloodingPhase::rebroadcastInterval,
+                        syncStatus->computedFrameStart));
                 break;
             case SyncStatus::MacroStatus::IN_SYNC:
-                nextRound->setFloodingPhase(new PeriodicCheckFloodingPhase(flooding->getNextRoundStart()));
+                nextRound->setFloodingPhase(
+                    new PeriodicCheckFloodingPhase(
+                        syncStatus->computedFrameStart - (ctx.getHop() - 1) * FloodingPhase::rebroadcastInterval,
+                        syncStatus->computedFrameStart));
                 break;
         }
     }

@@ -41,22 +41,22 @@ namespace miosix {
         transceiver.configure(*ctx.getTransceiverConfig());
         transceiver.turnOn();
         //Thread::nanoSleepUntil(startTime);
-        pm.deepSleepUntil(startTime); //TODO don't deepsleep if there's no time or it's inconvenient
+        auto deepsleepDeadline = globalFirstActivityTime - rootNodeWakeupAdvance;
+        if(getTime() < deepsleepDeadline)
+            pm.deepSleepUntil(deepsleepDeadline);
         //Sending synchronization start packet
         try {
-            transceiver.sendAt(getSyncPkt(ctx.getMediumAccessController().getPanId()).data(), syncPacketSize, wakeupTime);
+            transceiver.sendAt(getSyncPkt(ctx.getMediumAccessController().getPanId()).data(), syncPacketSize, globalFirstActivityTime);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
             printf("%s\n", e.what());
 #endif /* ENABLE_RADIO_EXCEPTION_DBG */
         }
 #ifdef ENABLE_FLOODING_INFO_DBG
-        printf("Sync packet sent at %lld\n", wakeupTime);
+        printf("Sync packet sent at %lld\n", globalFirstActivityTime);
 #endif /* ENABLE_FLOODING_INFO_DBG */
         transceiver.turnOff();
         ledOff();
     }
-    
-    inline long long MasterFloodingPhase::getNextRoundStart()  { return startTime + MACRound::roundDuration; }
 
 }
