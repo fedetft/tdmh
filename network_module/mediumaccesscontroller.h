@@ -16,6 +16,8 @@
 
 #include "debug_settings.h"
 #include <list>
+#include <map>
+#include <set>
 
 namespace miosix {
     class MACRoundFactory;
@@ -34,7 +36,17 @@ namespace miosix {
         //350us and forced receiverWindow=1 fails, keeping this at minimum
         //This is dependent on the optimization level, i usually use level -O2
         static const int receivingNodeWakeupAdvance = 450000;
+        static const int sendingNodeWakeupAdvance = 500000; //500 us TODO fine tune, it was guessed
+        static const int maxAdmittableReceivingWindow = 6000000; //6 ms
         inline int getOutgoingCount() { return sendQueue.size(); }
+        /**
+         * A method for asynchronically send a packet.
+         * @param data the content to send. Data will be deleted after sending it, copy the data if needed.
+         * @param dataSize
+         * @param toNode
+         * @param acked
+         */
+        void send(const void* data, int dataSize, unsigned short toNode, bool acked);
     private:
         MediumAccessController(const MACRoundFactory* const roundFactory, unsigned short panId, short txPower, unsigned int radioFrequency);
         virtual ~MediumAccessController();
@@ -42,7 +54,7 @@ namespace miosix {
         short txPower;
         unsigned int baseFrequency;
         MACContext* ctx;
-        std::list<void*> sendQueue;
+        std::multimap<unsigned short, void*> sendQueue;
     };
 }
 

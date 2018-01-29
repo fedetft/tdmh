@@ -49,6 +49,18 @@ namespace miosix {
         static MediumAccessController instance(roundFactory, panId, txPower, radioFrequency);
         return instance;
     }
-
+    
+    void MediumAccessController::send(const void* data, int dataSize, unsigned char toNode, bool acked) {
+        unsigned char packet[] = {
+            0x46, //frame type 0b110 (reserved), intra pan
+            0x08, //no source addressing, short destination addressing
+            hop, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
+            static_cast<unsigned char>(panId>>8),
+            static_cast<unsigned char>(panId & 0xff), //destination pan ID
+            0xff, 0xff 
+        };
+        //TODO populate the packet content
+        sendQueue.insert(std::make_pair(toNode, packet));
+    }
 }
 
