@@ -485,7 +485,21 @@
         </df>
       </df>
       <df name="network_module">
+        <df name="assignment">
+          <in>assignmentphase.cpp</in>
+          <in>assignmentphase.h</in>
+          <in>dynamicassignmentphase.cpp</in>
+          <in>dynamicassignmentphase.h</in>
+          <in>lasthopassignmentphase.cpp</in>
+          <in>lasthopassignmentphase.h</in>
+          <in>masterassignmentphase.cpp</in>
+          <in>masterassignmentphase.h</in>
+        </df>
         <df name="flooding">
+          <df name="time_synchronizers">
+            <in>flopsync2.cpp</in>
+            <in>synchronizer.cpp</in>
+          </df>
           <in>floodingphase.cpp</in>
           <in>hookingfloodingphase.cpp</in>
           <in>masterfloodingphase.cpp</in>
@@ -496,11 +510,29 @@
           <in>macround.cpp</in>
           <in>mastermacround.cpp</in>
         </df>
+        <df name="reservation">
+          <in>dynamicreservationphase.cpp</in>
+          <in>dynamicreservationphase.h</in>
+          <in>lasthopreservationphase.cpp</in>
+          <in>lasthopreservationphase.h</in>
+          <in>masterreservationphase.cpp</in>
+          <in>masterreservationphase.h</in>
+          <in>reservationphase.cpp</in>
+          <in>reservationphase.h</in>
+        </df>
         <df name="roundtrip">
           <in>askingroundtripphase.cpp</in>
           <in>led_bar.cpp</in>
           <in>listeningroundtripphase.cpp</in>
           <in>roundtripphase.cpp</in>
+        </df>
+        <df name="slots_management">
+          <in>dynamicslotsnegotiator.cpp</in>
+          <in>dynamicslotsnegotiator.h</in>
+          <in>masterslotsnegotiator.cpp</in>
+          <in>masterslotsnegotiator.h</in>
+          <in>slotsnegotiator.cpp</in>
+          <in>slotsnegotiator.h</in>
         </df>
         <in>debug_settings.h</in>
         <in>maccontext.cpp</in>
@@ -1399,7 +1431,117 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
     </conf>
     <conf name="lpc2138_miosix_board" type="0">
@@ -1852,7 +1994,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/arm7_lpc2000">
         <ccTool>
@@ -2463,7 +2715,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -3112,7 +3474,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -3604,7 +4076,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -4252,7 +4834,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -4901,7 +5593,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -5571,7 +6373,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -6252,7 +7164,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -6911,7 +7933,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -7382,7 +8514,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -7885,7 +9127,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -8548,7 +9900,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -9074,7 +10536,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -9721,7 +11293,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -10267,7 +11949,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -10774,7 +12566,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -11475,7 +13377,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -11699,8 +13711,8 @@
       <item path="../../miosix-kernel-unofficial/network_module/flooding/time_synchronizers/flopsync2.cpp"
             ex="false"
             tool="1"
-            flavor2="0">
-        <ccTool>
+            flavor2="8">
+        <ccTool flags="0">
           <incDir>
             <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
             <pElem>../../miosix-kernel-unofficial</pElem>
@@ -11710,8 +13722,8 @@
       <item path="../../miosix-kernel-unofficial/network_module/flooding/time_synchronizers/synchronizer.cpp"
             ex="false"
             tool="1"
-            flavor2="0">
-        <ccTool>
+            flavor2="8">
+        <ccTool flags="0">
           <incDir>
             <pElem>../../miosix-kernel-unofficial</pElem>
           </incDir>
@@ -11727,7 +13739,6 @@
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler</pElem>
-            <pElem>../network_module/flooding</pElem>
             <pElem>../network_module</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common</pElem>
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
@@ -11737,7 +13748,6 @@
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>..</pElem>
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
           </incDir>
         </ccTool>
       </item>
@@ -12731,12 +14741,41 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
       <item path="../network_module/flooding/floodingphase.cpp"
             ex="false"
             tool="1"
             flavor2="0">
         <ccTool>
           <incDir>
+            <pElem>../network_module/flooding</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
@@ -12749,9 +14788,9 @@
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>..</pElem>
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
           </incDir>
         </ccTool>
       </item>
@@ -12761,9 +14800,10 @@
             flavor2="0">
         <ccTool>
           <incDir>
+            <pElem>../network_module/flooding</pElem>
             <pElem>../network_module</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
@@ -12787,23 +14827,24 @@
             flavor2="0">
         <ccTool>
           <incDir>
+            <pElem>../network_module/flooding</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
+            <pElem>../network_module</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
-            <pElem>../network_module</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common</pElem>
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
             <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>..</pElem>
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
           </incDir>
         </ccTool>
       </item>
@@ -12813,6 +14854,7 @@
             flavor2="0">
         <ccTool>
           <incDir>
+            <pElem>../network_module/flooding</pElem>
             <pElem>../network_module</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
@@ -12829,6 +14871,27 @@
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
+            <pElem>..</pElem>
+          </incDir>
+        </ccTool>
+      </item>
+      <item path="../network_module/flooding/time_synchronizers/flopsync2.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+        <ccTool>
+          <incDir>
+            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>..</pElem>
+          </incDir>
+        </ccTool>
+      </item>
+      <item path="../network_module/flooding/time_synchronizers/synchronizer.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+        <ccTool>
+          <incDir>
             <pElem>..</pElem>
           </incDir>
         </ccTool>
@@ -12917,6 +14980,7 @@
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler</pElem>
             <pElem>../network_module/flooding</pElem>
             <pElem>../network_module/roundtrip</pElem>
+            <pElem>../network_module/reservation</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common</pElem>
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
@@ -12937,8 +15001,8 @@
             flavor2="0">
         <ccTool>
           <incDir>
-            <pElem>../network_module</pElem>
             <pElem>../network_module/flooding</pElem>
+            <pElem>../network_module</pElem>
             <pElem>../network_module/roundtrip</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
@@ -12965,6 +15029,8 @@
         <ccTool>
           <incDir>
             <pElem>../network_module</pElem>
+            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
@@ -12974,13 +15040,39 @@
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
-            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>..</pElem>
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
           </incDir>
+        </ccTool>
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+        <ccTool flags="0">
         </ccTool>
       </item>
       <item path="../network_module/roundtrip/askingroundtripphase.cpp"
@@ -13003,18 +15095,17 @@
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
             <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/util</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix</pElem>
             <pElem>..</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix</pElem>
           </incDir>
         </ccTool>
       </item>
       <item path="../network_module/roundtrip/led_bar.cpp"
             ex="false"
             tool="1"
-            flavor2="0">
+            flavor2="8">
         <ccTool>
           <incDir>
             <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
@@ -13033,12 +15124,12 @@
             <pElem>../network_module/roundtrip</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
+            <pElem>../network_module</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler</pElem>
-            <pElem>../network_module</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common</pElem>
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
@@ -13075,6 +15166,33 @@
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
           </incDir>
+        </ccTool>
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+        <ccTool flags="0">
         </ccTool>
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/_tools">
@@ -13410,10 +15528,10 @@
           </incDir>
         </ccTool>
       </folder>
-      <folder path="0/network_module/flooding">
+      <folder path="0/network_module/flooding/time_synchronizers">
         <ccTool>
           <incDir>
-            <pElem>../network_module/flooding</pElem>
+            <pElem>../network_module/flooding/time_synchronizers</pElem>
           </incDir>
         </ccTool>
       </folder>
@@ -13986,7 +16104,117 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common/core">
         <ccTool>
@@ -14562,7 +16790,117 @@
             tool="1"
             flavor2="8">
       </item>
+      <item path="../network_module/assignment/assignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/assignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/dynamicassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/lasthopassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/assignment/masterassignmentphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../network_module/debug_settings.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/dynamicreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/lasthopreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/masterreservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/reservation/reservationphase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/dynamicslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/masterslotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../network_module/slots_management/slotsnegotiator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <folder path="0/miosix-kernel-unofficial/miosix/arch/common">
         <ccTool>
