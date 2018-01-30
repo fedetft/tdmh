@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2013 by Terraneo Federico                               *
+ *   Copyright (C) 2017 by Polidori Paolo, Terraneo Federico               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -33,11 +33,10 @@
 using namespace std;
 using namespace miosix;
 
-const int hop=1;
-
 void flopsyncRadio(void*){    
     printf("Dynamic node\n");
-    MediumAccessController& controller = MediumAccessController::instance(new MasterMACRound::MasterMACRoundFactory(), 6, 1, 2450, true);
+    //MediumAccessController& controller = MediumAccessController::instance(new DynamicMACRound::DynamicMACRoundFactory(), 6, 1, 2450);
+    MediumAccessController& controller = MediumAccessController::instance(new MasterMACRound::MasterMACRoundFactory(), 6, 1, 2450);
     controller.run();
 }
 
