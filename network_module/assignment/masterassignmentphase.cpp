@@ -38,7 +38,7 @@ namespace miosix {
         TransceiverConfiguration cfg(config->frequency, config->txPower, false, false);
         transceiver.configure(cfg);
         transceiver.turnOn();
-        getEmptyPkt(ctx.getMediumAccessController().getPanId(), ctx.getHop());
+        getEmptyPkt(ctx.getNetworkConfig()->panId, ctx.getHop());
         populatePacket(ctx);
         forwardPacket();
         transceiver.turnOff();

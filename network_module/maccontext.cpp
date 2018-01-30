@@ -33,11 +33,12 @@
 
 namespace miosix {
     
-    MACContext::MACContext(const MACRoundFactory* const roundFactory, const miosix::MediumAccessController& mac) :
+    MACContext::MACContext(const MACRoundFactory* const roundFactory, const miosix::MediumAccessController& mac, const NetworkConfiguration* const config) :
             mac(mac),
-            transceiverConfig(new TransceiverConfiguration(mac.getRadioFrequency(), mac.getTxPower(), true, false)),
+            transceiverConfig(new TransceiverConfiguration(config->baseFrequency, config->txPower, true, false)),
             currentRound(roundFactory->create(*this)),
-            slotsNegotiator(roundFactory->getSlotsNegotiator(*this)){
+            slotsNegotiator(roundFactory->getSlotsNegotiator(*this)),
+            networkConfig(config) {
         delete roundFactory;
     }
 

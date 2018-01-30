@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2018 by Polidori Paolo                                 *
+ *   Copyright (C)  2018 by Polidori Paolo              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,23 +25,24 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "lasthopreservationphase.h"
+#ifndef NETWORK_CONFIGURATION_H
+#define NETWORK_CONFIGURATION_H
 
 namespace miosix {
-    LastHopReservationPhase::~LastHopReservationPhase() {
-    }
-
-    void LastHopReservationPhase::execute(MACContext& ctx)
-    {
-        auto* config = ctx.getTransceiverConfig();
-        TransceiverConfiguration cfg(config->frequency, config->txPower, false, false);
-        transceiver.configure(cfg);
-        transceiver.turnOn();
-        getEmptyPkt(ctx.getNetworkConfig()->panId, ctx.getHop());
-        populatePacket(ctx);
-        forwardPacket();
-        transceiver.turnOff();
-        ledOff();
-    }
+struct NetworkConfiguration {
+    const unsigned char maxHops;
+    const bool dynamicNetworkId;
+    const unsigned short networkId;
+    const unsigned short panId;
+    const short txPower;
+    const unsigned int baseFrequency;
+    
+    NetworkConfiguration(const unsigned char maxHops, const bool dynamicNetworkId, const unsigned short networkId,
+            const unsigned short panId, const short txPower, const unsigned int baseFrequency) :
+        maxHops(maxHops), dynamicNetworkId(dynamicNetworkId), networkId(networkId), panId(panId), txPower(txPower),
+            baseFrequency(baseFrequency) {};
+};
 }
+
+#endif /* NETWORK_CONFIGURATION_H */
 

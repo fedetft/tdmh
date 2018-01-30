@@ -46,7 +46,7 @@ namespace miosix {
         ledOn();
         //Sending synchronization start packet
         try {
-            transceiver.sendAt(getSyncPkt(ctx.getMediumAccessController().getPanId()).data(), syncPacketSize, globalFirstActivityTime);
+            transceiver.sendAt(getSyncPkt(ctx.getNetworkConfig()->panId).data(), syncPacketSize, globalFirstActivityTime);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
             printf("%s\n", e.what());

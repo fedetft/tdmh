@@ -67,7 +67,7 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     ledOn();
     
     for (; !(success || result.error == RecvResult::ErrorCode::TIMEOUT);
-            success = isSyncPacket(result, packet, ctx.getMediumAccessController().getPanId(), ctx.getHop())) {
+            success = isSyncPacket(result, packet, ctx.getNetworkConfig()->panId, ctx.getHop())) {
         try {
             //uncorrected TS needed for computing the correction with flopsync
             result = transceiver.recv(packet, syncPacketSize, timeoutTime, Transceiver::Unit::NS, HardwareTimer::Correct::UNCORR);

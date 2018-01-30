@@ -32,10 +32,10 @@
 #include "assignmentphase.h"
 
 namespace miosix {
-    class LastHopAssignmentPhase : public AssignmentPhase{
+    class LastHopAssignmentPhase : public AssignmentPhase {
     public:
-        LastHopAssignmentPhase(long long reservationEndTime, unsigned char myId, std::vector<unsigned char>* childrenIds) :
-                AssignmentPhase(reservationEndTime, 1 /* TODO again, i need the maxhops constant */, myId, childrenIds) {};
+        LastHopAssignmentPhase(long long reservationEndTime, unsigned char hop, unsigned char myId, std::vector<unsigned char>* childrenIds) :
+                AssignmentPhase(reservationEndTime, hop, myId, childrenIds) {};
         LastHopAssignmentPhase() = delete;
         LastHopAssignmentPhase(const LastHopAssignmentPhase& orig) = delete; 
         virtual ~LastHopAssignmentPhase();

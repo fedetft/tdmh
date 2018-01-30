@@ -27,23 +27,48 @@
 
 #include <cstdio>
 #include <miosix.h>
-//#include "network_module/macround/mastermacround.h"
+#include "network_module/macround/mastermacround.h"
 #include "network_module/macround/dynamicmacround.h"
 #include "network_module/mediumaccesscontroller.h"
+#include "network_module/network_configuration.h"
 
 using namespace std;
 using namespace miosix;
 
-void flopsyncRadio(void*){    
-    printf("Dynamic node\n");
-    MediumAccessController& controller = MediumAccessController::instance(new DynamicMACRound::DynamicMACRoundFactory(), 6, 1, 2450);
-    //MediumAccessController& controller = MediumAccessController::instance(new MasterMACRound::MasterMACRoundFactory(), 6, 1, 2450);
+void masterNode(void*){    
+    printf("Master node\n");
+    const NetworkConfiguration config(2, false, 0, 6, 1, 2450);
+    MediumAccessController& controller = MediumAccessController::instance(new MasterMACRound::MasterMACRoundFactory(), &config);
+    controller.run();
+}
+
+void node1Hop1(void*){    
+    printf("Dynamic node 1 hop 1\n");
+    const NetworkConfiguration config(2, false, 1, 6, 1, 2450);
+    MediumAccessController& controller = MediumAccessController::instance(new DynamicMACRound::DynamicMACRoundFactory(), &config);
+    controller.run();
+}
+
+void node2Hop1(void*){    
+    printf("Dynamic node 2 hop 1\n");
+    const NetworkConfiguration config(2, false, 2, 6, 1, 2450);
+    MediumAccessController& controller = MediumAccessController::instance(new DynamicMACRound::DynamicMACRoundFactory(), &config);
+    controller.run();
+}
+
+void node3Hop2(void*){    
+    printf("Dynamic node 3 hop 2\n");
+    const NetworkConfiguration config(3, false, 3, 6, 1, 2450);
+    MediumAccessController& controller = MediumAccessController::instance(new DynamicMACRound::DynamicMACRoundFactory(), &config);
     controller.run();
 }
 
 int main()
 {
-    auto t1 = Thread::create(flopsyncRadio,2048,PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+    auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+//    auto t1 = Thread::create(node1Hop1, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+//    auto t1 = Thread::create(node2Hop1, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+//    auto t1 = Thread::create(node3Hop2, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
     
     t1->join();
     printf("Dying now...\n");

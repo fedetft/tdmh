@@ -30,10 +30,8 @@
 #include "macround/macround.h"
 
 namespace miosix {
-    MediumAccessController::MediumAccessController(const MACRoundFactory* const roundFactory, unsigned short panId, short txPower, unsigned int radioFrequency) :
-        panId(panId), txPower(txPower), baseFrequency(radioFrequency), ctx(new MACContext(roundFactory, *this)) {
-
-    }
+    MediumAccessController::MediumAccessController(const MACRoundFactory* const roundFactory, const NetworkConfiguration* const config) :
+        ctx(new MACContext(roundFactory, *this, config)) {}
 
     MediumAccessController::~MediumAccessController() {
         delete ctx;
@@ -45,12 +43,13 @@ namespace miosix {
         }
     }
 
-    miosix::MediumAccessController& miosix::MediumAccessController::instance(const miosix::MACRoundFactory *const roundFactory, unsigned short panId, short txPower, unsigned int radioFrequency) {
-        static MediumAccessController instance(roundFactory, panId, txPower, radioFrequency);
+    miosix::MediumAccessController& miosix::MediumAccessController::instance(const miosix::MACRoundFactory *const roundFactory, const NetworkConfiguration* const config) {
+        static MediumAccessController instance(roundFactory, config);
         return instance;
     }
     
     void MediumAccessController::send(const void* data, int dataSize, unsigned short toNode, bool acked) {
+        auto panId = ctx->getNetworkConfig()->panId;
         unsigned char packet[] = {
             0x46, //frame type 0b110 (reserved), intra pan
             0x08, //no source addressing, short destination addressing

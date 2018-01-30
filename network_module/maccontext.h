@@ -28,6 +28,7 @@
 #ifndef MACCONTEXT_H
 #define MACCONTEXT_H
 
+#include "network_configuration.h"
 #include "interfaces-impl/transceiver.h"
 
 namespace miosix {
@@ -40,7 +41,7 @@ namespace miosix {
     public:
         MACContext() = delete;
         MACContext(const MACContext& orig) = delete;
-        MACContext(const MACRoundFactory* const roundFactory, const MediumAccessController& mac);
+        MACContext(const MACRoundFactory* const roundFactory, const MediumAccessController& mac, const NetworkConfiguration* const);
         virtual ~MACContext();
         MACRound* getCurrentRound() const { return currentRound; }
         MACRound* getNextRound() const { return nextRound; }
@@ -54,6 +55,7 @@ namespace miosix {
         inline const TransceiverConfiguration* getTransceiverConfig() { return transceiverConfig; }
         inline const SlotsNegotiator* getSlotsNegotiator() { return slotsNegotiator; }
         unsigned char networkId;
+        inline const NetworkConfiguration* getNetworkConfig() const { return networkConfig; }
     private:
         unsigned char hop;
         const MediumAccessController& mac;
@@ -62,6 +64,7 @@ namespace miosix {
         MACRound* currentRound = nullptr;
         MACRound* nextRound = nullptr;
         SlotsNegotiator* slotsNegotiator;
+        const NetworkConfiguration* const networkConfig;
     };
 }
 

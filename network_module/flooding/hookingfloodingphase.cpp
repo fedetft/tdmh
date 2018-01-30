@@ -47,7 +47,7 @@ void HookingFloodingPhase::execute(MACContext& ctx)
     //TODO: attach to strongest signal, not just to the first received packet
     RecvResult result;
     ledOn();
-    for (bool success = false; !success; success = isSyncPacket(result, packet, ctx.getMediumAccessController().getPanId())) {
+    for (bool success = false; !success; success = isSyncPacket(result, packet, ctx.getNetworkConfig()->panId)) {
         try {
             result = transceiver.recv(packet, syncPacketSize, infiniteTimeout);
         } catch(std::exception& e) {

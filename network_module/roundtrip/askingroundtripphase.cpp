@@ -43,7 +43,7 @@ namespace miosix {
         //TODO deepsleep missing
         try {
             transceiver.sendAt(
-                getRoundtripAskPacket(ctx.getMediumAccessController().getPanId()).data(), askPacketSize, globalFirstActivityTime);
+                getRoundtripAskPacket(ctx.getNetworkConfig()->panId).data(), askPacketSize, globalFirstActivityTime);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
             printf("%s\n", e.what());

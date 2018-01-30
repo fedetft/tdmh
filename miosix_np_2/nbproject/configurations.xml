@@ -13733,13 +13733,13 @@
         <ccTool>
           <incDir>
             <pElem>../network_module/macround</pElem>
+            <pElem>../network_module</pElem>
             <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler</pElem>
-            <pElem>../network_module</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common</pElem>
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
@@ -14750,8 +14750,6 @@
             <pElem>../network_module/flooding</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
-            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
@@ -14760,6 +14758,8 @@
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
+            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
@@ -14775,8 +14775,6 @@
           <incDir>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
-            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
@@ -14785,6 +14783,8 @@
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
+            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>..</pElem>
@@ -14800,8 +14800,6 @@
           <incDir>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
-            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
@@ -14810,6 +14808,8 @@
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
+            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>..</pElem>
@@ -14825,8 +14825,6 @@
           <incDir>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
-            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
@@ -14835,6 +14833,8 @@
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
+            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>..</pElem>
@@ -14875,8 +14875,8 @@
           <incDir>
             <pElem>../network_module/flooding</pElem>
             <pElem>../network_module</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
@@ -14902,13 +14902,13 @@
           <incDir>
             <pElem>../network_module/flooding</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
-            <pElem>../network_module</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
+            <pElem>../network_module</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common</pElem>
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
@@ -14984,8 +14984,8 @@
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>..</pElem>
@@ -14997,8 +14997,6 @@
         <ccTool>
           <incDir>
             <pElem>../network_module</pElem>
-            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
@@ -15008,6 +15006,8 @@
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
+            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>..</pElem>
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
@@ -15033,8 +15033,8 @@
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
@@ -15061,8 +15061,9 @@
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
+            <pElem>../network_module</pElem>
             <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>..</pElem>
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
@@ -15091,8 +15092,8 @@
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>..</pElem>
@@ -15107,8 +15108,6 @@
         <ccTool>
           <incDir>
             <pElem>../network_module</pElem>
-            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
@@ -15118,6 +15117,8 @@
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
+            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>..</pElem>
@@ -15133,8 +15134,6 @@
           <incDir>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
-            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
@@ -15143,6 +15142,8 @@
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
+            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>..</pElem>
@@ -15158,8 +15159,6 @@
           <incDir>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
-            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
@@ -15168,6 +15167,8 @@
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
+            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>..</pElem>
@@ -15183,8 +15184,6 @@
           <incDir>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
-            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
@@ -15193,6 +15192,8 @@
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
+            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>..</pElem>
@@ -15209,8 +15210,6 @@
             <pElem>../network_module/flooding</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
-            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
@@ -15219,6 +15218,8 @@
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
+            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../miosix-kernel-unofficial/miosix</pElem>
@@ -15236,7 +15237,6 @@
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../network_module</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
@@ -15245,6 +15245,7 @@
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
@@ -15276,7 +15277,6 @@
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem/interfaces-impl</pElem>
             <pElem>../network_module</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
@@ -15285,6 +15285,7 @@
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Device/SiliconLabs/EFM32GG/Include</pElem>
             <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
@@ -15300,9 +15301,6 @@
         <ccTool>
           <incDir>
             <pElem>../network_module/roundtrip</pElem>
-            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
-            <pElem>../network_module</pElem>
-            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/priority</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/stdlib_integration</pElem>
@@ -15312,6 +15310,9 @@
             <pElem>../config/arch/cortexM3_efm32gg/efm32gg332f1024_wandstem</pElem>
             <pElem>../config</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/kernel/scheduler/control</pElem>
+            <pElem>../miosix-kernel-unofficial/miosix/arch/cortexM3_efm32gg/common/interfaces-impl</pElem>
+            <pElem>../network_module</pElem>
+            <pElem>/opt/arm-miosix-eabi/arm-miosix-eabi/include/c++/4.7.3/arm-miosix-eabi/thumb/cm3/bits</pElem>
             <pElem>../miosix-kernel-unofficial/miosix/arch/common/CMSIS/Include</pElem>
             <pElem>..</pElem>
             <pElem>../miosix-kernel-unofficial/miosix</pElem>

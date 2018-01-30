@@ -38,7 +38,7 @@ namespace miosix {
     void AssignmentPhase::receiveOrGetEmpty(MACContext& ctx) {
         auto* syncStatus = ctx.getSyncStatus();
         auto wakeUpTimeout = syncStatus->getWakeupAndTimeout(localFirstActivityTime);
-        auto panId = ctx.getMediumAccessController().getPanId();
+        auto panId = ctx.getNetworkConfig()->panId;
         auto hop = ctx.getHop();
         auto now = getTime();
         if(now >= localFirstActivityTime - syncStatus->receiverWindow)

@@ -102,10 +102,10 @@ protected:
     PowerManager& pm;
     std::vector<unsigned char> packet;
     long long measuredActivityTime;
-private:
-    bool processed = false;
     unsigned char myId;
     unsigned char mySlot;
+private:
+    bool processed = false;
     unsigned char slotCount;
     std::vector<unsigned char>* forwardIds;
     std::list<unsigned char>* forwardSlots = new std::list<unsigned char>();
