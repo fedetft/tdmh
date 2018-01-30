@@ -58,22 +58,25 @@ namespace miosix {
         transceiver.configure(TransceiverConfiguration(tc->frequency, tc->txPower, false, false));
         LedBar<replyPacketSize> p;
         RecvResult result;
-        //TODO missing a cycle for skipping bad pkts
-        try {
-            result = transceiver.recv(p.getPacket(), p.getPacketSize(), globalFirstActivityTime + replyDelay);
-        } catch(std::exception& e) {
+        bool success = false;
+        for (RecvResult result; !(success || result.error == RecvResult::ErrorCode::TIMEOUT);
+            success = isRoundtripPacket(result, p.getPacket(), ctx.getNetworkConfig()->panId, ctx.getHop())) {
+            try {
+                result = transceiver.recv(p.getPacket(), p.getPacketSize(), globalFirstActivityTime + replyDelay);
+            } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
-            puts(e.what());
+                puts(e.what());
 #endif /* ENABLE_RADIO_EXCEPTION_DBG */
-        }
+            }
 #ifdef ENABLE_PKT_INFO_DBG
-        if(result.error != RecvResult::ErrorCode::UNINITIALIZED){
-            printf("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+            if(result.error != RecvResult::ErrorCode::UNINITIALIZED){
+                printf("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
 #ifdef ENABLE_PKT_DUMP_DBG
-            memDump(p.getPacket(), result.size);
+                memDump(p.getPacket(), result.size);
 #endif /* ENABLE_PKT_DUMP_DBG */
-        } else printf("No packet received, timeout reached\n");
+            } else printf("No packet received, timeout reached\n");
 #endif /* ENABLE_PKT_INFO_DBG */
+        }
         transceiver.turnOff();
         greenLed::low();
 

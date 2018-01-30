@@ -74,14 +74,37 @@ protected:
     long long lastDelay;
     long long totalDelay;
     
-    inline bool isRoundtripPacket(RecvResult& result, unsigned char *packet, unsigned short panId, unsigned char myHop) {
+    inline bool isRoundtripAskPacket(RecvResult& result, unsigned char *packet, unsigned short panId, unsigned char myHop) {
         return result.error == RecvResult::OK && result.timestampValid
                 && result.size == askPacketSize
                 && packet[0] == 0x46 && packet[1] == 0x08
                 && packet[2] == myHop + 1
                 && packet[3] == static_cast<unsigned char> (panId >> 8)
                 && packet[4] == static_cast<unsigned char> (panId & 0xff)
-                && packet[5] == 0xff && packet[6] == 0xfe;
+                && packet[5] == 0xff && packet[6] == 0xff;
+    }
+    
+    inline bool isRoundtripPacket(RecvResult& result, unsigned char *packet, unsigned short panId, unsigned char myHop) {
+        //TODO fix this, actually the packet doesn't have this format
+        if (!(result.error == RecvResult::OK && result.timestampValid
+                && result.size == replyPacketSize
+                && packet[0] == 0x46 && packet[1] == 0x08
+                && packet[2] == myHop + 1
+                && packet[3] == static_cast<unsigned char> (panId >> 8)
+                && packet[4] == static_cast<unsigned char> (panId & 0xff)
+                && packet[5] == 0xff && packet[6] == 0xff)) return false;
+        bool legit = true;
+        bool isFs = true;
+        for (int i = 7; i < replyPacketSize && legit; i++) {
+            auto elem = packet[i];
+            if (isFs) {
+                if (elem != 0xFF) {
+                    isFs = elem != 0xF0;
+                    legit = elem == 0xF0 || !elem;
+                }
+            } else if (elem) legit = false;
+        }
+        return legit;
     }
 };
 }

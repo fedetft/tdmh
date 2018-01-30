@@ -55,7 +55,7 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
         pm.deepSleepUntil(deepsleepDeadline);
     greenLed::high();
     for(; !(success || result.error == RecvResult::ErrorCode::TIMEOUT);
-            success = isRoundtripPacket(result, packet, ctx.getNetworkConfig()->panId, ctx.getHop()))
+            success = isRoundtripAskPacket(result, packet, ctx.getNetworkConfig()->panId, ctx.getHop()))
     {
         try {
             result = transceiver.recv(packet, replyPacketSize, timeoutTime);
