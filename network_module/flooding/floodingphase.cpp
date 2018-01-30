@@ -33,8 +33,8 @@ namespace miosix{
 FloodingPhase::~FloodingPhase() {
 }
 
-void FloodingPhase::rebroadcast(long long receivedTimestamp, unsigned char* packet){
-    //TODO add check for maximum hop number
+void FloodingPhase::rebroadcast(long long receivedTimestamp, unsigned char* packet, unsigned char maxHops){
+    if(packet[2] == maxHops) return;
     try {
         transceiver.sendAt(packet, syncPacketSize, receivedTimestamp + rebroadcastInterval);
     } catch(std::exception& e) {

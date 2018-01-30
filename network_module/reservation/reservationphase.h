@@ -45,9 +45,9 @@ public:
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
     static const long long phaseDuration = 2 * retransmissionDelay + firstSenderDelay + packetArrivalAndProcessingTime;
 protected:
-    ReservationPhase(long long roundtripEndTime, unsigned char hop) :
+    ReservationPhase(long long roundtripEndTime, unsigned char hop, unsigned char maxHops) :
             MACPhase(roundtripEndTime, roundtripEndTime + firstSenderDelay,
-                    roundtripEndTime + firstSenderDelay + (2 /* TODO hardcode max hop number somewhere */ - hop - 1) * retransmissionDelay),
+                    roundtripEndTime + firstSenderDelay + (maxHops - hop - 1) * retransmissionDelay),
             transceiver(Transceiver::instance()),
             pm(PowerManager::instance()) {};
         

@@ -35,7 +35,7 @@ class DynamicReservationPhase : public ReservationPhase {
 public:
     DynamicReservationPhase() = delete;
     DynamicReservationPhase(const DynamicReservationPhase& orig) = delete;
-    DynamicReservationPhase(long long roundtripEndTime, unsigned char hop) : ReservationPhase(roundtripEndTime, hop) {}
+    DynamicReservationPhase(long long roundtripEndTime, unsigned char hop, unsigned char maxHops) : ReservationPhase(roundtripEndTime, hop, maxHops) {}
     virtual ~DynamicReservationPhase();
     void execute(MACContext& ctx) override;
 protected:

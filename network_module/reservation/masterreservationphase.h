@@ -34,7 +34,7 @@
 namespace miosix {
 class MasterReservationPhase : public ReservationPhase {
 public:
-    MasterReservationPhase(long long roundtripEndTime) : ReservationPhase(roundtripEndTime, 0) {}
+    MasterReservationPhase(long long roundtripEndTime, unsigned char maxHops) : ReservationPhase(roundtripEndTime, 0, maxHops) {}
     MasterReservationPhase() = delete;
     MasterReservationPhase(const MasterReservationPhase& orig) = delete;
     virtual ~MasterReservationPhase();

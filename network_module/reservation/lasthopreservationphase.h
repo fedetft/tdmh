@@ -34,7 +34,7 @@ namespace miosix {
     public:
         LastHopReservationPhase() = delete;
         LastHopReservationPhase(const LastHopReservationPhase& orig) = delete;
-        LastHopReservationPhase(long long roundtripEndTime) : ReservationPhase(roundtripEndTime, 1 /*TODO put this constant some-fucking-where */) {}
+        LastHopReservationPhase(long long roundtripEndTime) : ReservationPhase(roundtripEndTime, 1, 0) {}
         virtual ~LastHopReservationPhase();
         void execute(MACContext& ctx) override;
     private:

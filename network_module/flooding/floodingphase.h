@@ -76,8 +76,9 @@ protected:
      * Rebroadcst the synchronization packet using glossy
      * \param receivedTimestamp the timestamp when the packet was received
      * \param packet the received packet
+     * \param maxHops the max number of hops as of the network configuration struct
      */
-    void rebroadcast(long long receivedTimestamp, unsigned char *packet);
+    void rebroadcast(long long receivedTimestamp, unsigned char *packet, unsigned char maxHops);
         
     inline virtual bool isSyncPacket(RecvResult& result, unsigned char *packet, unsigned short panId, unsigned char myHop) {
         return result.error == RecvResult::OK

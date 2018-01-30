@@ -35,6 +35,7 @@ PeriodicCheckFloodingPhase::~PeriodicCheckFloodingPhase() {
 void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
 {   
     syncStatus = ctx.getSyncStatus();
+    auto networkConfig = *ctx.getNetworkConfig();
     
     //This is fully corrected
     auto wakeupTimeout = syncStatus->getWakeupAndTimeout(localFirstActivityTime);
@@ -67,7 +68,7 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     ledOn();
     
     for (; !(success || result.error == RecvResult::ErrorCode::TIMEOUT);
-            success = isSyncPacket(result, packet, ctx.getNetworkConfig()->panId, ctx.getHop())) {
+            success = isSyncPacket(result, packet, networkConfig.panId, ctx.getHop())) {
         try {
             //uncorrected TS needed for computing the correction with flopsync
             result = transceiver.recv(packet, syncPacketSize, timeoutTime, Transceiver::Unit::NS, HardwareTimer::Correct::UNCORR);
@@ -91,7 +92,7 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     //This conversion is really necessary to get the corrected time in NS, to pass to transceiver
     long long correctedMeasuredFrameStart = syncStatus->correct(result.timestamp);
     //Rebroadcast the sync packet
-    if (success) rebroadcast(correctedMeasuredFrameStart, packet);
+    if (success) rebroadcast(correctedMeasuredFrameStart, packet, networkConfig.maxHops);
     transceiver.turnOff();
     ledOff();
     

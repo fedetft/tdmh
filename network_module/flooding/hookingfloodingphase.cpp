@@ -44,10 +44,11 @@ void HookingFloodingPhase::execute(MACContext& ctx)
     transceiver.configure(*ctx.getTransceiverConfig());
     transceiver.turnOn();
     unsigned char packet[syncPacketSize];
+    auto networkConfig = *ctx.getNetworkConfig();
     //TODO: attach to strongest signal, not just to the first received packet
     RecvResult result;
     ledOn();
-    for (bool success = false; !success; success = isSyncPacket(result, packet, ctx.getNetworkConfig()->panId)) {
+    for (bool success = false; !success; success = isSyncPacket(result, packet, networkConfig.panId)) {
         try {
             result = transceiver.recv(packet, syncPacketSize, infiniteTimeout);
         } catch(std::exception& e) {
@@ -65,7 +66,7 @@ void HookingFloodingPhase::execute(MACContext& ctx)
 #endif /* ENABLE_PKT_INFO_DBG */
     }
     ++packet[2];
-    rebroadcast(result.timestamp, packet);
+    rebroadcast(result.timestamp, packet, networkConfig.maxHops);
     
     ledOff();
     transceiver.turnOff();
