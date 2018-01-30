@@ -39,21 +39,21 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
     //TODO add a way to use the syncStatus also with the master for having an optimized receiving window
     //maybe with a different class for the master node?
     long long timeoutTime = globalFirstActivityTime + receiverWindow;
-    greenLed::high();
     //Transceiver configured with non strict timeout
     transceiver.configure(*ctx.getTransceiverConfig());
     transceiver.turnOn();
     
     unsigned char packet[askPacketSize];
+    auto deepsleepDeadline = globalFirstActivityTime - MediumAccessController::receivingNodeWakeupAdvance;
 #ifdef ENABLE_ROUNDTRIP_INFO_DBG
-    printf("[RTT] Receiving until %lld\n", timeoutTime);
+    printf("[RTT] WU=%lld TO=%lld\n", deepsleepDeadline, timeoutTime);
 #endif /* ENABLE_ROUNDTRIP_INFO_DBG */
     RecvResult result;
     bool success = false;
     
-    auto deepsleepDeadline = globalFirstActivityTime - MediumAccessController::receivingNodeWakeupAdvance;
     if(getTime() < deepsleepDeadline)
         pm.deepSleepUntil(deepsleepDeadline);
+    greenLed::high();
     for(; !(success || result.error == RecvResult::ErrorCode::TIMEOUT);
             success = isRoundtripPacket(result, packet, ctx.getMediumAccessController().getPanId(), ctx.getHop()))
     {
@@ -75,14 +75,15 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
     }
     
     if(success){
+        auto replyTime = result.timestamp + replyDelay;
 #ifdef ENABLE_ROUNDTRIP_INFO_DBG
-        printf("[RTT] Replying ledbar packet\n");
+        printf("[RTT] RT=%lld, LT=%lld\n", result.timestamp, replyTime);
 #endif /* ENABLE_ROUNDTRIP_INFO_DBG */
         //TODO sto pacchetto non e` compatibile manco con se stesso, servono header di compatibilita`, indirizzo, etc etc
         LedBar<replyPacketSize> p;
         p.encode(7); //TODO: 7?! should put a significant cumulated RTT here.
         try {
-            transceiver.sendAt(p.getPacket(), p.getPacketSize(), result.timestamp + replyDelay);
+            transceiver.sendAt(p.getPacket(), p.getPacketSize(), replyTime);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
             puts(e.what());
@@ -90,7 +91,7 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
         }
 #ifdef ENABLE_ROUNDTRIP_INFO_DBG
     } else {
-        printf("[RTT] Roundtrip packet not received\n");
+        printf("[RTT] RT=null\n");
 #endif /* ENABLE_ROUNDTRIP_INFO_DBG */
     }
     

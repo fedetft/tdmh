@@ -33,11 +33,7 @@ namespace miosix{
 PeriodicCheckFloodingPhase::~PeriodicCheckFloodingPhase() {
 }
 void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
-{
-#ifdef ENABLE_FLOODING_INFO_DBG
-    printf("Synchronizing...\n");
-#endif /* ENABLE_FLOODING_INFO_DBG */
-    
+{   
     syncStatus = ctx.getSyncStatus();
     
     //This is fully corrected
@@ -49,18 +45,18 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     unsigned char packet[syncPacketSize];
     
 #ifdef ENABLE_FLOODING_INFO_DBG
-    printf("WU @ %lld\n", wakeupTimeout.first);
-    printf("TO %lld\n", timeoutTime);
+    printf("[F] WU=%lld TO=%lld\n", wakeupTimeout.first, timeoutTime);
 #endif /* ENABLE_FLOODING_INFO_DBG */
 
-    ledOn();
     transceiver.turnOn();
+    RecvResult result;
+    bool success = false;
     
     auto now = getTime();
     //check if we skipped the synchronization time
     if (now >= localFirstActivityTime - syncStatus->receiverWindow) {
 #ifdef ENABLE_FLOODING_ERROR_DBG
-        printf("PeriodicFloodingCheck started too late\n");
+        printf("[F] started too late\n");
 #endif /* ENABLE_FLOODING_ERROR_DBG */
         syncStatus->missedPacket();
         return;
@@ -68,8 +64,8 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     if(now < wakeupTimeout.first)
         pm.deepSleepUntil(wakeupTimeout.first);
     
-    RecvResult result;
-    bool success = false;
+    ledOn();
+    
     for (; !(success || result.error == RecvResult::ErrorCode::TIMEOUT);
             success = isSyncPacket(result, packet, ctx.getMediumAccessController().getPanId(), ctx.getHop())) {
         try {
@@ -96,25 +92,22 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     long long correctedMeasuredFrameStart = syncStatus->correct(result.timestamp);
     //Rebroadcast the sync packet
     if (success) rebroadcast(correctedMeasuredFrameStart, packet);
-    consumed = true;
     transceiver.turnOff();
     ledOff();
     
     if (success) {
         syncStatus->receivedPacket(result.timestamp);
 #ifdef ENABLE_FLOODING_INFO_DBG
-        printf("sync time: [%lld]\n", result.timestamp);
-        printf("e=%lld u=%d w=%d rssi=%d\n",
+        printf("[F] RT=%lld\ne=%lld u=%d w=%d rssi=%d\n",
+                result.timestamp,
                 syncStatus->getError(),
                 syncStatus->clockCorrection,
                 syncStatus->receiverWindow, 
                result.rssi);
     } else {
-        printf("miss u=%d w=%d\n", syncStatus->clockCorrection, syncStatus->receiverWindow);
+        printf("[F] miss u=%d w=%d\n", syncStatus->clockCorrection, syncStatus->receiverWindow);
         if (syncStatus->missedPacket() >= maxMissedPackets)
-        {
-            printf("Lost sync\n");
-        }
+            printf("[F] lost sync\n");
 #endif /* ENABLE_FLOODING_INFO_DBG */
     }
 }

@@ -34,7 +34,7 @@
 namespace miosix {
 class DynamicAssignmentPhase : public AssignmentPhase {
 public:
-    AssignmentPhase(long long reservationEndTime, unsigned char hop, unsigned char myId, std::vector<unsigned char>* childrenIds) :
+    DynamicAssignmentPhase(long long reservationEndTime, unsigned char hop, unsigned char myId, std::vector<unsigned char>* childrenIds) :
             AssignmentPhase(reservationEndTime, hop, myId, childrenIds) {};
     DynamicAssignmentPhase() = delete;
     DynamicAssignmentPhase(const DynamicAssignmentPhase& orig) = delete;

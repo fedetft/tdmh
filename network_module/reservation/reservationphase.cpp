@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "reservationphase.h"
+#include "../flooding/syncstatus.h"
 
 namespace miosix {
     ReservationPhase::~ReservationPhase() {
@@ -44,10 +45,10 @@ namespace miosix {
         ledOn();
         RecvResult result;
         for(bool success = false; !(success || result.error == RecvResult::ErrorCode::TIMEOUT);
-                success = isReservationPacket(result, packet, panId, hop))
+                success = isReservationPacket(result, panId, hop))
         {
             try {
-                result = transceiver.recv(packet, ReservationPhase::reservationPacketSize, wakeUpTimeout.second );
+                result = transceiver.recv(packet.data(), ReservationPhase::reservationPacketSize, wakeUpTimeout.second );
             } catch(std::exception& e) {
     #ifdef ENABLE_RADIO_EXCEPTION_DBG
                 printf("%s\n", e.what());
@@ -69,10 +70,13 @@ namespace miosix {
         }
     }
     void ReservationPhase::populatePacket(MACContext& ctx) {
+        ctx.getSlotsNegotiator();
+        //TODO make the slots negotiator appropriately populate the pkt
+        /*
         if(packet[6 + ctx.networkId])
             printf("[MAC] Reservation slot already occupied\n");
         packet[2]--;
-        packet[6 + ctx.networkId] |= ctx.getMediumAccessController().getOutgoingCount() ? 255 : 0;
+        packet[6 + ctx.networkId] |= ctx.getMediumAccessController().getOutgoingCount() ? 255 : 0;*/
     }
 
     void ReservationPhase::forwardPacket() {
@@ -80,7 +84,7 @@ namespace miosix {
         //TODO what's better, a causal consistency or a previously measured time?
         long long sendTime = measuredActivityTime + ReservationPhase::retransmissionDelay;
         try {
-            transceiver.sendAt(packet, sizeof(packet), sendTime);
+            transceiver.sendAt(packet.data(), sizeof(packet), sendTime);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
             printf("%s\n", e.what());

@@ -28,6 +28,7 @@
 #include "dynamicmacround.h"
 #include "../flooding/periodiccheckfloodingphase.h"
 #include "../flooding/syncstatus.h"
+#include "../slots_management/dynamicslotsnegotiator.h"
 
 namespace miosix {
     DynamicMACRound::~DynamicMACRound() {
@@ -72,7 +73,10 @@ namespace miosix {
         ctx.initializeSyncStatus(new SyncStatus());
         return new DynamicMACRound(ctx.getMediumAccessController());
     }
-
+    
+    SlotsNegotiator* DynamicMACRound::DynamicMACRoundFactory::getSlotsNegotiator(MACContext& ctx) const {
+        return new DynamicSlotsNegotiator(ctx, 120, 1);
+    }
 
 }
 

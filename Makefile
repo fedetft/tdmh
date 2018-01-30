@@ -21,6 +21,9 @@ main.cpp\
 network_module/mediumaccesscontroller.cpp\
 network_module/maccontext.cpp\
 network_module/macphase.cpp\
+network_module/slots_management/slotsnegotiator.cpp\
+network_module/slots_management/dynamicslotsnegotiator.cpp\
+network_module/slots_management/masterslotsnegotiator.cpp\
 network_module/flooding/floodingphase.cpp\
 network_module/flooding/hookingfloodingphase.cpp\
 network_module/flooding/masterfloodingphase.cpp\
@@ -33,7 +36,15 @@ network_module/macround/dynamicmacround.cpp\
 network_module/roundtrip/led_bar.cpp\
 network_module/roundtrip/roundtripphase.cpp\
 network_module/roundtrip/listeningroundtripphase.cpp\
-network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp\
+network_module/reservation/reservationphase.cpp\
+network_module/reservation/dynamicreservationphase.cpp\
+network_module/reservation/masterreservationphase.cpp\
+network_module/reservation/lasthopreservationphase.cpp\
+network_module/assignment/assignmentphase.cpp\
+network_module/assignment/dynamicassignmentphase.cpp\
+network_module/assignment/masterassignmentphase.cpp\
+network_module/assignment/lasthopassignmentphase.cpp\
 
 ##
 ## List here additional static libraries with relative path

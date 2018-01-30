@@ -37,13 +37,13 @@ namespace miosix {
 
     void MasterFloodingPhase::execute(MACContext& ctx)
     {
-        ledOn();
         transceiver.configure(*ctx.getTransceiverConfig());
         transceiver.turnOn();
         //Thread::nanoSleepUntil(startTime);
         auto deepsleepDeadline = globalFirstActivityTime - rootNodeWakeupAdvance;
         if(getTime() < deepsleepDeadline)
             pm.deepSleepUntil(deepsleepDeadline);
+        ledOn();
         //Sending synchronization start packet
         try {
             transceiver.sendAt(getSyncPkt(ctx.getMediumAccessController().getPanId()).data(), syncPacketSize, globalFirstActivityTime);
@@ -53,7 +53,7 @@ namespace miosix {
 #endif /* ENABLE_RADIO_EXCEPTION_DBG */
         }
 #ifdef ENABLE_FLOODING_INFO_DBG
-        printf("Sync packet sent at %lld\n", globalFirstActivityTime);
+        printf("[F] ST=%lld\n", globalFirstActivityTime);
 #endif /* ENABLE_FLOODING_INFO_DBG */
         transceiver.turnOff();
         ledOff();

@@ -32,13 +32,13 @@
 #include <vector>
 
 namespace miosix {
-    class DynamicSlotNegotiator : public SlotsNegotiator {
+    class DynamicSlotsNegotiator : public SlotsNegotiator {
     public:
-        DynamicSlotNegotiator() = delete;
-        MasterSlotNegotiator(MACContext* ctx, unsigned short slotsPerDirectionPerRound, unsigned char nibblesPerSlot) :
+        DynamicSlotsNegotiator() = delete;
+        DynamicSlotsNegotiator(MACContext& ctx, unsigned short slotsPerDirectionPerRound, unsigned char nibblesPerSlot) :
                 SlotsNegotiator(ctx, slotsPerDirectionPerRound, nibblesPerSlot) {}
-        DynamicSlotNegotiator(const DynamicSlotNegotiator& orig) = delete;
-        virtual ~DynamicSlotNegotiator();
+        DynamicSlotsNegotiator(const DynamicSlotsNegotiator& orig) = delete;
+        virtual ~DynamicSlotsNegotiator();
         std::vector<unsigned char> getReservationPacket(unsigned char index);
     private:
 

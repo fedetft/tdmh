@@ -31,6 +31,7 @@
 namespace miosix {
     class MACRound;
     class MACContext;
+    class SlotsNegotiator;
     
     class MACRoundFactory {
     public:
@@ -44,6 +45,13 @@ namespace miosix {
          * @return 
          */
         virtual MACRound* create(MACContext& ctx) const = 0;
+
+        /**
+         * Generates a new SlotsNegotiator to be used for managing round scheduling.
+         * @param ctx
+         * @return 
+         */
+        virtual SlotsNegotiator* getSlotsNegotiator(MACContext& ctx) const = 0;
     };
 }
 

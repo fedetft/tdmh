@@ -28,6 +28,7 @@
 #include "maccontext.h"
 #include "macround/macroundfactory.h"
 #include "flooding/syncstatus.h"
+#include "slots_management/slotsnegotiator.h"
 #include "interfaces-impl/transceiver.h"
 
 namespace miosix {
@@ -35,7 +36,8 @@ namespace miosix {
     MACContext::MACContext(const MACRoundFactory* const roundFactory, const miosix::MediumAccessController& mac) :
             mac(mac),
             transceiverConfig(new TransceiverConfiguration(mac.getRadioFrequency(), mac.getTxPower(), true, false)),
-            currentRound(roundFactory->create(*this)) {
+            currentRound(roundFactory->create(*this)),
+            slotsNegotiator(roundFactory->getSlotsNegotiator(*this)){
         delete roundFactory;
     }
 

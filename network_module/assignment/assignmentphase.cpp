@@ -27,6 +27,7 @@
 
 
 #include "assignmentphase.h"
+#include "../flooding/syncstatus.h"
 
 namespace miosix {
     AssignmentPhase::~AssignmentPhase() {
@@ -47,10 +48,10 @@ namespace miosix {
         ledOn();
         RecvResult result;
         for(bool success = false; !(success || result.error == RecvResult::ErrorCode::TIMEOUT);
-                success = isAssignmentPacket(result, packet, panId, hop))
+                success = isAssignmentPacket(result, panId, hop))
         {
             try {
-                result = transceiver.recv(packet, AssignmentPhase::assignmentPacketSize, wakeUpTimeout.second);
+                result = transceiver.recv(packet.data(), AssignmentPhase::assignmentPacketSize, wakeUpTimeout.second);
             } catch(std::exception& e) {
     #ifdef ENABLE_RADIO_EXCEPTION_DBG
                 printf("%s\n", e.what());
@@ -77,9 +78,9 @@ namespace miosix {
     void AssignmentPhase::forwardPacket() {
         //Sending synchronization start packet
         //TODO what's better, a causal consistency or a previously measured time?
-        long long sendTime = measuredActivityTime + ReservationPhase::retransmissionDelay;
+        long long sendTime = measuredActivityTime + retransmissionDelay;
         try {
-            transceiver.sendAt(packet, sizeof(packet), sendTime);
+            transceiver.sendAt(packet.data(), sizeof(packet), sendTime);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
             printf("%s\n", e.what());
@@ -90,11 +91,11 @@ namespace miosix {
 #endif /* ENABLE_FLOODING_INFO_DBG */
     }
     
-     AssignmentPhase::processPacket() {
+     void AssignmentPhase::processPacket() {
         slotCount = 0;
         for (unsigned char i = 1, j = 7, k = 0; j < assignmentPacketSize; i+=2, j++) {
             if (packet[j] & 0xF0){
-                if (i == forwardIds[k]) {
+                if (i == (*forwardIds)[k]) {
                     forwardSlots->push_back(slotCount);
                     k++;
                 } else if (i == myId) {
@@ -105,7 +106,7 @@ namespace miosix {
             }
             if (packet[j] & 0x0F){
                 auto nibble = i + 1;
-                if (nibble == forwardIds[k]) {
+                if (nibble == (*forwardIds)[k]) {
                     forwardSlots->push_back(slotCount);
                     k++;
                 } else if (nibble == myId) {

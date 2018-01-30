@@ -41,7 +41,7 @@ public:
     AssignmentPhase(const AssignmentPhase& orig) = delete;
     virtual ~AssignmentPhase();
     
-    long long getPhaseEnd() const { globalStartTime + phaseDuration; }
+    long long getPhaseEnd() const { return globalStartTime + phaseDuration; }
     
     static const int assignmentPacketSize = 127;
     static const int retransmissionDelay = 5000000; //5ms
@@ -57,7 +57,7 @@ protected:
             pm(PowerManager::instance()),
             forwardIds(childrenIds) {};
         
-    inline bool isAssignmentPacket(RecvResult& result, unsigned char *packet, int panId, unsigned char myHop) {
+    inline bool isAssignmentPacket(RecvResult& result, int panId, unsigned char myHop) {
         return result.error == RecvResult::OK
                 && result.timestampValid && result.size == assignmentPacketSize
                 && packet[0] == 0x46 && packet[1] == 0x08

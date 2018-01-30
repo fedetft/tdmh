@@ -30,10 +30,12 @@
 
 #include "macround.h"
 #include "macroundfactory.h"
+#include "../slots_management/slotsnegotiator.h"
 #include "../flooding/masterfloodingphase.h"
 #include "../roundtrip/listeningroundtripphase.h"
 #include "../reservation/masterreservationphase.h"
 #include "../assignment/masterassignmentphase.h"
+#include <cstdio>
 
 namespace miosix {
     class MasterMACRound : public MACRound {
@@ -49,22 +51,23 @@ namespace miosix {
         public:
             MasterMACRoundFactory() {};
             MACRound* create(MACContext& ctx) const override;
+            SlotsNegotiator* getSlotsNegotiator(MACContext& ctx) const override;
             virtual ~MasterMACRoundFactory() {};
         };
         
     protected:
         MasterMACRound(const MediumAccessController& mac, long long roundStart) :
-                MACRound(
-                    new MasterFloodingPhase(roundStart),
-                    new ListeningRoundtripPhase(flooding->getPhaseEnd()),
-                    new MasterReservationPhase(roundtrip->getPhaseEnd()),
-                    new MasterAssignmentPhase(reservation->getPhaseEnd())),
-                roundStart(roundStart) {}
+                MACRound(new MasterFloodingPhase(roundStart), nullptr, nullptr, nullptr),
+                roundStart(roundStart) {
+                    roundtrip = new ListeningRoundtripPhase(flooding->getPhaseEnd());/*,
+                    reservation = new MasterReservationPhase(roundtrip->getPhaseEnd()),
+                    assignment = new MasterAssignmentPhase(reservation->getPhaseEnd())*/
+                }
                 
         /**
          * Initial skew for allowing the master to boot the network module before starting the first network round
          */
-        long long initializationDelay = 200000;
+        long long initializationDelay = 1000000;
 
     private:
         long long roundStart;

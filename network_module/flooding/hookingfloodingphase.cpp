@@ -36,17 +36,17 @@ HookingFloodingPhase::~HookingFloodingPhase() {
 void HookingFloodingPhase::execute(MACContext& ctx)
 {   
 #ifdef ENABLE_FLOODING_INFO_DBG
-    printf("Resynchronize...\n");
+    printf("[F] Resync\n");
 #endif /* ENABLE_FLOODING_INFO_DBG */
     auto* status = ctx.getSyncStatus();
     auto* synchronizer = status->synchronizer;
     synchronizer->reset();
-    ledOn();
     transceiver.configure(*ctx.getTransceiverConfig());
     transceiver.turnOn();
     unsigned char packet[syncPacketSize];
     //TODO: attach to strongest signal, not just to the first received packet
     RecvResult result;
+    ledOn();
     for (bool success = false; !success; success = isSyncPacket(result, packet, ctx.getMediumAccessController().getPanId())) {
         try {
             result = transceiver.recv(packet, syncPacketSize, infiniteTimeout);
@@ -71,7 +71,7 @@ void HookingFloodingPhase::execute(MACContext& ctx)
     transceiver.turnOff();
     
 #ifdef ENABLE_FLOODING_INFO_DBG
-    printf("Expected receiving time: %lld, actual: %lld\n", status->computedFrameStart, result.timestamp);
+    printf("[F] ERT=%lld, RT=%lld\n", status->computedFrameStart, result.timestamp);
 #endif /* ENABLE_FLOODING_INFO_DBG */
     
     status->initialize(synchronizer->getReceiverWindow(), result.timestamp);
@@ -80,7 +80,7 @@ void HookingFloodingPhase::execute(MACContext& ctx)
     //Correct frame start considering hops
     //measuredFrameStart-=hop*packetRebroadcastTime;
 #ifdef ENABLE_FLOODING_INFO_DBG
-    printf("Resynchronized: hop=%d, w=%d, rssi=%d.\n", packet[2], status->receiverWindow, result.rssi);
+    printf("[F] hop=%d, w=%d, rssi=%d\n", packet[2], status->receiverWindow, result.rssi);
 #endif /* ENABLE_FLOODING_INFO_DBG */
 }
 }

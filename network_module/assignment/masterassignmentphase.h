@@ -30,6 +30,7 @@
 #define MASTERASSIGNMENTPHASE_H
 
 #include "assignmentphase.h"
+#include "../slots_management/slotsnegotiator.h"
 
 namespace miosix {
     class MasterAssignmentPhase : public AssignmentPhase {
@@ -40,7 +41,7 @@ namespace miosix {
         MasterAssignmentPhase(const MasterAssignmentPhase& orig) = delete;
         virtual ~MasterAssignmentPhase();
         void execute(MACContext& ctx) override;
-        void populatePacket();
+        void populatePacket(MACContext& ctx);
     protected:
 private:
 

@@ -38,7 +38,6 @@ namespace miosix {
     class AssignmentPhase;
     class MACRound {
     public:
-        MACRound() {};
         MACRound(FloodingPhase* flooding, RoundtripPhase* roundtrip, ReservationPhase* reservation, AssignmentPhase* assignment) :
                 flooding(flooding), roundtrip(roundtrip), reservation(reservation), assignment(assignment) {};
         MACRound(const MACRound& orig) = delete;
@@ -59,6 +58,7 @@ namespace miosix {
         virtual void run(MACContext& ctx);
         static const long long roundDuration = 10000000000LL; //10s
     protected:
+        MACRound() {};
         FloodingPhase* flooding = nullptr;
         RoundtripPhase* roundtrip = nullptr;
         ReservationPhase* reservation = nullptr;

@@ -35,19 +35,23 @@ namespace miosix {
     void MasterAssignmentPhase::execute(MACContext& ctx)
     {
         auto* config = ctx.getTransceiverConfig();
-        transceiver.configure(new TransceiverConfiguration(config->frequency, config->txPower, false, false));
+        TransceiverConfiguration cfg(config->frequency, config->txPower, false, false);
+        transceiver.configure(cfg);
         transceiver.turnOn();
         getEmptyPkt(ctx.getMediumAccessController().getPanId(), ctx.getHop());
-        populatePacket();
+        populatePacket(ctx);
         forwardPacket();
         transceiver.turnOff();
         ledOff();
     }
     
-    void MasterAssignmentPhase::populatePacket() {
+    void MasterAssignmentPhase::populatePacket(MACContext& ctx) {
+        ctx.getSlotsNegotiator();
+        //TODO use slots negotiator for populating the assignment packet
+        /*
         for (unsigned char e : *assignments){
             packet[7 + (e - 1)/2] |= e & 1? 0xF0 : 0x0F;
-        }
+        }*/
     }
 
 }

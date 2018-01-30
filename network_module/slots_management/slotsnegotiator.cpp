@@ -30,14 +30,6 @@
 namespace miosix {
     SlotsNegotiator::~SlotsNegotiator() {
     }
-    
-    std::vector<unsigned char> SlotsNegotiator::getAssignmentPacket(unsigned char index) {
-
-    }
-        
-    std::vector<unsigned char> SlotsNegotiator::getReservationPacket(unsigned char index) {
-
-    }
 
 }
 

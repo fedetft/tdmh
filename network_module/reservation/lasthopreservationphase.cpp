@@ -34,7 +34,8 @@ namespace miosix {
     void LastHopReservationPhase::execute(MACContext& ctx)
     {
         auto* config = ctx.getTransceiverConfig();
-        transceiver.configure(new TransceiverConfiguration(config->frequency, config->txPower, false, false));
+        TransceiverConfiguration cfg(config->frequency, config->txPower, false, false);
+        transceiver.configure(cfg);
         transceiver.turnOn();
         getEmptyPkt(ctx.getMediumAccessController().getPanId(), ctx.getHop());
         populatePacket(ctx);

@@ -35,6 +35,7 @@ namespace miosix {
     class MACRoundFactory;
     class MediumAccessController;
     class SyncStatus;
+    class SlotsNegotiator;
     class MACContext {
     public:
         MACContext() = delete;
@@ -51,6 +52,7 @@ namespace miosix {
         void initializeSyncStatus(SyncStatus* syncStatus);
         inline SyncStatus* getSyncStatus() { return syncStatus; }
         inline const TransceiverConfiguration* getTransceiverConfig() { return transceiverConfig; }
+        inline const SlotsNegotiator* getSlotsNegotiator() { return slotsNegotiator; }
         unsigned char networkId;
     private:
         unsigned char hop;
@@ -59,6 +61,7 @@ namespace miosix {
         const TransceiverConfiguration* const transceiverConfig;
         MACRound* currentRound = nullptr;
         MACRound* nextRound = nullptr;
+        SlotsNegotiator* slotsNegotiator;
     };
 }
 

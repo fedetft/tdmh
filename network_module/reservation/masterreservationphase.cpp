@@ -34,7 +34,8 @@ namespace miosix {
     void MasterReservationPhase::execute(MACContext& ctx)
     {
         auto* config = ctx.getTransceiverConfig();
-        transceiver.configure(new TransceiverConfiguration(config->frequency, config->txPower, false, false));
+        TransceiverConfiguration cfg(config->frequency, config->txPower, false, false);
+        transceiver.configure(cfg);
         transceiver.turnOn();
         receiveOrGetEmpty(ctx);
         transceiver.turnOff();
@@ -44,15 +45,15 @@ namespace miosix {
     std::vector<unsigned char>* MasterReservationPhase::getUpstreamReservations() {
         auto* slots = new std::vector<unsigned char> (240);
         unsigned char o = 0;
-        for (unsigned char i = 1, j = 7, cur = slots->begin(); j < reservationPacketSize; i+=2, j++) {
+        for (unsigned char i = 1, j = 7; j < reservationPacketSize; i+=2, j++) {
             if(packet[j] & 0xF0){
-                cur[o++] = i; 
+                (*slots)[o++] = i; 
             }
             if(packet[j] & 0x0F){
-                cur[o++] = i+1;
+                (*slots)[o++] = i+1;
             }
         }
-        slots.resize(o);
+        slots->resize(o);
         return slots;
     }
 

@@ -29,10 +29,12 @@
 #define SLOTSNEGOTIATOR_H
 
 namespace miosix {
+    class MACContext;
+    
     class SlotsNegotiator {
     public:
         SlotsNegotiator() = delete;
-        SlotsNegotiator(MACContext* ctx, unsigned short slotsPerDirectionPerRound, unsigned char nibblesPerSlot) :
+        SlotsNegotiator(MACContext& ctx, unsigned short slotsPerDirectionPerRound, unsigned char nibblesPerSlot) :
                 reservationPhasesPerRoundCount((((slotsPerDirectionPerRound - 1) * nibblesPerSlot) / 240) + 1),
                 assignmentPhasesPerRoundCount((((slotsPerDirectionPerRound - 1) * nibblesPerSlot) / 120) + 1),
                 nibblesPerSlot(nibblesPerSlot),
@@ -46,7 +48,7 @@ namespace miosix {
         const unsigned char nibblesPerSlot;
         const bool hasDoubleRservation;
     private:
-        MACContext* ctx;
+        MACContext& ctx;
     };
 }
 

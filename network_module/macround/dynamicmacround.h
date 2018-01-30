@@ -41,7 +41,7 @@ namespace miosix {
         explicit DynamicMACRound(const MediumAccessController& mac) :
                 MACRound(
                     new HookingFloodingPhase(),
-                    nullptr) {}
+                    nullptr, nullptr, nullptr) {}
         virtual void run(MACContext& ctx) override;
         virtual ~DynamicMACRound();
 
@@ -49,6 +49,7 @@ namespace miosix {
         public:
             DynamicMACRoundFactory() {};
             MACRound* create(MACContext& ctx) const override;
+            SlotsNegotiator* getSlotsNegotiator(MACContext& ctx) const override;
             virtual ~DynamicMACRoundFactory() {};
         };
 

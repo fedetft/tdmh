@@ -28,10 +28,10 @@
 #include "masterslotsnegotiator.h"
 
 namespace miosix {
-    MasterSlotNegotiator::~MasterSlotNegotiator() {
+    MasterSlotsNegotiator::~MasterSlotsNegotiator() {
     }
     
-    std::vector<unsigned char> MasterSlotNegotiator::getAssignmentPacket(unsigned char index) {
+    std::vector<unsigned char> MasterSlotsNegotiator::getAssignmentPacket(unsigned char index) {
 
     }
 

@@ -28,10 +28,10 @@
 #include "dynamicslotsnegotiator.h"
 
 namespace miosix {
-    DynamicSlotNegotiator::~DynamicSlotNegotiator() {
+    DynamicSlotsNegotiator::~DynamicSlotsNegotiator() {
     }
     
-    std::vector<unsigned char> DynamicSlotNegotiator::getReservationPacket(unsigned char index) {
+    std::vector<unsigned char> DynamicSlotsNegotiator::getReservationPacket(unsigned char index) {
             
     }
 

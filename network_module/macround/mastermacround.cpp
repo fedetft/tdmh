@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "mastermacround.h"
+#include "../slots_management/masterslotsnegotiator.h"
 
 namespace miosix {
     
@@ -39,6 +40,10 @@ namespace miosix {
 
     MACRound* MasterMACRound::MasterMACRoundFactory::create(MACContext& ctx) const {
         return new MasterMACRound(ctx.getMediumAccessController());
+    }
+    
+    SlotsNegotiator* MasterMACRound::MasterMACRoundFactory::getSlotsNegotiator(MACContext& ctx) const {
+        return new MasterSlotsNegotiator(ctx, 120, 1);
     }
 
 

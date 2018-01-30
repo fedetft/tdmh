@@ -29,6 +29,7 @@
 #include "../flooding/floodingphase.h"
 #include "../roundtrip/roundtripphase.h"
 #include "../reservation/reservationphase.h"
+#include "../assignment/assignmentphase.h"
 
 namespace miosix {
     MACRound::~MACRound() {

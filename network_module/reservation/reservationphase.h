@@ -37,7 +37,7 @@ public:
     ReservationPhase(const ReservationPhase& orig) = delete;
     virtual ~ReservationPhase();
     
-    long long getPhaseEnd() const { globalStartTime + phaseDuration; }
+    long long getPhaseEnd() const { return globalStartTime + phaseDuration; }
     
     static const int reservationPacketSize = 127;
     static const int retransmissionDelay = 5000000; //5ms
@@ -51,7 +51,7 @@ protected:
             transceiver(Transceiver::instance()),
             pm(PowerManager::instance()) {};
         
-    inline bool isReservationPacket(RecvResult& result, unsigned char *packet, int panId, unsigned char myHop) {
+    inline bool isReservationPacket(RecvResult& result, int panId, unsigned char myHop) {
         return result.error == RecvResult::OK
                 && result.timestampValid && result.size == reservationPacketSize
                 && packet[0] == 0x46 && packet[1] == 0x08

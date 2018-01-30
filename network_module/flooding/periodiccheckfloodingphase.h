@@ -50,7 +50,6 @@ public:
     virtual ~PeriodicCheckFloodingPhase();
 
 protected:
-    bool consumed = false;
     SyncStatus* syncStatus = nullptr;
 private:
 };

@@ -27,7 +27,8 @@
 
 #include <cstdio>
 #include <miosix.h>
-#include "network_module/macround/mastermacround.h"
+//#include "network_module/macround/mastermacround.h"
+#include "network_module/macround/dynamicmacround.h"
 #include "network_module/mediumaccesscontroller.h"
 
 using namespace std;
@@ -35,8 +36,8 @@ using namespace miosix;
 
 void flopsyncRadio(void*){    
     printf("Dynamic node\n");
-    //MediumAccessController& controller = MediumAccessController::instance(new DynamicMACRound::DynamicMACRoundFactory(), 6, 1, 2450);
-    MediumAccessController& controller = MediumAccessController::instance(new MasterMACRound::MasterMACRoundFactory(), 6, 1, 2450);
+    MediumAccessController& controller = MediumAccessController::instance(new DynamicMACRound::DynamicMACRoundFactory(), 6, 1, 2450);
+    //MediumAccessController& controller = MediumAccessController::instance(new MasterMACRound::MasterMACRoundFactory(), 6, 1, 2450);
     controller.run();
 }
 
