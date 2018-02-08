@@ -1,0 +1,17 @@
+/*
+ * NodeBase.h
+ *
+ *  Created on: Feb 6, 2018
+ *      Author: fede
+ */
+
+#ifndef NODEBASE_H_
+#define NODEBASE_H_
+
+class NodeBase {
+public:
+    NodeBase();
+    virtual ~NodeBase();
+};
+
+#endif /* NODEBASE_H_ */

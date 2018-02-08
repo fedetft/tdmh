@@ -1,0 +1,11 @@
+
+#include "utility.h"
+
+void waitAndDeletePackets(omnetpp::cSimpleModule *o, omnetpp::simtime_t time)
+{
+    omnetpp::cQueue queue;
+    o->waitAndEnqueue(time,&queue);
+    //TODO: is this efficient? And most important, why can't they use std::list
+    while(!queue.isEmpty()) delete queue.pop();
+
+}

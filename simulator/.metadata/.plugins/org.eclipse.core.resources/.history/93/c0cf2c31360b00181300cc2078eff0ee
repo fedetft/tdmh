@@ -1,0 +1,17 @@
+/*
+ * common.h
+ *
+ *  Created on: Feb 6, 2018
+ *      Author: fede
+ */
+
+#ifndef COMMON_H_
+#define COMMON_H_
+
+class common {
+public:
+    common();
+    virtual ~common();
+};
+
+#endif /* COMMON_H_ */

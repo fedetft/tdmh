@@ -1,0 +1,6 @@
+
+#pragma once
+
+#include <omnetpp.h>
+
+void waitAndDeletePackets(simtime_t time);

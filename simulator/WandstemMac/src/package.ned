@@ -1,0 +1,4 @@
+package wandstemmac;
+
+@license(LGPL);
+

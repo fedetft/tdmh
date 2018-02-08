@@ -1,0 +1,6 @@
+../out/gcc-release/src/Node.o: Node.cc Node.h \
+ /home/fede/Documents/omnetpp-5.2.1/include/omnetpp.h
+
+Node.h:
+
+/home/fede/Documents/omnetpp-5.2.1/include/omnetpp.h:

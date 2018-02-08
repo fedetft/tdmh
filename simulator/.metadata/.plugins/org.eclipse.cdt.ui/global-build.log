@@ -1,0 +1,320 @@
+11:50:08 **** Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Node.cc
+Node.cc: In member function ‘virtual void Node::initialize()’:
+Node.cc:20:27: error: only constructors take member initializers
+ void Node::initialize() : cSimpleModule(coroutineStack) {}
+                           ^~~~~~~~~~~~~
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+11:51:13 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Node.cc
+Node.cc:20:17: error: return type specification for constructor invalid
+ void Node::Node() : cSimpleModule(coroutineStack) {}
+                 ^
+Node.cc:20:17: error: definition of implicitly-declared ‘Node::Node()’
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+11:51:53 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Node.cc
+In file included from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp/cobject.h:26:0,
+                 from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp/cnamedobject.h:23,
+                 from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp/cownedobject.h:23,
+                 from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp/carray.h:19,
+                 from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp.h:28,
+                 from Node.h:19,
+                 from Node.cc:16:
+Node.cc: In function ‘omnetpp::cObject* __factoryfunc_18()’:
+Node.cc:18:15: error: ‘Node::Node()’ is protected within this context
+ Define_Module(Node);
+               ^
+In file included from Node.cc:16:0:
+Node.h:30:5: note: declared protected here
+     Node();
+     ^~~~
+Node.cc: At global scope:
+Node.cc:20:17: error: return type specification for constructor invalid
+ void Node::Node() : cSimpleModule(coroutineStack) {}
+                 ^
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+11:52:36 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Node.cc
+Node.cc:20:17: error: return type specification for constructor invalid
+ void Node::Node() : cSimpleModule(coroutineStack) {}
+                 ^
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+11:53:03 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Node.cc
+RootNode.cc
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+11:55:58 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Node.cc
+RootNode.cc
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+12:11:09 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+make[1]: *** No rule to make target 'Node.cc', needed by '../out/gcc-release/src/Node.o'.  Stop.
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+12:11:19 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+make[1]: *** No rule to make target 'Node.cc', needed by '../out/gcc-release/src/Node.o'.  Stop.
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+12:13:45 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+make[1]: *** No rule to make target 'Node.cc', needed by '../out/gcc-release/src/Node.o'.  Stop.
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+12:15:40 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+make[1]: *** No rule to make target 'Node.cc', needed by '../out/gcc-release/src/Node.o'.  Stop.
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+12:18:03 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Node.cpp
+In file included from Node.h:20:0,
+                 from Node.cpp:16:
+utility.h:6:27: error: variable or field ‘waitAndDeletePackets’ declared void
+ void waitAndDeletePackets(simtime_t time);
+                           ^~~~~~~~~
+utility.h:6:27: error: ‘simtime_t’ was not declared in this scope
+utility.h:6:27: note: suggested alternative:
+In file included from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp/cexception.h:23:0,
+                 from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp/cnamedobject.h:24,
+                 from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp/cownedobject.h:23,
+                 from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp/carray.h:19,
+                 from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp.h:28,
+                 from Node.h:19,
+                 from Node.cpp:16:
+/home/fede/Documents/omnetpp-5.2.1/include/omnetpp/simtime_t.h:36:17: note:   ‘omnetpp::simtime_t’
+ typedef SimTime simtime_t;
+                 ^~~~~~~~~
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:26:9: error: ‘waitAndDeletePackets’ was not declared in this scope
+         waitAndDeletePackets(1000);
+         ^~~~~~~~~~~~~~~~~~~~
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+12:21:39 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Node.cpp
+In file included from Node.h:20:0,
+                 from Node.cpp:16:
+utility.h:6:27: error: variable or field ‘waitAndDeletePackets’ declared void
+ void waitAndDeletePackets(simtime_t time);
+                           ^~~~~~~~~
+utility.h:6:27: error: ‘simtime_t’ was not declared in this scope
+utility.h:6:27: note: suggested alternative:
+In file included from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp/cexception.h:23:0,
+                 from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp/cnamedobject.h:24,
+                 from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp/cownedobject.h:23,
+                 from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp/carray.h:19,
+                 from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp.h:28,
+                 from Node.h:19,
+                 from Node.cpp:16:
+/home/fede/Documents/omnetpp-5.2.1/include/omnetpp/simtime_t.h:36:17: note:   ‘omnetpp::simtime_t’
+ typedef SimTime simtime_t;
+                 ^~~~~~~~~
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:26:9: error: ‘waitAndDeletePackets’ was not declared in this scope
+         waitAndDeletePackets(1000);
+         ^~~~~~~~~~~~~~~~~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+12:22:14 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Node.cpp
+RootNode.cpp
+utility.cpp
+utility.cpp: In function ‘void waitAndDeletePackets(omnetpp::simtime_t)’:
+utility.cpp:6:5: error: ‘cQueue’ was not declared in this scope
+     cQueue queue;
+     ^~~~~~
+utility.cpp:6:5: note: suggested alternative:
+In file included from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp.h:90:0,
+                 from utility.h:4,
+                 from utility.cpp:2:
+/home/fede/Documents/omnetpp-5.2.1/include/omnetpp/cqueue.h:55:15: note:   ‘omnetpp::cQueue’
+ class SIM_API cQueue : public cOwnedObject
+               ^~~~~~
+utility.cpp:7:26: error: ‘queue’ was not declared in this scope
+     waitAndEnqueue(time,&queue);
+                          ^~~~~
+utility.cpp:7:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(time,&queue);
+     ^~~~~~~~~~~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/utility.o' failed
+make[1]: *** [../out/gcc-release/src/utility.o] Error 1
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+12:22:44 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+utility.cpp
+utility.cpp: In function ‘void waitAndDeletePackets(omnetpp::simtime_t)’:
+utility.cpp:7:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(time,&queue);
+     ^~~~~~~~~~~~~~
+utility.cpp:9:24: warning: ‘bool omnetpp::cQueue::empty() const’ is deprecated [-Wdeprecated-declarations]
+     while(!queue.empty()) delete queue.pop();
+                        ^
+In file included from /home/fede/Documents/omnetpp-5.2.1/include/omnetpp.h:90:0,
+                 from utility.h:4,
+                 from utility.cpp:2:
+/home/fede/Documents/omnetpp-5.2.1/include/omnetpp/cqueue.h:298:25: note: declared here
+     _OPPDEPRECATED bool empty() const {return isEmpty();}
+                         ^~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/utility.o' failed
+make[1]: *** [../out/gcc-release/src/utility.o] Error 1
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+12:23:27 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+utility.cpp
+utility.cpp: In function ‘void waitAndDeletePackets(omnetpp::simtime_t)’:
+utility.cpp:7:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(time,&queue);
+     ^~~~~~~~~~~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/utility.o' failed
+make[1]: *** [../out/gcc-release/src/utility.o] Error 1
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+12:25:48 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Node.cpp
+RootNode.cpp
+utility.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+12:27:17 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+12:30:05 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Node.cpp
+RootNode.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+13:02:44 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Node.cpp
+RootNode.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+13:14:15 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+utility.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+13:15:12 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+13:26:03 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+13:50:41 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+10:59:42 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/fede/Documents/omnetpp-workspace/WandstemMac/src'
+12:16:38 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'

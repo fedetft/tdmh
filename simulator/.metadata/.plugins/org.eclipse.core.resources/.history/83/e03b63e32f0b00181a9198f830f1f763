@@ -1,0 +1,11 @@
+
+#include "utility.h"
+
+void waitAndDeletePackets(simtime_t time)
+{
+    cQueue queue;
+    waitAndEnqueue(time,&queue);
+    //TODO: is this efficient? And most important, why can't they use std::list
+    while(!queue.empty()) delete queue.pop();
+
+}

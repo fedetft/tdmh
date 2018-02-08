@@ -1,0 +1,9 @@
+12:16:38 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+
+12:16:38 Build Finished (took 116ms)
+
