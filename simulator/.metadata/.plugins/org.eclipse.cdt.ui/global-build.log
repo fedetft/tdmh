@@ -2376,3 +2376,42 @@ cd src && make
 make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
 make[1]: Nothing to be done for 'all'.
 make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:55:48 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:55:51 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:56:41 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:56:44 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:57:29 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:57:40 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'

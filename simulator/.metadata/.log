@@ -2084,3 +2084,17 @@ java.lang.RuntimeException:
 java.lang.RuntimeException: 
 	at org.omnetpp.launch.SimulationLauncherJob.run(SimulationLauncherJob.java:153)
 	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:56)
+
+!ENTRY org.omnetpp.launch 4 134 2018-02-09 23:56:12.882
+!MESSAGE Finished with Error
+!STACK 0
+java.lang.RuntimeException: 
+	at org.omnetpp.launch.SimulationLauncherJob.run(SimulationLauncherJob.java:153)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:56)
+
+!ENTRY org.omnetpp.launch 4 134 2018-02-09 23:59:07.470
+!MESSAGE Finished with Error
+!STACK 0
+java.lang.RuntimeException: 
+	at org.omnetpp.launch.SimulationLauncherJob.run(SimulationLauncherJob.java:153)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:56)

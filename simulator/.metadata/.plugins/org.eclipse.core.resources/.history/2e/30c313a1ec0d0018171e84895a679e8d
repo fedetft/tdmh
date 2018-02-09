@@ -46,7 +46,7 @@ void Node::activity()
             for (int i = 0; i < result.size; i++)
                 EV_INFO << std::hex << (unsigned int) pkt[i] << " ";
             EV_INFO << std::dec << "]"<< endl;
-            sendAt(pkt, result.size, SimTime(result.timestamp + 500000, SIMTIME_NS), "sync");
+            sendAt(pkt, sizeof(pkt), SimTime(result.timestamp + 500000, SIMTIME_NS), "sync");
         }
     }
 }
