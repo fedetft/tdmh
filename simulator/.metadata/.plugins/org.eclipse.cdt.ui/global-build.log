@@ -318,3 +318,2061 @@ cd src && make
 make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
 make[1]: Nothing to be done for 'all'.
 make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+12:21:47 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:37:41 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+In file included from Node.cpp:16:0:
+Node.h:29:10: error: conflicting return type specified for ‘virtual void Node::receive()’
+     void receive();
+          ^~~~~~~
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:18,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: error:   overriding ‘virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()’
+     virtual cMessage *receive();
+                       ^~~~~~~
+Node.cpp:28:6: error: prototype for ‘void Node::receive(omnetpp::simtime_t, bool)’ does not match any in class ‘Node’
+ void Node::receive(simtime_t timeout, bool strictTimeout) {
+      ^~~~
+In file included from Node.cpp:16:0:
+Node.h:29:10: error: candidate is: virtual void Node::receive()
+     void receive();
+          ^~~~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+15:38:19 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:22:13: error: expected primary-expression before ‘)’ token
+     auto f=()[]{};
+             ^
+Node.cpp:22:15: error: expected primary-expression before ‘]’ token
+     auto f=()[]{};
+               ^
+Node.cpp: In member function ‘void Node::receive(omnetpp::simtime_t, bool)’:
+Node.cpp:31:35: error: no matching function for call to ‘Node::waitAndEnqueue(time_t (&)(time_t*) throw (), omnetpp::cQueue*)’
+     waitAndEnqueue(time, &firstMsg);
+                                   ^
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:18,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:424:18: note: candidate: virtual void omnetpp::cSimpleModule::waitAndEnqueue(omnetpp::simtime_t, omnetpp::cQueue*)
+     virtual void waitAndEnqueue(simtime_t time, cQueue *queue);
+                  ^~~~~~~~~~~~~~
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:424:18: note:   no known conversion for argument 1 from ‘time_t(time_t*) throw () {aka long int(long int*) throw ()}’ to ‘omnetpp::simtime_t {aka omnetpp::SimTime}’
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+16:02:53 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:22:13: error: expected primary-expression before ‘)’ token
+     auto f=()[]{};
+             ^
+Node.cpp:22:15: error: expected primary-expression before ‘]’ token
+     auto f=()[]{};
+               ^
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+16:09:09 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:22:13: error: expected primary-expression before ‘)’ token
+     auto f=()[]{};
+             ^
+Node.cpp:22:15: error: expected primary-expression before ‘]’ token
+     auto f=()[]{};
+               ^
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+16:09:17 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:22:13: error: expected primary-expression before ‘)’ token
+     auto f=()[]{};
+             ^
+Node.cpp:22:15: error: expected primary-expression before ‘]’ token
+     auto f=()[]{};
+               ^
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+make: *** [all] Error 2
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+16:14:23 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:09:21 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+In file included from Node.cpp:16:0:
+Node.h:34:25: error: ‘constexpr’ needed for in-class initialization of static data member ‘const char* Node::timeoutPktName’ of non-integral type [-fpermissive]
+     static const char * timeoutPktName = "TIMEOUT";
+                         ^~~~~~~~~~~~~~
+Node.cpp: In member function ‘void Node::receive(omnetpp::simtime_t, bool)’:
+Node.cpp:30:41: error: ‘KIND_TIMEOUT’ was not declared in this scope
+     cMessage timeoutMsg(timeoutPktName, KIND_TIMEOUT);
+                                         ^~~~~~~~~~~~
+Node.cpp:30:41: note: suggested alternative: ‘_SC_TIMEOUTS’
+     cMessage timeoutMsg(timeoutPktName, KIND_TIMEOUT);
+                                         ^~~~~~~~~~~~
+                                         _SC_TIMEOUTS
+Node.cpp:31:35: error: no matching function for call to ‘Node::scheduleAt(omnetpp::simtime_t&, omnetpp::cMessage&)’
+     scheduleAt(timeout, timeoutMsg);
+                                   ^
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:18,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note: candidate: virtual void omnetpp::cSimpleModule::scheduleAt(omnetpp::simtime_t, omnetpp::cMessage*)
+     virtual void scheduleAt(simtime_t t, cMessage *msg);
+                  ^~~~~~~~~~
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note:   no known conversion for argument 2 from ‘omnetpp::cMessage’ to ‘omnetpp::cMessage*’
+Node.cpp:33:38: error: no matching function for call to ‘Node::receive(omnetpp::SimTime&)’
+     cMessage *msg = receive(waitDelta);
+                                      ^
+Node.cpp:28:6: note: candidate: void Node::receive(omnetpp::simtime_t, bool)
+ void Node::receive(simtime_t timeout, bool strictTimeout) {
+      ^~~~
+Node.cpp:28:6: note:   candidate expects 2 arguments, 1 provided
+Node.cpp:36:32: error: ‘class omnetpp::cMessage’ has no member named ‘getBitLength’
+     auto msgDataTimeUs =  msg->getBitLength() * 4;
+                                ^~~~~~~~~~~~
+Node.cpp: At global scope:
+Node.cpp:48:6: error: prototype for ‘void Node::sendAt(omnetpp::simtime_t)’ does not match any in class ‘Node’
+ void Node::sendAt(simtime_t when) {
+      ^~~~
+In file included from Node.cpp:16:0:
+Node.h:31:10: error: candidate is: void Node::sendAt()
+     void sendAt();
+          ^~~~~~
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+23:10:42 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+In file included from Node.cpp:16:0:
+Node.h:34:46: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+     static constexpr char * timeoutPktName = "TIMEOUT";
+                                              ^~~~~~~~~
+Node.cpp: In member function ‘void Node::receive(omnetpp::simtime_t, bool)’:
+Node.cpp:30:41: error: ‘KIND_TIMEOUT’ was not declared in this scope
+     cMessage timeoutMsg(timeoutPktName, KIND_TIMEOUT);
+                                         ^~~~~~~~~~~~
+Node.cpp:30:41: note: suggested alternative: ‘_SC_TIMEOUTS’
+     cMessage timeoutMsg(timeoutPktName, KIND_TIMEOUT);
+                                         ^~~~~~~~~~~~
+                                         _SC_TIMEOUTS
+Node.cpp:31:35: error: no matching function for call to ‘Node::scheduleAt(omnetpp::simtime_t&, omnetpp::cMessage&)’
+     scheduleAt(timeout, timeoutMsg);
+                                   ^
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:18,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note: candidate: virtual void omnetpp::cSimpleModule::scheduleAt(omnetpp::simtime_t, omnetpp::cMessage*)
+     virtual void scheduleAt(simtime_t t, cMessage *msg);
+                  ^~~~~~~~~~
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note:   no known conversion for argument 2 from ‘omnetpp::cMessage’ to ‘omnetpp::cMessage*’
+Node.cpp:33:38: error: no matching function for call to ‘Node::receive(omnetpp::SimTime&)’
+     cMessage *msg = receive(waitDelta);
+                                      ^
+Node.cpp:28:6: note: candidate: void Node::receive(omnetpp::simtime_t, bool)
+ void Node::receive(simtime_t timeout, bool strictTimeout) {
+      ^~~~
+Node.cpp:28:6: note:   candidate expects 2 arguments, 1 provided
+Node.cpp:36:32: error: ‘class omnetpp::cMessage’ has no member named ‘getBitLength’
+     auto msgDataTimeUs =  msg->getBitLength() * 4;
+                                ^~~~~~~~~~~~
+Node.cpp: At global scope:
+Node.cpp:48:6: error: prototype for ‘void Node::sendAt(omnetpp::simtime_t)’ does not match any in class ‘Node’
+ void Node::sendAt(simtime_t when) {
+      ^~~~
+In file included from Node.cpp:16:0:
+Node.h:31:10: error: candidate is: void Node::sendAt()
+     void sendAt();
+          ^~~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+23:11:43 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+In file included from Node.cpp:16:0:
+Node.h:35:30: error: in-class initialization of static data member ‘const string Node::timeoutPktName’ of non-literal type
+     static const std::string timeoutPktName = "TIMEOUT";
+                              ^~~~~~~~~~~~~~
+Node.h:35:47: error: call to non-constexpr function ‘std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(const _CharT*, const _Alloc&) [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’
+     static const std::string timeoutPktName = "TIMEOUT";
+                                               ^~~~~~~~~
+Node.cpp: In member function ‘void Node::receive(omnetpp::simtime_t, bool)’:
+Node.cpp:30:41: error: ‘KIND_TIMEOUT’ was not declared in this scope
+     cMessage timeoutMsg(timeoutPktName, KIND_TIMEOUT);
+                                         ^~~~~~~~~~~~
+Node.cpp:30:41: note: suggested alternative: ‘_SC_TIMEOUTS’
+     cMessage timeoutMsg(timeoutPktName, KIND_TIMEOUT);
+                                         ^~~~~~~~~~~~
+                                         _SC_TIMEOUTS
+Node.cpp:31:35: error: no matching function for call to ‘Node::scheduleAt(omnetpp::simtime_t&, omnetpp::cMessage&)’
+     scheduleAt(timeout, timeoutMsg);
+                                   ^
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:18,
+                 from Node.h:19,
+                 from Node.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note: candidate: virtual void omnetpp::cSimpleModule::scheduleAt(omnetpp::simtime_t, omnetpp::cMessage*)
+     virtual void scheduleAt(simtime_t t, cMessage *msg);
+                  ^~~~~~~~~~
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note:   no known conversion for argument 2 from ‘omnetpp::cMessage’ to ‘omnetpp::cMessage*’
+Node.cpp:33:38: error: no matching function for call to ‘Node::receive(omnetpp::SimTime&)’
+     cMessage *msg = receive(waitDelta);
+                                      ^
+Node.cpp:28:6: note: candidate: void Node::receive(omnetpp::simtime_t, bool)
+ void Node::receive(simtime_t timeout, bool strictTimeout) {
+      ^~~~
+Node.cpp:28:6: note:   candidate expects 2 arguments, 1 provided
+Node.cpp:36:32: error: ‘class omnetpp::cMessage’ has no member named ‘getBitLength’
+     auto msgDataTimeUs =  msg->getBitLength() * 4;
+                                ^~~~~~~~~~~~
+Node.cpp: At global scope:
+Node.cpp:48:6: error: prototype for ‘void Node::sendAt(omnetpp::simtime_t)’ does not match any in class ‘Node’
+ void Node::sendAt(simtime_t when) {
+      ^~~~
+In file included from Node.cpp:16:0:
+Node.h:32:10: error: candidate is: void Node::sendAt()
+     void sendAt();
+          ^~~~~~
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+23:12:56 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp:20:32: error: ‘static’ may not be used when defining (as opposed to declaring) a static data member [-fpermissive]
+ static const std::string Node::timeoutPktName = "TIMEOUT";
+                                ^~~~~~~~~~~~~~
+Node.cpp: In member function ‘void Node::receive(omnetpp::simtime_t, bool)’:
+Node.cpp:32:41: error: ‘KIND_TIMEOUT’ was not declared in this scope
+     cMessage timeoutMsg(timeoutPktName, KIND_TIMEOUT);
+                                         ^~~~~~~~~~~~
+Node.cpp:32:41: note: suggested alternative: ‘_SC_TIMEOUTS’
+     cMessage timeoutMsg(timeoutPktName, KIND_TIMEOUT);
+                                         ^~~~~~~~~~~~
+                                         _SC_TIMEOUTS
+Node.cpp:33:35: error: no matching function for call to ‘Node::scheduleAt(omnetpp::simtime_t&, omnetpp::cMessage&)’
+     scheduleAt(timeout, timeoutMsg);
+                                   ^
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:18,
+                 from Node.h:19,
+                 from Node.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note: candidate: virtual void omnetpp::cSimpleModule::scheduleAt(omnetpp::simtime_t, omnetpp::cMessage*)
+     virtual void scheduleAt(simtime_t t, cMessage *msg);
+                  ^~~~~~~~~~
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note:   no known conversion for argument 2 from ‘omnetpp::cMessage’ to ‘omnetpp::cMessage*’
+Node.cpp:35:38: error: no matching function for call to ‘Node::receive(omnetpp::SimTime&)’
+     cMessage *msg = receive(waitDelta);
+                                      ^
+Node.cpp:30:6: note: candidate: void Node::receive(omnetpp::simtime_t, bool)
+ void Node::receive(simtime_t timeout, bool strictTimeout) {
+      ^~~~
+Node.cpp:30:6: note:   candidate expects 2 arguments, 1 provided
+Node.cpp:38:32: error: ‘class omnetpp::cMessage’ has no member named ‘getBitLength’
+     auto msgDataTimeUs =  msg->getBitLength() * 4;
+                                ^~~~~~~~~~~~
+Node.cpp: At global scope:
+Node.cpp:50:6: error: prototype for ‘void Node::sendAt(omnetpp::simtime_t)’ does not match any in class ‘Node’
+ void Node::sendAt(simtime_t when) {
+      ^~~~
+In file included from Node.cpp:16:0:
+Node.h:32:10: error: candidate is: void Node::sendAt()
+     void sendAt();
+          ^~~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+23:13:23 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp:20:32: error: ‘static’ may not be used when defining (as opposed to declaring) a static data member [-fpermissive]
+ static const std::string Node::timeoutPktName = "TIMEOUT";
+                                ^~~~~~~~~~~~~~
+Node.cpp: In member function ‘void Node::receive(omnetpp::simtime_t, bool)’:
+Node.cpp:32:41: error: ‘KIND_TIMEOUT’ was not declared in this scope
+     cMessage timeoutMsg(timeoutPktName, KIND_TIMEOUT);
+                                         ^~~~~~~~~~~~
+Node.cpp:32:41: note: suggested alternative: ‘_SC_TIMEOUTS’
+     cMessage timeoutMsg(timeoutPktName, KIND_TIMEOUT);
+                                         ^~~~~~~~~~~~
+                                         _SC_TIMEOUTS
+Node.cpp:33:35: error: no matching function for call to ‘Node::scheduleAt(omnetpp::simtime_t&, omnetpp::cMessage&)’
+     scheduleAt(timeout, timeoutMsg);
+                                   ^
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:18,
+                 from Node.h:19,
+                 from Node.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note: candidate: virtual void omnetpp::cSimpleModule::scheduleAt(omnetpp::simtime_t, omnetpp::cMessage*)
+     virtual void scheduleAt(simtime_t t, cMessage *msg);
+                  ^~~~~~~~~~
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note:   no known conversion for argument 2 from ‘omnetpp::cMessage’ to ‘omnetpp::cMessage*’
+Node.cpp:35:38: error: no matching function for call to ‘Node::receive(omnetpp::SimTime&)’
+     cMessage *msg = receive(waitDelta);
+                                      ^
+Node.cpp:30:6: note: candidate: void Node::receive(omnetpp::simtime_t, bool)
+ void Node::receive(simtime_t timeout, bool strictTimeout) {
+      ^~~~
+Node.cpp:30:6: note:   candidate expects 2 arguments, 1 provided
+Node.cpp:38:32: error: ‘class omnetpp::cMessage’ has no member named ‘getBitLength’
+     auto msgDataTimeUs =  msg->getBitLength() * 4;
+                                ^~~~~~~~~~~~
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+23:13:46 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘void Node::receive(omnetpp::simtime_t, bool)’:
+Node.cpp:32:41: error: ‘KIND_TIMEOUT’ was not declared in this scope
+     cMessage timeoutMsg(timeoutPktName, KIND_TIMEOUT);
+                                         ^~~~~~~~~~~~
+Node.cpp:32:41: note: suggested alternative: ‘_SC_TIMEOUTS’
+     cMessage timeoutMsg(timeoutPktName, KIND_TIMEOUT);
+                                         ^~~~~~~~~~~~
+                                         _SC_TIMEOUTS
+Node.cpp:33:35: error: no matching function for call to ‘Node::scheduleAt(omnetpp::simtime_t&, omnetpp::cMessage&)’
+     scheduleAt(timeout, timeoutMsg);
+                                   ^
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:18,
+                 from Node.h:19,
+                 from Node.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note: candidate: virtual void omnetpp::cSimpleModule::scheduleAt(omnetpp::simtime_t, omnetpp::cMessage*)
+     virtual void scheduleAt(simtime_t t, cMessage *msg);
+                  ^~~~~~~~~~
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note:   no known conversion for argument 2 from ‘omnetpp::cMessage’ to ‘omnetpp::cMessage*’
+Node.cpp:35:38: error: no matching function for call to ‘Node::receive(omnetpp::SimTime&)’
+     cMessage *msg = receive(waitDelta);
+                                      ^
+Node.cpp:30:6: note: candidate: void Node::receive(omnetpp::simtime_t, bool)
+ void Node::receive(simtime_t timeout, bool strictTimeout) {
+      ^~~~
+Node.cpp:30:6: note:   candidate expects 2 arguments, 1 provided
+Node.cpp:38:32: error: ‘class omnetpp::cMessage’ has no member named ‘getBitLength’
+     auto msgDataTimeUs =  msg->getBitLength() * 4;
+                                ^~~~~~~~~~~~
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+23:15:23 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘void Node::receive(omnetpp::simtime_t, bool)’:
+Node.cpp:32:53: error: no matching function for call to ‘omnetpp::cMessage::cMessage(const string&, int)’
+     cMessage timeoutMsg(timeoutPktName, KIND_TIMEOUT);
+                                                     ^
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/cchannel.h:21:0,
+                 from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:35,
+                 from NodeBase.h:18,
+                 from Node.h:19,
+                 from Node.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/cmessage.h:194:14: note: candidate: omnetpp::cMessage::cMessage(const char*, short int)
+     explicit cMessage(const char *name=nullptr, short kind=0);
+              ^~~~~~~~
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/cmessage.h:194:14: note:   no known conversion for argument 1 from ‘const string {aka const std::__cxx11::basic_string<char>}’ to ‘const char*’
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/cmessage.h:189:5: note: candidate: omnetpp::cMessage::cMessage(const omnetpp::cMessage&)
+     cMessage(const cMessage& msg);
+     ^~~~~~~~
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/cmessage.h:189:5: note:   candidate expects 1 argument, 2 provided
+Node.cpp:33:35: error: no matching function for call to ‘Node::scheduleAt(omnetpp::simtime_t&, omnetpp::cMessage&)’
+     scheduleAt(timeout, timeoutMsg);
+                                   ^
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:18,
+                 from Node.h:19,
+                 from Node.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note: candidate: virtual void omnetpp::cSimpleModule::scheduleAt(omnetpp::simtime_t, omnetpp::cMessage*)
+     virtual void scheduleAt(simtime_t t, cMessage *msg);
+                  ^~~~~~~~~~
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note:   no known conversion for argument 2 from ‘omnetpp::cMessage’ to ‘omnetpp::cMessage*’
+Node.cpp:35:38: error: no matching function for call to ‘Node::receive(omnetpp::SimTime&)’
+     cMessage *msg = receive(waitDelta);
+                                      ^
+Node.cpp:30:6: note: candidate: void Node::receive(omnetpp::simtime_t, bool)
+ void Node::receive(simtime_t timeout, bool strictTimeout) {
+      ^~~~
+Node.cpp:30:6: note:   candidate expects 2 arguments, 1 provided
+Node.cpp:36:92: error: invalid use of member function ‘short int omnetpp::cMessage::getKind() const’ (did you forget the ‘()’ ?)
+     if(msg == nullptr || (msg->isSelfMessage() && msg->getName() == timeoutPktName && msg->getKind == KIND_TIMEOUT))
+                                                                                       ~~~~~^~~~~~~
+Node.cpp:38:32: error: ‘class omnetpp::cMessage’ has no member named ‘getBitLength’
+     auto msgDataTimeUs =  msg->getBitLength() * 4;
+                                ^~~~~~~~~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+23:16:08 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘void Node::receive(omnetpp::simtime_t, bool)’:
+Node.cpp:33:35: error: no matching function for call to ‘Node::scheduleAt(omnetpp::simtime_t&, omnetpp::cMessage&)’
+     scheduleAt(timeout, timeoutMsg);
+                                   ^
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:18,
+                 from Node.h:19,
+                 from Node.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note: candidate: virtual void omnetpp::cSimpleModule::scheduleAt(omnetpp::simtime_t, omnetpp::cMessage*)
+     virtual void scheduleAt(simtime_t t, cMessage *msg);
+                  ^~~~~~~~~~
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note:   no known conversion for argument 2 from ‘omnetpp::cMessage’ to ‘omnetpp::cMessage*’
+Node.cpp:35:38: error: no matching function for call to ‘Node::receive(omnetpp::SimTime&)’
+     cMessage *msg = receive(waitDelta);
+                                      ^
+Node.cpp:30:6: note: candidate: void Node::receive(omnetpp::simtime_t, bool)
+ void Node::receive(simtime_t timeout, bool strictTimeout) {
+      ^~~~
+Node.cpp:30:6: note:   candidate expects 2 arguments, 1 provided
+Node.cpp:36:100: error: invalid use of member function ‘short int omnetpp::cMessage::getKind() const’ (did you forget the ‘()’ ?)
+     if(msg == nullptr || (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind == KIND_TIMEOUT))
+                                                                                               ~~~~~^~~~~~~
+Node.cpp:38:32: error: ‘class omnetpp::cMessage’ has no member named ‘getBitLength’
+     auto msgDataTimeUs =  msg->getBitLength() * 4;
+                                ^~~~~~~~~~~~
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+23:18:06 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘void Node::receive(omnetpp::simtime_t, bool)’:
+Node.cpp:36:100: error: invalid use of member function ‘short int omnetpp::cMessage::getKind() const’ (did you forget the ‘()’ ?)
+     if(msg == nullptr || (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind == KIND_TIMEOUT))
+                                                                                               ~~~~~^~~~~~~
+Node.cpp:38:32: error: ‘class omnetpp::cMessage’ has no member named ‘getBitLength’
+     auto msgDataTimeUs =  msg->getBitLength() * 4;
+                                ^~~~~~~~~~~~
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+23:18:29 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘void Node::receive(omnetpp::simtime_t, bool)’:
+Node.cpp:38:32: error: ‘class omnetpp::cMessage’ has no member named ‘getBitLength’
+     auto msgDataTimeUs =  msg->getBitLength() * 4;
+                                ^~~~~~~~~~~~
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+23:20:08 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:38:45 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+12:17:30 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:25:43: error: no matching function for call to ‘Node::receive(omnetpp::SimTime, bool)’
+     receive(SimTime(100, SIMTIME_S), false);
+                                           ^
+In file included from Node.h:18:0,
+                 from Node.cpp:19:
+NodeBase.h:47:16: note: candidate: RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)
+     RecvResult receive(void* packet, int size, simtime_t timeout, bool strictTimeout);
+                ^~~~~~~
+NodeBase.h:47:16: note:   candidate expects 4 arguments, 2 provided
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+12:17:59 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+NodeBase.cpp: In member function ‘void NodeBase::waitAndDeletePackets(omnetpp::simtime_t)’:
+NodeBase.cpp:23:31: error: no matching function for call to ‘NodeBase::waitAndEnqueue(time_t (&)(time_t*) throw (), omnetpp::cQueue*)’
+     waitAndEnqueue(time,&queue);
+                               ^
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from NodeBase.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:424:18: note: candidate: virtual void omnetpp::cSimpleModule::waitAndEnqueue(omnetpp::simtime_t, omnetpp::cQueue*)
+     virtual void waitAndEnqueue(simtime_t time, cQueue *queue);
+                  ^~~~~~~~~~~~~~
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:424:18: note:   no known conversion for argument 1 from ‘time_t(time_t*) throw () {aka long int(long int*) throw ()}’ to ‘omnetpp::simtime_t {aka omnetpp::SimTime}’
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:43:16: error: could not convert ‘nullptr’ from ‘std::nullptr_t’ to ‘RecvResult’
+         return nullptr; //no message received
+                ^~~~~~~
+NodeBase.cpp:51:16: error: could not convert ‘nullptr’ from ‘std::nullptr_t’ to ‘RecvResult’
+         return nullptr;//packet received but exceeds the timeout
+                ^~~~~~~
+NodeBase.cpp:59:16: error: could not convert ‘nullptr’ from ‘std::nullptr_t’ to ‘RecvResult’
+         return nullptr; //message collided and arrived corrupted
+                ^~~~~~~
+NodeBase.cpp:63:16: error: could not convert ‘nullptr’ from ‘std::nullptr_t’ to ‘RecvResult’
+         return nullptr; //no interferences
+                ^~~~~~~
+NodeBase.cpp:82:29: error: ‘count_if’ is not a member of ‘std’
+         auto numPkts = std::count_if(lengths.begin(), lengths.end(), [](int e){return e > i;});
+                             ^~~~~~~~
+NodeBase.cpp:82:29: note: suggested alternative: ‘cout’
+         auto numPkts = std::count_if(lengths.begin(), lengths.end(), [](int e){return e > i;});
+                             ^~~~~~~~
+                             cout
+NodeBase.cpp: In lambda function:
+NodeBase.cpp:82:91: error: ‘i’ is not captured
+         auto numPkts = std::count_if(lengths.begin(), lengths.end(), [](int e){return e > i;});
+                                                                                           ^
+NodeBase.cpp:82:71: note: the lambda has no capture-default
+         auto numPkts = std::count_if(lengths.begin(), lengths.end(), [](int e){return e > i;});
+                                                                       ^
+NodeBase.cpp:81:13: note: ‘int i’ declared here
+     for(int i = 0; i < corrLen; i++) {
+             ^
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:90:66: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+         correlated[i] = packets[actualPkt]->getContextPointer()[i];
+                                                                  ^
+NodeBase.cpp:90:66: error: ‘void*’ is not a pointer-to-object type
+NodeBase.cpp:94:16: error: could not convert ‘nullptr’ from ‘std::nullptr_t’ to ‘RecvResult’
+         return nullptr;
+                ^~~~~~~
+NodeBase.cpp:96:32: error: ‘min’ was not declared in this scope
+     memcpy(packet, correlated, min(size, corrLen));
+                                ^~~
+NodeBase.cpp:96:32: note: suggested alternative:
+In file included from /usr/include/c++/7/bits/char_traits.h:39:0,
+                 from /usr/include/c++/7/string:40,
+                 from NodeBase.h:18,
+                 from NodeBase.cpp:16:
+/usr/include/c++/7/bits/stl_algobase.h:243:5: note:   ‘std::min’
+     min(const _Tp& __a, const _Tp& __b, _Compare __comp)
+     ^~~
+NodeBase.cpp: At global scope:
+NodeBase.cpp:101:6: error: prototype for ‘void NodeBase::sendAt(void*, int, omnetpp::simtime_t)’ does not match any in class ‘NodeBase’
+ void NodeBase::sendAt(void* packet, int size, simtime_t when) {
+      ^~~~~~~~
+In file included from NodeBase.cpp:16:0:
+NodeBase.h:49:10: error: candidate is: void NodeBase::sendAt(omnetpp::simtime_t)
+     void sendAt(simtime_t when);
+          ^~~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+12:18:58 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘void NodeBase::waitAndDeletePackets(omnetpp::simtime_t)’:
+NodeBase.cpp:23:31: error: no matching function for call to ‘NodeBase::waitAndEnqueue(time_t (&)(time_t*) throw (), omnetpp::cQueue*)’
+     waitAndEnqueue(time,&queue);
+                               ^
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from NodeBase.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:424:18: note: candidate: virtual void omnetpp::cSimpleModule::waitAndEnqueue(omnetpp::simtime_t, omnetpp::cQueue*)
+     virtual void waitAndEnqueue(simtime_t time, cQueue *queue);
+                  ^~~~~~~~~~~~~~
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:424:18: note:   no known conversion for argument 1 from ‘time_t(time_t*) throw () {aka long int(long int*) throw ()}’ to ‘omnetpp::simtime_t {aka omnetpp::SimTime}’
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:43:16: error: could not convert ‘nullptr’ from ‘std::nullptr_t’ to ‘RecvResult’
+         return nullptr; //no message received
+                ^~~~~~~
+NodeBase.cpp:51:16: error: could not convert ‘nullptr’ from ‘std::nullptr_t’ to ‘RecvResult’
+         return nullptr;//packet received but exceeds the timeout
+                ^~~~~~~
+NodeBase.cpp:59:16: error: could not convert ‘nullptr’ from ‘std::nullptr_t’ to ‘RecvResult’
+         return nullptr; //message collided and arrived corrupted
+                ^~~~~~~
+NodeBase.cpp:63:16: error: could not convert ‘nullptr’ from ‘std::nullptr_t’ to ‘RecvResult’
+         return nullptr; //no interferences
+                ^~~~~~~
+NodeBase.cpp:82:29: error: ‘count_if’ is not a member of ‘std’
+         auto numPkts = std::count_if(lengths.begin(), lengths.end(), [](int e){return e > i;});
+                             ^~~~~~~~
+NodeBase.cpp:82:29: note: suggested alternative: ‘cout’
+         auto numPkts = std::count_if(lengths.begin(), lengths.end(), [](int e){return e > i;});
+                             ^~~~~~~~
+                             cout
+NodeBase.cpp: In lambda function:
+NodeBase.cpp:82:91: error: ‘i’ is not captured
+         auto numPkts = std::count_if(lengths.begin(), lengths.end(), [](int e){return e > i;});
+                                                                                           ^
+NodeBase.cpp:82:71: note: the lambda has no capture-default
+         auto numPkts = std::count_if(lengths.begin(), lengths.end(), [](int e){return e > i;});
+                                                                       ^
+NodeBase.cpp:81:13: note: ‘int i’ declared here
+     for(int i = 0; i < corrLen; i++) {
+             ^
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:90:66: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+         correlated[i] = packets[actualPkt]->getContextPointer()[i];
+                                                                  ^
+NodeBase.cpp:90:66: error: ‘void*’ is not a pointer-to-object type
+NodeBase.cpp:94:16: error: could not convert ‘nullptr’ from ‘std::nullptr_t’ to ‘RecvResult’
+         return nullptr;
+                ^~~~~~~
+NodeBase.cpp:96:32: error: ‘min’ was not declared in this scope
+     memcpy(packet, correlated, min(size, corrLen));
+                                ^~~
+NodeBase.cpp:96:32: note: suggested alternative:
+In file included from /usr/include/c++/7/bits/char_traits.h:39:0,
+                 from /usr/include/c++/7/string:40,
+                 from NodeBase.h:18,
+                 from NodeBase.cpp:16:
+/usr/include/c++/7/bits/stl_algobase.h:243:5: note:   ‘std::min’
+     min(const _Tp& __a, const _Tp& __b, _Compare __comp)
+     ^~~
+NodeBase.cpp: At global scope:
+NodeBase.cpp:101:6: error: prototype for ‘void NodeBase::sendAt(void*, int, omnetpp::simtime_t)’ does not match any in class ‘NodeBase’
+ void NodeBase::sendAt(void* packet, int size, simtime_t when) {
+      ^~~~~~~~
+In file included from NodeBase.cpp:16:0:
+NodeBase.h:49:10: error: candidate is: void NodeBase::sendAt(omnetpp::simtime_t)
+     void sendAt(simtime_t when);
+          ^~~~~~
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+12:19:16 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:82:29: error: ‘count_if’ is not a member of ‘std’
+         auto numPkts = std::count_if(lengths.begin(), lengths.end(), [](int e){return e > i;});
+                             ^~~~~~~~
+NodeBase.cpp:82:29: note: suggested alternative: ‘cout’
+         auto numPkts = std::count_if(lengths.begin(), lengths.end(), [](int e){return e > i;});
+                             ^~~~~~~~
+                             cout
+NodeBase.cpp: In lambda function:
+NodeBase.cpp:82:91: error: ‘i’ is not captured
+         auto numPkts = std::count_if(lengths.begin(), lengths.end(), [](int e){return e > i;});
+                                                                                           ^
+NodeBase.cpp:82:71: note: the lambda has no capture-default
+         auto numPkts = std::count_if(lengths.begin(), lengths.end(), [](int e){return e > i;});
+                                                                       ^
+NodeBase.cpp:81:13: note: ‘int i’ declared here
+     for(int i = 0; i < corrLen; i++) {
+             ^
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:90:66: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+         correlated[i] = packets[actualPkt]->getContextPointer()[i];
+                                                                  ^
+NodeBase.cpp:90:66: error: ‘void*’ is not a pointer-to-object type
+NodeBase.cpp:96:32: error: ‘min’ was not declared in this scope
+     memcpy(packet, correlated, min(size, corrLen));
+                                ^~~
+NodeBase.cpp:96:32: note: suggested alternative:
+In file included from /usr/include/c++/7/bits/char_traits.h:39:0,
+                 from /usr/include/c++/7/string:40,
+                 from NodeBase.h:18,
+                 from NodeBase.cpp:16:
+/usr/include/c++/7/bits/stl_algobase.h:243:5: note:   ‘std::min’
+     min(const _Tp& __a, const _Tp& __b, _Compare __comp)
+     ^~~
+NodeBase.cpp: At global scope:
+NodeBase.cpp:101:6: error: prototype for ‘void NodeBase::sendAt(void*, int, omnetpp::simtime_t)’ does not match any in class ‘NodeBase’
+ void NodeBase::sendAt(void* packet, int size, simtime_t when) {
+      ^~~~~~~~
+In file included from NodeBase.cpp:16:0:
+NodeBase.h:49:10: error: candidate is: void NodeBase::sendAt(omnetpp::simtime_t)
+     void sendAt(simtime_t when);
+          ^~~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+12:19:45 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+NodeBase.cpp: In lambda function:
+NodeBase.cpp:85:91: error: ‘i’ is not captured
+         auto numPkts = std::count_if(lengths.begin(), lengths.end(), [](int e){return e > i;});
+                                                                                           ^
+NodeBase.cpp:85:71: note: the lambda has no capture-default
+         auto numPkts = std::count_if(lengths.begin(), lengths.end(), [](int e){return e > i;});
+                                                                       ^
+NodeBase.cpp:84:13: note: ‘int i’ declared here
+     for(int i = 0; i < corrLen; i++) {
+             ^
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:93:66: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+         correlated[i] = packets[actualPkt]->getContextPointer()[i];
+                                                                  ^
+NodeBase.cpp:93:66: error: ‘void*’ is not a pointer-to-object type
+NodeBase.cpp:99:32: error: ‘min’ was not declared in this scope
+     memcpy(packet, correlated, min(size, corrLen));
+                                ^~~
+NodeBase.cpp:99:32: note: suggested alternative:
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from NodeBase.cpp:19:
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note:   ‘std::min’
+     min(initializer_list<_Tp> __l, _Compare __comp)
+     ^~~
+NodeBase.cpp: At global scope:
+NodeBase.cpp:104:6: error: prototype for ‘void NodeBase::sendAt(void*, int, omnetpp::simtime_t)’ does not match any in class ‘NodeBase’
+ void NodeBase::sendAt(void* packet, int size, simtime_t when) {
+      ^~~~~~~~
+In file included from NodeBase.cpp:16:0:
+NodeBase.h:49:10: error: candidate is: void NodeBase::sendAt(omnetpp::simtime_t)
+     void sendAt(simtime_t when);
+          ^~~~~~
+In file included from /usr/include/c++/7/bits/stl_algobase.h:71:0,
+                 from /usr/include/c++/7/bits/char_traits.h:39,
+                 from /usr/include/c++/7/string:40,
+                 from NodeBase.h:18,
+                 from NodeBase.cpp:16:
+/usr/include/c++/7/bits/predefined_ops.h: In instantiation of ‘bool __gnu_cxx::__ops::_Iter_pred<_Predicate>::operator()(_Iterator) [with _Iterator = std::_List_iterator<int>; _Predicate = NodeBase::receive(void*, int, omnetpp::simtime_t, bool)::<lambda(int)>]’:
+/usr/include/c++/7/bits/stl_algo.h:3194:12:   required from ‘typename std::iterator_traits<_Iterator>::difference_type std::__count_if(_InputIterator, _InputIterator, _Predicate) [with _InputIterator = std::_List_iterator<int>; _Predicate = __gnu_cxx::__ops::_Iter_pred<NodeBase::receive(void*, int, omnetpp::simtime_t, bool)::<lambda(int)> >; typename std::iterator_traits<_Iterator>::difference_type = long int]’
+/usr/include/c++/7/bits/stl_algo.h:4107:29:   required from ‘typename std::iterator_traits<_Iterator>::difference_type std::count_if(_IIter, _IIter, _Predicate) [with _IIter = std::_List_iterator<int>; _Predicate = NodeBase::receive(void*, int, omnetpp::simtime_t, bool)::<lambda(int)>; typename std::iterator_traits<_Iterator>::difference_type = long int]’
+NodeBase.cpp:85:94:   required from here
+/usr/include/c++/7/bits/predefined_ops.h:283:11: error: void value not ignored as it ought to be
+  { return bool(_M_pred(*__it)); }
+           ^~~~~~~~~~~~~~~~~~~~
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+12:21:00 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In lambda function:
+NodeBase.cpp:85:91: error: ‘i’ is not captured
+         auto numPkts = std::count_if(lengths.begin(), lengths.end(), [](int e){return e > i;});
+                                                                                           ^
+NodeBase.cpp:85:71: note: the lambda has no capture-default
+         auto numPkts = std::count_if(lengths.begin(), lengths.end(), [](int e){return e > i;});
+                                                                       ^
+NodeBase.cpp:84:13: note: ‘int i’ declared here
+     for(int i = 0; i < corrLen; i++) {
+             ^
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:93:66: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+         correlated[i] = packets[actualPkt]->getContextPointer()[i];
+                                                                  ^
+NodeBase.cpp:93:66: error: ‘void*’ is not a pointer-to-object type
+NodeBase.cpp:99:32: error: ‘min’ was not declared in this scope
+     memcpy(packet, correlated, min(size, corrLen));
+                                ^~~
+NodeBase.cpp:99:32: note: suggested alternative:
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from NodeBase.cpp:19:
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note:   ‘std::min’
+     min(initializer_list<_Tp> __l, _Compare __comp)
+     ^~~
+NodeBase.cpp: At global scope:
+NodeBase.cpp:104:6: error: prototype for ‘void NodeBase::sendAt(void*, int, omnetpp::simtime_t)’ does not match any in class ‘NodeBase’
+ void NodeBase::sendAt(void* packet, int size, simtime_t when) {
+      ^~~~~~~~
+In file included from NodeBase.cpp:16:0:
+NodeBase.h:49:10: error: candidate is: void NodeBase::sendAt(omnetpp::simtime_t)
+     void sendAt(simtime_t when);
+          ^~~~~~
+In file included from /usr/include/c++/7/bits/stl_algobase.h:71:0,
+                 from /usr/include/c++/7/bits/char_traits.h:39,
+                 from /usr/include/c++/7/string:40,
+                 from NodeBase.h:18,
+                 from NodeBase.cpp:16:
+/usr/include/c++/7/bits/predefined_ops.h: In instantiation of ‘bool __gnu_cxx::__ops::_Iter_pred<_Predicate>::operator()(_Iterator) [with _Iterator = std::_List_iterator<int>; _Predicate = NodeBase::receive(void*, int, omnetpp::simtime_t, bool)::<lambda(int)>]’:
+/usr/include/c++/7/bits/stl_algo.h:3194:12:   required from ‘typename std::iterator_traits<_Iterator>::difference_type std::__count_if(_InputIterator, _InputIterator, _Predicate) [with _InputIterator = std::_List_iterator<int>; _Predicate = __gnu_cxx::__ops::_Iter_pred<NodeBase::receive(void*, int, omnetpp::simtime_t, bool)::<lambda(int)> >; typename std::iterator_traits<_Iterator>::difference_type = long int]’
+/usr/include/c++/7/bits/stl_algo.h:4107:29:   required from ‘typename std::iterator_traits<_Iterator>::difference_type std::count_if(_IIter, _IIter, _Predicate) [with _IIter = std::_List_iterator<int>; _Predicate = NodeBase::receive(void*, int, omnetpp::simtime_t, bool)::<lambda(int)>; typename std::iterator_traits<_Iterator>::difference_type = long int]’
+NodeBase.cpp:85:94:   required from here
+/usr/include/c++/7/bits/predefined_ops.h:283:11: error: void value not ignored as it ought to be
+  { return bool(_M_pred(*__it)); }
+           ^~~~~~~~~~~~~~~~~~~~
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+12:21:05 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:93:66: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+         correlated[i] = packets[actualPkt]->getContextPointer()[i];
+                                                                  ^
+NodeBase.cpp:93:66: error: ‘void*’ is not a pointer-to-object type
+NodeBase.cpp:99:32: error: ‘min’ was not declared in this scope
+     memcpy(packet, correlated, min(size, corrLen));
+                                ^~~
+NodeBase.cpp:99:32: note: suggested alternative:
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from NodeBase.cpp:19:
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note:   ‘std::min’
+     min(initializer_list<_Tp> __l, _Compare __comp)
+     ^~~
+NodeBase.cpp: At global scope:
+NodeBase.cpp:104:6: error: prototype for ‘void NodeBase::sendAt(void*, int, omnetpp::simtime_t)’ does not match any in class ‘NodeBase’
+ void NodeBase::sendAt(void* packet, int size, simtime_t when) {
+      ^~~~~~~~
+In file included from NodeBase.cpp:16:0:
+NodeBase.h:49:10: error: candidate is: void NodeBase::sendAt(omnetpp::simtime_t)
+     void sendAt(simtime_t when);
+          ^~~~~~
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+12:21:35 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:93:66: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+         correlated[i] = packets[actualPkt]->getContextPointer()[i];
+                                                                  ^
+NodeBase.cpp:93:66: error: ‘void*’ is not a pointer-to-object type
+NodeBase.cpp:99:32: error: ‘min’ was not declared in this scope
+     memcpy(packet, correlated, min(size, corrLen));
+                                ^~~
+NodeBase.cpp:99:32: note: suggested alternative:
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from NodeBase.cpp:19:
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note:   ‘std::min’
+     min(initializer_list<_Tp> __l, _Compare __comp)
+     ^~~
+NodeBase.cpp: In member function ‘void NodeBase::sendAt(void*, int, omnetpp::simtime_t)’:
+NodeBase.cpp:108:22: error: ‘data’ does not name a type
+     void* data = new data[size];
+                      ^~~~
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+12:22:01 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:93:66: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+         correlated[i] = packets[actualPkt]->getContextPointer()[i];
+                                                                  ^
+NodeBase.cpp:93:66: error: ‘void*’ is not a pointer-to-object type
+NodeBase.cpp:99:32: error: ‘min’ was not declared in this scope
+     memcpy(packet, correlated, min(size, corrLen));
+                                ^~~
+NodeBase.cpp:99:32: note: suggested alternative:
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from NodeBase.cpp:19:
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note:   ‘std::min’
+     min(initializer_list<_Tp> __l, _Compare __comp)
+     ^~~
+NodeBase.cpp: In member function ‘void NodeBase::sendAt(void*, int, omnetpp::simtime_t)’:
+NodeBase.cpp:108:31: error: invalid use of ‘void’
+     void* data = new void[size];
+                               ^
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+12:22:14 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:93:66: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+         correlated[i] = packets[actualPkt]->getContextPointer()[i];
+                                                                  ^
+NodeBase.cpp:93:66: error: ‘void*’ is not a pointer-to-object type
+NodeBase.cpp:99:32: error: ‘min’ was not declared in this scope
+     memcpy(packet, correlated, min(size, corrLen));
+                                ^~~
+NodeBase.cpp:99:32: note: suggested alternative:
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from NodeBase.cpp:19:
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note:   ‘std::min’
+     min(initializer_list<_Tp> __l, _Compare __comp)
+     ^~~
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+12:25:04 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:94:66: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+         correlated[i] = packets[actualPkt]->getContextPointer()[i];
+                                                                  ^
+NodeBase.cpp:94:66: error: ‘void*’ is not a pointer-to-object type
+NodeBase.cpp:100:32: error: ‘min’ was not declared in this scope
+     memcpy(packet, correlated, min(size, corrLen));
+                                ^~~
+NodeBase.cpp:100:32: note: suggested alternative:
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from NodeBase.cpp:19:
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note:   ‘std::min’
+     min(initializer_list<_Tp> __l, _Compare __comp)
+     ^~~
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+12:26:00 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:100:32: error: ‘min’ was not declared in this scope
+     memcpy(packet, correlated, min(size, corrLen));
+                                ^~~
+NodeBase.cpp:100:32: note: suggested alternative:
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from NodeBase.cpp:19:
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note:   ‘std::min’
+     min(initializer_list<_Tp> __l, _Compare __comp)
+     ^~~
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+12:27:05 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+RootNode.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+12:27:13 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+12:28:50 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+12:28:54 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+12:37:40 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘void NodeBase::sendAt(void*, int, omnetpp::simtime_t)’:
+NodeBase.cpp:115:34: error: ‘pkt’ was not declared in this scope
+     waitAndDeletePackets(SimTime(pkt->getBitLength() * 4, SIMTIME_US));
+                                  ^~~
+NodeBase.cpp:115:34: note: suggested alternative: ‘putw’
+     waitAndDeletePackets(SimTime(pkt->getBitLength() * 4, SIMTIME_US));
+                                  ^~~
+                                  putw
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+12:38:08 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+12:38:12 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+12:40:38 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:48:38: error: no matching function for call to ‘NodeBase::cancelAndDelete(omnetpp::cMessage&)’
+     } else cancelAndDelete(timeoutMsg);
+                                      ^
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from NodeBase.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:374:18: note: candidate: virtual void omnetpp::cSimpleModule::cancelAndDelete(omnetpp::cMessage*)
+     virtual void cancelAndDelete(cMessage *msg);
+                  ^~~~~~~~~~~~~~~
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:374:18: note:   no known conversion for argument 1 from ‘omnetpp::cMessage’ to ‘omnetpp::cMessage*’
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+12:41:31 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+12:41:36 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+13:42:10 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+13:46:49 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:51:84: error: ‘preambleSfdTimeUs’ was not declared in this scope
+     result.timestamp = msg->getSendingTime().inUnit(SIMTIME_NS) + (msgDataTimeUs + preambleSfdTimeUs) * 1000;
+                                                                                    ^~~~~~~~~~~~~~~~~
+NodeBase.cpp:51:84: note: suggested alternative: ‘preambleSfdTimeNs’
+     result.timestamp = msg->getSendingTime().inUnit(SIMTIME_NS) + (msgDataTimeUs + preambleSfdTimeUs) * 1000;
+                                                                                    ^~~~~~~~~~~~~~~~~
+                                                                                    preambleSfdTimeNs
+Makefile:102: recipe for target '../out/gcc-debug/src/NodeBase.o' failed
+make[1]: *** [../out/gcc-debug/src/NodeBase.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+13:47:34 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:53:37: error: ‘msgDataTimeUs’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeUs) + preambleSfdTimeUs, SIMTIME_US) + msg->getSendingTime() > timeout) {
+                                     ^~~~~~~~~~~~~
+NodeBase.cpp:53:37: note: suggested alternative: ‘msgDataTimeNs’
+     if (SimTime((strictTimeout? 0 : msgDataTimeUs) + preambleSfdTimeUs, SIMTIME_US) + msg->getSendingTime() > timeout) {
+                                     ^~~~~~~~~~~~~
+                                     msgDataTimeNs
+NodeBase.cpp:53:54: error: ‘preambleSfdTimeUs’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeUs) + preambleSfdTimeUs, SIMTIME_US) + msg->getSendingTime() > timeout) {
+                                                      ^~~~~~~~~~~~~~~~~
+NodeBase.cpp:53:54: note: suggested alternative: ‘preambleSfdTimeNs’
+     if (SimTime((strictTimeout? 0 : msgDataTimeUs) + preambleSfdTimeUs, SIMTIME_US) + msg->getSendingTime() > timeout) {
+                                                      ^~~~~~~~~~~~~~~~~
+                                                      preambleSfdTimeNs
+Makefile:102: recipe for target '../out/gcc-debug/src/NodeBase.o' failed
+make[1]: *** [../out/gcc-debug/src/NodeBase.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+13:48:17 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+RootNode.cpp
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+13:49:29 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+13:50:37 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+13:50:39 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+13:53:02 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:32:23: error: found ‘:’ in nested-name-specifier, expected ‘::’
+         EV_INFO << std:hex << pkt << endl;
+                       ^
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+13:53:23 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+13:53:35 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+13:53:40 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+13:55:18 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+14:00:32 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+14:00:44 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+14:07:50 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+14:15:13 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+14:19:29 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+14:21:04 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+14:26:32 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+14:26:36 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+14:30:33 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+14:30:37 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+14:33:54 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+14:40:47 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+14:49:09 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+14:51:13 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:36:10: warning: unused variable ‘dio’ [-Wunused-variable]
+     auto dio = waitDelta.inUnit(SIMTIME_NS);
+          ^~~
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+14:52:20 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+14:58:55 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:36:10: warning: unused variable ‘dio’ [-Wunused-variable]
+     auto dio = waitDelta.inUnit(SIMTIME_NS);
+          ^~~
+RootNode.cpp
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:00:19 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:36:10: warning: unused variable ‘dio’ [-Wunused-variable]
+     auto dio = waitDelta.inUnit(SIMTIME_NS);
+          ^~~
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:00:25 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:02:13 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:02:15 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:05:45 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:09:09 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:10:38 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:13:58 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:14:02 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:25:56 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:36:10: warning: unused variable ‘dio’ [-Wunused-variable]
+     auto dio = waitDelta.inUnit(SIMTIME_NS);
+          ^~~
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:26:00 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:27:29 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:27:31 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:28:49 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:28:54 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:29:01 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:30:20 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:36:10: warning: unused variable ‘dio’ [-Wunused-variable]
+     auto dio = waitDelta.inUnit(SIMTIME_NS);
+          ^~~
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:33:39 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:103:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:34:00 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:34:05 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:34:35 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:103:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+NodeBase.cpp:36:10: warning: unused variable ‘dio’ [-Wunused-variable]
+     auto dio = waitDelta.inUnit(SIMTIME_NS);
+          ^~~
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:41:55 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:42:25 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:42:29 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:45:22 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:45:28 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:53:33 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:107:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+15:53:52 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+16:12:03 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:108:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+16:14:08 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:111:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+16:14:21 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+16:14:28 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+16:19:53 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+16:21:09 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:111:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+16:42:19 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+NodeBase.cpp:23:27: error: ‘timeoutPktName’ was not declared in this scope
+ const cMessage timeoutMsg(timeoutPktName.c_str(), KIND_TIMEOUT);
+                           ^~~~~~~~~~~~~~
+NodeBase.cpp:23:27: note: suggested alternative: ‘timeoutMsg’
+ const cMessage timeoutMsg(timeoutPktName.c_str(), KIND_TIMEOUT);
+                           ^~~~~~~~~~~~~~
+                           timeoutMsg
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:38:25: error: invalid conversion from ‘const omnetpp::cMessage*’ to ‘omnetpp::cMessage*’ [-fpermissive]
+     scheduleAt(timeout, &timeoutMsg);
+                         ^~~~~~~~~~~
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from NodeBase.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note:   initializing argument 2 of ‘virtual void omnetpp::cSimpleModule::scheduleAt(omnetpp::simtime_t, omnetpp::cMessage*)’
+     virtual void scheduleAt(simtime_t t, cMessage *msg);
+                  ^~~~~~~~~~
+NodeBase.cpp:46:17: error: invalid conversion from ‘const omnetpp::cMessage*’ to ‘omnetpp::cMessage*’ [-fpermissive]
+     cancelEvent(&timeoutMsg);
+                 ^~~~~~~~~~~
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from NodeBase.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:366:23: note:   initializing argument 1 of ‘virtual omnetpp::cMessage* omnetpp::cSimpleModule::cancelEvent(omnetpp::cMessage*)’
+     virtual cMessage *cancelEvent(cMessage *msg);
+                       ^~~~~~~~~~~
+NodeBase.cpp:112:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+16:43:01 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+NodeBase.cpp:23:26: error: ‘const omnetpp::cMessage NodeBase::timeoutMsg’ is not a static data member of ‘class NodeBase’
+ const cMessage NodeBase::timeoutMsg = cMessage(timeoutPktName.c_str(), KIND_TIMEOUT);
+                          ^~~~~~~~~~
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:37:25: error: invalid conversion from ‘const omnetpp::cMessage*’ to ‘omnetpp::cMessage*’ [-fpermissive]
+     scheduleAt(timeout, &timeoutMsg);
+                         ^~~~~~~~~~~
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from NodeBase.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note:   initializing argument 2 of ‘virtual void omnetpp::cSimpleModule::scheduleAt(omnetpp::simtime_t, omnetpp::cMessage*)’
+     virtual void scheduleAt(simtime_t t, cMessage *msg);
+                  ^~~~~~~~~~
+NodeBase.cpp:45:17: error: invalid conversion from ‘const omnetpp::cMessage*’ to ‘omnetpp::cMessage*’ [-fpermissive]
+     cancelEvent(&timeoutMsg);
+                 ^~~~~~~~~~~
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from NodeBase.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:366:23: note:   initializing argument 1 of ‘virtual omnetpp::cMessage* omnetpp::cSimpleModule::cancelEvent(omnetpp::cMessage*)’
+     virtual cMessage *cancelEvent(cMessage *msg);
+                       ^~~~~~~~~~~
+NodeBase.cpp:111:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+16:44:03 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:36:25: error: invalid conversion from ‘const omnetpp::cMessage*’ to ‘omnetpp::cMessage*’ [-fpermissive]
+     scheduleAt(timeout, &timeoutMsg);
+                         ^~~~~~~~~~~
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from NodeBase.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:358:18: note:   initializing argument 2 of ‘virtual void omnetpp::cSimpleModule::scheduleAt(omnetpp::simtime_t, omnetpp::cMessage*)’
+     virtual void scheduleAt(simtime_t t, cMessage *msg);
+                  ^~~~~~~~~~
+NodeBase.cpp:44:17: error: invalid conversion from ‘const omnetpp::cMessage*’ to ‘omnetpp::cMessage*’ [-fpermissive]
+     cancelEvent(&timeoutMsg);
+                 ^~~~~~~~~~~
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from NodeBase.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:366:23: note:   initializing argument 1 of ‘virtual omnetpp::cMessage* omnetpp::cSimpleModule::cancelEvent(omnetpp::cMessage*)’
+     virtual cMessage *cancelEvent(cMessage *msg);
+                       ^~~~~~~~~~~
+NodeBase.cpp:110:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+16:46:46 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:110:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+RootNode.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+16:46:53 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+17:25:38 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:110:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+17:25:41 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+17:31:03 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:110:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+RootNode.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+17:31:07 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+17:38:39 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+17:43:36 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:110:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+17:43:41 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+17:47:11 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+RootNode.cpp
+RootNode.cpp: In member function ‘virtual void RootNode::activity()’:
+RootNode.cpp:23:21: error: ‘sendTime’ was not declared in this scope
+     auto nextSend = sendTime();
+                     ^~~~~~~~
+RootNode.cpp:23:21: note: suggested alternative: ‘sendAt’
+     auto nextSend = sendTime();
+                     ^~~~~~~~
+                     sendAt
+RootNode.cpp:27:22: error: no match for ‘operator+’ (operand type is ‘omnetpp::SimTime’)
+         nextSend +=  + SimTime(10, SIMTIME_MS);
+                      ^~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/cscheduler.h:19:0,
+                 from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:98,
+                 from NodeBase.h:19,
+                 from RootNode.h:18,
+                 from RootNode.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/platdep/timeutil.h:166:16: note: candidate: timeval omnetpp::operator+(const timeval&, const timeval&)
+ inline timeval operator+(const timeval& a, const timeval& b) {return timeval_add(a,b);}
+                ^~~~~~~~
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/platdep/timeutil.h:166:16: note:   candidate expects 2 arguments, 1 provided
+In file included from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/simtime_t.h:24:0,
+                 from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/cexception.h:23,
+                 from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/cnamedobject.h:24,
+                 from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/cownedobject.h:23,
+                 from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/carray.h:19,
+                 from /home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp.h:28,
+                 from NodeBase.h:19,
+                 from RootNode.h:18,
+                 from RootNode.cpp:16:
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/simtime.h:213:26: note: candidate: const omnetpp::SimTime omnetpp::operator+(const omnetpp::SimTime&, const omnetpp::SimTime&)
+     friend const SimTime operator+(const SimTime& x, const SimTime& y)  { return SimTime(x)+=y; }
+                          ^~~~~~~~
+/home/paolo/Downloads/omnetpp-5.2.1/include/omnetpp/simtime.h:213:26: note:   candidate expects 2 arguments, 1 provided
+Makefile:102: recipe for target '../out/gcc-release/src/RootNode.o' failed
+make[1]: *** [../out/gcc-release/src/RootNode.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+17:47:26 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+RootNode.cpp
+RootNode.cpp: In member function ‘virtual void RootNode::activity()’:
+RootNode.cpp:23:21: error: ‘sendTime’ was not declared in this scope
+     auto nextSend = sendTime();
+                     ^~~~~~~~
+RootNode.cpp:23:21: note: suggested alternative: ‘sendAt’
+     auto nextSend = sendTime();
+                     ^~~~~~~~
+                     sendAt
+Makefile:102: recipe for target '../out/gcc-release/src/RootNode.o' failed
+make[1]: *** [../out/gcc-release/src/RootNode.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+17:47:49 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+RootNode.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+17:47:52 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+19:24:30 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:110:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+19:24:34 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+19:29:20 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+19:29:29 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:110:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+19:29:31 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+20:50:01 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+20:50:04 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:29:27 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:29:31 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:37:02 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:37:06 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:51:09 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:51:21 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+22:19:27 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:110:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+22:19:34 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+22:47:17 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+22:47:22 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+22:57:33 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:110:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+22:57:39 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:08:52 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:119:39: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+     if (size > corrLen) memset(packet + corrLen, 0, size - corrLen);
+                                ~~~~~~~^~~~~~~~~
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:10:24 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:10:30 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'

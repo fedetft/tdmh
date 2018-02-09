@@ -19,9 +19,11 @@ Define_Module(RootNode);
 
 void RootNode::activity()
 {
+    unsigned char pkt[] = {0x00, 0x01, 0x02, 0x03};
+    auto nextSend = SimTime();
     for(;;)
     {
-        radioSend();
-        waitAndDeletePackets(SimTime(100,SIMTIME_MS));
+        nextSend +=  SimTime(10, SIMTIME_MS);
+        sendAt(pkt, sizeof(pkt), nextSend, "sync");
     }
 }

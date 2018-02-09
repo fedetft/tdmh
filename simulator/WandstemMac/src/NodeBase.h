@@ -15,7 +15,11 @@
 
 #pragma once
 
+#include <string>
 #include <omnetpp.h>
+#include "RecvResult.h"
+
+#define KIND_TIMEOUT 15
 
 using namespace omnetpp;
 
@@ -29,19 +33,25 @@ using namespace omnetpp;
 class NodeBase : public cSimpleModule
 {
 public:
-    NodeBase() : cSimpleModule(coroutineStack) {}
+    NodeBase() : cSimpleModule(coroutineStack), timeoutMsg(timeoutPktName.c_str(), KIND_TIMEOUT) {}
 
     /**
      * Wait for a given simulation time, and deletes all received packets
      * while waiting
-     * \param time time to wait
+     * \param timeDelta time to wait
      */
-    void waitAndDeletePackets(simtime_t time);
+    void waitAndDeletePackets(simtime_t timeDelta);
 
-    void radioSend();
+    RecvResult receive(void* packet, int size, simtime_t timeout, bool strictTimeout);
+
+    void sendAt(void* packet, int size, simtime_t when, std::string pktName = "job");
 
 private:
     ///< Stack size for coroutines
     static const int coroutineStack=32*1024;
+    static const std::string timeoutPktName;
+    static const int preambleSfdTimeNs = 160000;
+    static const int constructiveInterferenceTimeNs = 500;
+    cMessage timeoutMsg;
 };
 

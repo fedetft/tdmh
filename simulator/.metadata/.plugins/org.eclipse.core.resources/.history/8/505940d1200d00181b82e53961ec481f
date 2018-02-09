@@ -1,0 +1,66 @@
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see http://www.gnu.org/licenses/.
+// 
+
+#include "Node.h"
+
+Define_Module(Node);
+
+const std::string Node::timeoutPktName = "TIMEOUT";
+
+void Node::activity()
+{
+    for(;;)
+    {
+        waitAndDeletePackets(SimTime(100,SIMTIME_S));
+    }
+}
+
+void Node::receive(simtime_t timeout, bool strictTimeout) {
+    auto waitDelta = timeout - simTime();
+    cMessage timeoutMsg(timeoutPktName.c_str(), KIND_TIMEOUT);
+    scheduleAt(timeout, &timeoutMsg);
+    cQueue interferringMsgs, collidingMsgs;
+    cMessage *msg = NodeBase::receive(waitDelta);
+    if(msg == nullptr || !msg->isPacket() || (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT))
+        return; //no message received
+    auto pkt = (cPacket*) msg;
+    auto msgDataTimeUs =  pkt->getBitLength() * 4;
+    if (SimTime((strictTimeout? 0 : msgDataTimeUs) + preambleSfdTimeUs, SIMTIME_US) + msg->getSendingTime() > timeout)
+        return;//packet received but exceeds the timeout
+    //wait for the max confidence time to obtain a constructive interference
+    waitAndEnqueue(SimTime(constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
+    //and wait for the whole message length
+    waitAndEnqueue(SimTime(msgDataTimeUs + preambleSfdTimeUs, SIMTIME_US), &collidingMsgs);
+    if(!collidingMsgs.isEmpty())
+        return; //message collided and arrived corrupted
+    int corrLen = pkt->getByteLength();
+    std::list<cPacket*> packets;
+    for (cQueue::Iterator it(interferringMsgs); !it.end(); it++){
+        if (((cMessage*) *it)->isPacket()){
+            packets.push_back((cPacket*) *it);
+            auto len = ((cPacket*) *it)->getByteLength();
+            if (len > corrLen) corrLen = len;
+        }
+    }
+    unsigned char* correlated = new unsigned char[corrLen];
+    ((cPacket*) msg)->getContextPointer();
+    //TODO: compare the interferring messages with msg and deduce what the correlator would build
+}
+
+void Node::sendAt(simtime_t when) {
+    waitAndDeletePackets(when);
+    for(int i=0;i<gateSize("wireless");i++)
+        send(new cMessage("job"),"wireless$o",i);
+}

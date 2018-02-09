@@ -36,8 +36,8 @@ network SimpleTopology
             @display("p=260,226");
         }
     connections:
-        n0.wireless++ <--> {  datarate = 250kbps; } <--> n1.wireless++;
-        n0.wireless++ <--> {  datarate = 250kbps; } <--> n2.wireless++;
-        n1.wireless++ <--> {  datarate = 250kbps; } <--> n3.wireless++;
-        n2.wireless++ <--> {  datarate = 250kbps; } <--> n3.wireless++;
+        n0.wireless++ <--> n1.wireless++;
+        n0.wireless++ <--> n2.wireless++;
+        n1.wireless++ <--> n3.wireless++;
+        n2.wireless++ <--> n3.wireless++;
 }

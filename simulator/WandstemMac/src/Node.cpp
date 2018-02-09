@@ -14,13 +14,38 @@
 // 
 
 #include "Node.h"
+#include <iostream>
 
 Define_Module(Node);
 
 void Node::activity()
 {
+    unsigned char pkt[127];
+    auto result = receive(pkt, sizeof(pkt), SimTime(100, SIMTIME_S), false);
+    EV_INFO << "ERROR: " << result.error << " AT " << result.timestamp << endl;
+    if(result.error == RecvResult::OK) {
+        EV_INFO << "[ ";
+        for (int i = 0; i < result.size; i++)
+            EV_INFO << std::hex << (unsigned int) pkt[i] << " ";
+        EV_INFO << std::dec << "]"<< endl;
+    }
+    simtime_t precPacketTime;
     for(;;)
     {
-        waitAndDeletePackets(SimTime(100,SIMTIME_S));
+        precPacketTime = SimTime(result.timestamp, SIMTIME_NS);
+        auto sleepTime = precPacketTime + SimTime(5, SIMTIME_MS) - simTime();
+        EV_INFO << "Sleeping for " << sleepTime << endl;
+        waitAndDeletePackets(sleepTime);
+        //trying with a 5 ms window
+        auto timeout = precPacketTime + SimTime(15, SIMTIME_MS);
+        EV_INFO << "Will listen for packets from " << simTime().inUnit(SIMTIME_NS) << " to " << timeout.inUnit(SIMTIME_NS) << endl;
+        result = receive(pkt, sizeof(pkt), timeout, true);
+        EV_INFO << "ERROR: " << result.error << " AT " << result.timestamp << endl;
+        if(result.error == RecvResult::OK) {
+            EV_INFO << "[ ";
+            for (int i = 0; i < result.size; i++)
+                EV_INFO << std::hex << (unsigned int) pkt[i] << " ";
+            EV_INFO << std::dec << "]"<< endl;
+        }
     }
 }
