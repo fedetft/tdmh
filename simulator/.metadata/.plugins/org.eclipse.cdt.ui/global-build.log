@@ -2415,3 +2415,241 @@ make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/
 Node.cpp
 Creating executable: ../out/gcc-release/src/WandstemMac
 make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+13:30:55 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+13:52:03 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+MSGC: RadioMessage.msg
+RadioMessage_m.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+13:53:53 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+14:07:05 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+14:22:53 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+In file included from NodeBase.cpp:17:0:
+RadioMessage.h: In constructor ‘RadioMessage::RadioMessage(void*, int, const string&)’:
+RadioMessage.h:30:16: error: ‘min’ was not declared in this scope
+         length=min(dataSize,size);
+                ^~~
+RadioMessage.h:30:16: note: suggested alternative:
+In file included from /usr/include/c++/7/bits/char_traits.h:39:0,
+                 from /usr/include/c++/7/string:40,
+                 from NodeBase.h:18,
+                 from NodeBase.cpp:16:
+/usr/include/c++/7/bits/stl_algobase.h:243:5: note:   ‘std::min’
+     min(const _Tp& __a, const _Tp& __b, _Compare __comp)
+     ^~~
+In file included from NodeBase.cpp:17:0:
+RadioMessage.h:31:22: error: ‘packet’ was not declared in this scope
+         memcpy(data, packet, length);
+                      ^~~~~~
+RadioMessage.h:31:22: note: suggested alternative: ‘cPacket’
+         memcpy(data, packet, length);
+                      ^~~~~~
+                      cPacket
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+14:23:12 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+In file included from NodeBase.cpp:17:0:
+RadioMessage.h: In constructor ‘RadioMessage::RadioMessage(void*, int, const string&)’:
+RadioMessage.h:30:16: error: ‘min’ was not declared in this scope
+         length=min(dataSize,size);
+                ^~~
+RadioMessage.h:30:16: note: suggested alternative:
+In file included from /usr/include/c++/7/bits/char_traits.h:39:0,
+                 from /usr/include/c++/7/string:40,
+                 from NodeBase.h:18,
+                 from NodeBase.cpp:16:
+/usr/include/c++/7/bits/stl_algobase.h:243:5: note:   ‘std::min’
+     min(const _Tp& __a, const _Tp& __b, _Compare __comp)
+     ^~~
+In file included from NodeBase.cpp:17:0:
+RadioMessage.h:32:39: error: invalid static_cast from type ‘unsigned char [127]’ to type ‘char*’
+         memset(static_cast<char*>(data)+length,0,dataSize-length);
+                                       ^
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+14:23:44 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+In file included from NodeBase.cpp:17:0:
+RadioMessage.h: In constructor ‘RadioMessage::RadioMessage(void*, int, const string&)’:
+RadioMessage.h:31:16: error: ‘min’ was not declared in this scope
+         length=min(dataSize,size);
+                ^~~
+RadioMessage.h:31:16: note: suggested alternative:
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from RadioMessage.h:21,
+                 from NodeBase.cpp:17:
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note:   ‘std::min’
+     min(initializer_list<_Tp> __l, _Compare __comp)
+     ^~~
+In file included from NodeBase.cpp:17:0:
+RadioMessage.h:33:39: error: invalid static_cast from type ‘unsigned char [127]’ to type ‘char*’
+         memset(static_cast<char*>(data)+length,0,dataSize-length);
+                                       ^
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+14:24:07 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+In file included from NodeBase.cpp:17:0:
+RadioMessage.h: In constructor ‘RadioMessage::RadioMessage(void*, int, const string&)’:
+RadioMessage.h:31:16: error: ‘min’ was not declared in this scope
+         length=min(dataSize,size);
+                ^~~
+RadioMessage.h:31:16: note: suggested alternative:
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from RadioMessage.h:21,
+                 from NodeBase.cpp:17:
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note:   ‘std::min’
+     min(initializer_list<_Tp> __l, _Compare __comp)
+     ^~~
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+14:24:23 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+In file included from NodeBase.cpp:17:0:
+RadioMessage.h: In constructor ‘RadioMessage::RadioMessage(void*, int, const string&)’:
+RadioMessage.h:31:16: error: ‘min’ was not declared in this scope
+         length=min<int>(dataSize,size);
+                ^~~
+RadioMessage.h:31:16: note: suggested alternative:
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from RadioMessage.h:21,
+                 from NodeBase.cpp:17:
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note:   ‘std::min’
+     min(initializer_list<_Tp> __l, _Compare __comp)
+     ^~~
+In file included from NodeBase.cpp:17:0:
+RadioMessage.h:31:20: error: expected primary-expression before ‘int’
+         length=min<int>(dataSize,size);
+                    ^~~
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+14:24:49 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+14:38:05 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:56:54: error: ‘preambleSfdTimeNs’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime() > timeout) {
+                                                      ^~~~~~~~~~~~~~~~~
+NodeBase.cpp:62:55: error: ‘constructiveInterferenceTimeNs’ was not declared in this scope
+     EV_INFO << "Awaiting interfering packets for " << constructiveInterferenceTimeNs << " (until " << simTime().inUnit(SIMTIME_NS) + constructiveInterferenceTimeNs << ")" << endl;
+                                                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NodeBase.cpp:65:45: error: ‘preambleSfdTimeNs’ was not declared in this scope
+     auto msgDeadlineDelta = msgDataTimeNs + preambleSfdTimeNs - constructiveInterferenceTimeNs;
+                                             ^~~~~~~~~~~~~~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+14:38:57 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:62:148: error: ‘constructiveInterferenceTimeNs’ was not declared in this scope
+     EV_INFO << "Awaiting interfering packets for " << RadioMessage::constructiveInterferenceTimeNs << " (until " << simTime().inUnit(SIMTIME_NS) + constructiveInterferenceTimeNs << ")" << endl;
+                                                                                                                                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NodeBase.cpp:66:148: error: ‘preambleSfdTimeNs’ was not declared in this scope
+     EV_INFO << "Awaiting for the whole message to arrive for " << msgDeadlineDelta << " (until " << simTime().inUnit(SIMTIME_NS) + msgDataTimeNs + preambleSfdTimeNs << ")" << endl;
+                                                                                                                                                    ^~~~~~~~~~~~~~~~~
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+14:39:30 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, omnetpp::simtime_t, bool)’:
+NodeBase.cpp:63:28: error: ‘constructiveInterferenceTimeNs’ was not declared in this scope
+     waitAndEnqueue(SimTime(constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
+                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+14:39:48 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+RootNode.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+14:46:52 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
