@@ -14,10 +14,13 @@
 //
 
 #include "NodeBase.h"
+#include "RadioMessage.h"
 #include <list>
 #include <vector>
 #include <algorithm>
 #include <cstring>
+
+using namespace std;
 
 const std::string NodeBase::timeoutPktName = "TIMEOUT";
 
@@ -29,11 +32,11 @@ void NodeBase::waitAndDeletePackets(simtime_t timeDelta)
     while(!queue.isEmpty()) delete queue.pop();
 }
 
- RecvResult NodeBase::receive(void* packet, int size, simtime_t timeout, bool strictTimeout) {
+ RecvResult NodeBase::receive(void* packet, int size, long long timeout, bool strictTimeout)
+ {
     RecvResult result;
-    auto waitDelta = timeout - simTime();
-    auto waitDeltaNs = waitDelta.inUnit(SIMTIME_NS);
-    EV_INFO << "Awaiting packet for " << waitDeltaNs << " (until " << timeout.inUnit(SIMTIME_NS) << ") ns" << endl;
+    auto waitDelta = SimTime(timeout, SIMTIME_NS) - simTime();
+    EV_INFO << "Awaiting packet for " << waitDelta.inUnit(SIMTIME_NS) << " (until " << timeout.inUnit(SIMTIME_NS) << ") ns" << endl;
     scheduleAt(timeout, &timeoutMsg);
     cQueue interferringMsgs, collidingMsgs;
     cMessage *msg = cSimpleModule::receive(waitDelta);
@@ -52,17 +55,17 @@ void NodeBase::waitAndDeletePackets(simtime_t timeDelta)
     auto msgDataTimeNs =  pkt->getBitLength() * 4000;
     result.timestamp = msg->getSendingTime().inUnit(SIMTIME_NS);
     result.timestampValid = true;
-    if (SimTime((strictTimeout? 0 : msgDataTimeNs) + preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime() > timeout) {
+    if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime() > timeout) {
         result.error = RecvResult::TIMEOUT;
         delete msg;
         return result;//packet received but exceeds the timeout
     }
     //wait for the max confidence time to obtain a constructive interference
-    EV_INFO << "Awaiting interfering packets for " << constructiveInterferenceTimeNs << " (until " << simTime().inUnit(SIMTIME_NS) + constructiveInterferenceTimeNs << ")" << endl;
-    waitAndEnqueue(SimTime(constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
+    EV_INFO << "Awaiting interfering packets for " << RadioMessage::constructiveInterferenceTimeNs << " (until " << simTime().inUnit(SIMTIME_NS) + RadioMessage::constructiveInterferenceTimeNs << ")" << endl;
+    waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
     //and wait for the whole message length
-    auto msgDeadlineDelta = msgDataTimeNs + preambleSfdTimeNs - constructiveInterferenceTimeNs;
-    EV_INFO << "Awaiting for the whole message to arrive for " << msgDeadlineDelta << " (until " << simTime().inUnit(SIMTIME_NS) + msgDataTimeNs + preambleSfdTimeNs << ")" << endl;
+    auto msgDeadlineDelta = msgDataTimeNs + RadioMessage::preambleSfdTimeNs - RadioMessage::constructiveInterferenceTimeNs;
+    EV_INFO << "Awaiting for the whole message to arrive for " << msgDeadlineDelta << " (until " << simTime().inUnit(SIMTIME_NS) + msgDataTimeNs + RadioMessage::preambleSfdTimeNs << ")" << endl;
     waitAndEnqueue(SimTime(msgDeadlineDelta, SIMTIME_NS), &collidingMsgs);
     if (!collidingMsgs.isEmpty()) {
         //TODO add CRC fail if CRC enabled, else return random bytes array of random length
@@ -120,18 +123,15 @@ void NodeBase::waitAndDeletePackets(simtime_t timeDelta)
     return result;
 }
 
-void NodeBase::sendAt(void* packet, int size, simtime_t when, std::string pktName) {
-    waitAndDeletePackets(when - simTime());
-    cPacket* pkt;
-    for(int i=0; i<gateSize("wireless"); i++){
-        pkt = new cPacket(pktName.c_str());
-        pkt->setByteLength(size);
-        void* data = new unsigned char[size];
-        memcpy(data, packet, size);
-        pkt->setContextPointer(data);
-        send(pkt, "wireless$o",i);
-    }
+void NodeBase::sendAt(void* packet, int size, long long when, std::string pktName)
+{
+    auto waitTime = SimTime(when,SIMTIME_NS) - simTime();
+    if(waitTime<0) throw runtime_error("Transceiver::sendAt too late to send");
+    waitAndDeletePackets(waitTime);
+    for(int i=0; i<gateSize("wireless"); i++)
+        send(new RadioMessage(packet, size, pktName), "wireless$o", i);
+
     EV_INFO << "starting to send packet " << simTime().inUnit(SIMTIME_NS) << endl;
-    waitAndDeletePackets(SimTime(pkt->getBitLength() * 4000 + preambleSfdTimeNs, SIMTIME_NS));
+    waitAndDeletePackets(SimTime(RadioMessage::getPPDUDuration(size), SIMTIME_NS));
     EV_INFO << "finishing to send packet " << simTime().inUnit(SIMTIME_NS) << endl;
 }

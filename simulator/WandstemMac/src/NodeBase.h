@@ -19,7 +19,7 @@
 #include <omnetpp.h>
 #include "RecvResult.h"
 
-#define KIND_TIMEOUT 15
+const unsigned int KIND_TIMEOUT=15;
 
 using namespace omnetpp;
 
@@ -42,16 +42,14 @@ public:
      */
     void waitAndDeletePackets(simtime_t timeDelta);
 
-    RecvResult receive(void* packet, int size, simtime_t timeout, bool strictTimeout);
+    RecvResult receive(void* packet, int size, long long timeout, bool strictTimeout);
 
-    void sendAt(void* packet, int size, simtime_t when, std::string pktName = "job");
+    void sendAt(void* packet, int size, long long when, std::string pktName = "job");
 
 private:
     ///< Stack size for coroutines
     static const int coroutineStack=32*1024;
     static const std::string timeoutPktName;
-    static const int preambleSfdTimeNs = 160000;
-    static const int constructiveInterferenceTimeNs = 500;
     cMessage timeoutMsg;
 };
 
