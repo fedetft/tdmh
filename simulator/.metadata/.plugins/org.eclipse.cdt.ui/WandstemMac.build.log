@@ -1,10 +1,11 @@
-14:46:52 **** Incremental Build of configuration release for project WandstemMac ****
+00:33:45 **** Incremental Build of configuration release for project WandstemMac ****
 make MODE=release all 
 cd src && make
-make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
 NodeBase.cpp
+Transceiver.cpp
 Creating executable: ../out/gcc-release/src/WandstemMac
-make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
 
-14:46:53 Build Finished (took 1s.263ms)
+00:33:48 Build Finished (took 3s.442ms)
 

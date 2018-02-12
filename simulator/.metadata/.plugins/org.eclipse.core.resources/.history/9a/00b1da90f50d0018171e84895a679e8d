@@ -1,0 +1,17 @@
+/*
+ * Transceiver.h
+ *
+ *  Created on: Feb 10, 2018
+ *      Author: paolo
+ */
+
+#ifndef TRANSCEIVER_H_
+#define TRANSCEIVER_H_
+
+class Transceiver {
+public:
+    Transceiver();
+    virtual ~Transceiver();
+};
+
+#endif /* TRANSCEIVER_H_ */

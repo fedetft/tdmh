@@ -1,0 +1,13 @@
+/*
+ * Transceiver.cpp
+ *
+ *  Created on: Feb 10, 2018
+ *      Author: paolo
+ */
+
+#include "Transceiver.h"
+
+Transceiver::~Transceiver() {
+    // TODO Auto-generated destructor stub
+}
+

@@ -2653,3 +2653,2977 @@ make[1]: Entering directory '/home/fede/Documents/wandstem-mac/simulator/Wandste
 NodeBase.cpp
 Creating executable: ../out/gcc-release/src/WandstemMac
 make[1]: Leaving directory '/home/fede/Documents/wandstem-mac/simulator/WandstemMac/src'
+15:05:17 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:24:75: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, omnetpp::SimTime, bool)’
+     auto result = receive(pkt, sizeof(pkt), SimTime(100, SIMTIME_S), false);
+                                                                           ^
+In file included from Node.h:18:0,
+                 from Node.cpp:16:
+NodeBase.h:45:16: note: candidate: RecvResult NodeBase::receive(void*, int, long long int, bool)
+     RecvResult receive(void* packet, int size, long long timeout, bool strictTimeout);
+                ^~~~~~~
+NodeBase.h:45:16: note:   no known conversion for argument 3 from ‘omnetpp::SimTime’ to ‘long long int’
+Node.cpp:42:57: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, omnetpp::SimTime&, bool)’
+         result = receive(pkt, sizeof(pkt), timeout, true);
+                                                         ^
+In file included from Node.h:18:0,
+                 from Node.cpp:16:
+NodeBase.h:45:16: note: candidate: RecvResult NodeBase::receive(void*, int, long long int, bool)
+     RecvResult receive(void* packet, int size, long long timeout, bool strictTimeout);
+                ^~~~~~~
+NodeBase.h:45:16: note:   no known conversion for argument 3 from ‘omnetpp::SimTime’ to ‘long long int’
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+15:39:38 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:49:92: error: no matching function for call to ‘Node::sendAt(unsigned char [127], short int&, omnetpp::SimTime, const char [5])’
+             sendAt(pkt, result.size, SimTime(result.timestamp + 500000, SIMTIME_NS), "sync");
+                                                                                            ^
+In file included from Node.h:18:0,
+                 from Node.cpp:16:
+NodeBase.h:47:10: note: candidate: void NodeBase::sendAt(void*, int, long long int, std::__cxx11::string)
+     void sendAt(void* packet, int size, long long when, std::string pktName = "job");
+          ^~~~~~
+NodeBase.h:47:10: note:   no known conversion for argument 3 from ‘omnetpp::SimTime’ to ‘long long int’
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+15:39:56 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, long long int, bool)’:
+NodeBase.cpp:39:96: error: request for member ‘inUnit’ in ‘timeout’, which is of non-class type ‘long long int’
+     EV_INFO << "Awaiting packet for " << waitDelta.inUnit(SIMTIME_NS) << " (until " << timeout.inUnit(SIMTIME_NS) << ") ns" << endl;
+                                                                                                ^~~~~~
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+15:42:00 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+RootNode.cpp
+RootNode.cpp: In member function ‘virtual void RootNode::activity()’:
+RootNode.cpp:27:50: error: no matching function for call to ‘RootNode::sendAt(unsigned char [4], long unsigned int, omnetpp::SimTime&, const char [5])’
+         sendAt(pkt, sizeof(pkt), nextSend, "sync");
+                                                  ^
+In file included from RootNode.h:18:0,
+                 from RootNode.cpp:16:
+NodeBase.h:47:10: note: candidate: void NodeBase::sendAt(void*, int, long long int, std::__cxx11::string)
+     void sendAt(void* packet, int size, long long when, std::string pktName = "job");
+          ^~~~~~
+NodeBase.h:47:10: note:   no known conversion for argument 3 from ‘omnetpp::SimTime’ to ‘long long int’
+Makefile:102: recipe for target '../out/gcc-release/src/RootNode.o' failed
+make[1]: *** [../out/gcc-release/src/RootNode.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+15:43:56 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+RootNode.cpp
+Transceiver.cpp
+In file included from Transceiver.cpp:8:0:
+Transceiver.h:22:34: error: expected ‘)’ before ‘&’ token
+     explicit Transceiver(NodeBase& node);
+                                  ^
+Transceiver.h:81:26: error: ‘TransceiverConfiguration’ does not name a type
+     void configure(const TransceiverConfiguration& config);
+                          ^~~~~~~~~~~~~~~~~~~~~~~~
+Transceiver.h:142:5: error: ‘RecvResult’ does not name a type
+     RecvResult recv(void *pkt, int size, long long timeout, Unit unit=Unit::NS, HardwareTimer::Correct c=HardwareTimer::Correct::CORR);
+     ^~~~~~~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+15:46:54 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+In file included from Transceiver.cpp:8:0:
+Transceiver.h:83:26: error: ‘TransceiverConfiguration’ does not name a type; did you mean ‘_ZTIN7omnetpp14cConfigurationE’?
+     void configure(const TransceiverConfiguration& config);
+                          ^~~~~~~~~~~~~~~~~~~~~~~~
+                          _ZTIN7omnetpp14cConfigurationE
+Transceiver.h:144:81: error: ‘HardwareTimer’ has not been declared
+     RecvResult recv(void *pkt, int size, long long timeout, Unit unit=Unit::NS, HardwareTimer::Correct c=HardwareTimer::Correct::CORR);
+                                                                                 ^~~~~~~~~~~~~
+Transceiver.h:144:104: error: expected ‘,’ or ‘...’ before ‘c’
+     RecvResult recv(void *pkt, int size, long long timeout, Unit unit=Unit::NS, HardwareTimer::Correct c=HardwareTimer::Correct::CORR);
+                                                                                                        ^
+Transceiver.h:144:16: error: default argument missing for parameter 5 of ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, int)’
+     RecvResult recv(void *pkt, int size, long long timeout, Unit unit=Unit::NS, HardwareTimer::Correct c=HardwareTimer::Correct::CORR);
+                ^~~~
+Transceiver.cpp: In constructor ‘Transceiver::Transceiver()’:
+Transceiver.cpp:10:1: error: uninitialized reference member in ‘class NodeBase&’ [-fpermissive]
+ Transceiver::Transceiver() {
+ ^~~~~~~~~~~
+In file included from Transceiver.cpp:8:0:
+Transceiver.h:156:15: note: ‘NodeBase& Transceiver::parentNode’ should be initialized
+     NodeBase& parentNode;
+               ^~~~~~~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+make: *** [all] Error 2
+15:48:12 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+In file included from Transceiver.cpp:8:0:
+Transceiver.h:83:26: error: ‘TransceiverConfiguration’ does not name a type; did you mean ‘_ZTIN7omnetpp14cConfigurationE’?
+     void configure(const TransceiverConfiguration& config);
+                          ^~~~~~~~~~~~~~~~~~~~~~~~
+                          _ZTIN7omnetpp14cConfigurationE
+Transceiver.cpp: In constructor ‘Transceiver::Transceiver()’:
+Transceiver.cpp:10:1: error: uninitialized reference member in ‘class NodeBase&’ [-fpermissive]
+ Transceiver::Transceiver() {
+ ^~~~~~~~~~~
+In file included from Transceiver.cpp:8:0:
+Transceiver.h:156:15: note: ‘NodeBase& Transceiver::parentNode’ should be initialized
+     NodeBase& parentNode;
+               ^~~~~~~~~~
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+16:06:42 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In constructor ‘Transceiver::Transceiver()’:
+Transceiver.cpp:10:1: error: uninitialized reference member in ‘class NodeBase&’ [-fpermissive]
+ Transceiver::Transceiver() {
+ ^~~~~~~~~~~
+In file included from Transceiver.cpp:8:0:
+Transceiver.h:170:15: note: ‘NodeBase& Transceiver::parentNode’ should be initialized
+     NodeBase& parentNode;
+               ^~~~~~~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+16:07:18 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+17:02:17 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘void Transceiver::configure(const TransceiverConfiguration&)’:
+Transceiver.cpp:40:15: error: ‘range_error’ was not declared in this scope
+         throw range_error("config.frequency");
+               ^~~~~~~~~~~
+Transceiver.cpp:40:15: note: suggested alternative:
+In file included from /usr/include/c++/7/system_error:41:0,
+                 from /usr/include/c++/7/bits/ios_base.h:46,
+                 from /usr/include/c++/7/ios:42,
+                 from /usr/include/c++/7/ostream:38,
+                 from /usr/include/c++/7/iostream:39,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/cownedobject.h:20,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/carray.h:19,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp.h:28,
+                 from NodeBase.h:19,
+                 from Transceiver.h:32,
+                 from Transceiver.cpp:29:
+/usr/include/c++/7/stdexcept:230:9: note:   ‘std::range_error’
+   class range_error : public runtime_error
+         ^~~~~~~~~~~
+Transceiver.cpp: In member function ‘bool Transceiver::sendCca(const void*, int)’:
+Transceiver.cpp:49:11: error: ‘runtime_error’ was not declared in this scope
+     throw runtime_error("Unimplementable");
+           ^~~~~~~~~~~~~
+Transceiver.cpp:49:11: note: suggested alternative:
+In file included from /usr/include/c++/7/system_error:41:0,
+                 from /usr/include/c++/7/bits/ios_base.h:46,
+                 from /usr/include/c++/7/ios:42,
+                 from /usr/include/c++/7/ostream:38,
+                 from /usr/include/c++/7/iostream:39,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/cownedobject.h:20,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/carray.h:19,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp.h:28,
+                 from NodeBase.h:19,
+                 from Transceiver.h:32,
+                 from Transceiver.cpp:29:
+/usr/include/c++/7/stdexcept:197:9: note:   ‘std::runtime_error’
+   class runtime_error : public exception
+         ^~~~~~~~~~~~~
+Transceiver.cpp: In member function ‘void Transceiver::sendAt(const void*, int, long long int, Transceiver::Unit)’:
+Transceiver.cpp:53:33: error: ‘runtime_error’ was not declared in this scope
+     if (unit != Unit::NS) throw runtime_error("Not implemented");
+                                 ^~~~~~~~~~~~~
+Transceiver.cpp:53:33: note: suggested alternative:
+In file included from /usr/include/c++/7/system_error:41:0,
+                 from /usr/include/c++/7/bits/ios_base.h:46,
+                 from /usr/include/c++/7/ios:42,
+                 from /usr/include/c++/7/ostream:38,
+                 from /usr/include/c++/7/iostream:39,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/cownedobject.h:20,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/carray.h:19,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp.h:28,
+                 from NodeBase.h:19,
+                 from Transceiver.h:32,
+                 from Transceiver.cpp:29:
+/usr/include/c++/7/stdexcept:197:9: note:   ‘std::runtime_error’
+   class runtime_error : public exception
+         ^~~~~~~~~~~~~
+Transceiver.cpp:55:26: error: ‘runtime_error’ was not declared in this scope
+     if(waitTime<0) throw runtime_error("Transceiver::sendAt too late to send");
+                          ^~~~~~~~~~~~~
+Transceiver.cpp:55:26: note: suggested alternative:
+In file included from /usr/include/c++/7/system_error:41:0,
+                 from /usr/include/c++/7/bits/ios_base.h:46,
+                 from /usr/include/c++/7/ios:42,
+                 from /usr/include/c++/7/ostream:38,
+                 from /usr/include/c++/7/iostream:39,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/cownedobject.h:20,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/carray.h:19,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp.h:28,
+                 from NodeBase.h:19,
+                 from Transceiver.h:32,
+                 from Transceiver.cpp:29:
+/usr/include/c++/7/stdexcept:197:9: note:   ‘std::runtime_error’
+   class runtime_error : public exception
+         ^~~~~~~~~~~~~
+Transceiver.cpp:56:5: error: ‘waitAndDeletePackets’ was not declared in this scope
+     waitAndDeletePackets(waitTime);
+     ^~~~~~~~~~~~~~~~~~~~
+Transceiver.cpp:57:20: error: ‘gateSize’ was not declared in this scope
+     for(int i=0; i<gateSize("wireless"); i++)
+                    ^~~~~~~~
+Transceiver.cpp:57:20: note: suggested alternative: ‘getegid’
+     for(int i=0; i<gateSize("wireless"); i++)
+                    ^~~~~~~~
+                    getegid
+Transceiver.cpp:58:18: error: expected type-specifier before ‘RadioMessage’
+         send(new RadioMessage(packet, size, pktName), "wireless$o", i);
+                  ^~~~~~~~~~~~
+Transceiver.cpp:58:9: error: ‘send’ was not declared in this scope
+         send(new RadioMessage(packet, size, pktName), "wireless$o", i);
+         ^~~~
+Transceiver.cpp:58:9: note: suggested alternative: ‘sendAt’
+         send(new RadioMessage(packet, size, pktName), "wireless$o", i);
+         ^~~~
+         sendAt
+Transceiver.cpp:61:34: error: ‘RadioMessage’ was not declared in this scope
+     waitAndDeletePackets(SimTime(RadioMessage::getPPDUDuration(size), SIMTIME_NS));
+                                  ^~~~~~~~~~~~
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:67:33: error: ‘runtime_error’ was not declared in this scope
+     if (unit != Unit::NS) throw runtime_error("Not implemented");
+                                 ^~~~~~~~~~~~~
+Transceiver.cpp:67:33: note: suggested alternative:
+In file included from /usr/include/c++/7/system_error:41:0,
+                 from /usr/include/c++/7/bits/ios_base.h:46,
+                 from /usr/include/c++/7/ios:42,
+                 from /usr/include/c++/7/ostream:38,
+                 from /usr/include/c++/7/iostream:39,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/cownedobject.h:20,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/carray.h:19,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp.h:28,
+                 from NodeBase.h:19,
+                 from Transceiver.h:32,
+                 from Transceiver.cpp:29:
+/usr/include/c++/7/stdexcept:197:9: note:   ‘std::runtime_error’
+   class runtime_error : public exception
+         ^~~~~~~~~~~~~
+Transceiver.cpp:68:35: error: ‘runtime_error’ was not declared in this scope
+     if (c != Correct::CORR) throw runtime_error("Not implemented");
+                                   ^~~~~~~~~~~~~
+Transceiver.cpp:68:35: note: suggested alternative:
+In file included from /usr/include/c++/7/system_error:41:0,
+                 from /usr/include/c++/7/bits/ios_base.h:46,
+                 from /usr/include/c++/7/ios:42,
+                 from /usr/include/c++/7/ostream:38,
+                 from /usr/include/c++/7/iostream:39,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/cownedobject.h:20,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/carray.h:19,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp.h:28,
+                 from NodeBase.h:19,
+                 from Transceiver.h:32,
+                 from Transceiver.cpp:29:
+/usr/include/c++/7/stdexcept:197:9: note:   ‘std::runtime_error’
+   class runtime_error : public exception
+         ^~~~~~~~~~~~~
+Transceiver.cpp:72:26: error: ‘timeoutMsg’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+Transceiver.cpp:72:26: note: suggested alternative: ‘timeout’
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+                          timeout
+Transceiver.cpp:72:5: error: ‘scheduleAt’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+Transceiver.cpp:72:5: note: suggested alternative: ‘select’
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+     select
+Transceiver.cpp:74:53: error: cannot call member function ‘virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)’ without object
+     cMessage *msg = cSimpleModule::receive(waitDelta);
+                                                     ^
+Transceiver.cpp:75:51: error: ‘timeoutPktName’ was not declared in this scope
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+Transceiver.cpp:75:51: note: suggested alternative: ‘timer_gettime’
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+                                                   timer_gettime
+Transceiver.cpp:80:5: error: ‘cancelEvent’ was not declared in this scope
+     cancelEvent(&timeoutMsg);
+     ^~~~~~~~~~~
+Transceiver.cpp:86:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:90:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:90:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:90:54: error: ‘RadioMessage’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                                                      ^~~~~~~~~~~~
+Transceiver.cpp:96:55: error: ‘RadioMessage’ has not been declared
+     EV_INFO << "Awaiting interfering packets for " << RadioMessage::constructiveInterferenceTimeNs << " (until " << simTime().inUnit(SIMTIME_NS) + RadioMessage::constructiveInterferenceTimeNs << ")" << endl;
+                                                       ^~~~~~~~~~~~
+Transceiver.cpp:96:148: error: ‘RadioMessage’ has not been declared
+     EV_INFO << "Awaiting interfering packets for " << RadioMessage::constructiveInterferenceTimeNs << " (until " << simTime().inUnit(SIMTIME_NS) + RadioMessage::constructiveInterferenceTimeNs << ")" << endl;
+                                                                                                                                                    ^~~~~~~~~~~~
+Transceiver.cpp:97:28: error: ‘RadioMessage’ was not declared in this scope
+     waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
+                            ^~~~~~~~~~~~
+Transceiver.cpp:97:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:99:45: error: ‘RadioMessage’ is not a class, namespace, or enumeration
+     auto msgDeadlineDelta = msgDataTimeNs + RadioMessage::preambleSfdTimeNs - RadioMessage::constructiveInterferenceTimeNs;
+                                             ^~~~~~~~~~~~
+Transceiver.cpp:99:79: error: ‘RadioMessage’ is not a class, namespace, or enumeration
+     auto msgDeadlineDelta = msgDataTimeNs + RadioMessage::preambleSfdTimeNs - RadioMessage::constructiveInterferenceTimeNs;
+                                                                               ^~~~~~~~~~~~
+Transceiver.cpp:100:148: error: ‘RadioMessage’ is not a class, namespace, or enumeration
+     EV_INFO << "Awaiting for the whole message to arrive for " << msgDeadlineDelta << " (until " << simTime().inUnit(SIMTIME_NS) + msgDataTimeNs + RadioMessage::preambleSfdTimeNs << ")" << endl;
+                                                                                                                                                    ^~~~~~~~~~~~
+Transceiver.cpp:132:33: error: ‘count_if’ is not a member of ‘std’
+             auto numPkts = std::count_if(lengths.begin(), lengths.end(), [i](int e){return e > i;});
+                                 ^~~~~~~~
+Transceiver.cpp:132:33: note: suggested alternative: ‘cout’
+             auto numPkts = std::count_if(lengths.begin(), lengths.end(), [i](int e){return e > i;});
+                                 ^~~~~~~~
+                                 cout
+Transceiver.cpp:153:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:153:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+17:03:13 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘void Transceiver::sendAt(const void*, int, long long int, Transceiver::Unit)’:
+Transceiver.cpp:58:5: error: ‘waitAndDeletePackets’ was not declared in this scope
+     waitAndDeletePackets(waitTime);
+     ^~~~~~~~~~~~~~~~~~~~
+Transceiver.cpp:59:20: error: ‘gateSize’ was not declared in this scope
+     for(int i=0; i<gateSize("wireless"); i++)
+                    ^~~~~~~~
+Transceiver.cpp:59:20: note: suggested alternative: ‘getegid’
+     for(int i=0; i<gateSize("wireless"); i++)
+                    ^~~~~~~~
+                    getegid
+Transceiver.cpp:60:18: error: expected type-specifier before ‘RadioMessage’
+         send(new RadioMessage(packet, size, pktName), "wireless$o", i);
+                  ^~~~~~~~~~~~
+Transceiver.cpp:60:9: error: ‘send’ was not declared in this scope
+         send(new RadioMessage(packet, size, pktName), "wireless$o", i);
+         ^~~~
+Transceiver.cpp:60:9: note: suggested alternative: ‘sendAt’
+         send(new RadioMessage(packet, size, pktName), "wireless$o", i);
+         ^~~~
+         sendAt
+Transceiver.cpp:63:34: error: ‘RadioMessage’ was not declared in this scope
+     waitAndDeletePackets(SimTime(RadioMessage::getPPDUDuration(size), SIMTIME_NS));
+                                  ^~~~~~~~~~~~
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:74:26: error: ‘timeoutMsg’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+Transceiver.cpp:74:26: note: suggested alternative: ‘timeout’
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+                          timeout
+Transceiver.cpp:74:5: error: ‘scheduleAt’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+Transceiver.cpp:74:5: note: suggested alternative: ‘select’
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+     select
+Transceiver.cpp:76:53: error: cannot call member function ‘virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)’ without object
+     cMessage *msg = cSimpleModule::receive(waitDelta);
+                                                     ^
+Transceiver.cpp:77:51: error: ‘timeoutPktName’ was not declared in this scope
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+Transceiver.cpp:77:51: note: suggested alternative: ‘timer_gettime’
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+                                                   timer_gettime
+Transceiver.cpp:82:5: error: ‘cancelEvent’ was not declared in this scope
+     cancelEvent(&timeoutMsg);
+     ^~~~~~~~~~~
+Transceiver.cpp:88:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:92:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:92:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:92:54: error: ‘RadioMessage’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                                                      ^~~~~~~~~~~~
+Transceiver.cpp:98:55: error: ‘RadioMessage’ has not been declared
+     EV_INFO << "Awaiting interfering packets for " << RadioMessage::constructiveInterferenceTimeNs << " (until " << simTime().inUnit(SIMTIME_NS) + RadioMessage::constructiveInterferenceTimeNs << ")" << endl;
+                                                       ^~~~~~~~~~~~
+Transceiver.cpp:98:148: error: ‘RadioMessage’ has not been declared
+     EV_INFO << "Awaiting interfering packets for " << RadioMessage::constructiveInterferenceTimeNs << " (until " << simTime().inUnit(SIMTIME_NS) + RadioMessage::constructiveInterferenceTimeNs << ")" << endl;
+                                                                                                                                                    ^~~~~~~~~~~~
+Transceiver.cpp:99:28: error: ‘RadioMessage’ was not declared in this scope
+     waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
+                            ^~~~~~~~~~~~
+Transceiver.cpp:99:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:101:45: error: ‘RadioMessage’ is not a class, namespace, or enumeration
+     auto msgDeadlineDelta = msgDataTimeNs + RadioMessage::preambleSfdTimeNs - RadioMessage::constructiveInterferenceTimeNs;
+                                             ^~~~~~~~~~~~
+Transceiver.cpp:101:79: error: ‘RadioMessage’ is not a class, namespace, or enumeration
+     auto msgDeadlineDelta = msgDataTimeNs + RadioMessage::preambleSfdTimeNs - RadioMessage::constructiveInterferenceTimeNs;
+                                                                               ^~~~~~~~~~~~
+Transceiver.cpp:102:148: error: ‘RadioMessage’ is not a class, namespace, or enumeration
+     EV_INFO << "Awaiting for the whole message to arrive for " << msgDeadlineDelta << " (until " << simTime().inUnit(SIMTIME_NS) + msgDataTimeNs + RadioMessage::preambleSfdTimeNs << ")" << endl;
+                                                                                                                                                    ^~~~~~~~~~~~
+Transceiver.cpp:134:33: error: ‘count_if’ is not a member of ‘std’
+             auto numPkts = std::count_if(lengths.begin(), lengths.end(), [i](int e){return e > i;});
+                                 ^~~~~~~~
+Transceiver.cpp:134:33: note: suggested alternative: ‘cout’
+             auto numPkts = std::count_if(lengths.begin(), lengths.end(), [i](int e){return e > i;});
+                                 ^~~~~~~~
+                                 cout
+Transceiver.cpp:155:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:155:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+17:03:57 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘void Transceiver::sendAt(const void*, int, long long int, Transceiver::Unit)’:
+Transceiver.cpp:60:29: error: expected type-specifier before ‘RadioMessage’
+         parentNode.send(new RadioMessage(packet, size, pktName), "wireless$o", i);
+                             ^~~~~~~~~~~~
+Transceiver.cpp:63:45: error: ‘RadioMessage’ was not declared in this scope
+     parentNode.waitAndDeletePackets(SimTime(RadioMessage::getPPDUDuration(size), SIMTIME_NS));
+                                             ^~~~~~~~~~~~
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:74:26: error: ‘timeoutMsg’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+Transceiver.cpp:74:26: note: suggested alternative: ‘timeout’
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+                          timeout
+Transceiver.cpp:74:5: error: ‘scheduleAt’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+Transceiver.cpp:74:5: note: suggested alternative: ‘select’
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+     select
+Transceiver.cpp:76:53: error: cannot call member function ‘virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)’ without object
+     cMessage *msg = cSimpleModule::receive(waitDelta);
+                                                     ^
+Transceiver.cpp:77:51: error: ‘timeoutPktName’ was not declared in this scope
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+Transceiver.cpp:77:51: note: suggested alternative: ‘timer_gettime’
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+                                                   timer_gettime
+Transceiver.cpp:82:5: error: ‘cancelEvent’ was not declared in this scope
+     cancelEvent(&timeoutMsg);
+     ^~~~~~~~~~~
+Transceiver.cpp:88:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:92:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:92:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:92:54: error: ‘RadioMessage’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                                                      ^~~~~~~~~~~~
+Transceiver.cpp:98:55: error: ‘RadioMessage’ has not been declared
+     EV_INFO << "Awaiting interfering packets for " << RadioMessage::constructiveInterferenceTimeNs << " (until " << simTime().inUnit(SIMTIME_NS) + RadioMessage::constructiveInterferenceTimeNs << ")" << endl;
+                                                       ^~~~~~~~~~~~
+Transceiver.cpp:98:148: error: ‘RadioMessage’ has not been declared
+     EV_INFO << "Awaiting interfering packets for " << RadioMessage::constructiveInterferenceTimeNs << " (until " << simTime().inUnit(SIMTIME_NS) + RadioMessage::constructiveInterferenceTimeNs << ")" << endl;
+                                                                                                                                                    ^~~~~~~~~~~~
+Transceiver.cpp:99:28: error: ‘RadioMessage’ was not declared in this scope
+     waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
+                            ^~~~~~~~~~~~
+Transceiver.cpp:99:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:101:45: error: ‘RadioMessage’ is not a class, namespace, or enumeration
+     auto msgDeadlineDelta = msgDataTimeNs + RadioMessage::preambleSfdTimeNs - RadioMessage::constructiveInterferenceTimeNs;
+                                             ^~~~~~~~~~~~
+Transceiver.cpp:101:79: error: ‘RadioMessage’ is not a class, namespace, or enumeration
+     auto msgDeadlineDelta = msgDataTimeNs + RadioMessage::preambleSfdTimeNs - RadioMessage::constructiveInterferenceTimeNs;
+                                                                               ^~~~~~~~~~~~
+Transceiver.cpp:102:148: error: ‘RadioMessage’ is not a class, namespace, or enumeration
+     EV_INFO << "Awaiting for the whole message to arrive for " << msgDeadlineDelta << " (until " << simTime().inUnit(SIMTIME_NS) + msgDataTimeNs + RadioMessage::preambleSfdTimeNs << ")" << endl;
+                                                                                                                                                    ^~~~~~~~~~~~
+Transceiver.cpp:134:33: error: ‘count_if’ is not a member of ‘std’
+             auto numPkts = std::count_if(lengths.begin(), lengths.end(), [i](int e){return e > i;});
+                                 ^~~~~~~~
+Transceiver.cpp:134:33: note: suggested alternative: ‘cout’
+             auto numPkts = std::count_if(lengths.begin(), lengths.end(), [i](int e){return e > i;});
+                                 ^~~~~~~~
+                                 cout
+Transceiver.cpp:155:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:155:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:04:19 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘void Transceiver::sendAt(const void*, int, long long int, Transceiver::Unit)’:
+Transceiver.cpp:61:42: error: ‘packet’ was not declared in this scope
+         parentNode.send(new RadioMessage(packet, size, pktName), "wireless$o", i);
+                                          ^~~~~~
+Transceiver.cpp:61:42: note: suggested alternative: ‘stack_t’
+         parentNode.send(new RadioMessage(packet, size, pktName), "wireless$o", i);
+                                          ^~~~~~
+                                          stack_t
+Transceiver.cpp:61:56: error: ‘pktName’ was not declared in this scope
+         parentNode.send(new RadioMessage(packet, size, pktName), "wireless$o", i);
+                                                        ^~~~~~~
+Transceiver.cpp:61:56: note: suggested alternative: ‘ptsname’
+         parentNode.send(new RadioMessage(packet, size, pktName), "wireless$o", i);
+                                                        ^~~~~~~
+                                                        ptsname
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:75:26: error: ‘timeoutMsg’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+Transceiver.cpp:75:26: note: suggested alternative: ‘timeout’
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+                          timeout
+Transceiver.cpp:75:5: error: ‘scheduleAt’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+Transceiver.cpp:75:5: note: suggested alternative: ‘select’
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+     select
+Transceiver.cpp:77:53: error: cannot call member function ‘virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)’ without object
+     cMessage *msg = cSimpleModule::receive(waitDelta);
+                                                     ^
+Transceiver.cpp:78:51: error: ‘timeoutPktName’ was not declared in this scope
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+Transceiver.cpp:78:51: note: suggested alternative: ‘timer_gettime’
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+                                                   timer_gettime
+Transceiver.cpp:83:5: error: ‘cancelEvent’ was not declared in this scope
+     cancelEvent(&timeoutMsg);
+     ^~~~~~~~~~~
+Transceiver.cpp:89:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:93:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:93:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:100:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:156:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:156:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:04:40 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘void Transceiver::sendAt(const void*, int, long long int, Transceiver::Unit)’:
+Transceiver.cpp:61:53: error: ‘pktName’ was not declared in this scope
+         parentNode.send(new RadioMessage(pkt, size, pktName), "wireless$o", i);
+                                                     ^~~~~~~
+Transceiver.cpp:61:53: note: suggested alternative: ‘ptsname’
+         parentNode.send(new RadioMessage(pkt, size, pktName), "wireless$o", i);
+                                                     ^~~~~~~
+                                                     ptsname
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:75:26: error: ‘timeoutMsg’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+Transceiver.cpp:75:26: note: suggested alternative: ‘timeout’
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+                          timeout
+Transceiver.cpp:75:5: error: ‘scheduleAt’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+Transceiver.cpp:75:5: note: suggested alternative: ‘select’
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+     select
+Transceiver.cpp:77:53: error: cannot call member function ‘virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)’ without object
+     cMessage *msg = cSimpleModule::receive(waitDelta);
+                                                     ^
+Transceiver.cpp:78:51: error: ‘timeoutPktName’ was not declared in this scope
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+Transceiver.cpp:78:51: note: suggested alternative: ‘timer_gettime’
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+                                                   timer_gettime
+Transceiver.cpp:83:5: error: ‘cancelEvent’ was not declared in this scope
+     cancelEvent(&timeoutMsg);
+     ^~~~~~~~~~~
+Transceiver.cpp:89:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:93:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:93:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:100:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:156:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:156:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:05:54 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:121:60: error: ‘string’ has not been declared
+     void sendAt(const void *pkt, int size, long long when, string pktName = "sendAt", Unit = Unit::NS);
+                                                            ^~~~~~
+Transceiver.h:121:77: error: invalid conversion from ‘const char*’ to ‘int’ [-fpermissive]
+     void sendAt(const void *pkt, int size, long long when, string pktName = "sendAt", Unit = Unit::NS);
+                                                                             ^~~~~~~~
+Transceiver.cpp:55:6: error: prototype for ‘void Transceiver::sendAt(const void*, int, long long int, std::__cxx11::string, Transceiver::Unit)’ does not match any in class ‘Transceiver’
+ void Transceiver::sendAt(const void* pkt, int size, long long when, string pktName, Unit unit) {
+      ^~~~~~~~~~~
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:121:10: error: candidate is: void Transceiver::sendAt(const void*, int, long long int, int, Transceiver::Unit)
+     void sendAt(const void *pkt, int size, long long when, string pktName = "sendAt", Unit = Unit::NS);
+          ^~~~~~
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:75:26: error: ‘timeoutMsg’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+Transceiver.cpp:75:26: note: suggested alternative: ‘timeout’
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+                          timeout
+Transceiver.cpp:75:5: error: ‘scheduleAt’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+Transceiver.cpp:75:5: note: suggested alternative: ‘select’
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+     select
+Transceiver.cpp:77:53: error: cannot call member function ‘virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)’ without object
+     cMessage *msg = cSimpleModule::receive(waitDelta);
+                                                     ^
+Transceiver.cpp:78:51: error: ‘timeoutPktName’ was not declared in this scope
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+Transceiver.cpp:78:51: note: suggested alternative: ‘timer_gettime’
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+                                                   timer_gettime
+Transceiver.cpp:83:5: error: ‘cancelEvent’ was not declared in this scope
+     cancelEvent(&timeoutMsg);
+     ^~~~~~~~~~~
+Transceiver.cpp:89:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:93:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:93:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:100:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:156:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:156:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:06:11 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:122:60: error: ‘string’ has not been declared
+     void sendAt(const void *pkt, int size, long long when, string pktName = "sendAt", Unit = Unit::NS);
+                                                            ^~~~~~
+Transceiver.h:122:77: error: invalid conversion from ‘const char*’ to ‘int’ [-fpermissive]
+     void sendAt(const void *pkt, int size, long long when, string pktName = "sendAt", Unit = Unit::NS);
+                                                                             ^~~~~~~~
+Transceiver.cpp:55:6: error: prototype for ‘void Transceiver::sendAt(const void*, int, long long int, std::__cxx11::string, Transceiver::Unit)’ does not match any in class ‘Transceiver’
+ void Transceiver::sendAt(const void* pkt, int size, long long when, string pktName, Unit unit) {
+      ^~~~~~~~~~~
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:122:10: error: candidate is: void Transceiver::sendAt(const void*, int, long long int, int, Transceiver::Unit)
+     void sendAt(const void *pkt, int size, long long when, string pktName = "sendAt", Unit = Unit::NS);
+          ^~~~~~
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:75:26: error: ‘timeoutMsg’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+Transceiver.cpp:75:26: note: suggested alternative: ‘timeout’
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+                          timeout
+Transceiver.cpp:75:5: error: ‘scheduleAt’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+Transceiver.cpp:75:5: note: suggested alternative: ‘select’
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+     select
+Transceiver.cpp:77:53: error: cannot call member function ‘virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)’ without object
+     cMessage *msg = cSimpleModule::receive(waitDelta);
+                                                     ^
+Transceiver.cpp:78:51: error: ‘timeoutPktName’ was not declared in this scope
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+Transceiver.cpp:78:51: note: suggested alternative: ‘timer_gettime’
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+                                                   timer_gettime
+Transceiver.cpp:83:5: error: ‘cancelEvent’ was not declared in this scope
+     cancelEvent(&timeoutMsg);
+     ^~~~~~~~~~~
+Transceiver.cpp:89:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:93:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:93:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:100:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:156:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:156:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+17:06:50 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:122:60: error: ‘string’ has not been declared
+     void sendAt(const void *pkt, int size, long long when, string pktName = "sendAt", Unit = Unit::NS);
+                                                            ^~~~~~
+Transceiver.h:122:77: error: invalid conversion from ‘const char*’ to ‘int’ [-fpermissive]
+     void sendAt(const void *pkt, int size, long long when, string pktName = "sendAt", Unit = Unit::NS);
+                                                                             ^~~~~~~~
+Transceiver.cpp:55:6: error: prototype for ‘void Transceiver::sendAt(const void*, int, long long int, std::__cxx11::string, Transceiver::Unit)’ does not match any in class ‘Transceiver’
+ void Transceiver::sendAt(const void* pkt, int size, long long when, string pktName, Unit unit) {
+      ^~~~~~~~~~~
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:122:10: error: candidate is: void Transceiver::sendAt(const void*, int, long long int, int, Transceiver::Unit)
+     void sendAt(const void *pkt, int size, long long when, string pktName = "sendAt", Unit = Unit::NS);
+          ^~~~~~
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:75:26: error: ‘timeoutMsg’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+Transceiver.cpp:75:26: note: suggested alternative: ‘timeout’
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+                          timeout
+Transceiver.cpp:75:5: error: ‘scheduleAt’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+Transceiver.cpp:75:5: note: suggested alternative: ‘select’
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+     select
+Transceiver.cpp:77:53: error: cannot call member function ‘virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)’ without object
+     cMessage *msg = cSimpleModule::receive(waitDelta);
+                                                     ^
+Transceiver.cpp:78:51: error: ‘timeoutPktName’ was not declared in this scope
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+Transceiver.cpp:78:51: note: suggested alternative: ‘timer_gettime’
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+                                                   timer_gettime
+Transceiver.cpp:83:5: error: ‘cancelEvent’ was not declared in this scope
+     cancelEvent(&timeoutMsg);
+     ^~~~~~~~~~~
+Transceiver.cpp:89:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:93:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:93:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:100:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:156:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:156:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+17:07:26 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘void Transceiver::sendNow(const void*, int)’:
+Transceiver.cpp:48:61: error: no matching function for call to ‘Transceiver::sendAt(const void*&, int&, int64_t, Transceiver::Unit)’
+     sendAt(pkt, size, simTime().inUnit(SIMTIME_NS), Unit::NS);
+                                                             ^
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:122:10: note: candidate: void Transceiver::sendAt(const void*, int, long long int, std::__cxx11::string, Transceiver::Unit)
+     void sendAt(const void *pkt, int size, long long when, std::string pktName = "sendAt", Unit = Unit::NS);
+          ^~~~~~
+Transceiver.h:122:10: note:   no known conversion for argument 4 from ‘Transceiver::Unit’ to ‘std::__cxx11::string {aka std::__cxx11::basic_string<char>}’
+Transceiver.cpp: In member function ‘void Transceiver::sendAt(const void*, int, long long int, std::__cxx11::string, Transceiver::Unit)’:
+Transceiver.cpp:61:60: error: invalid conversion from ‘const void*’ to ‘void*’ [-fpermissive]
+         parentNode.send(new RadioMessage(pkt, size, pktName), "wireless$o", i);
+                                                            ^
+In file included from Transceiver.cpp:30:0:
+RadioMessage.h:35:5: note:   initializing argument 1 of ‘RadioMessage::RadioMessage(void*, int, const string&)’
+     RadioMessage(void *packet, int size, const std::string& name) : cPacket(name.c_str()), length(size)
+     ^~~~~~~~~~~~
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:75:26: error: ‘timeoutMsg’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+Transceiver.cpp:75:26: note: suggested alternative: ‘timeout’
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+                          timeout
+Transceiver.cpp:75:5: error: ‘scheduleAt’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+Transceiver.cpp:75:5: note: suggested alternative: ‘select’
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+     select
+Transceiver.cpp:77:53: error: cannot call member function ‘virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)’ without object
+     cMessage *msg = cSimpleModule::receive(waitDelta);
+                                                     ^
+Transceiver.cpp:78:51: error: ‘timeoutPktName’ was not declared in this scope
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+Transceiver.cpp:78:51: note: suggested alternative: ‘timer_gettime’
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+                                                   timer_gettime
+Transceiver.cpp:83:5: error: ‘cancelEvent’ was not declared in this scope
+     cancelEvent(&timeoutMsg);
+     ^~~~~~~~~~~
+Transceiver.cpp:89:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:93:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:93:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:100:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:156:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:156:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+17:08:29 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘void Transceiver::sendAt(const void*, int, long long int, std::__cxx11::string, Transceiver::Unit)’:
+Transceiver.cpp:61:60: error: invalid conversion from ‘const void*’ to ‘void*’ [-fpermissive]
+         parentNode.send(new RadioMessage(pkt, size, pktName), "wireless$o", i);
+                                                            ^
+In file included from Transceiver.cpp:30:0:
+RadioMessage.h:35:5: note:   initializing argument 1 of ‘RadioMessage::RadioMessage(void*, int, const string&)’
+     RadioMessage(void *packet, int size, const std::string& name) : cPacket(name.c_str()), length(size)
+     ^~~~~~~~~~~~
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:75:26: error: ‘timeoutMsg’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+Transceiver.cpp:75:26: note: suggested alternative: ‘timeout’
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+                          timeout
+Transceiver.cpp:75:5: error: ‘scheduleAt’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+Transceiver.cpp:75:5: note: suggested alternative: ‘select’
+     scheduleAt(timeout, &timeoutMsg);
+     ^~~~~~~~~~
+     select
+Transceiver.cpp:77:53: error: cannot call member function ‘virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)’ without object
+     cMessage *msg = cSimpleModule::receive(waitDelta);
+                                                     ^
+Transceiver.cpp:78:51: error: ‘timeoutPktName’ was not declared in this scope
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+Transceiver.cpp:78:51: note: suggested alternative: ‘timer_gettime’
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+                                                   timer_gettime
+Transceiver.cpp:83:5: error: ‘cancelEvent’ was not declared in this scope
+     cancelEvent(&timeoutMsg);
+     ^~~~~~~~~~~
+Transceiver.cpp:89:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:93:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:93:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:100:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferringMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:156:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:156:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+17:10:48 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘void Transceiver::sendAt(const void*, int, long long int, std::__cxx11::string, Transceiver::Unit)’:
+Transceiver.cpp:63:60: error: invalid conversion from ‘const void*’ to ‘void*’ [-fpermissive]
+         parentNode.send(new RadioMessage(pkt, size, pktName), "wireless$o", i);
+                                                            ^
+In file included from Transceiver.cpp:30:0:
+RadioMessage.h:35:5: note:   initializing argument 1 of ‘RadioMessage::RadioMessage(void*, int, const string&)’
+     RadioMessage(void *packet, int size, const std::string& name) : cPacket(name.c_str()), length(size)
+     ^~~~~~~~~~~~
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:77:37: error: ‘timeoutMsg’ was not declared in this scope
+     parentNode.scheduleAt(timeout, &timeoutMsg);
+                                     ^~~~~~~~~~
+Transceiver.cpp:77:37: note: suggested alternative: ‘timeout’
+     parentNode.scheduleAt(timeout, &timeoutMsg);
+                                     ^~~~~~~~~~
+                                     timeout
+Transceiver.cpp:79:49: error: no matching function for call to ‘NodeBase::receive(omnetpp::SimTime&)’
+     cMessage *msg = parentNode.receive(waitDelta);
+                                                 ^
+In file included from Transceiver.h:32:0,
+                 from Transceiver.cpp:29:
+NodeBase.h:45:16: note: candidate: RecvResult NodeBase::receive(void*, int, long long int, bool)
+     RecvResult receive(void* packet, int size, long long timeout, bool strictTimeout);
+                ^~~~~~~
+NodeBase.h:45:16: note:   candidate expects 4 arguments, 1 provided
+Transceiver.cpp:80:51: error: ‘timeoutPktName’ was not declared in this scope
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == parentNode.KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+Transceiver.cpp:80:51: note: suggested alternative: ‘timer_gettime’
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == parentNode.KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+                                                   timer_gettime
+Transceiver.cpp:80:106: error: ‘class NodeBase’ has no member named ‘KIND_TIMEOUT’; did you mean ‘KIND_MODULE’?
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == parentNode.KIND_TIMEOUT) {
+                                                                                                          ^~~~~~~~~~~~
+                                                                                                          KIND_MODULE
+Transceiver.cpp:91:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:95:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:95:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:106:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(msgDeadlineDelta, SIMTIME_NS), &collidingMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:158:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:158:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:12:54 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+In file included from Transceiver.h:34:0,
+                 from Transceiver.cpp:29:
+NodeBase.h:22:20: error: redefinition of ‘const unsigned int KIND_TIMEOUT’
+ const unsigned int KIND_TIMEOUT=15;
+                    ^~~~~~~~~~~~
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:32:20: note: ‘const unsigned int KIND_TIMEOUT’ previously defined here
+ const unsigned int KIND_TIMEOUT=15;
+                    ^~~~~~~~~~~~
+Transceiver.cpp: In member function ‘void Transceiver::sendAt(const void*, int, long long int, std::__cxx11::string, Transceiver::Unit)’:
+Transceiver.cpp:63:60: error: invalid conversion from ‘const void*’ to ‘void*’ [-fpermissive]
+         parentNode.send(new RadioMessage(pkt, size, pktName), "wireless$o", i);
+                                                            ^
+In file included from Transceiver.cpp:30:0:
+RadioMessage.h:35:5: note:   initializing argument 1 of ‘RadioMessage::RadioMessage(void*, int, const string&)’
+     RadioMessage(void *packet, int size, const std::string& name) : cPacket(name.c_str()), length(size)
+     ^~~~~~~~~~~~
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:79:49: error: no matching function for call to ‘NodeBase::receive(omnetpp::SimTime&)’
+     cMessage *msg = parentNode.receive(waitDelta);
+                                                 ^
+In file included from Transceiver.h:34:0,
+                 from Transceiver.cpp:29:
+NodeBase.h:45:16: note: candidate: RecvResult NodeBase::receive(void*, int, long long int, bool)
+     RecvResult receive(void* packet, int size, long long timeout, bool strictTimeout);
+                ^~~~~~~
+NodeBase.h:45:16: note:   candidate expects 4 arguments, 1 provided
+Transceiver.cpp:80:106: error: ‘class NodeBase’ has no member named ‘KIND_TIMEOUT’; did you mean ‘KIND_MODULE’?
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == parentNode.KIND_TIMEOUT) {
+                                                                                                          ^~~~~~~~~~~~
+                                                                                                          KIND_MODULE
+Transceiver.cpp:91:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:95:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:95:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:106:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(msgDeadlineDelta, SIMTIME_NS), &collidingMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:158:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:158:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+17:13:01 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+NodeBase.cpp:25:29: error: ‘const string NodeBase::timeoutPktName’ is not a static data member of ‘class NodeBase’
+ const std::string NodeBase::timeoutPktName = "TIMEOUT";
+                             ^~~~~~~~~~~~~~
+NodeBase.cpp: In member function ‘RecvResult NodeBase::receive(void*, int, long long int, bool)’:
+NodeBase.cpp:40:26: error: ‘timeoutMsg’ was not declared in this scope
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+NodeBase.cpp:40:26: note: suggested alternative: ‘timeout’
+     scheduleAt(timeout, &timeoutMsg);
+                          ^~~~~~~~~~
+                          timeout
+NodeBase.cpp:43:51: error: ‘timeoutPktName’ was not declared in this scope
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+NodeBase.cpp:43:51: note: suggested alternative: ‘timeoutMessage’
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                   ^~~~~~~~~~~~~~
+                                                   timeoutMessage
+NodeBase.cpp:43:95: error: ‘KIND_TIMEOUT’ was not declared in this scope
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                                                               ^~~~~~~~~~~~
+NodeBase.cpp:43:95: note: suggested alternative: ‘_SC_TIMEOUTS’
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == KIND_TIMEOUT) {
+                                                                                               ^~~~~~~~~~~~
+                                                                                               _SC_TIMEOUTS
+Makefile:102: recipe for target '../out/gcc-release/src/NodeBase.o' failed
+make[1]: *** [../out/gcc-release/src/NodeBase.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+17:13:24 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+RootNode.cpp
+Transceiver.cpp
+Transceiver.cpp: In member function ‘void Transceiver::sendAt(const void*, int, long long int, std::__cxx11::string, Transceiver::Unit)’:
+Transceiver.cpp:63:60: error: invalid conversion from ‘const void*’ to ‘void*’ [-fpermissive]
+         parentNode.send(new RadioMessage(pkt, size, pktName), "wireless$o", i);
+                                                            ^
+In file included from Transceiver.cpp:30:0:
+RadioMessage.h:35:5: note:   initializing argument 1 of ‘RadioMessage::RadioMessage(void*, int, const string&)’
+     RadioMessage(void *packet, int size, const std::string& name) : cPacket(name.c_str()), length(size)
+     ^~~~~~~~~~~~
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:79:49: error: no matching function for call to ‘NodeBase::receive(omnetpp::SimTime&)’
+     cMessage *msg = parentNode.receive(waitDelta);
+                                                 ^
+In file included from Transceiver.h:34:0,
+                 from Transceiver.cpp:29:
+NodeBase.h:43:16: note: candidate: RecvResult NodeBase::receive(void*, int, long long int, bool)
+     RecvResult receive(void* packet, int size, long long timeout, bool strictTimeout);
+                ^~~~~~~
+NodeBase.h:43:16: note:   candidate expects 4 arguments, 1 provided
+Transceiver.cpp:80:106: error: ‘class NodeBase’ has no member named ‘KIND_TIMEOUT’; did you mean ‘KIND_MODULE’?
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == parentNode.KIND_TIMEOUT) {
+                                                                                                          ^~~~~~~~~~~~
+                                                                                                          KIND_MODULE
+Transceiver.cpp:91:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:95:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:95:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:106:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(msgDeadlineDelta, SIMTIME_NS), &collidingMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:158:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:158:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+17:14:46 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘void Transceiver::sendAt(const void*, int, long long int, std::__cxx11::string, Transceiver::Unit)’:
+Transceiver.cpp:63:60: error: invalid conversion from ‘const void*’ to ‘void*’ [-fpermissive]
+         parentNode.send(new RadioMessage(pkt, size, pktName), "wireless$o", i);
+                                                            ^
+In file included from Transceiver.cpp:30:0:
+RadioMessage.h:35:5: note:   initializing argument 1 of ‘RadioMessage::RadioMessage(void*, int, const string&)’
+     RadioMessage(void *packet, int size, const std::string& name) : cPacket(name.c_str()), length(size)
+     ^~~~~~~~~~~~
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:79:49: error: no matching function for call to ‘NodeBase::receive(omnetpp::SimTime&)’
+     cMessage *msg = parentNode.receive(waitDelta);
+                                                 ^
+In file included from Transceiver.h:34:0,
+                 from Transceiver.cpp:29:
+NodeBase.h:43:16: note: candidate: RecvResult NodeBase::receive(void*, int, long long int, bool)
+     RecvResult receive(void* packet, int size, long long timeout, bool strictTimeout);
+                ^~~~~~~
+NodeBase.h:43:16: note:   candidate expects 4 arguments, 1 provided
+Transceiver.cpp:80:106: error: ‘class NodeBase’ has no member named ‘KIND_TIMEOUT’; did you mean ‘KIND_MODULE’?
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == parentNode.KIND_TIMEOUT) {
+                                                                                                          ^~~~~~~~~~~~
+                                                                                                          KIND_MODULE
+Transceiver.cpp:91:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:95:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:95:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:106:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(msgDeadlineDelta, SIMTIME_NS), &collidingMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:158:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:158:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:15:00 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:24:64: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, long int, bool)’
+     auto result = receive(pkt, sizeof(pkt), 100000000000, false);
+                                                                ^
+In file included from /usr/local/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()
+     virtual cMessage *receive();
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note:   candidate expects 0 arguments, 4 provided
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)
+     virtual cMessage *receive(simtime_t timeout);
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note:   candidate expects 1 argument, 4 provided
+Node.cpp:42:76: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, int64_t, bool)’
+         result = receive(pkt, sizeof(pkt), timeout.inUnit(SIMTIME_NS), true);
+                                                                            ^
+In file included from /usr/local/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()
+     virtual cMessage *receive();
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note:   candidate expects 0 arguments, 4 provided
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)
+     virtual cMessage *receive(simtime_t timeout);
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note:   candidate expects 1 argument, 4 provided
+Node.cpp:49:13: error: ‘sendAt’ was not declared in this scope
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+Node.cpp:49:13: note: suggested alternative: ‘send’
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+             send
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:15:35 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:24:64: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, long int, bool)’
+     auto result = receive(pkt, sizeof(pkt), 100000000000, false);
+                                                                ^
+In file included from /usr/local/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()
+     virtual cMessage *receive();
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note:   candidate expects 0 arguments, 4 provided
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)
+     virtual cMessage *receive(simtime_t timeout);
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note:   candidate expects 1 argument, 4 provided
+Node.cpp:42:76: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, int64_t, bool)’
+         result = receive(pkt, sizeof(pkt), timeout.inUnit(SIMTIME_NS), true);
+                                                                            ^
+In file included from /usr/local/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()
+     virtual cMessage *receive();
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note:   candidate expects 0 arguments, 4 provided
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)
+     virtual cMessage *receive(simtime_t timeout);
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note:   candidate expects 1 argument, 4 provided
+Node.cpp:49:13: error: ‘sendAt’ was not declared in this scope
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+Node.cpp:49:13: note: suggested alternative: ‘send’
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+             send
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+17:17:04 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+In file included from Node.h:18:0,
+                 from Node.cpp:16:
+NodeBase.h:47:5: error: ‘Transceiver’ does not name a type
+     Transceiver getTransceiver() const {
+     ^~~~~~~~~~~
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:24:64: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, long int, bool)’
+     auto result = receive(pkt, sizeof(pkt), 100000000000, false);
+                                                                ^
+In file included from /usr/local/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()
+     virtual cMessage *receive();
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note:   candidate expects 0 arguments, 4 provided
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)
+     virtual cMessage *receive(simtime_t timeout);
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note:   candidate expects 1 argument, 4 provided
+Node.cpp:42:76: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, int64_t, bool)’
+         result = receive(pkt, sizeof(pkt), timeout.inUnit(SIMTIME_NS), true);
+                                                                            ^
+In file included from /usr/local/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()
+     virtual cMessage *receive();
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note:   candidate expects 0 arguments, 4 provided
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)
+     virtual cMessage *receive(simtime_t timeout);
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note:   candidate expects 1 argument, 4 provided
+Node.cpp:49:13: error: ‘sendAt’ was not declared in this scope
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+Node.cpp:49:13: note: suggested alternative: ‘send’
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+             send
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+17:39:04 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:24:64: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, long int, bool)’
+     auto result = receive(pkt, sizeof(pkt), 100000000000, false);
+                                                                ^
+In file included from /usr/local/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()
+     virtual cMessage *receive();
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note:   candidate expects 0 arguments, 4 provided
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)
+     virtual cMessage *receive(simtime_t timeout);
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note:   candidate expects 1 argument, 4 provided
+Node.cpp:42:76: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, int64_t, bool)’
+         result = receive(pkt, sizeof(pkt), timeout.inUnit(SIMTIME_NS), true);
+                                                                            ^
+In file included from /usr/local/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()
+     virtual cMessage *receive();
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note:   candidate expects 0 arguments, 4 provided
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)
+     virtual cMessage *receive(simtime_t timeout);
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note:   candidate expects 1 argument, 4 provided
+Node.cpp:49:13: error: ‘sendAt’ was not declared in this scope
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+Node.cpp:49:13: note: suggested alternative: ‘send’
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+             send
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+17:40:07 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:24:64: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, long int, bool)’
+     auto result = receive(pkt, sizeof(pkt), 100000000000, false);
+                                                                ^
+In file included from /usr/local/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()
+     virtual cMessage *receive();
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note:   candidate expects 0 arguments, 4 provided
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)
+     virtual cMessage *receive(simtime_t timeout);
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note:   candidate expects 1 argument, 4 provided
+Node.cpp:42:76: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, int64_t, bool)’
+         result = receive(pkt, sizeof(pkt), timeout.inUnit(SIMTIME_NS), true);
+                                                                            ^
+In file included from /usr/local/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()
+     virtual cMessage *receive();
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note:   candidate expects 0 arguments, 4 provided
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)
+     virtual cMessage *receive(simtime_t timeout);
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note:   candidate expects 1 argument, 4 provided
+Node.cpp:49:13: error: ‘sendAt’ was not declared in this scope
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+Node.cpp:49:13: note: suggested alternative: ‘send’
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+             send
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:40:18 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:23:5: error: ‘Transceiver’ was not declared in this scope
+     Transceiver t(this);
+     ^~~~~~~~~~~
+Node.cpp:23:5: note: suggested alternative: ‘receive’
+     Transceiver t(this);
+     ^~~~~~~~~~~
+     receive
+Node.cpp:25:19: error: ‘t’ was not declared in this scope
+     auto result = t.recv(pkt, sizeof(pkt), 100000000000, false);
+                   ^
+Node.cpp:25:19: note: suggested alternative: ‘tm’
+     auto result = t.recv(pkt, sizeof(pkt), 100000000000, false);
+                   ^
+                   tm
+Node.cpp:43:76: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, int64_t, bool)’
+         result = receive(pkt, sizeof(pkt), timeout.inUnit(SIMTIME_NS), true);
+                                                                            ^
+In file included from /usr/local/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()
+     virtual cMessage *receive();
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note:   candidate expects 0 arguments, 4 provided
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)
+     virtual cMessage *receive(simtime_t timeout);
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note:   candidate expects 1 argument, 4 provided
+Node.cpp:50:13: error: ‘sendAt’ was not declared in this scope
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+Node.cpp:50:13: note: suggested alternative: ‘send’
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+             send
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+17:40:32 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:24:23: error: no matching function for call to ‘Transceiver::Transceiver(Node*)’
+     Transceiver t(this);
+                       ^
+In file included from Node.cpp:17:0:
+Transceiver.h:41:14: note: candidate: Transceiver::Transceiver(NodeBase&)
+     explicit Transceiver(NodeBase& node);
+              ^~~~~~~~~~~
+Transceiver.h:41:14: note:   no known conversion for argument 1 from ‘Node*’ to ‘NodeBase&’
+Node.cpp:26:63: error: no matching function for call to ‘Transceiver::recv(unsigned char [127], long unsigned int, long int, bool)’
+     auto result = t.recv(pkt, sizeof(pkt), 100000000000, false);
+                                                               ^
+In file included from Node.cpp:17:0:
+Transceiver.h:145:16: note: candidate: RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)
+     RecvResult recv(void *pkt, int size, long long timeout, Unit unit=Unit::NS, Correct c=Correct::CORR);
+                ^~~~
+Transceiver.h:145:16: note:   no known conversion for argument 4 from ‘bool’ to ‘Transceiver::Unit’
+Node.cpp:44:76: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, int64_t, bool)’
+         result = receive(pkt, sizeof(pkt), timeout.inUnit(SIMTIME_NS), true);
+                                                                            ^
+In file included from /usr/local/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()
+     virtual cMessage *receive();
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note:   candidate expects 0 arguments, 4 provided
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)
+     virtual cMessage *receive(simtime_t timeout);
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note:   candidate expects 1 argument, 4 provided
+Node.cpp:51:13: error: ‘sendAt’ was not declared in this scope
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+Node.cpp:51:13: note: suggested alternative: ‘send’
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+             send
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:41:01 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:24:20: error: lvalue required as unary ‘&’ operand
+     Transceiver t(&this);
+                    ^~~~
+Node.cpp:26:63: error: no matching function for call to ‘Transceiver::recv(unsigned char [127], long unsigned int, long int, bool)’
+     auto result = t.recv(pkt, sizeof(pkt), 100000000000, false);
+                                                               ^
+In file included from Node.cpp:17:0:
+Transceiver.h:145:16: note: candidate: RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)
+     RecvResult recv(void *pkt, int size, long long timeout, Unit unit=Unit::NS, Correct c=Correct::CORR);
+                ^~~~
+Transceiver.h:145:16: note:   no known conversion for argument 4 from ‘bool’ to ‘Transceiver::Unit’
+Node.cpp:44:76: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, int64_t, bool)’
+         result = receive(pkt, sizeof(pkt), timeout.inUnit(SIMTIME_NS), true);
+                                                                            ^
+In file included from /usr/local/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()
+     virtual cMessage *receive();
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note:   candidate expects 0 arguments, 4 provided
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)
+     virtual cMessage *receive(simtime_t timeout);
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note:   candidate expects 1 argument, 4 provided
+Node.cpp:51:13: error: ‘sendAt’ was not declared in this scope
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+Node.cpp:51:13: note: suggested alternative: ‘send’
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+             send
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+17:41:28 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:26:63: error: no matching function for call to ‘Transceiver::recv(unsigned char [127], long unsigned int, long int, bool)’
+     auto result = t.recv(pkt, sizeof(pkt), 100000000000, false);
+                                                               ^
+In file included from Node.cpp:17:0:
+Transceiver.h:145:16: note: candidate: RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)
+     RecvResult recv(void *pkt, int size, long long timeout, Unit unit=Unit::NS, Correct c=Correct::CORR);
+                ^~~~
+Transceiver.h:145:16: note:   no known conversion for argument 4 from ‘bool’ to ‘Transceiver::Unit’
+Node.cpp:44:76: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, int64_t, bool)’
+         result = receive(pkt, sizeof(pkt), timeout.inUnit(SIMTIME_NS), true);
+                                                                            ^
+In file included from /usr/local/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()
+     virtual cMessage *receive();
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note:   candidate expects 0 arguments, 4 provided
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)
+     virtual cMessage *receive(simtime_t timeout);
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note:   candidate expects 1 argument, 4 provided
+Node.cpp:51:13: error: ‘sendAt’ was not declared in this scope
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+Node.cpp:51:13: note: suggested alternative: ‘send’
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+             send
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+make: *** [all] Error 2
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:42:26 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:45:76: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, int64_t, bool)’
+         result = receive(pkt, sizeof(pkt), timeout.inUnit(SIMTIME_NS), true);
+                                                                            ^
+In file included from /usr/local/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()
+     virtual cMessage *receive();
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note:   candidate expects 0 arguments, 4 provided
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)
+     virtual cMessage *receive(simtime_t timeout);
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note:   candidate expects 1 argument, 4 provided
+Node.cpp:52:13: error: ‘sendAt’ was not declared in this scope
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+Node.cpp:52:13: note: suggested alternative: ‘send’
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+             send
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+17:42:55 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Node.cpp: In member function ‘virtual void Node::activity()’:
+Node.cpp:45:76: error: no matching function for call to ‘Node::receive(unsigned char [127], long unsigned int, int64_t, bool)’
+         result = receive(pkt, sizeof(pkt), timeout.inUnit(SIMTIME_NS), true);
+                                                                            ^
+In file included from /usr/local/omnetpp-5.2.1/include/omnetpp.h:99:0,
+                 from NodeBase.h:19,
+                 from Node.h:18,
+                 from Node.cpp:16:
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive()
+     virtual cMessage *receive();
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:387:23: note:   candidate expects 0 arguments, 4 provided
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note: candidate: virtual omnetpp::cMessage* omnetpp::cSimpleModule::receive(omnetpp::simtime_t)
+     virtual cMessage *receive(simtime_t timeout);
+                       ^~~~~~~
+/usr/local/omnetpp-5.2.1/include/omnetpp/csimplemodule.h:396:23: note:   candidate expects 1 argument, 4 provided
+Node.cpp:52:13: error: ‘sendAt’ was not declared in this scope
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+Node.cpp:52:13: note: suggested alternative: ‘send’
+             sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+             ^~~~~~
+             send
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+17:43:19 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+RootNode.cpp: In member function ‘virtual void RootNode::activity()’:
+RootNode.cpp:27:9: error: ‘sendAt’ was not declared in this scope
+         sendAt(pkt, sizeof(pkt), nextSend, "sync");
+         ^~~~~~
+RootNode.cpp:27:9: note: suggested alternative: ‘send’
+         sendAt(pkt, sizeof(pkt), nextSend, "sync");
+         ^~~~~~
+         send
+make[1]: *** [../out/gcc-release/src/RootNode.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/RootNode.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:43:44 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+RootNode.cpp
+RootNode.cpp: In member function ‘virtual void RootNode::activity()’:
+RootNode.cpp:22:5: error: ‘Transceiver’ was not declared in this scope
+     Transceiver t(*this);
+     ^~~~~~~~~~~
+RootNode.cpp:22:5: note: suggested alternative: ‘receive’
+     Transceiver t(*this);
+     ^~~~~~~~~~~
+     receive
+RootNode.cpp:28:9: error: ‘t’ was not declared in this scope
+         t.sendAt(pkt, sizeof(pkt), nextSend, "sync");
+         ^
+RootNode.cpp:28:9: note: suggested alternative: ‘tm’
+         t.sendAt(pkt, sizeof(pkt), nextSend, "sync");
+         ^
+         tm
+make[1]: *** [../out/gcc-release/src/RootNode.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/RootNode.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:43:55 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+RootNode.cpp
+Transceiver.cpp
+Transceiver.cpp: In member function ‘void Transceiver::sendAt(const void*, int, long long int, std::__cxx11::string, Transceiver::Unit)’:
+Transceiver.cpp:63:60: error: invalid conversion from ‘const void*’ to ‘void*’ [-fpermissive]
+         parentNode.send(new RadioMessage(pkt, size, pktName), "wireless$o", i);
+                                                            ^
+In file included from Transceiver.cpp:30:0:
+RadioMessage.h:35:5: note:   initializing argument 1 of ‘RadioMessage::RadioMessage(void*, int, const string&)’
+     RadioMessage(void *packet, int size, const std::string& name) : cPacket(name.c_str()), length(size)
+     ^~~~~~~~~~~~
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:80:106: error: ‘class NodeBase’ has no member named ‘KIND_TIMEOUT’; did you mean ‘KIND_MODULE’?
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == parentNode.KIND_TIMEOUT) {
+                                                                                                          ^~~~~~~~~~~~
+                                                                                                          KIND_MODULE
+Transceiver.cpp:91:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:95:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:95:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:106:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(msgDeadlineDelta, SIMTIME_NS), &collidingMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:158:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:158:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+17:44:43 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+Transceiver.cpp
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:80:106: error: ‘class NodeBase’ has no member named ‘KIND_TIMEOUT’; did you mean ‘KIND_MODULE’?
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == parentNode.KIND_TIMEOUT) {
+                                                                                                          ^~~~~~~~~~~~
+                                                                                                          KIND_MODULE
+Transceiver.cpp:91:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:95:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:95:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:106:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(msgDeadlineDelta, SIMTIME_NS), &collidingMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:158:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:158:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:45:34 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:80:106: error: ‘class NodeBase’ has no member named ‘KIND_TIMEOUT’; did you mean ‘KIND_MODULE’?
+     if (msg->isSelfMessage() && msg->getName() == timeoutPktName.c_str() && msg->getKind() == parentNode.KIND_TIMEOUT) {
+                                                                                                          ^~~~~~~~~~~~
+                                                                                                          KIND_MODULE
+Transceiver.cpp:91:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:95:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:95:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:106:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(msgDeadlineDelta, SIMTIME_NS), &collidingMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:158:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:158:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+17:45:49 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:92:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:96:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:96:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:107:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(msgDeadlineDelta, SIMTIME_NS), &collidingMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:159:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:159:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:47:40 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:92:10: error: declaration of ‘auto pkt’ shadows a parameter
+     auto pkt = (cPacket*) msg;
+          ^~~
+Transceiver.cpp:96:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:96:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:107:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(msgDeadlineDelta, SIMTIME_NS), &collidingMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:159:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:159:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+17:47:54 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:95:18: error: ‘strictTimeout’ was not declared in this scope
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+Transceiver.cpp:95:18: note: suggested alternative: ‘strptime_l’
+     if (SimTime((strictTimeout? 0 : msgDataTimeNs) + RadioMessage::preambleSfdTimeNs, SIMTIME_NS) + msg->getSendingTime().inUnit(SIMTIME_NS) > timeout) {
+                  ^~~~~~~~~~~~~
+                  strptime_l
+Transceiver.cpp:105:5: error: ‘waitAndEnqueue’ was not declared in this scope
+     waitAndEnqueue(SimTime(msgDeadlineDelta, SIMTIME_NS), &collidingMsgs);
+     ^~~~~~~~~~~~~~
+Transceiver.cpp:115:22: error: ‘void*’ is not a pointer-to-object type
+     int corrLen = pkt->getByteLength();
+                      ^~
+Transceiver.cpp:121:30: error: no matching function for call to ‘push_back(void*&)’
+         packets.push_back(pkt);
+                              ^
+In file included from /usr/include/c++/7/vector:64:0,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/onstartup.h:19,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/globals.h:21,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/cobjectfactory.h:20,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp.h:30,
+                 from NodeBase.h:19,
+                 from Transceiver.h:34,
+                 from Transceiver.cpp:29:
+/usr/include/c++/7/bits/stl_vector.h:939:7: note: candidate: void std::vector<_Tp, _Alloc>::push_back(const value_type&) [with _Tp = omnetpp::cPacket*; _Alloc = std::allocator<omnetpp::cPacket*>; std::vector<_Tp, _Alloc>::value_type = omnetpp::cPacket*] <near match>
+       push_back(const value_type& __x)
+       ^~~~~~~~~
+/usr/include/c++/7/bits/stl_vector.h:939:7: note:   conversion of argument 1 would be ill-formed:
+Transceiver.cpp:121:30: error: invalid conversion from ‘void*’ to ‘std::vector<omnetpp::cPacket*>::value_type {aka omnetpp::cPacket*}’ [-fpermissive]
+         packets.push_back(pkt);
+                              ^
+In file included from /usr/include/c++/7/vector:64:0,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/onstartup.h:19,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/globals.h:21,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/cobjectfactory.h:20,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp.h:30,
+                 from NodeBase.h:19,
+                 from Transceiver.h:34,
+                 from Transceiver.cpp:29:
+/usr/include/c++/7/bits/stl_vector.h:953:7: note: candidate: void std::vector<_Tp, _Alloc>::push_back(std::vector<_Tp, _Alloc>::value_type&&) [with _Tp = omnetpp::cPacket*; _Alloc = std::allocator<omnetpp::cPacket*>; std::vector<_Tp, _Alloc>::value_type = omnetpp::cPacket*] <near match>
+       push_back(value_type&& __x)
+       ^~~~~~~~~
+/usr/include/c++/7/bits/stl_vector.h:953:7: note:   conversion of argument 1 would be ill-formed:
+Transceiver.cpp:121:30: error: invalid conversion from ‘void*’ to ‘std::vector<omnetpp::cPacket*>::value_type {aka omnetpp::cPacket*}’ [-fpermissive]
+         packets.push_back(pkt);
+                              ^
+Transceiver.cpp:149:24: error: ‘void*’ is not a pointer-to-object type
+         auto* ctx = pkt->getContextPointer();
+                        ^~
+Transceiver.cpp:157:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:157:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:48:56 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:157:12: error: ‘packet’ was not declared in this scope
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+Transceiver.cpp:157:12: note: suggested alternative: ‘stack_t’
+     memcpy(packet, correlated, std::min(size, corrLen));
+            ^~~~~~
+            stack_t
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+17:49:19 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:157:50: error: ‘packet’ was not declared in this scope
+     if (size > corrLen) memset(((unsigned char*) packet) + corrLen, 0, size - corrLen);
+                                                  ^~~~~~
+Transceiver.cpp:157:50: note: suggested alternative: ‘stack_t’
+     if (size > corrLen) memset(((unsigned char*) packet) + corrLen, 0, size - corrLen);
+                                                  ^~~~~~
+                                                  stack_t
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:49:25 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:158:50: error: ‘packet’ was not declared in this scope
+     if (size > corrLen) memset(((unsigned char*) packet) + corrLen, 0, size - corrLen);
+                                                  ^~~~~~
+Transceiver.cpp:158:50: note: suggested alternative: ‘stack_t’
+     if (size > corrLen) memset(((unsigned char*) packet) + corrLen, 0, size - corrLen);
+                                                  ^~~~~~
+                                                  stack_t
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+17:49:38 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+TransceiverConfiguration.cpp
+TransceiverConfiguration.cpp: In member function ‘void TransceiverConfiguration::setChannel(int)’:
+TransceiverConfiguration.cpp:33:40: error: ‘range_error’ was not declared in this scope
+     if(channel<11 || channel>26) throw range_error("Channel not in range");
+                                        ^~~~~~~~~~~
+TransceiverConfiguration.cpp:33:40: note: suggested alternative:
+In file included from /usr/include/c++/7/system_error:41:0,
+                 from /usr/include/c++/7/bits/ios_base.h:46,
+                 from /usr/include/c++/7/ios:42,
+                 from /usr/include/c++/7/ostream:38,
+                 from /usr/include/c++/7/iostream:39,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/cownedobject.h:20,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/carray.h:19,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp.h:28,
+                 from NodeBase.h:19,
+                 from Transceiver.h:34,
+                 from TransceiverConfiguration.cpp:29:
+/usr/include/c++/7/stdexcept:230:9: note:   ‘std::range_error’
+   class range_error : public runtime_error
+         ^~~~~~~~~~~
+make[1]: *** [../out/gcc-release/src/TransceiverConfiguration.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/TransceiverConfiguration.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+17:49:59 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+TransceiverConfiguration.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/Transceiver.o: In function `Transceiver::Transceiver(NodeBase&)':
+Transceiver.cpp:(.text+0x2b): undefined reference to `Transceiver::timeoutPktName[abi:cxx11]'
+../out/gcc-release/src/Transceiver.o: In function `Transceiver::recv(void*, int, long long, Transceiver::Unit, Transceiver::Correct)':
+Transceiver.cpp:(.text+0x11ec): undefined reference to `Transceiver::timeoutPktName[abi:cxx11]'
+collect2: error: ld returned 1 exit status
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+Makefile:93: recipe for target '../out/gcc-release/src/WandstemMac' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+17:51:02 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+17:51:23 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+17:54:32 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+17:54:36 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+18:02:41 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+Transceiver.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+18:07:58 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+18:08:09 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+18:08:13 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+18:08:44 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:10:30 **** Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:10:32 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:18:48 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+Transceiver.cpp
+TransceiverConfiguration.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:18:54 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:21:27 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Transceiver.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:21:30 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:31:15 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Transceiver.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:31:20 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:53:47 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:53:50 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+21:59:27 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+Transceiver.cpp
+TransceiverConfiguration.cpp
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+22:03:20 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+22:03:26 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+22:05:05 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+22:07:45 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+22:07:52 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:36:28 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+In file included from Node.cpp:17:0:
+Transceiver.h:163:5: error: ‘mutex’ does not name a type
+     mutex crcMutex;
+     ^~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+23:36:33 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+In file included from Node.cpp:17:0:
+Transceiver.h:163:5: error: ‘mutex’ does not name a type
+     mutex crcMutex;
+     ^~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+23:37:09 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+In file included from Node.cpp:17:0:
+Transceiver.h:164:5: error: ‘mutex’ does not name a type
+     mutex crcMutex;
+     ^~~~~
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Node.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+23:37:23 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+RootNode.cpp
+Transceiver.cpp
+Transceiver.cpp: In member function ‘void Transceiver::sendAt(const void*, int, long long int, std::__cxx11::string, Transceiver::Unit)’:
+Transceiver.cpp:67:34: error: too many arguments to function ‘void* memcpy(void*, const void*, size_t)’
+     memcpy(finalPkt, pkt, 0, size);
+                                  ^
+In file included from /usr/include/c++/7/cstring:42:0,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/simutil.h:19,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/cownedobject.h:22,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp/carray.h:19,
+                 from /usr/local/omnetpp-5.2.1/include/omnetpp.h:28,
+                 from NodeBase.h:19,
+                 from Transceiver.h:34,
+                 from Transceiver.cpp:29:
+/usr/include/string.h:42:14: note: declared here
+ extern void *memcpy (void *__restrict __dest, const void *__restrict __src,
+              ^~~~~~
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:117:13: error: ‘config’ was not declared in this scope
+         if (config.crc)
+             ^~~~~~
+Transceiver.cpp:117:13: note: suggested alternative: ‘configure’
+         if (config.crc)
+             ^~~~~~
+             configure
+Transceiver.cpp:121:22: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+                 pkt[i] = parentNode.uniform(0, 16, 0);
+                      ^
+Transceiver.cpp:121:22: error: ‘void*’ is not a pointer-to-object type
+Transceiver.cpp: At global scope:
+Transceiver.cpp:181:67: error: cannot declare member function ‘static uint16_t Transceiver::computeCrc(const void*, int)’ to have static linkage [-fpermissive]
+ static uint16_t Transceiver::computeCrc(const void* data, int size) {
+                                                                   ^
+Transceiver.cpp: In static member function ‘static uint16_t Transceiver::computeCrc(const void*, int)’:
+Transceiver.cpp:182:5: error: invalid use of member ‘Transceiver::crcMutex’ in static member function
+     crcMutex.lock();
+     ^~~~~~~~
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:164:16: note: declared here
+     std::mutex crcMutex;
+                ^~~~~~~~
+Transceiver.cpp:183:5: error: invalid use of member ‘Transceiver::crc’ in static member function
+     crc.reset();
+     ^~~
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:163:27: note: declared here
+     boost::crc_ccitt_type crc;
+                           ^~~
+Transceiver.cpp:184:5: error: invalid use of member ‘Transceiver::crc’ in static member function
+     crc.process_bytes(data, size);
+     ^~~
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:163:27: note: declared here
+     boost::crc_ccitt_type crc;
+                           ^~~
+Transceiver.cpp:185:38: error: use of ‘crc’ before deduction of ‘auto’
+     auto crc = static_cast<uint16_t>(crc.checksum());
+                                      ^~~
+Transceiver.cpp:186:5: error: invalid use of member ‘Transceiver::crcMutex’ in static member function
+     crcMutex.unlock();
+     ^~~~~~~~
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:164:16: note: declared here
+     std::mutex crcMutex;
+                ^~~~~~~~
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+23:39:27 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:121:22: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+                 pkt[i] = parentNode.uniform(0, 16, 0);
+                      ^
+Transceiver.cpp:121:22: error: ‘void*’ is not a pointer-to-object type
+Transceiver.cpp: At global scope:
+Transceiver.cpp:181:67: error: cannot declare member function ‘static uint16_t Transceiver::computeCrc(const void*, int)’ to have static linkage [-fpermissive]
+ static uint16_t Transceiver::computeCrc(const void* data, int size) {
+                                                                   ^
+Transceiver.cpp: In static member function ‘static uint16_t Transceiver::computeCrc(const void*, int)’:
+Transceiver.cpp:182:5: error: invalid use of member ‘Transceiver::crcMutex’ in static member function
+     crcMutex.lock();
+     ^~~~~~~~
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:164:16: note: declared here
+     std::mutex crcMutex;
+                ^~~~~~~~
+Transceiver.cpp:183:5: error: invalid use of member ‘Transceiver::crc’ in static member function
+     crc.reset();
+     ^~~
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:163:27: note: declared here
+     boost::crc_ccitt_type crc;
+                           ^~~
+Transceiver.cpp:184:5: error: invalid use of member ‘Transceiver::crc’ in static member function
+     crc.process_bytes(data, size);
+     ^~~
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:163:27: note: declared here
+     boost::crc_ccitt_type crc;
+                           ^~~
+Transceiver.cpp:185:38: error: use of ‘crc’ before deduction of ‘auto’
+     auto crc = static_cast<uint16_t>(crc.checksum());
+                                      ^~~
+Transceiver.cpp:186:5: error: invalid use of member ‘Transceiver::crcMutex’ in static member function
+     crcMutex.unlock();
+     ^~~~~~~~
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:164:16: note: declared here
+     std::mutex crcMutex;
+                ^~~~~~~~
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+23:39:30 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:121:22: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+                 pkt[i] = parentNode.uniform(0, 16, 0);
+                      ^
+Transceiver.cpp:121:22: error: ‘void*’ is not a pointer-to-object type
+Transceiver.cpp: In static member function ‘static uint16_t Transceiver::computeCrc(const void*, int)’:
+Transceiver.cpp:182:5: error: invalid use of member ‘Transceiver::crcMutex’ in static member function
+     crcMutex.lock();
+     ^~~~~~~~
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:164:16: note: declared here
+     std::mutex crcMutex;
+                ^~~~~~~~
+Transceiver.cpp:183:5: error: invalid use of member ‘Transceiver::crc’ in static member function
+     crc.reset();
+     ^~~
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:163:27: note: declared here
+     boost::crc_ccitt_type crc;
+                           ^~~
+Transceiver.cpp:184:5: error: invalid use of member ‘Transceiver::crc’ in static member function
+     crc.process_bytes(data, size);
+     ^~~
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:163:27: note: declared here
+     boost::crc_ccitt_type crc;
+                           ^~~
+Transceiver.cpp:185:38: error: use of ‘crc’ before deduction of ‘auto’
+     auto crc = static_cast<uint16_t>(crc.checksum());
+                                      ^~~
+Transceiver.cpp:186:5: error: invalid use of member ‘Transceiver::crcMutex’ in static member function
+     crcMutex.unlock();
+     ^~~~~~~~
+In file included from Transceiver.cpp:29:0:
+Transceiver.h:164:16: note: declared here
+     std::mutex crcMutex;
+                ^~~~~~~~
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+23:40:00 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+RootNode.cpp
+Transceiver.cpp
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:121:22: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+                 pkt[i] = parentNode.uniform(0, 16, 0);
+                      ^
+Transceiver.cpp:121:22: error: ‘void*’ is not a pointer-to-object type
+Transceiver.cpp: In member function ‘uint16_t Transceiver::computeCrc(const void*, int)’:
+Transceiver.cpp:185:38: error: use of ‘crc’ before deduction of ‘auto’
+     auto crc = static_cast<uint16_t>(crc.checksum());
+                                      ^~~
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+23:40:27 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:121:22: warning: pointer of type ‘void *’ used in arithmetic [-Wpointer-arith]
+                 pkt[i] = parentNode.uniform(0, 16, 0);
+                      ^
+Transceiver.cpp:121:22: error: ‘void*’ is not a pointer-to-object type
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+23:41:08 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+TransceiverConfiguration.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:47:46 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:128:50: error: ‘interferringMsgs’ was not declared in this scope
+         while(!interferingMsgs.isEmpty()) delete interferringMsgs.pop();
+                                                  ^~~~~~~~~~~~~~~~
+Transceiver.cpp:128:50: note: suggested alternative: ‘interferingMsgs’
+         while(!interferingMsgs.isEmpty()) delete interferringMsgs.pop();
+                                                  ^~~~~~~~~~~~~~~~
+                                                  interferingMsgs
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+23:48:06 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:49:38 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:52:11 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:55:18 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+00:27:24 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+Transceiver.cpp
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:109:132: error: ‘msgDataTimeNs’ was not declared in this scope
+     EV_INFO << "Awaiting for the whole message to arrive for " << msgDeadlineDelta << " (until " << simTime().inUnit(SIMTIME_NS) + msgDataTimeNs + RadioMessage::preambleSfdLenTimeNs << ")" << endl;
+                                                                                                                                    ^~~~~~~~~~~~~
+Transceiver.cpp:139:48: error: ‘corrLen’ was not declared in this scope
+                 if (tmp->length > result.size) corrLen = tmp->length;
+                                                ^~~~~~~
+Transceiver.cpp:147:28: error: ‘corrLen’ was not declared in this scope
+         for(int i = 0; i < corrLen; i++) {
+                            ^~~~~~~
+Transceiver.cpp:172:55: error: no matching function for call to ‘min(int&, short int&)’
+     memcpy(pkt, correlated, std::min(size, result.size));
+                                                       ^
+In file included from /usr/include/c++/7/bits/char_traits.h:39:0,
+                 from /usr/include/c++/7/string:40,
+                 from NodeBase.h:18,
+                 from Transceiver.h:34,
+                 from Transceiver.cpp:29:
+/usr/include/c++/7/bits/stl_algobase.h:195:5: note: candidate: template<class _Tp> const _Tp& std::min(const _Tp&, const _Tp&)
+     min(const _Tp& __a, const _Tp& __b)
+     ^~~
+/usr/include/c++/7/bits/stl_algobase.h:195:5: note:   template argument deduction/substitution failed:
+Transceiver.cpp:172:55: note:   deduced conflicting types for parameter ‘const _Tp’ (‘int’ and ‘short int’)
+     memcpy(pkt, correlated, std::min(size, result.size));
+                                                       ^
+In file included from /usr/include/c++/7/bits/char_traits.h:39:0,
+                 from /usr/include/c++/7/string:40,
+                 from NodeBase.h:18,
+                 from Transceiver.h:34,
+                 from Transceiver.cpp:29:
+/usr/include/c++/7/bits/stl_algobase.h:243:5: note: candidate: template<class _Tp, class _Compare> const _Tp& std::min(const _Tp&, const _Tp&, _Compare)
+     min(const _Tp& __a, const _Tp& __b, _Compare __comp)
+     ^~~
+/usr/include/c++/7/bits/stl_algobase.h:243:5: note:   template argument deduction/substitution failed:
+Transceiver.cpp:172:55: note:   deduced conflicting types for parameter ‘const _Tp’ (‘int’ and ‘short int’)
+     memcpy(pkt, correlated, std::min(size, result.size));
+                                                       ^
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from RadioMessage.h:21,
+                 from Transceiver.cpp:30:
+/usr/include/c++/7/bits/stl_algo.h:3450:5: note: candidate: template<class _Tp> _Tp std::min(std::initializer_list<_Tp>)
+     min(initializer_list<_Tp> __l)
+     ^~~
+/usr/include/c++/7/bits/stl_algo.h:3450:5: note:   template argument deduction/substitution failed:
+Transceiver.cpp:172:55: note:   mismatched types ‘std::initializer_list<_Tp>’ and ‘int’
+     memcpy(pkt, correlated, std::min(size, result.size));
+                                                       ^
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from RadioMessage.h:21,
+                 from Transceiver.cpp:30:
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note: candidate: template<class _Tp, class _Compare> _Tp std::min(std::initializer_list<_Tp>, _Compare)
+     min(initializer_list<_Tp> __l, _Compare __comp)
+     ^~~
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note:   template argument deduction/substitution failed:
+Transceiver.cpp:172:55: note:   mismatched types ‘std::initializer_list<_Tp>’ and ‘int’
+     memcpy(pkt, correlated, std::min(size, result.size));
+                                                       ^
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+00:27:43 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:109:132: error: ‘msgDataTimeNs’ was not declared in this scope
+     EV_INFO << "Awaiting for the whole message to arrive for " << msgDeadlineDelta << " (until " << simTime().inUnit(SIMTIME_NS) + msgDataTimeNs + RadioMessage::preambleSfdLenTimeNs << ")" << endl;
+                                                                                                                                    ^~~~~~~~~~~~~
+Transceiver.cpp:139:48: error: ‘corrLen’ was not declared in this scope
+                 if (tmp->length > result.size) corrLen = tmp->length;
+                                                ^~~~~~~
+Transceiver.cpp:147:28: error: ‘corrLen’ was not declared in this scope
+         for(int i = 0; i < corrLen; i++) {
+                            ^~~~~~~
+Transceiver.cpp:172:55: error: no matching function for call to ‘min(int&, short int&)’
+     memcpy(pkt, correlated, std::min(size, result.size));
+                                                       ^
+In file included from /usr/include/c++/7/bits/char_traits.h:39:0,
+                 from /usr/include/c++/7/string:40,
+                 from NodeBase.h:18,
+                 from Transceiver.h:34,
+                 from Transceiver.cpp:29:
+/usr/include/c++/7/bits/stl_algobase.h:195:5: note: candidate: template<class _Tp> const _Tp& std::min(const _Tp&, const _Tp&)
+     min(const _Tp& __a, const _Tp& __b)
+     ^~~
+/usr/include/c++/7/bits/stl_algobase.h:195:5: note:   template argument deduction/substitution failed:
+Transceiver.cpp:172:55: note:   deduced conflicting types for parameter ‘const _Tp’ (‘int’ and ‘short int’)
+     memcpy(pkt, correlated, std::min(size, result.size));
+                                                       ^
+In file included from /usr/include/c++/7/bits/char_traits.h:39:0,
+                 from /usr/include/c++/7/string:40,
+                 from NodeBase.h:18,
+                 from Transceiver.h:34,
+                 from Transceiver.cpp:29:
+/usr/include/c++/7/bits/stl_algobase.h:243:5: note: candidate: template<class _Tp, class _Compare> const _Tp& std::min(const _Tp&, const _Tp&, _Compare)
+     min(const _Tp& __a, const _Tp& __b, _Compare __comp)
+     ^~~
+/usr/include/c++/7/bits/stl_algobase.h:243:5: note:   template argument deduction/substitution failed:
+Transceiver.cpp:172:55: note:   deduced conflicting types for parameter ‘const _Tp’ (‘int’ and ‘short int’)
+     memcpy(pkt, correlated, std::min(size, result.size));
+                                                       ^
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from RadioMessage.h:21,
+                 from Transceiver.cpp:30:
+/usr/include/c++/7/bits/stl_algo.h:3450:5: note: candidate: template<class _Tp> _Tp std::min(std::initializer_list<_Tp>)
+     min(initializer_list<_Tp> __l)
+     ^~~
+/usr/include/c++/7/bits/stl_algo.h:3450:5: note:   template argument deduction/substitution failed:
+Transceiver.cpp:172:55: note:   mismatched types ‘std::initializer_list<_Tp>’ and ‘int’
+     memcpy(pkt, correlated, std::min(size, result.size));
+                                                       ^
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from RadioMessage.h:21,
+                 from Transceiver.cpp:30:
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note: candidate: template<class _Tp, class _Compare> _Tp std::min(std::initializer_list<_Tp>, _Compare)
+     min(initializer_list<_Tp> __l, _Compare __comp)
+     ^~~
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note:   template argument deduction/substitution failed:
+Transceiver.cpp:172:55: note:   mismatched types ‘std::initializer_list<_Tp>’ and ‘int’
+     memcpy(pkt, correlated, std::min(size, result.size));
+                                                       ^
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+00:28:29 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Transceiver.cpp: In member function ‘RecvResult Transceiver::recv(void*, int, long long int, Transceiver::Unit, Transceiver::Correct)’:
+Transceiver.cpp:172:55: error: no matching function for call to ‘min(int&, short int&)’
+     memcpy(pkt, correlated, std::min(size, result.size));
+                                                       ^
+In file included from /usr/include/c++/7/bits/char_traits.h:39:0,
+                 from /usr/include/c++/7/string:40,
+                 from NodeBase.h:18,
+                 from Transceiver.h:34,
+                 from Transceiver.cpp:29:
+/usr/include/c++/7/bits/stl_algobase.h:195:5: note: candidate: template<class _Tp> const _Tp& std::min(const _Tp&, const _Tp&)
+     min(const _Tp& __a, const _Tp& __b)
+     ^~~
+/usr/include/c++/7/bits/stl_algobase.h:195:5: note:   template argument deduction/substitution failed:
+Transceiver.cpp:172:55: note:   deduced conflicting types for parameter ‘const _Tp’ (‘int’ and ‘short int’)
+     memcpy(pkt, correlated, std::min(size, result.size));
+                                                       ^
+In file included from /usr/include/c++/7/bits/char_traits.h:39:0,
+                 from /usr/include/c++/7/string:40,
+                 from NodeBase.h:18,
+                 from Transceiver.h:34,
+                 from Transceiver.cpp:29:
+/usr/include/c++/7/bits/stl_algobase.h:243:5: note: candidate: template<class _Tp, class _Compare> const _Tp& std::min(const _Tp&, const _Tp&, _Compare)
+     min(const _Tp& __a, const _Tp& __b, _Compare __comp)
+     ^~~
+/usr/include/c++/7/bits/stl_algobase.h:243:5: note:   template argument deduction/substitution failed:
+Transceiver.cpp:172:55: note:   deduced conflicting types for parameter ‘const _Tp’ (‘int’ and ‘short int’)
+     memcpy(pkt, correlated, std::min(size, result.size));
+                                                       ^
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from RadioMessage.h:21,
+                 from Transceiver.cpp:30:
+/usr/include/c++/7/bits/stl_algo.h:3450:5: note: candidate: template<class _Tp> _Tp std::min(std::initializer_list<_Tp>)
+     min(initializer_list<_Tp> __l)
+     ^~~
+/usr/include/c++/7/bits/stl_algo.h:3450:5: note:   template argument deduction/substitution failed:
+Transceiver.cpp:172:55: note:   mismatched types ‘std::initializer_list<_Tp>’ and ‘int’
+     memcpy(pkt, correlated, std::min(size, result.size));
+                                                       ^
+In file included from /usr/include/c++/7/algorithm:62:0,
+                 from RadioMessage.h:21,
+                 from Transceiver.cpp:30:
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note: candidate: template<class _Tp, class _Compare> _Tp std::min(std::initializer_list<_Tp>, _Compare)
+     min(initializer_list<_Tp> __l, _Compare __comp)
+     ^~~
+/usr/include/c++/7/bits/stl_algo.h:3456:5: note:   template argument deduction/substitution failed:
+Transceiver.cpp:172:55: note:   mismatched types ‘std::initializer_list<_Tp>’ and ‘int’
+     memcpy(pkt, correlated, std::min(size, result.size));
+                                                       ^
+make[1]: *** [../out/gcc-release/src/Transceiver.o] Error 1
+Makefile:102: recipe for target '../out/gcc-release/src/Transceiver.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+00:29:10 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Transceiver.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+00:29:21 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+00:30:25 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+00:31:53 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+Transceiver.cpp
+TransceiverConfiguration.cpp
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+00:32:58 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+Transceiver.cpp
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+00:33:45 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+NodeBase.cpp
+Transceiver.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'

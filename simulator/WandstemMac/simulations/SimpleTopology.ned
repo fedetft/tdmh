@@ -38,6 +38,6 @@ network SimpleTopology
     connections:
         n0.wireless++ <--> n1.wireless++;
         n0.wireless++ <--> n2.wireless++;
-        n1.wireless++ <--> n3.wireless++;
         n2.wireless++ <--> n3.wireless++;
+        n1.wireless++ <--> n3.wireless++;
 }
