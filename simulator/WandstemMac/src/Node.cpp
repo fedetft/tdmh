@@ -14,39 +14,43 @@
 // 
 
 #include "Node.h"
+#include "Transceiver.h"
 #include <iostream>
 
 Define_Module(Node);
 
 void Node::activity()
 {
+    Transceiver t(*this);
+    t.configure(TransceiverConfiguration(2450, 0, false, false));
     unsigned char pkt[127];
-    auto result = receive(pkt, sizeof(pkt), SimTime(100, SIMTIME_S), false);
+    auto result = t.recv(pkt, sizeof(pkt), 10000000000);
     EV_INFO << "ERROR: " << result.error << " AT " << result.timestamp << endl;
     if(result.error == RecvResult::OK) {
         EV_INFO << "[ ";
         for (int i = 0; i < result.size; i++)
             EV_INFO << std::hex << (unsigned int) pkt[i] << " ";
         EV_INFO << std::dec << "]"<< endl;
+        t.sendAt(pkt, result.size, result.timestamp + 500000, "sync");
+    } else {
+        EV_INFO << "ERROR : " << result.error << endl;
     }
-    simtime_t precPacketTime;
     for(;;)
     {
-        precPacketTime = SimTime(result.timestamp, SIMTIME_NS);
-        auto sleepTime = precPacketTime + SimTime(5, SIMTIME_MS) - simTime();
+        long long sleepTime = result.timestamp + 5000000 - simTime().inUnit(SIMTIME_NS);
         EV_INFO << "Sleeping for " << sleepTime << endl;
-        waitAndDeletePackets(sleepTime);
+        waitAndDeletePackets(SimTime(sleepTime, SIMTIME_NS));
         //trying with a 5 ms window
-        auto timeout = precPacketTime + SimTime(15, SIMTIME_MS);
-        EV_INFO << "Will listen for packets from " << simTime().inUnit(SIMTIME_NS) << " to " << timeout.inUnit(SIMTIME_NS) << endl;
-        result = receive(pkt, sizeof(pkt), timeout, true);
+        long long timeout = result.timestamp + 15000000;
+        EV_INFO << "Will listen for packets from " << simTime().inUnit(SIMTIME_NS) << " to " << timeout << endl;
+        result = t.recv(pkt, sizeof(pkt), timeout);
         EV_INFO << "ERROR: " << result.error << " AT " << result.timestamp << endl;
         if(result.error == RecvResult::OK) {
             EV_INFO << "[ ";
             for (int i = 0; i < result.size; i++)
                 EV_INFO << std::hex << (unsigned int) pkt[i] << " ";
             EV_INFO << std::dec << "]"<< endl;
-            sendAt(pkt, result.size, SimTime(result.timestamp + 500000, SIMTIME_NS), "sync");
+            t.sendAt(pkt, result.size, result.timestamp + 500000, "sync");
         }
     }
 }

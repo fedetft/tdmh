@@ -14,16 +14,18 @@
 // 
 
 #include "RootNode.h"
+#include "Transceiver.h"
 
 Define_Module(RootNode);
 
 void RootNode::activity()
 {
+    Transceiver t(*this);
     unsigned char pkt[] = {0x00, 0x01, 0x02, 0x03};
-    auto nextSend = SimTime();
+    long long nextSend = 0;
     for(;;)
     {
-        nextSend +=  SimTime(10, SIMTIME_MS);
-        sendAt(pkt, sizeof(pkt), nextSend, "sync");
+        nextSend += 10000000; //10 ms
+        t.sendAt(pkt, sizeof(pkt), nextSend, "sync");
     }
 }

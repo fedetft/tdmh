@@ -19,8 +19,6 @@
 #include <omnetpp.h>
 #include "RecvResult.h"
 
-const unsigned int KIND_TIMEOUT=15;
-
 using namespace omnetpp;
 
 /**
@@ -33,7 +31,7 @@ using namespace omnetpp;
 class NodeBase : public cSimpleModule
 {
 public:
-    NodeBase() : cSimpleModule(coroutineStack), timeoutMsg(timeoutPktName.c_str(), KIND_TIMEOUT) {}
+    NodeBase() : cSimpleModule(coroutineStack) {}
 
     /**
      * Wait for a given simulation time, and deletes all received packets
@@ -42,14 +40,8 @@ public:
      */
     void waitAndDeletePackets(simtime_t timeDelta);
 
-    RecvResult receive(void* packet, int size, long long timeout, bool strictTimeout);
-
-    void sendAt(void* packet, int size, long long when, std::string pktName = "job");
-
 private:
     ///< Stack size for coroutines
     static const int coroutineStack=32*1024;
-    static const std::string timeoutPktName;
-    cMessage timeoutMsg;
 };
 

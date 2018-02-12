@@ -32,7 +32,7 @@ public:
      * \param size payload size (including CRC if enabled)
      * \param name packet name (for omnet++ GUI visualization)
      */
-    RadioMessage(void *packet, int size, const std::string& name) : cPacket(name.c_str()), length(size)
+    RadioMessage(const void *packet, int size, const std::string& name) : cPacket(name.c_str()), length(size)
     {
         using namespace std;
         if(size>dataSize) throw runtime_error(string("Packet too long ")+to_string(size));
@@ -43,15 +43,24 @@ public:
     }
 
     /**
-     * \param size payload size (including CRC if enabled)
+     * \param size payload size in bytes (including CRC if enabled)
+     * \return the time in ns required to send the data part of the packet
+     */
+    static long long getPSDUDuration(int size)
+    {
+        return size * 32000;
+    }
+
+    /**
+     * \param size payload size in bytes (including CRC if enabled)
      * \return the time in ns required to send the packet
      */
     static long long getPPDUDuration(int size)
     {
-        return size * 32000 + preambleSfdTimeNs;
+        return getPSDUDuration(size) + preambleSfdLenTimeNs;
     }
 
-    static const int preambleSfdTimeNs = 160000;
+    static const int preambleSfdLenTimeNs = 192000;
     static const int constructiveInterferenceTimeNs = 500;
     static const int dataSize=127;
 
