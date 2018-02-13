@@ -21,3 +21,8 @@ miosix_np_2/nbbuild/
 miosix_np_2/dist/
 miosix_np_2/nbdist/
 miosix_np_2/.nb-gradle/
+
+#Simulation output
+simulator/WandstemMac/out/
+simulator/WandstemMac/src/WandstemMac
+simulator/WandstemMac/src/WandstemMac_dbg
