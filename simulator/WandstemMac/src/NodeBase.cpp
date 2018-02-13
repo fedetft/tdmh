@@ -29,3 +29,19 @@ void NodeBase::waitAndDeletePackets(simtime_t timeDelta)
     //TODO: is this efficient? And most important, why can't they use std::list?
     while(!queue.isEmpty()) delete queue.pop();
 }
+
+void NodeBase::nanoSleep(long long delta) {
+    waitAndDeletePackets(SimTime(delta, SIMTIME_NS));
+}
+
+void NodeBase::nanoSleepUntil(long long when) {
+    waitAndDeletePackets(simTime() + SimTime(delta, SIMTIME_NS));
+}
+
+void NodeBase::deepSleep(long long delta) {
+    waitAndDeletePackets(SimTime(delta, SIMTIME_NS));
+}
+
+void NodeBase::deepSleepUntil(long long when) {
+    waitAndDeletePackets(simTime() + SimTime(delta, SIMTIME_NS));
+}

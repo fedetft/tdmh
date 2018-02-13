@@ -40,6 +40,11 @@ public:
      */
     void waitAndDeletePackets(simtime_t timeDelta);
 
+    void nanoSleep(long long delta);
+    void nanoSleepUntil(long long when);
+    void deepSleep(long long delta);
+    void deepSleepUntil(long long when);
+
 private:
     ///< Stack size for coroutines
     static const int coroutineStack=32*1024;
