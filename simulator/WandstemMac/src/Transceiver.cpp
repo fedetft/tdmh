@@ -58,6 +58,7 @@ bool Transceiver::sendCca(const void* pkt, int size) {
 }
 
 void Transceiver::sendAt(const void* pkt, int size, long long when, string pktName, Unit unit) {
+    if(!isOn) throw runtime_error("Cannot send with transceiver turned off!");
     if (unit != Unit::NS) throw runtime_error("Not implemented");
     auto waitTime = SimTime(when, SIMTIME_NS) - simTime();
     if(waitTime < 0) throw runtime_error("Transceiver::sendAt too late to send");
@@ -81,6 +82,7 @@ void Transceiver::sendAt(const void* pkt, int size, long long when, string pktNa
 }
 
 RecvResult Transceiver::recv(void* pkt, int size, long long timeout, Unit unit, Correct c) {
+    if(!isOn) throw runtime_error("Cannot receive with transceiver turned off!");
     if (unit != Unit::NS) throw runtime_error("Not implemented");
     if (c != Correct::CORR) throw runtime_error("Not implemented");
     RecvResult result;
