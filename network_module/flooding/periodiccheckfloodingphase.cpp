@@ -71,7 +71,7 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
             success = isSyncPacket(result, packet, networkConfig.panId, ctx.getHop())) {
         try {
             //uncorrected TS needed for computing the correction with flopsync
-            result = transceiver.recv(packet, syncPacketSize, timeoutTime, Transceiver::Unit::NS, HardwareTimer::Correct::UNCORR);
+            result = transceiver.recv(packet, syncPacketSize, timeoutTime, Transceiver::Unit::NS, Transceiver::Correct::UNCORR);
         } catch(std::exception& e) {
 #ifdef ENABLE_RADIO_EXCEPTION_DBG
             printf("%s\n", e.what());

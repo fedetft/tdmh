@@ -30,6 +30,7 @@
 #define ASSIGNMENTPHASE_H
 
 #include "../macphase.h"
+#include "interfaces-impl/power_manager.h"
 #include <array>
 #include <vector>
 #include <list>

@@ -29,7 +29,6 @@
 #define NETWORKMANAGER_H
 
 #include "network_configuration.h"
-#include "debug_settings.h"
 #include <list>
 #include <map>
 #include <set>
@@ -41,7 +40,8 @@ namespace miosix {
     public:
         MediumAccessController() = delete;
         MediumAccessController(const MediumAccessController& orig) = delete;
-        static MediumAccessController& instance(const MACRoundFactory *const roundFactory, const NetworkConfiguration* const config);
+        MediumAccessController(const MACRoundFactory* const roundFactory, const NetworkConfiguration* const config);
+        virtual ~MediumAccessController();
         void run();
         //5 byte (4 preamble, 1 SFD) * 32us/byte
         static const int packetPreambleTime = 160000;
@@ -60,8 +60,6 @@ namespace miosix {
          */
         void send(const void* data, int dataSize, unsigned short toNode, bool acked);
     private:
-        MediumAccessController(const MACRoundFactory* const roundFactory, const NetworkConfiguration* const config);
-        virtual ~MediumAccessController();
         MACContext* ctx;
         std::multimap<unsigned short, void*> sendQueue;
     };

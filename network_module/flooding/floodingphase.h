@@ -90,13 +90,13 @@ protected:
                 && packet[5] == 0xff && packet[6] == 0xff;
     }
     
-    long long fastNegMul(long long a,unsigned int bi, unsigned int bf){
+    /*long long fastNegMul(long long a,unsigned int bi, unsigned int bf){
         if(a<0){
             return -mul64x32d32(-a,bi,bf);
         }else{
             return mul64x32d32(a,bi,bf);
         }
-    }
+    }*/
     
     Transceiver& transceiver;
     PowerManager& pm;

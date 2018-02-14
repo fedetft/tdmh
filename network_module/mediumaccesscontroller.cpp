@@ -42,11 +42,6 @@ namespace miosix {
             round->run(*ctx);
         }
     }
-
-    miosix::MediumAccessController& miosix::MediumAccessController::instance(const miosix::MACRoundFactory *const roundFactory, const NetworkConfiguration* const config) {
-        static MediumAccessController instance(roundFactory, config);
-        return instance;
-    }
     
     void MediumAccessController::send(const void* data, int dataSize, unsigned short toNode, bool acked) {
         auto panId = ctx->getNetworkConfig()->panId;

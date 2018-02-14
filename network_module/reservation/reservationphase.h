@@ -29,6 +29,7 @@
 #define RESERVATIONPHASE_H
 
 #include "../macphase.h"
+#include "interfaces-impl/power_manager.h"
 
 namespace miosix {
 class ReservationPhase : public MACPhase {

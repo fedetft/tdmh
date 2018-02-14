@@ -64,7 +64,7 @@ void LedBar<N>::encode(int num)
     num = max<int>(0,min<int>(N*2,num));
     int bytesCount = num / 2;
     memset(packet, 0xFF, bytesCount);
-    memset(packet + bytesCount, 0, N);
+    memset(packet + bytesCount, 0, N - bytesCount);
 
     if(num & 1) packet[bytesCount] = 0xf0;
 }

@@ -42,7 +42,7 @@ namespace miosix {
     public:
         MasterMACRound() = delete;
         explicit MasterMACRound(const MediumAccessController& mac) :
-                MasterMACRound(mac, getTime() + initializationDelay) {}
+                MasterMACRound(mac, getTime() + MasterMACRound::initializationDelay) {}
         MasterMACRound(const MasterMACRound& orig) = delete;
         virtual ~MasterMACRound();
         virtual void run(MACContext& ctx) override;
@@ -67,7 +67,7 @@ namespace miosix {
         /**
          * Initial skew for allowing the master to boot the network module before starting the first network round
          */
-        long long initializationDelay = 1000000;
+        static const long long initializationDelay = 1000000;
 
     private:
         long long roundStart;

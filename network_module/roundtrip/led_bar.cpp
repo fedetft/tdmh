@@ -11,7 +11,7 @@ namespace miosix {
 
 static void memPrint(const char *data, char len)
 {
-    printf("0x%08x | ",reinterpret_cast<unsigned int>(data));
+    printf("0x%08x | ",reinterpret_cast<const unsigned char*>(data)[0]);
     for(int i=0;i<len;i++) printf("%02x ",static_cast<unsigned char>(data[i]));
     for(int i=0;i<(16-len);i++) printf("   ");
     printf("| ");
