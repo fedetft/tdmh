@@ -24,15 +24,19 @@ network SimpleTopology
     @display("bgb=515,404");
     submodules:
         n0: RootNode {
+            address = 0;
             @display("p=260,37");
         }
         n1: Node {
+            address = 1;
             @display("p=178,129");
         }
         n2: Node {
+            address = 2;
             @display("p=340,129");
         }
         n3: Node {
+            address = 3;
             @display("p=260,226");
         }
     connections:

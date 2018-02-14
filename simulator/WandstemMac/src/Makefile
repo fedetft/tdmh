@@ -2,7 +2,7 @@
 # OMNeT++/OMNEST Makefile for WandstemMac
 #
 # This file was generated with the command:
-#  opp_makemake -f --deep
+#  opp_makemake -f --deep -I.
 #
 
 # Name of target to be created (-o option)
@@ -16,7 +16,7 @@ USERIF_LIBS = $(ALL_ENV_LIBS) # that is, $(TKENV_LIBS) $(QTENV_LIBS) $(CMDENV_LI
 #USERIF_LIBS = $(QTENV_LIBS)
 
 # C++ include paths (with -I)
-INCLUDE_PATH =
+INCLUDE_PATH = -I.
 
 # Additional object and library files to link with
 EXTRA_OBJS =
@@ -30,7 +30,46 @@ PROJECTRELATIVE_PATH = src
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cpp, .msg and .sm files
-OBJS = $O/Node.o $O/NodeBase.o $O/RootNode.o $O/Transceiver.o $O/TransceiverConfiguration.o
+OBJS = \
+    $O/miosix_utils_sim.o \
+    $O/MiosixInterface.o \
+    $O/MiosixStaticInterface.o \
+    $O/Node.o \
+    $O/NodeBase.o \
+    $O/RootNode.o \
+    $O/interfaces-impl/power_manager.o \
+    $O/interfaces-impl/transceiver.o \
+    $O/interfaces-impl/virtual_clock.o \
+    $O/kernel/timeconversion.o \
+    $O/network_module/debug_settings.o \
+    $O/network_module/maccontext.o \
+    $O/network_module/macphase.o \
+    $O/network_module/mediumaccesscontroller.o \
+    $O/network_module/assignment/assignmentphase.o \
+    $O/network_module/assignment/dynamicassignmentphase.o \
+    $O/network_module/assignment/lasthopassignmentphase.o \
+    $O/network_module/assignment/masterassignmentphase.o \
+    $O/network_module/flooding/floodingphase.o \
+    $O/network_module/flooding/hookingfloodingphase.o \
+    $O/network_module/flooding/masterfloodingphase.o \
+    $O/network_module/flooding/periodiccheckfloodingphase.o \
+    $O/network_module/flooding/time_synchronizers/flopsync1.o \
+    $O/network_module/flooding/time_synchronizers/flopsync2.o \
+    $O/network_module/flooding/time_synchronizers/synchronizer.o \
+    $O/network_module/macround/dynamicmacround.o \
+    $O/network_module/macround/macround.o \
+    $O/network_module/macround/mastermacround.o \
+    $O/network_module/reservation/dynamicreservationphase.o \
+    $O/network_module/reservation/lasthopreservationphase.o \
+    $O/network_module/reservation/masterreservationphase.o \
+    $O/network_module/reservation/reservationphase.o \
+    $O/network_module/roundtrip/askingroundtripphase.o \
+    $O/network_module/roundtrip/led_bar.o \
+    $O/network_module/roundtrip/listeningroundtripphase.o \
+    $O/network_module/roundtrip/roundtripphase.o \
+    $O/network_module/slots_management/dynamicslotsnegotiator.o \
+    $O/network_module/slots_management/masterslotsnegotiator.o \
+    $O/network_module/slots_management/slotsnegotiator.o
 
 # Message files
 MSGFILES =

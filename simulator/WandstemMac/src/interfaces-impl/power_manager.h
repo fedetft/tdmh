@@ -1,6 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2012, 2013, 2014, 2015, 2016 by Terraneo Federico and   *
- *      Luigi Rinaldi                                                      *
+ *   Copyright (C)  2018 by Polidori Paolo                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -26,10 +25,33 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "Transceiver.h"
+#ifndef INTERFACES_IMPL_POWER_MANAGER_H_
+#define INTERFACES_IMPL_POWER_MANAGER_H_
 
-void TransceiverConfiguration::setChannel(int channel)
-{
-    if(channel<11 || channel>26) throw std::range_error("Channel not in range");
-    frequency=2405+5*(channel-11);
-}
+#include "../MiosixInterface.h"
+#include <mutex>
+#include <map>
+
+namespace miosix {
+
+class PowerManager : public MiosixInterface {
+public:
+
+    /**
+     * \return an instance to the power manager
+     */
+    static PowerManager& instance();
+    virtual ~PowerManager();
+    void deepSleep(long long delta);
+    void deepSleepUntil(long long when);
+private:
+    PowerManager();
+
+    static std::mutex instanceMutex;
+    static std::map<NodeBase*, PowerManager*> instances;
+
+};
+
+} /* namespace miosix */
+
+#endif /* INTERFACES_IMPL_POWER_MANAGER_H_ */

@@ -26,7 +26,8 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "Transceiver.h"
+#include "transceiver.h"
+
 #include "RadioMessage.h"
 #include "omnetpp.h"
 #include <cstring>
@@ -34,13 +35,32 @@
 
 using namespace std;
 
+namespace miosix {
 const std::string Transceiver::timeoutPktName = "TIMEOUT";
 
-Transceiver::Transceiver(NodeBase& node) : parentNode(node), timeoutMsg(timeoutPktName.c_str(), KIND_TIMEOUT) {
+std::mutex Transceiver::instanceMutex;
+std::map<NodeBase*, Transceiver*> Transceiver::instances;
+
+Transceiver::Transceiver() : MiosixInterface()/*, timeoutMsg(timeoutPktName.c_str(), KIND_TIMEOUT)*/ {
+}
+
+Transceiver& Transceiver::instance() {
+    auto* curNode = MiosixStaticInterface::getNode();
+    Transceiver* retval;
+    std::map<NodeBase*, Transceiver*>::iterator it = Transceiver::instances.find(curNode);
+    if (it == Transceiver::instances.end()) {
+        std::lock_guard<std::mutex> myLock(Transceiver::instanceMutex);
+        it = Transceiver::instances.find(curNode);
+        if (it == Transceiver::instances.end()) {
+            retval = new Transceiver();
+            Transceiver::instances[curNode] = retval;
+        }
+    } else retval = it->second;
+    return *retval;
 }
 
 Transceiver::~Transceiver() {
-    // TODO Auto-generated destructor stub
+    Transceiver::instances.clear();
 }
 
 void Transceiver::configure(const TransceiverConfiguration& config) {
@@ -62,7 +82,7 @@ void Transceiver::sendAt(const void* pkt, int size, long long when, string pktNa
     if (unit != Unit::NS) throw runtime_error("Not implemented");
     auto waitTime = SimTime(when, SIMTIME_NS) - simTime();
     if(waitTime < 0) throw runtime_error("Transceiver::sendAt too late to send");
-    parentNode.waitAndDeletePackets(waitTime);
+    parentNode->waitAndDeletePackets(waitTime);
 
     unsigned char finalPkt[size + (cfg.crc? 2 : 0)];
     memcpy(finalPkt, pkt, size);
@@ -71,24 +91,29 @@ void Transceiver::sendAt(const void* pkt, int size, long long when, string pktNa
             throw runtime_error(string("Packet too long ")+to_string(size));
         auto crc = computeCrc(pkt, size);
         finalPkt[size] = crc & 0xFF;
-        finalPkt[size + 1] = crc >> 2;
+        finalPkt[size + 1] = crc >> 8;
     }
-    for(int i=0; i<parentNode.gateSize("wireless"); i++)
-        parentNode.send(new RadioMessage(finalPkt, size, pktName), "wireless$o", i);
+    for(int i=0; i<parentNode->gateSize("wireless"); i++)
+        parentNode->send(new RadioMessage(finalPkt, size + (cfg.crc? 2 : 0), pktName), "wireless$o", i);
 
     EV_INFO << "starting to send packet " << simTime().inUnit(SIMTIME_NS) << endl;
-    parentNode.waitAndDeletePackets(SimTime(RadioMessage::getPPDUDuration(size), SIMTIME_NS));
+    parentNode->waitAndDeletePackets(SimTime(RadioMessage::getPPDUDuration(size), SIMTIME_NS));
     EV_INFO << "finishing to send packet " << simTime().inUnit(SIMTIME_NS) << endl;
 }
 
 RecvResult Transceiver::recv(void* pkt, int size, long long timeout, Unit unit, Correct c) {
     if(!isOn) throw runtime_error("Cannot receive with transceiver turned off!");
     if (unit != Unit::NS) throw runtime_error("Not implemented");
-    if (c != Correct::CORR) throw runtime_error("Not implemented");
     RecvResult result;
-    auto waitDelta = SimTime(timeout, SIMTIME_NS) - simTime();
-    EV_INFO << "Awaiting packet for " << waitDelta.inUnit(SIMTIME_NS) << " (until " << timeout << ") ns" << endl;
-    cMessage* msg = parentNode.receive(waitDelta);
+    cMessage* msg;
+    if (timeout == infiniteTimeout) {
+        EV_INFO << "Awaiting packet for infinite time" << endl;
+        msg = parentNode->receive();
+    } else {
+        auto waitDelta = SimTime(timeout, SIMTIME_NS) - simTime();
+        EV_INFO << "Awaiting packet for " << waitDelta.inUnit(SIMTIME_NS) << " (until " << timeout << ") ns" << endl;
+        msg = parentNode->receive(waitDelta);
+    }
     auto* cPkt = dynamic_cast<RadioMessage*>(msg);
     if (msg == nullptr || !cPkt) {
         result.error = RecvResult::TIMEOUT;
@@ -105,18 +130,18 @@ RecvResult Transceiver::recv(void* pkt, int size, long long timeout, Unit unit, 
     cQueue interferingMsgs, collidingMsgs;
     //wait for the max confidence time to obtain a constructive interference
     EV_INFO << "Awaiting interfering packets for " << RadioMessage::constructiveInterferenceTimeNs << " (until " << simTime().inUnit(SIMTIME_NS) + RadioMessage::constructiveInterferenceTimeNs << ")" << endl;
-    parentNode.waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferingMsgs);
+    parentNode->waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferingMsgs);
     //and wait for the whole message length
     auto msgDeadlineDelta = packetDuration - RadioMessage::constructiveInterferenceTimeNs;
     EV_INFO << "Awaiting for the whole message to arrive for " << msgDeadlineDelta << " (until " << simTime().inUnit(SIMTIME_NS) + packetDuration << ")" << endl;
-    parentNode.waitAndEnqueue(SimTime(msgDeadlineDelta, SIMTIME_NS), &collidingMsgs);
+    parentNode->waitAndEnqueue(SimTime(msgDeadlineDelta, SIMTIME_NS), &collidingMsgs);
     if (!collidingMsgs.isEmpty()) {
         //if there was a collision, meaning any received packet during the message length
         if (cfg.crc) //crc enabled -> bad crc
             result.error = RecvResult::CRC_FAIL;
         else { //crc disabled -> random bytes received successfully
             for (int i = 0; i < size; i++)
-                ((unsigned char*) pkt)[i] = parentNode.uniform(0, 16, 0);
+                ((unsigned char*) pkt)[i] = parentNode->uniform(0, 16, 0);
             result.error = RecvResult::OK;
         }
         delete msg;
@@ -148,7 +173,7 @@ RecvResult Transceiver::recv(void* pkt, int size, long long timeout, Unit unit, 
         //Only the theoretical results of Glossy are taken into account.
         for(int i = 0; i < result.size; i++) {
             auto numPkts = std::count_if(lengths.begin(), lengths.end(), [i](int e){return e > i;});
-            auto chosenPkt = parentNode.uniform(0, numPkts, 0);
+            auto chosenPkt = parentNode->uniform(0, numPkts, 0);
             auto actualPkt = -1;
             int j = 0;
             for (auto len = lengths.begin(); j <= chosenPkt; len++) {
@@ -163,13 +188,14 @@ RecvResult Transceiver::recv(void* pkt, int size, long long timeout, Unit unit, 
         memcpy(correlated, cPkt->data, result.size);
     }
     delete msg;
-    if (result.size > size) {
-        result.error = RecvResult::TOO_LONG;
-    }
     if (cfg.crc) {
         result.size -= 2;
-        if ((correlated[result.size] | (correlated[result.size + 1] << 2)) != computeCrc(correlated, result.size))
+        auto crc = computeCrc(correlated, result.size);
+        if (( correlated[result.size] | (correlated[result.size + 1] << 8)) != crc)
             result.error = RecvResult::CRC_FAIL;
+    }
+    if (result.size > size) {
+        result.error = RecvResult::TOO_LONG;
     }
     memcpy(pkt, correlated, std::min<int>(size, result.size));
     delete correlated;
@@ -184,4 +210,11 @@ uint16_t Transceiver::computeCrc(const void* data, int size) {
     auto retval = static_cast<uint16_t>(crc.checksum());
     crcMutex.unlock();
     return retval;
+}
+
+void TransceiverConfiguration::setChannel(int channel)
+{
+    if(channel<11 || channel>26) throw std::range_error("Channel not in range");
+    frequency=2405+5*(channel-11);
+}
 }

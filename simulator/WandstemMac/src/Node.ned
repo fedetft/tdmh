@@ -22,6 +22,7 @@ package wandstemmac;
 simple Node
 {
     parameters:
+        int address;
         @display("i=block/wrxtx");
     gates:
         inout wireless[];

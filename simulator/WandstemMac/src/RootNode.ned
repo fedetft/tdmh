@@ -22,6 +22,7 @@ package wandstemmac;
 simple RootNode
 {
     parameters:
+        int address;
         @display("i=block/wtx");
     gates:
         inout wireless[];

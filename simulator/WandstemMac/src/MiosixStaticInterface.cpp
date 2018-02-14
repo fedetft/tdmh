@@ -1,6 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2012, 2013, 2014, 2015, 2016 by Terraneo Federico and   *
- *      Luigi Rinaldi                                                      *
+ *   Copyright (C)  2018 by Polidori Paolo                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -26,32 +25,29 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
+#include "MiosixStaticInterface.h"
+#include <cassert>
+#include <omnetpp.h>
+#include "NodeBase.h"
 
-#ifndef TRANSCEIVERCONFIGURATION_H_
-#define TRANSCEIVERCONFIGURATION_H_
+using namespace omnetpp;
 
-class TransceiverConfiguration
-{
-public:
-    TransceiverConfiguration(int frequency=2450, int txPower=0, bool crc=true,
-                             bool strictTimeout=true)
-        : frequency(frequency), txPower(txPower), crc(crc),
-          strictTimeout(strictTimeout) {}
+namespace miosix {
 
-    /**
-     * Configure the frequency field of this class from a IEEE 802.15.4
-     * channel number
-     * \param channel IEEE 802.15.4 channel number (from 11 to 26)
-     */
-    void setChannel(int channel);
+MiosixStaticInterface::MiosixStaticInterface() {
+    // TODO Auto-generated constructor stub
 
-    int frequency;      ///< TX/RX frequency, between 2394 and 2507
-    int txPower;        ///< TX power in dBm
-    bool crc;           ///< True to add CRC during TX and check it during RX
-    bool strictTimeout; ///< Used only when receiving. If false and an SFD has
-                        ///< been received, prolong the timeout to receive the
-                        ///< packet. If true, return upon timeout even if a
-                        ///< packet is being received
-};
+}
 
-#endif /* TRANSCEIVERCONFIGURATION_H_ */
+MiosixStaticInterface::~MiosixStaticInterface() {
+    // TODO Auto-generated destructor stub
+}
+
+NodeBase* MiosixStaticInterface::getNode() {
+    auto* sim = cSimulation::getActiveSimulation();
+    auto* curNode = dynamic_cast<NodeBase*>(sim->getActivityModule());
+    assert(curNode != nullptr);
+    return curNode;
+}
+
+} /* namespace miosix */

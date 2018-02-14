@@ -24,6 +24,7 @@
 class Node : public NodeBase
 {
 protected:
+
     virtual void activity();
 
 };

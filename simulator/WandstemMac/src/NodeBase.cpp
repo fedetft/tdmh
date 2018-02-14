@@ -14,13 +14,10 @@
 //
 
 #include "NodeBase.h"
-#include "RadioMessage.h"
-#include <list>
-#include <vector>
-#include <algorithm>
-#include <cstring>
 
 using namespace std;
+
+NodeBase::NodeBase() : cSimpleModule(coroutineStack) {};
 
 void NodeBase::waitAndDeletePackets(simtime_t timeDelta)
 {
@@ -30,18 +27,9 @@ void NodeBase::waitAndDeletePackets(simtime_t timeDelta)
     while(!queue.isEmpty()) delete queue.pop();
 }
 
-void NodeBase::nanoSleep(long long delta) {
-    waitAndDeletePackets(SimTime(delta, SIMTIME_NS));
+NodeBase::~NodeBase() {
 }
 
-void NodeBase::nanoSleepUntil(long long when) {
-    waitAndDeletePackets(simTime() + SimTime(delta, SIMTIME_NS));
-}
-
-void NodeBase::deepSleep(long long delta) {
-    waitAndDeletePackets(SimTime(delta, SIMTIME_NS));
-}
-
-void NodeBase::deepSleepUntil(long long when) {
-    waitAndDeletePackets(simTime() + SimTime(delta, SIMTIME_NS));
+void NodeBase::initialize() {
+    address = static_cast<unsigned char>(par("address").longValue());
 }

@@ -14,43 +14,18 @@
 // 
 
 #include "Node.h"
-#include "Transceiver.h"
+#include "network_module/mediumaccesscontroller.h"
+#include "network_module/macround/dynamicmacround.h"
+#include "network_module/network_configuration.h"
 #include <iostream>
 
 Define_Module(Node);
 
 void Node::activity()
 {
-    Transceiver t(*this);
-    t.configure(TransceiverConfiguration(2450, 0, false, false));
-    unsigned char pkt[127];
-    auto result = t.recv(pkt, sizeof(pkt), 10000000000);
-    EV_INFO << "ERROR: " << result.error << " AT " << result.timestamp << endl;
-    if(result.error == RecvResult::OK) {
-        EV_INFO << "[ ";
-        for (int i = 0; i < result.size; i++)
-            EV_INFO << std::hex << (unsigned int) pkt[i] << " ";
-        EV_INFO << std::dec << "]"<< endl;
-        t.sendAt(pkt, result.size, result.timestamp + 500000, "sync");
-    } else {
-        EV_INFO << "ERROR : " << result.error << endl;
-    }
-    for(;;)
-    {
-        long long sleepTime = result.timestamp + 5000000 - simTime().inUnit(SIMTIME_NS);
-        EV_INFO << "Sleeping for " << sleepTime << endl;
-        waitAndDeletePackets(SimTime(sleepTime, SIMTIME_NS));
-        //trying with a 5 ms window
-        long long timeout = result.timestamp + 15000000;
-        EV_INFO << "Will listen for packets from " << simTime().inUnit(SIMTIME_NS) << " to " << timeout << endl;
-        result = t.recv(pkt, sizeof(pkt), timeout);
-        EV_INFO << "ERROR: " << result.error << " AT " << result.timestamp << endl;
-        if(result.error == RecvResult::OK) {
-            EV_INFO << "[ ";
-            for (int i = 0; i < result.size; i++)
-                EV_INFO << std::hex << (unsigned int) pkt[i] << " ";
-            EV_INFO << std::dec << "]"<< endl;
-            t.sendAt(pkt, result.size, result.timestamp + 500000, "sync");
-        }
-    }
+    using namespace miosix;
+    printf("Dynamic node 1 hop 1\n");
+    const NetworkConfiguration config(3, false, address, 6, 1, 2450);
+    MediumAccessController controller(new DynamicMACRound::DynamicMACRoundFactory(), &config);
+    controller.run();
 }

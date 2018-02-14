@@ -15,9 +15,8 @@
 
 #pragma once
 
-#include <string>
 #include <omnetpp.h>
-#include "RecvResult.h"
+#include "miosix_utils_sim.h"
 
 using namespace omnetpp;
 
@@ -31,7 +30,8 @@ using namespace omnetpp;
 class NodeBase : public cSimpleModule
 {
 public:
-    NodeBase() : cSimpleModule(coroutineStack) {}
+    NodeBase();
+    virtual ~NodeBase();
 
     /**
      * Wait for a given simulation time, and deletes all received packets
@@ -40,10 +40,9 @@ public:
      */
     void waitAndDeletePackets(simtime_t timeDelta);
 
-    void nanoSleep(long long delta);
-    void nanoSleepUntil(long long when);
-    void deepSleep(long long delta);
-    void deepSleepUntil(long long when);
+protected:
+    unsigned char address;
+    virtual void initialize();
 
 private:
     ///< Stack size for coroutines

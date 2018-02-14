@@ -14,18 +14,17 @@
 // 
 
 #include "RootNode.h"
-#include "Transceiver.h"
+#include "network_module/mediumaccesscontroller.h"
+#include "network_module/macround/mastermacround.h"
+#include "network_module/network_configuration.h"
 
 Define_Module(RootNode);
 
 void RootNode::activity()
 {
-    Transceiver t(*this);
-    unsigned char pkt[] = {0x00, 0x01, 0x02, 0x03};
-    long long nextSend = 0;
-    for(;;)
-    {
-        nextSend += 10000000; //10 ms
-        t.sendAt(pkt, sizeof(pkt), nextSend, "sync");
-    }
+    using namespace miosix;
+    printf("Master node\n");
+    const NetworkConfiguration config(3, false, address, 6, 1, 2450);
+    MediumAccessController controller(new MasterMACRound::MasterMACRoundFactory(), &config);
+    controller.run();
 }

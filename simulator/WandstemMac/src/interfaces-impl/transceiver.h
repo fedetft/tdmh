@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2012, 2013, 2014, 2015, 2016 by Terraneo Federico and   *
- *      Luigi Rinaldi                                                      *
+ *   Copyright (C) 2012, 2013, 2014, 2015, 2016, 2018                      *
+ *   by Terraneo Federico, Luigi Rinaldi and Paolo Polidori                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -31,16 +31,74 @@
 
 const unsigned int KIND_TIMEOUT=15;
 
-#include "NodeBase.h"
-#include "TransceiverConfiguration.h"
+#include "../MiosixInterface.h"
+#include "../NodeBase.h"
+#include <omnetpp.h>
 #include <string>
 #include <boost/crc.hpp>
 #include <mutex>
+#include <map>
 
-class Transceiver {
+namespace miosix {
+
+const long long infiniteTimeout=std::numeric_limits<long long>::max();
+
+/**
+ * This class is returned by the recv member function of the transceiver
+ */
+class RecvResult
+{
+public:
+    /**
+     * Possible outcomes of a receive operation
+     */
+    enum ErrorCode
+    {
+        OK,             ///< Receive succeeded
+        TIMEOUT,        ///< Receive timed out
+        TOO_LONG,       ///< Packet was too long for the given buffer
+        CRC_FAIL,       ///< Packet failed CRC check
+        UNINITIALIZED   ///< Receive returned exception
+    };
+
+    RecvResult()
+        : timestamp(0), rssi(-128), size(0), error(UNINITIALIZED), timestampValid(false) {}
+
+    long long timestamp; ///< Packet timestamp. It is the time point when the
+                         ///< first bit of the packet preamble is received
+    short rssi;          ///< RSSI of received packet (not valid if CRC disabled)
+    short size;          ///< Packet size in bytes (excluding CRC if enabled)
+    ErrorCode error;     ///< Possible outcomes of the receive operation
+    bool timestampValid; ///< True if timestamp is valid
+};
+
+class TransceiverConfiguration
+{
+public:
+    TransceiverConfiguration(int frequency=2450, int txPower=0, bool crc=true,
+                             bool strictTimeout=true)
+        : frequency(frequency), txPower(txPower), crc(crc),
+          strictTimeout(strictTimeout) {}
+
+    /**
+     * Configure the frequency field of this class from a IEEE 802.15.4
+     * channel number
+     * \param channel IEEE 802.15.4 channel number (from 11 to 26)
+     */
+    void setChannel(int channel);
+
+    int frequency;      ///< TX/RX frequency, between 2394 and 2507
+    int txPower;        ///< TX power in dBm
+    bool crc;           ///< True to add CRC during TX and check it during RX
+    bool strictTimeout; ///< Used only when receiving. If false and an SFD has
+                        ///< been received, prolong the timeout to receive the
+                        ///< packet. If true, return upon timeout even if a
+                        ///< packet is being received
+};
+
+class Transceiver : public MiosixInterface {
 public:
     virtual ~Transceiver();
-    explicit Transceiver(NodeBase& node);
 
     enum Unit{
         TICK,
@@ -54,6 +112,11 @@ public:
 
     static const int minFrequency=2405; ///< Minimum supported frequency (MHz)
     static const int maxFrequency=2480; ///< Maximum supported frequency (MHz)
+
+    /**
+     * \return an instance to the transceiver
+     */
+    static Transceiver& instance();
 
     /**
      * Turn the transceiver ON (i.e: bring it out of deep sleep)
@@ -153,17 +216,21 @@ public:
     short readRssi() { return 5; }
 
 private:
+    Transceiver();
     Transceiver(const Transceiver&)=delete;
     Transceiver& operator= (const Transceiver&)=delete;
-    NodeBase& parentNode;
     bool isOn = false;
     TransceiverConfiguration cfg;
-    cMessage timeoutMsg;
+    //cMessage timeoutMsg;
     static const std::string timeoutPktName;
     boost::crc_ccitt_type crc;
     std::mutex crcMutex;
 
+    static std::mutex instanceMutex;
+    static std::map<NodeBase*, Transceiver*> instances;
+
     uint16_t computeCrc(const void* data, int size);
 };
+}
 
 #endif /* TRANSCEIVER_H_ */
