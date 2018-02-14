@@ -1,0 +1,21 @@
+/*
+ * time_conversion.cpp
+ *
+ *  Created on: Feb 14, 2018
+ *      Author: paolo
+ */
+
+#include "time_conversion.h"
+
+namespace miosix {
+
+TimeConversion::TimeConversion() {
+    // TODO Auto-generated constructor stub
+
+}
+
+TimeConversion::~TimeConversion() {
+    // TODO Auto-generated destructor stub
+}
+
+} /* namespace miosix */

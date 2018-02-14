@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
+	<item value="/home/paolo/src/wandstem-mac/simulator/WandstemMac/src" key="org.eclipse.cdt.utils.ui.controls.FileListControl"/>
 	<item value="" key="LastUsedSourceTemplate"/>
 	<item value="Default C++ header template" key="LastUsedHeaderTemplate"/>
 	<section name="org.eclipse.cdt.ui.OPEN_ACTION_SELECTION_DIALOG_SECTION">
-		<item value="390" key="DIALOG_WIDTH"/>
-		<item value="1|Noto Sans|10.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
-		<item value="546" key="DIALOG_HEIGHT"/>
+		<item value="448" key="DIALOG_WIDTH"/>
+		<item value="1|Sans|10.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
+		<item value="479" key="DIALOG_HEIGHT"/>
 		<item value="513" key="DIALOG_X_ORIGIN"/>
 		<item value="162" key="DIALOG_Y_ORIGIN"/>
 	</section>
@@ -20,6 +21,13 @@
 		<item value="" key="namespace"/>
 		<item value="false" key="testFileSelected"/>
 		<item value="true" key="stubSelected0"/>
+	</section>
+	<section name="PDOMSearchPage">
+		<item value="false" key="caseSensitive"/>
+		<item value="227191" key="searchFlags"/>
+		<list key="previousPatterns">
+			<item value="::instance"/>
+		</list>
 	</section>
 	<section name="RenameInformationPopup">
 	</section>

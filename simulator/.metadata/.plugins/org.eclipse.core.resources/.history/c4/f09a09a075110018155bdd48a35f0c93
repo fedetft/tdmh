@@ -1,0 +1,21 @@
+/*
+ * MiosixInterface.h
+ *
+ *  Created on: Feb 14, 2018
+ *      Author: paolo
+ */
+
+#ifndef MIOSIXINTERFACE_H_
+#define MIOSIXINTERFACE_H_
+
+namespace miosix {
+
+class MiosixInterface {
+public:
+    MiosixInterface();
+    virtual ~MiosixInterface();
+};
+
+} /* namespace miosix */
+
+#endif /* MIOSIXINTERFACE_H_ */

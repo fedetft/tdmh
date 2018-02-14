@@ -1,0 +1,23 @@
+/*
+ * MiosixStaticInterface.h
+ *
+ *  Created on: Feb 14, 2018
+ *      Author: paolo
+ */
+
+#ifndef MIOSIXSTATICINTERFACE_H_
+#define MIOSIXSTATICINTERFACE_H_
+
+namespace miosix {
+
+class MiosixStaticInterface {
+public:
+    virtual ~MiosixStaticInterface();
+protected:
+    MiosixStaticInterface();
+    static NodeBase* getNode();
+};
+
+} /* namespace miosix */
+
+#endif /* MIOSIXSTATICINTERFACE_H_ */

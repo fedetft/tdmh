@@ -1,0 +1,41 @@
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see http://www.gnu.org/licenses/.
+//
+
+#ifndef MIOSIX_UTILS_SIM_H_
+#define MIOSIX_UTILS_SIM_H_
+
+#include <omnetpp.h>
+#include "MiosixInterface.h"
+
+namespace miosix {
+
+void ledOn() { using namespace omnetpp; EV_INFO << "RED LED ON" << endl; }
+void ledOff() { using namespace omnetpp; EV_INFO << "RED LED OFF" << endl; }
+long long getTime() { return omnetpp::simTime().inUnit(SIMTIME_NS); }
+
+class Thread : public MiosixStaticInterface {
+public:
+    static void nanoSleep(long long delta) {
+        getNode()->waitAndDeletePackets(SimTime(delta, SIMTIME_NS));
+    }
+    static void nanoSleepUntil(long long when) {
+        getNode()->waitAndDeletePackets(SimTime(when, SIMTIME_NS) - simTime());
+    }
+};
+}
+
+
+
+#endif /* MIOSIX_UTILS_SIM_H_ */

@@ -1,3 +1,0 @@
-../out/gcc-release/src/utility.o: utility.cpp utility.h
-
-utility.h:

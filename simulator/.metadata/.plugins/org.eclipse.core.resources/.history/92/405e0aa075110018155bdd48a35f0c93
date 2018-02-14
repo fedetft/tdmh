@@ -1,0 +1,21 @@
+/*
+ * MiosixInterface.cpp
+ *
+ *  Created on: Feb 14, 2018
+ *      Author: paolo
+ */
+
+#include "MiosixInterface.h"
+
+namespace miosix {
+
+MiosixInterface::MiosixInterface() {
+    // TODO Auto-generated constructor stub
+
+}
+
+MiosixInterface::~MiosixInterface() {
+    // TODO Auto-generated destructor stub
+}
+
+} /* namespace miosix */

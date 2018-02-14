@@ -1,0 +1,21 @@
+/*
+ * MiosixSingletonInterface.h
+ *
+ *  Created on: Feb 14, 2018
+ *      Author: paolo
+ */
+
+#ifndef MIOSIXSINGLETONINTERFACE_H_
+#define MIOSIXSINGLETONINTERFACE_H_
+
+namespace miosix {
+
+class MiosixSingletonInterface {
+public:
+    MiosixSingletonInterface();
+    virtual ~MiosixSingletonInterface();
+};
+
+} /* namespace miosix */
+
+#endif /* MIOSIXSINGLETONINTERFACE_H_ */

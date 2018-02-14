@@ -1,0 +1,21 @@
+/*
+ * time_conversion.h
+ *
+ *  Created on: Feb 14, 2018
+ *      Author: paolo
+ */
+
+#ifndef KERNEL_TIME_CONVERSION_H_
+#define KERNEL_TIME_CONVERSION_H_
+
+namespace miosix {
+
+class TimeConversion {
+public:
+    TimeConversion();
+    virtual ~TimeConversion();
+};
+
+} /* namespace miosix */
+
+#endif /* KERNEL_TIME_CONVERSION_H_ */

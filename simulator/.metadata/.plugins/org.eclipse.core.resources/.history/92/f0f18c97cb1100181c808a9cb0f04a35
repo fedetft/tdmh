@@ -1,0 +1,41 @@
+#include "led_bar.h"
+#include <algorithm>
+#include "../debug_settings.h"
+
+using namespace std;
+
+#ifndef _MIOSIX
+
+namespace miosix {
+
+static void memPrint(const char *data, char len)
+{
+    PRINT_DBG("0x%08x | ",reinterpret_cast<const unsigned char*>(data)[0]);
+    for(int i=0;i<len;i++) PRINT_DBG("%02x ",static_cast<unsigned char>(data[i]));
+    for(int i=0;i<(16-len);i++) PRINT_DBG("   ");
+    PRINT_DBG("| ");
+    for(int i=0;i<len;i++)
+    {
+        if((data[i]>=32)&&(data[i]<127)) PRINT_DBG("%c",data[i]);
+        else PRINT_DBG(".");
+    }
+    PRINT_DBG("\n");
+}
+
+void memDump(const void *start, int len)
+{
+    const char *data=reinterpret_cast<const char*>(start);
+    while(len>16)
+    {
+        memPrint(data,16);
+        len-=16;
+        data+=16;
+    }
+    if(len>0) memPrint(data,len);
+}
+
+} //namespace miosix
+
+#endif
+
+

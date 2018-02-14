@@ -1,6 +1,0 @@
-../out/gcc-release/src/RootNode.o: RootNode.cc RootNode.h \
- /home/fede/Documents/omnetpp-5.2.1/include/omnetpp.h
-
-RootNode.h:
-
-/home/fede/Documents/omnetpp-5.2.1/include/omnetpp.h:

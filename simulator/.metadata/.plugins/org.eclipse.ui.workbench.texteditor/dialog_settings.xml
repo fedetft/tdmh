@@ -8,6 +8,9 @@
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
+			<item value="-D "/>
+			<item value="LDFLAGS"/>
+			<item value="CFLAGS"/>
 			<item value="SimTime()"/>
 			<item value="gcc-release"/>
 			<item value="cpp"/>
