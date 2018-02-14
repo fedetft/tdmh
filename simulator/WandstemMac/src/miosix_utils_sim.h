@@ -36,6 +36,7 @@ namespace miosix {
 void ledOn();
 void ledOff();
 long long getTime();
+void memDump(const void *start, int len);
 
 class Thread : public MiosixStaticInterface {
 public:
@@ -54,6 +55,7 @@ public:
     static void high();
     static void low();
 };
+
 }
 
 

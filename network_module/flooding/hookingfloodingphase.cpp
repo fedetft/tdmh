@@ -27,6 +27,7 @@
 
 #include "hookingfloodingphase.h"
 #include "periodiccheckfloodingphase.h"
+#include "../debug_settings.h"
 
 namespace miosix {
 
@@ -35,9 +36,8 @@ HookingFloodingPhase::~HookingFloodingPhase() {
 
 void HookingFloodingPhase::execute(MACContext& ctx)
 {   
-#ifdef ENABLE_FLOODING_INFO_DBG
-    printf("[F] Resync\n");
-#endif /* ENABLE_FLOODING_INFO_DBG */
+    if (ENABLE_FLOODING_INFO_DBG)
+        printf("[F] Resync\n");
     auto* status = ctx.getSyncStatus();
     auto* synchronizer = status->synchronizer;
     synchronizer->reset();
@@ -52,18 +52,15 @@ void HookingFloodingPhase::execute(MACContext& ctx)
         try {
             result = transceiver.recv(packet, syncPacketSize, infiniteTimeout);
         } catch(std::exception& e) {
-#ifdef ENABLE_RADIO_EXCEPTION_DBG
-            printf("%s\n", e.what());
-#endif /* ENABLE_RADIO_EXCEPTION_DBG */
+            if (ENABLE_RADIO_EXCEPTION_DBG)
+                printf("%s\n", e.what());
         }
-#ifdef ENABLE_PKT_INFO_DBG
-        if(result.size){
-            printf("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
-#ifdef ENABLE_PKT_DUMP_DBG
-            memDump(packet, result.size);
-#endif /* ENABLE_PKT_DUMP_DBG */
-        } else printf("No packet received, timeout reached\n");
-#endif /* ENABLE_PKT_INFO_DBG */
+        if (ENABLE_PKT_INFO_DBG)
+            if(result.size){
+                printf("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+                if (ENABLE_PKT_DUMP_DBG)
+                    memDump(packet, result.size);
+            } else printf("No packet received, timeout reached\n");
     }
     ++packet[2];
     rebroadcast(result.timestamp, packet, networkConfig.maxHops);
@@ -71,18 +68,16 @@ void HookingFloodingPhase::execute(MACContext& ctx)
     ledOff();
     transceiver.turnOff();
     
-#ifdef ENABLE_FLOODING_INFO_DBG
-    printf("[F] ERT=%lld, RT=%lld\n", status->computedFrameStart, result.timestamp);
-#endif /* ENABLE_FLOODING_INFO_DBG */
+    if (ENABLE_FLOODING_INFO_DBG)
+        printf("[F] ERT=%lld, RT=%lld\n", status->computedFrameStart, result.timestamp);
     
     status->initialize(synchronizer->getReceiverWindow(), result.timestamp);
     ctx.setHop(packet[2]);
     
     //Correct frame start considering hops
     //measuredFrameStart-=hop*packetRebroadcastTime;
-#ifdef ENABLE_FLOODING_INFO_DBG
-    printf("[F] hop=%d, w=%d, rssi=%d\n", packet[2], status->receiverWindow, result.rssi);
-#endif /* ENABLE_FLOODING_INFO_DBG */
+    if (ENABLE_FLOODING_INFO_DBG)
+        printf("[F] hop=%d, w=%d, rssi=%d\n", packet[2], status->receiverWindow, result.rssi);
 }
 }
 

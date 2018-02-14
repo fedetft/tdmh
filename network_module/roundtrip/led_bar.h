@@ -7,11 +7,6 @@
 
 #ifdef _MIOSIX
 #include "util/util.h"
-#else // _MIOSIX
-
-namespace miosix {
-void memDump(const void *start, int len);
-}
 #endif // _MIOSIX
 
 template<unsigned N>

@@ -29,6 +29,7 @@
 #include "../maccontext.h"
 #include "../macround/macround.h"
 #include <stdio.h>
+#include "../debug_settings.h"
 
 namespace miosix {
 
@@ -48,13 +49,11 @@ namespace miosix {
         try {
             transceiver.sendAt(getSyncPkt(ctx.getNetworkConfig()->panId).data(), syncPacketSize, globalFirstActivityTime);
         } catch(std::exception& e) {
-#ifdef ENABLE_RADIO_EXCEPTION_DBG
-            printf("%s\n", e.what());
-#endif /* ENABLE_RADIO_EXCEPTION_DBG */
+            if (ENABLE_RADIO_EXCEPTION_DBG)
+                printf("%s\n", e.what());
         }
-#ifdef ENABLE_FLOODING_INFO_DBG
-        printf("[F] ST=%lld\n", globalFirstActivityTime);
-#endif /* ENABLE_FLOODING_INFO_DBG */
+        if (ENABLE_FLOODING_INFO_DBG)
+            printf("[F] ST=%lld\n", globalFirstActivityTime);
         transceiver.turnOff();
         ledOff();
     }

@@ -64,7 +64,6 @@ OBJS = \
     $O/network_module/reservation/masterreservationphase.o \
     $O/network_module/reservation/reservationphase.o \
     $O/network_module/roundtrip/askingroundtripphase.o \
-    $O/network_module/roundtrip/led_bar.o \
     $O/network_module/roundtrip/listeningroundtripphase.o \
     $O/network_module/roundtrip/roundtripphase.o \
     $O/network_module/slots_management/dynamicslotsnegotiator.o \

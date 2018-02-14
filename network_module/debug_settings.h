@@ -29,25 +29,25 @@
 #define DEBUG_SETTINGS_H
 
 //prints info if receiving a packet
-//#define ENABLE_PKT_INFO_DBG
+const bool ENABLE_PKT_INFO_DBG = false;
 
 //dumps the contents of the packets, ENABLE_BAD_PKT_INFO must be defined
-//#define ENABLE_PKT_DUMP_DBG
+const bool ENABLE_PKT_DUMP_DBG = false;
 
 //prints the exception if any while using the radio
-#define ENABLE_RADIO_EXCEPTION_DBG
+const bool ENABLE_RADIO_EXCEPTION_DBG = true;
 
 //prints the flooding phase debug info
-#define ENABLE_FLOODING_INFO_DBG
+const bool ENABLE_FLOODING_INFO_DBG = true;
 
 //prints the flooding phase errors
-#define ENABLE_FLOODING_ERROR_DBG
+const bool ENABLE_FLOODING_ERROR_DBG = true;
 
 //prints the flooding phase debug info
-#define ENABLE_ROUNDTRIP_INFO_DBG
+const bool ENABLE_ROUNDTRIP_INFO_DBG = true;
 
 //prints the flooding phase errors
-#define ENABLE_ROUNDTRIP_ERROR_DBG
+const bool ENABLE_ROUNDTRIP_ERROR_DBG = true;
 
 #endif /* DEBUG_SETTINGS_H */
 

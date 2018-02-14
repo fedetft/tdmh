@@ -28,6 +28,7 @@
 #include "periodiccheckfloodingphase.h"
 #include "hookingfloodingphase.h"
 #include <stdio.h>
+#include "../debug_settings.h"
 
 namespace miosix{
 PeriodicCheckFloodingPhase::~PeriodicCheckFloodingPhase() {
@@ -45,9 +46,8 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     transceiver.configure(*ctx.getTransceiverConfig());
     unsigned char packet[syncPacketSize];
     
-#ifdef ENABLE_FLOODING_INFO_DBG
-    printf("[F] WU=%lld TO=%lld\n", wakeupTimeout.first, timeoutTime);
-#endif /* ENABLE_FLOODING_INFO_DBG */
+    if (ENABLE_FLOODING_INFO_DBG)
+        printf("[F] WU=%lld TO=%lld\n", wakeupTimeout.first, timeoutTime);
 
     transceiver.turnOn();
     RecvResult result;
@@ -56,9 +56,8 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     auto now = getTime();
     //check if we skipped the synchronization time
     if (now >= localFirstActivityTime - syncStatus->receiverWindow) {
-#ifdef ENABLE_FLOODING_ERROR_DBG
-        printf("[F] started too late\n");
-#endif /* ENABLE_FLOODING_ERROR_DBG */
+        if (ENABLE_FLOODING_ERROR_DBG)
+            printf("[F] started too late\n");
         syncStatus->missedPacket();
         return;
     }
@@ -73,18 +72,15 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
             //uncorrected TS needed for computing the correction with flopsync
             result = transceiver.recv(packet, syncPacketSize, timeoutTime, Transceiver::Unit::NS, Transceiver::Correct::UNCORR);
         } catch(std::exception& e) {
-#ifdef ENABLE_RADIO_EXCEPTION_DBG
-            printf("%s\n", e.what());
-#endif /* ENABLE_RADIO_EXCEPTION_DBG */
+            if (ENABLE_RADIO_EXCEPTION_DBG)
+                printf("%s\n", e.what());
         }
-#ifdef ENABLE_PKT_INFO_DBG
-        if(result.size){
-            printf("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
-#ifdef ENABLE_PKT_DUMP_DBG
-            memDump(packet, result.size);
-#endif /* ENABLE_PKT_DUMP_DBG */
-        } else printf("No packet received, timeout reached\n");
-#endif /* ENABLE_PKT_INFO_DBG */
+        if (ENABLE_PKT_INFO_DBG)
+            if(result.size){
+                printf("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+                if (ENABLE_PKT_DUMP_DBG)
+                    memDump(packet, result.size);
+            } else printf("No packet received, timeout reached\n");
     }
     
     transceiver.idle(); //Save power waiting for rebroadcast time
@@ -98,18 +94,17 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     
     if (success) {
         syncStatus->receivedPacket(result.timestamp);
-#ifdef ENABLE_FLOODING_INFO_DBG
-        printf("[F] RT=%lld\ne=%lld u=%d w=%d rssi=%d\n",
-                result.timestamp,
-                syncStatus->getError(),
-                syncStatus->clockCorrection,
-                syncStatus->receiverWindow, 
-               result.rssi);
-    } else {
+        if (ENABLE_FLOODING_INFO_DBG)
+            printf("[F] RT=%lld\ne=%lld u=%d w=%d rssi=%d\n",
+                    result.timestamp,
+                    syncStatus->getError(),
+                    syncStatus->clockCorrection,
+                    syncStatus->receiverWindow,
+                   result.rssi);
+    } else if (ENABLE_FLOODING_INFO_DBG) {
         printf("[F] miss u=%d w=%d\n", syncStatus->clockCorrection, syncStatus->receiverWindow);
         if (syncStatus->missedPacket() >= maxMissedPackets)
             printf("[F] lost sync\n");
-#endif /* ENABLE_FLOODING_INFO_DBG */
     }
 }
 }

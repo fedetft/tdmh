@@ -29,6 +29,7 @@
 #include "listeningroundtripphase.h"
 #include "led_bar.h"
 #include <stdio.h>
+#include "../debug_settings.h"
 
 namespace miosix {
     AskingRoundtripPhase::~AskingRoundtripPhase() {
@@ -45,13 +46,11 @@ namespace miosix {
             transceiver.sendAt(
                 getRoundtripAskPacket(ctx.getNetworkConfig()->panId).data(), askPacketSize, globalFirstActivityTime);
         } catch(std::exception& e) {
-#ifdef ENABLE_RADIO_EXCEPTION_DBG
-            printf("%s\n", e.what());
-#endif /* ENABLE_RADIO_EXCEPTION_DBG */
+            if (ENABLE_RADIO_EXCEPTION_DBG)
+                printf("%s\n", e.what());
         }
-#ifdef ENABLE_ROUNDTRIP_INFO_DBG
-        printf("Asked Roundtrip\n");
-#endif /* ENABLE_ROUNDTRIP_INFO_DBG */
+        if (ENABLE_ROUNDTRIP_INFO_DBG)
+            printf("Asked Roundtrip\n");
 
         //Expecting a ledbar reply from any node of the previous hop, crc disabled
         auto* tc = ctx.getTransceiverConfig();
@@ -64,18 +63,15 @@ namespace miosix {
             try {
                 result = transceiver.recv(p.getPacket(), p.getPacketSize(), globalFirstActivityTime + replyDelay);
             } catch(std::exception& e) {
-#ifdef ENABLE_RADIO_EXCEPTION_DBG
-                puts(e.what());
-#endif /* ENABLE_RADIO_EXCEPTION_DBG */
+                if (ENABLE_RADIO_EXCEPTION_DBG)
+                    printf("%s\n", e.what());
             }
-#ifdef ENABLE_PKT_INFO_DBG
-            if(result.error != RecvResult::ErrorCode::UNINITIALIZED){
-                printf("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
-#ifdef ENABLE_PKT_DUMP_DBG
-                memDump(p.getPacket(), result.size);
-#endif /* ENABLE_PKT_DUMP_DBG */
-            } else printf("No packet received, timeout reached\n");
-#endif /* ENABLE_PKT_INFO_DBG */
+            if (ENABLE_PKT_INFO_DBG)
+                if(result.error != RecvResult::ErrorCode::UNINITIALIZED){
+                    printf("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+                    if (ENABLE_PKT_DUMP_DBG)
+                        memDump(p.getPacket(), result.size);
+                } else printf("No packet received, timeout reached\n");
         }
         transceiver.turnOff();
         greenLed::low();
@@ -83,11 +79,10 @@ namespace miosix {
         if(result.size == p.getPacketSize() && result.error == RecvResult::ErrorCode::OK && result.timestampValid) {
             lastDelay = result.timestamp - (globalFirstActivityTime + replyDelay);
             totalDelay = p.decode().first * accuracy + lastDelay;
-#ifdef ENABLE_ROUNDTRIP_INFO_DBG
-            printf("delay=%lld total=%lld\n", lastDelay, totalDelay);
-        } else {
+            if (ENABLE_ROUNDTRIP_INFO_DBG)
+                printf("delay=%lld total=%lld\n", lastDelay, totalDelay);
+        } else if (ENABLE_ROUNDTRIP_INFO_DBG) {
             printf("No roundtrip reply received\n");
-#endif /* ENABLE_ROUNDTRIP_INFO_DBG */
         }
     }
 }

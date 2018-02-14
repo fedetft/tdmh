@@ -28,6 +28,7 @@
 
 #include "assignmentphase.h"
 #include "../flooding/syncstatus.h"
+#include "../debug_settings.h"
 
 namespace miosix {
     AssignmentPhase::~AssignmentPhase() {
@@ -53,18 +54,15 @@ namespace miosix {
             try {
                 result = transceiver.recv(packet.data(), AssignmentPhase::assignmentPacketSize, wakeUpTimeout.second);
             } catch(std::exception& e) {
-    #ifdef ENABLE_RADIO_EXCEPTION_DBG
-                printf("%s\n", e.what());
-    #endif /* ENABLE_RADIO_EXCEPTION_DBG */
+                if (ENABLE_RADIO_EXCEPTION_DBG)
+                    printf("%s\n", e.what());
             }
-    #ifdef ENABLE_PKT_INFO_DBG
-            if(result.size){
-                printf("[RTT] Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
-    #ifdef ENABLE_PKT_DUMP_DBG
-                memDump(packet, result.size);
-    #endif /* ENABLE_PKT_DUMP_DBG */
-            } else printf("[RTT] No packet received, timeout reached\n");
-    #endif /* ENABLE_PKT_INFO_DBG */
+            if (ENABLE_PKT_INFO_DBG)
+                if(result.size) {
+                    printf("[RTT] Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+                    if (ENABLE_PKT_DUMP_DBG)
+                        memDump(packet.data(), result.size);
+                } else printf("[RTT] No packet received, timeout reached\n");
         }
         if(result.error != RecvResult::ErrorCode::OK) {//looks like i lost the connection to the parent hop. Let's broadcast about that.
             getEmptyPkt(panId, hop);
@@ -82,13 +80,11 @@ namespace miosix {
         try {
             transceiver.sendAt(packet.data(), sizeof(packet), sendTime);
         } catch(std::exception& e) {
-#ifdef ENABLE_RADIO_EXCEPTION_DBG
-            printf("%s\n", e.what());
-#endif /* ENABLE_RADIO_EXCEPTION_DBG */
+            if (ENABLE_RADIO_EXCEPTION_DBG)
+                printf("%s\n", e.what());
         }
-#ifdef ENABLE_FLOODING_INFO_DBG
-        printf("Sync packet sent at %lld\n", sendTime);
-#endif /* ENABLE_FLOODING_INFO_DBG */
+        if (ENABLE_FLOODING_INFO_DBG)
+            printf("Sync packet sent at %lld\n", sendTime);
     }
     
      void AssignmentPhase::processPacket() {

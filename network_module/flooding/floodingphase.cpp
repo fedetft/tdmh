@@ -27,6 +27,7 @@
 
 #include "floodingphase.h"
 #include <stdio.h>
+#include "../debug_settings.h"
 
 namespace miosix{
 
@@ -38,9 +39,8 @@ void FloodingPhase::rebroadcast(long long receivedTimestamp, unsigned char* pack
     try {
         transceiver.sendAt(packet, syncPacketSize, receivedTimestamp + rebroadcastInterval);
     } catch(std::exception& e) {
-#ifdef ENABLE_RADIO_EXCEPTION_DBG
-        printf("%s\n", e.what());
-#endif /* ENABLE_RADIO_EXCEPTION_DBG */
+        if (ENABLE_RADIO_EXCEPTION_DBG)
+            printf("%s\n", e.what());
     }
 }
 }

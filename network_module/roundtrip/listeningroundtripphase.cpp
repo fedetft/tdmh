@@ -30,6 +30,7 @@
 #include "led_bar.h"
 #include "../macround/macround.h"
 #include <stdio.h>
+#include "../debug_settings.h"
 
 namespace miosix{
 ListeningRoundtripPhase::~ListeningRoundtripPhase() {
@@ -45,9 +46,8 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
     
     unsigned char packet[askPacketSize];
     auto deepsleepDeadline = globalFirstActivityTime - MediumAccessController::receivingNodeWakeupAdvance;
-#ifdef ENABLE_ROUNDTRIP_INFO_DBG
-    printf("[RTT] WU=%lld TO=%lld\n", deepsleepDeadline, timeoutTime);
-#endif /* ENABLE_ROUNDTRIP_INFO_DBG */
+    if (ENABLE_ROUNDTRIP_INFO_DBG)
+        printf("[RTT] WU=%lld TO=%lld\n", deepsleepDeadline, timeoutTime);
     RecvResult result;
     bool success = false;
     
@@ -60,39 +60,32 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
         try {
             result = transceiver.recv(packet, replyPacketSize, timeoutTime);
         } catch(std::exception& e) {
-#ifdef ENABLE_RADIO_EXCEPTION_DBG
-            printf("%s\n", e.what());
-#endif /* ENABLE_RADIO_EXCEPTION_DBG */
+            if (ENABLE_RADIO_EXCEPTION_DBG)
+                printf("%s\n", e.what());
         }
-#ifdef ENABLE_PKT_INFO_DBG
-        if(result.size){
-            printf("[RTT] Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
-#ifdef ENABLE_PKT_DUMP_DBG
-            memDump(packet, result.size);
-#endif /* ENABLE_PKT_DUMP_DBG */
-        } else printf("[RTT] No packet received, timeout reached\n");
-#endif /* ENABLE_PKT_INFO_DBG */
+        if (ENABLE_PKT_INFO_DBG)
+            if(result.size){
+                printf("[RTT] Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+                if (ENABLE_PKT_DUMP_DBG)
+                    memDump(packet, result.size);
+            } else printf("[RTT] No packet received, timeout reached\n");
     }
     
     if(success){
         auto replyTime = result.timestamp + replyDelay;
-#ifdef ENABLE_ROUNDTRIP_INFO_DBG
+        if (ENABLE_ROUNDTRIP_INFO_DBG)
         printf("[RTT] RT=%lld, LT=%lld\n", result.timestamp, replyTime);
-#endif /* ENABLE_ROUNDTRIP_INFO_DBG */
         //TODO sto pacchetto non e` compatibile manco con se stesso, servono header di compatibilita`, indirizzo, etc etc
         LedBar<replyPacketSize> p;
         p.encode(7); //TODO: 7?! should put a significant cumulated RTT here.
         try {
             transceiver.sendAt(p.getPacket(), p.getPacketSize(), replyTime);
         } catch(std::exception& e) {
-#ifdef ENABLE_RADIO_EXCEPTION_DBG
-            puts(e.what());
-#endif /* ENABLE_RADIO_EXCEPTION_DBG */
+            if (ENABLE_RADIO_EXCEPTION_DBG)
+                printf("%s\n", e.what());
         }
-#ifdef ENABLE_ROUNDTRIP_INFO_DBG
-    } else {
+    } else if (ENABLE_ROUNDTRIP_INFO_DBG) {
         printf("[RTT] RT=null\n");
-#endif /* ENABLE_ROUNDTRIP_INFO_DBG */
     }
     
     transceiver.turnOff();

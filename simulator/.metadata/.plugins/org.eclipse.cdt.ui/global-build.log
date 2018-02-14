@@ -13937,3 +13937,620 @@ cd src && make
 make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
 make[1]: Nothing to be done for 'all'.
 make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+23:24:06 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Node.cpp
+RootNode.cpp
+network_module/debug_settings.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/assignment/assignmentphase.cpp: In member function ‘void miosix::AssignmentPhase::receiveOrGetEmpty(miosix::MACContext&)’:
+network_module/assignment/assignmentphase.cpp:56:21: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+                 if (ENABLE_RADIO_EXCEPTION_DBG)
+                     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/assignment/assignmentphase.cpp:56:21: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+                 if (ENABLE_RADIO_EXCEPTION_DBG)
+                     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                     _CXXABI_INIT_EXCEPTION_H
+network_module/assignment/assignmentphase.cpp:59:17: error: ‘ENABLE_PKT_INFO_DBG’ was not declared in this scope
+             if (ENABLE_PKT_INFO_DBG)
+                 ^~~~~~~~~~~~~~~~~~~
+network_module/assignment/assignmentphase.cpp:62:25: error: ‘ENABLE_PKT_DUMP_DBG’ was not declared in this scope
+                     if (ENABLE_PKT_DUMP_DBG)
+                         ^~~~~~~~~~~~~~~~~~~
+network_module/assignment/assignmentphase.cpp:63:25: error: ‘memDump’ was not declared in this scope
+                         memDump(packet, result.size);
+                         ^~~~~~~
+network_module/assignment/assignmentphase.cpp:63:25: note: suggested alternative: ‘memcmp’
+                         memDump(packet, result.size);
+                         ^~~~~~~
+                         memcmp
+network_module/assignment/assignmentphase.cpp: In member function ‘void miosix::AssignmentPhase::forwardPacket()’:
+network_module/assignment/assignmentphase.cpp:82:17: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/assignment/assignmentphase.cpp:82:17: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                 _CXXABI_INIT_EXCEPTION_H
+network_module/assignment/assignmentphase.cpp:85:13: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+         if (ENABLE_FLOODING_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~~~~~~
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/assignment/assignmentphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/assignment/assignmentphase.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+network_module/flooding/floodingphase.cpp: In member function ‘void miosix::FloodingPhase::rebroadcast(long long int, unsigned char*, unsigned char)’:
+network_module/flooding/floodingphase.cpp:41:13: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+         if (ENABLE_RADIO_EXCEPTION_DBG)
+             ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/floodingphase.cpp:41:13: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+         if (ENABLE_RADIO_EXCEPTION_DBG)
+             ^~~~~~~~~~~~~~~~~~~~~~~~~~
+             _CXXABI_INIT_EXCEPTION_H
+make[1]: *** [../out/gcc-release/src/network_module/flooding/floodingphase.o] Error 1
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/flooding/floodingphase.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+23:26:01 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/assignment/assignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/assignment/assignmentphase.cpp: In member function ‘void miosix::AssignmentPhase::receiveOrGetEmpty(miosix::MACContext&)’:
+network_module/assignment/assignmentphase.cpp:64:25: error: ‘memDump’ was not declared in this scope
+                         memDump(packet, result.size);
+                         ^~~~~~~
+network_module/assignment/assignmentphase.cpp:64:25: note: suggested alternative: ‘memcmp’
+                         memDump(packet, result.size);
+                         ^~~~~~~
+                         memcmp
+network_module/flooding/hookingfloodingphase.cpp: In member function ‘virtual void miosix::HookingFloodingPhase::execute(miosix::MACContext&)’:
+network_module/flooding/hookingfloodingphase.cpp:38:9: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+     if (ENABLE_FLOODING_INFO_DBG)
+         ^~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/masterfloodingphase.cpp: In member function ‘virtual void miosix::MasterFloodingPhase::execute(miosix::MACContext&)’:
+network_module/flooding/masterfloodingphase.cpp:51:17: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/hookingfloodingphase.cpp:54:17: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/masterfloodingphase.cpp:51:17: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                 _CXXABI_INIT_EXCEPTION_H
+network_module/flooding/masterfloodingphase.cpp:54:13: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+         if (ENABLE_FLOODING_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/hookingfloodingphase.cpp:54:17: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                 _CXXABI_INIT_EXCEPTION_H
+network_module/flooding/hookingfloodingphase.cpp:57:13: error: ‘ENABLE_PKT_INFO_DBG’ was not declared in this scope
+         if (ENABLE_PKT_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~
+network_module/flooding/hookingfloodingphase.cpp:60:21: error: ‘ENABLE_PKT_DUMP_DBG’ was not declared in this scope
+                 if (ENABLE_PKT_DUMP_DBG)
+                     ^~~~~~~~~~~~~~~~~~~
+network_module/flooding/hookingfloodingphase.cpp:61:21: error: ‘memDump’ was not declared in this scope
+                     memDump(packet, result.size);
+                     ^~~~~~~
+network_module/flooding/hookingfloodingphase.cpp:61:21: note: suggested alternative: ‘memcmp’
+                     memDump(packet, result.size);
+                     ^~~~~~~
+                     memcmp
+network_module/flooding/hookingfloodingphase.cpp:70:9: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+     if (ENABLE_FLOODING_INFO_DBG)
+         ^~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/hookingfloodingphase.cpp:78:9: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+     if (ENABLE_FLOODING_INFO_DBG)
+         ^~~~~~~~~~~~~~~~~~~~~~~~
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/assignment/assignmentphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/assignment/assignmentphase.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/flooding/masterfloodingphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/flooding/masterfloodingphase.o] Error 1
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+23:26:08 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/assignment/assignmentphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp: In member function ‘virtual void miosix::MasterFloodingPhase::execute(miosix::MACContext&)’:
+network_module/flooding/masterfloodingphase.cpp:51:17: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/hookingfloodingphase.cpp: In member function ‘virtual void miosix::HookingFloodingPhase::execute(miosix::MACContext&)’:
+network_module/flooding/hookingfloodingphase.cpp:38:9: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+     if (ENABLE_FLOODING_INFO_DBG)
+         ^~~~~~~~~~~~~~~~~~~~~~~~
+network_module/assignment/assignmentphase.cpp: In member function ‘void miosix::AssignmentPhase::receiveOrGetEmpty(miosix::MACContext&)’:
+network_module/assignment/assignmentphase.cpp:64:25: error: ‘memDump’ was not declared in this scope
+                         memDump(packet, result.size);
+                         ^~~~~~~
+network_module/assignment/assignmentphase.cpp:64:25: note: suggested alternative: ‘memcmp’
+                         memDump(packet, result.size);
+                         ^~~~~~~
+                         memcmp
+network_module/flooding/masterfloodingphase.cpp:51:17: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                 _CXXABI_INIT_EXCEPTION_H
+network_module/flooding/masterfloodingphase.cpp:54:13: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+         if (ENABLE_FLOODING_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/hookingfloodingphase.cpp:54:17: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/hookingfloodingphase.cpp:54:17: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                 _CXXABI_INIT_EXCEPTION_H
+network_module/flooding/hookingfloodingphase.cpp:57:13: error: ‘ENABLE_PKT_INFO_DBG’ was not declared in this scope
+         if (ENABLE_PKT_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~
+network_module/flooding/hookingfloodingphase.cpp:60:21: error: ‘ENABLE_PKT_DUMP_DBG’ was not declared in this scope
+                 if (ENABLE_PKT_DUMP_DBG)
+                     ^~~~~~~~~~~~~~~~~~~
+network_module/flooding/hookingfloodingphase.cpp:61:21: error: ‘memDump’ was not declared in this scope
+                     memDump(packet, result.size);
+                     ^~~~~~~
+network_module/flooding/hookingfloodingphase.cpp:61:21: note: suggested alternative: ‘memcmp’
+                     memDump(packet, result.size);
+                     ^~~~~~~
+                     memcmp
+network_module/flooding/hookingfloodingphase.cpp:70:9: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+     if (ENABLE_FLOODING_INFO_DBG)
+         ^~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/periodiccheckfloodingphase.cpp: In member function ‘virtual void miosix::PeriodicCheckFloodingPhase::execute(miosix::MACContext&)’:
+network_module/flooding/periodiccheckfloodingphase.cpp:48:9: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+     if (ENABLE_FLOODING_INFO_DBG)
+         ^~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/hookingfloodingphase.cpp:78:9: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+     if (ENABLE_FLOODING_INFO_DBG)
+         ^~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/periodiccheckfloodingphase.cpp:58:13: error: ‘ENABLE_FLOODING_ERROR_DBG’ was not declared in this scope
+         if (ENABLE_FLOODING_ERROR_DBG)
+             ^~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/periodiccheckfloodingphase.cpp:74:17: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/flooding/masterfloodingphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/flooding/masterfloodingphase.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+network_module/flooding/periodiccheckfloodingphase.cpp:74:17: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                 _CXXABI_INIT_EXCEPTION_H
+network_module/flooding/periodiccheckfloodingphase.cpp:77:13: error: ‘ENABLE_PKT_INFO_DBG’ was not declared in this scope
+         if (ENABLE_PKT_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~
+network_module/flooding/periodiccheckfloodingphase.cpp:80:21: error: ‘ENABLE_PKT_DUMP_DBG’ was not declared in this scope
+                 if (ENABLE_PKT_DUMP_DBG)
+                     ^~~~~~~~~~~~~~~~~~~
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/assignment/assignmentphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/assignment/assignmentphase.o] Error 1
+network_module/flooding/periodiccheckfloodingphase.cpp:81:21: error: ‘memDump’ was not declared in this scope
+                     memDump(packet, result.size);
+                     ^~~~~~~
+network_module/flooding/periodiccheckfloodingphase.cpp:81:21: note: suggested alternative: ‘memcmp’
+                     memDump(packet, result.size);
+                     ^~~~~~~
+                     memcmp
+network_module/flooding/periodiccheckfloodingphase.cpp:96:13: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+         if (ENABLE_FLOODING_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/periodiccheckfloodingphase.cpp:103:16: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+     } else if (ENABLE_FLOODING_INFO_DBG) {
+                ^~~~~~~~~~~~~~~~~~~~~~~~
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o] Error 1
+make[1]: *** [../out/gcc-release/src/network_module/flooding/periodiccheckfloodingphase.o] Error 1
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/flooding/periodiccheckfloodingphase.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+23:26:17 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/assignment/assignmentphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp: In member function ‘virtual void miosix::PeriodicCheckFloodingPhase::execute(miosix::MACContext&)’:
+network_module/flooding/periodiccheckfloodingphase.cpp:48:9: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+     if (ENABLE_FLOODING_INFO_DBG)
+         ^~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/masterfloodingphase.cpp: In member function ‘virtual void miosix::MasterFloodingPhase::execute(miosix::MACContext&)’:
+network_module/flooding/masterfloodingphase.cpp:51:17: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/hookingfloodingphase.cpp: In member function ‘virtual void miosix::HookingFloodingPhase::execute(miosix::MACContext&)’:
+network_module/flooding/hookingfloodingphase.cpp:62:21: error: ‘memDump’ was not declared in this scope
+                     memDump(packet, result.size);
+                     ^~~~~~~
+network_module/flooding/hookingfloodingphase.cpp:62:21: note: suggested alternative: ‘memcmp’
+                     memDump(packet, result.size);
+                     ^~~~~~~
+                     memcmp
+network_module/flooding/periodiccheckfloodingphase.cpp:58:13: error: ‘ENABLE_FLOODING_ERROR_DBG’ was not declared in this scope
+         if (ENABLE_FLOODING_ERROR_DBG)
+             ^~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/periodiccheckfloodingphase.cpp:74:17: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/masterfloodingphase.cpp:51:17: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                 _CXXABI_INIT_EXCEPTION_H
+network_module/flooding/masterfloodingphase.cpp:54:13: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+         if (ENABLE_FLOODING_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/periodiccheckfloodingphase.cpp:74:17: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                 _CXXABI_INIT_EXCEPTION_H
+network_module/flooding/periodiccheckfloodingphase.cpp:77:13: error: ‘ENABLE_PKT_INFO_DBG’ was not declared in this scope
+         if (ENABLE_PKT_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~
+network_module/assignment/assignmentphase.cpp: In member function ‘void miosix::AssignmentPhase::receiveOrGetEmpty(miosix::MACContext&)’:
+network_module/assignment/assignmentphase.cpp:64:25: error: ‘memDump’ was not declared in this scope
+                         memDump(packet, result.size);
+                         ^~~~~~~
+network_module/assignment/assignmentphase.cpp:64:25: note: suggested alternative: ‘memcmp’
+                         memDump(packet, result.size);
+                         ^~~~~~~
+                         memcmp
+network_module/flooding/periodiccheckfloodingphase.cpp:80:21: error: ‘ENABLE_PKT_DUMP_DBG’ was not declared in this scope
+                 if (ENABLE_PKT_DUMP_DBG)
+                     ^~~~~~~~~~~~~~~~~~~
+network_module/flooding/periodiccheckfloodingphase.cpp:81:21: error: ‘memDump’ was not declared in this scope
+                     memDump(packet, result.size);
+                     ^~~~~~~
+network_module/flooding/periodiccheckfloodingphase.cpp:81:21: note: suggested alternative: ‘memcmp’
+                     memDump(packet, result.size);
+                     ^~~~~~~
+                     memcmp
+network_module/flooding/periodiccheckfloodingphase.cpp:96:13: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+         if (ENABLE_FLOODING_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~~~~~~
+network_module/flooding/periodiccheckfloodingphase.cpp:103:16: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+     } else if (ENABLE_FLOODING_INFO_DBG) {
+                ^~~~~~~~~~~~~~~~~~~~~~~~
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+make[1]: *** [../out/gcc-release/src/network_module/flooding/periodiccheckfloodingphase.o] Error 1
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/flooding/periodiccheckfloodingphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/flooding/masterfloodingphase.o] Error 1
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/flooding/masterfloodingphase.o' failed
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/assignment/assignmentphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/assignment/assignmentphase.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+23:26:36 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/assignment/assignmentphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp: In member function ‘virtual void miosix::HookingFloodingPhase::execute(miosix::MACContext&)’:
+network_module/flooding/hookingfloodingphase.cpp:62:21: error: ‘memDump’ was not declared in this scope
+                     memDump(packet, result.size);
+                     ^~~~~~~
+network_module/flooding/hookingfloodingphase.cpp:62:21: note: suggested alternative: ‘memcmp’
+                     memDump(packet, result.size);
+                     ^~~~~~~
+                     memcmp
+network_module/flooding/periodiccheckfloodingphase.cpp: In member function ‘virtual void miosix::PeriodicCheckFloodingPhase::execute(miosix::MACContext&)’:
+network_module/flooding/periodiccheckfloodingphase.cpp:82:21: error: ‘memDump’ was not declared in this scope
+                     memDump(packet, result.size);
+                     ^~~~~~~
+network_module/assignment/assignmentphase.cpp: In member function ‘void miosix::AssignmentPhase::receiveOrGetEmpty(miosix::MACContext&)’:
+network_module/assignment/assignmentphase.cpp:64:25: error: ‘memDump’ was not declared in this scope
+                         memDump(packet, result.size);
+                         ^~~~~~~
+network_module/flooding/periodiccheckfloodingphase.cpp:82:21: note: suggested alternative: ‘memcmp’
+                     memDump(packet, result.size);
+                     ^~~~~~~
+                     memcmp
+network_module/assignment/assignmentphase.cpp:64:25: note: suggested alternative: ‘memcmp’
+                         memDump(packet, result.size);
+                         ^~~~~~~
+                         memcmp
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o' failed
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/flooding/periodiccheckfloodingphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+make[1]: *** [../out/gcc-release/src/network_module/flooding/periodiccheckfloodingphase.o] Error 1
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/assignment/assignmentphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/assignment/assignmentphase.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+23:31:07 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+miosix_utils_sim.cpp
+MiosixInterface.cpp
+MiosixStaticInterface.cpp
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+interfaces-impl/power_manager.cpp
+interfaces-impl/transceiver.cpp
+interfaces-impl/virtual_clock.cpp
+kernel/timeconversion.cpp
+network_module/maccontext.cpp
+network_module/macphase.cpp
+network_module/mediumaccesscontroller.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/assignment/dynamicassignmentphase.cpp
+network_module/assignment/lasthopassignmentphase.cpp
+network_module/assignment/assignmentphase.cpp: In member function ‘void miosix::AssignmentPhase::receiveOrGetEmpty(miosix::MACContext&)’:
+network_module/assignment/assignmentphase.cpp:64:52: error: cannot convert ‘std::vector<unsigned char>’ to ‘const void*’ for argument ‘1’ to ‘void miosix::memDump(const void*, int)’
+                         memDump(packet, result.size);
+                                                    ^
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/assignment/assignmentphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/assignment/assignmentphase.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+23:31:42 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/assignment/assignmentphase.cpp
+network_module/assignment/masterassignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/macround/dynamicmacround.cpp
+network_module/macround/macround.cpp
+network_module/macround/mastermacround.cpp
+network_module/reservation/dynamicreservationphase.cpp
+network_module/reservation/lasthopreservationphase.cpp
+network_module/reservation/masterreservationphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+network_module/roundtrip/roundtripphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp: In member function ‘virtual void miosix::AskingRoundtripPhase::execute(miosix::MACContext&)’:
+network_module/roundtrip/askingroundtripphase.cpp:48:17: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/listeningroundtripphase.cpp: In member function ‘virtual void miosix::ListeningRoundtripPhase::execute(miosix::MACContext&)’:
+network_module/roundtrip/listeningroundtripphase.cpp:48:9: error: ‘ENABLE_ROUNDTRIP_INFO_DBG’ was not declared in this scope
+     if (ENABLE_ROUNDTRIP_INFO_DBG)
+         ^~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/askingroundtripphase.cpp:48:17: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                 _CXXABI_INIT_EXCEPTION_H
+network_module/roundtrip/askingroundtripphase.cpp:51:13: error: ‘ENABLE_ROUNDTRIP_INFO_DBG’ was not declared in this scope
+         if (ENABLE_ROUNDTRIP_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/listeningroundtripphase.cpp:62:17: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/askingroundtripphase.cpp:65:21: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+                 if (ENABLE_RADIO_EXCEPTION_DBG)
+                     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/listeningroundtripphase.cpp:62:17: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                 _CXXABI_INIT_EXCEPTION_H
+network_module/roundtrip/listeningroundtripphase.cpp:65:13: error: ‘ENABLE_PKT_INFO_DBG’ was not declared in this scope
+         if (ENABLE_PKT_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/listeningroundtripphase.cpp:68:21: error: ‘ENABLE_PKT_DUMP_DBG’ was not declared in this scope
+                 if (ENABLE_PKT_DUMP_DBG)
+                     ^~~~~~~~~~~~~~~~~~~
+network_module/reservation/reservationphase.cpp: In member function ‘void miosix::ReservationPhase::receiveOrGetEmpty(miosix::MACContext&)’:
+network_module/reservation/reservationphase.cpp:53:21: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+                 if (ENABLE_RADIO_EXCEPTION_DBG)
+                     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/listeningroundtripphase.cpp:75:13: error: ‘ENABLE_ROUNDTRIP_INFO_DBG’ was not declared in this scope
+         if (ENABLE_ROUNDTRIP_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/askingroundtripphase.cpp:65:21: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+                 if (ENABLE_RADIO_EXCEPTION_DBG)
+                     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                     _CXXABI_INIT_EXCEPTION_H
+network_module/roundtrip/askingroundtripphase.cpp:68:17: error: ‘ENABLE_PKT_INFO_DBG’ was not declared in this scope
+             if (ENABLE_PKT_INFO_DBG)
+                 ^~~~~~~~~~~~~~~~~~~
+network_module/reservation/reservationphase.cpp:53:21: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+                 if (ENABLE_RADIO_EXCEPTION_DBG)
+                     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                     _CXXABI_INIT_EXCEPTION_H
+network_module/reservation/reservationphase.cpp:56:17: error: ‘ENABLE_PKT_INFO_DBG’ was not declared in this scope
+             if (ENABLE_PKT_INFO_DBG)
+                 ^~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/listeningroundtripphase.cpp:83:17: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/reservation/reservationphase.cpp:59:25: error: ‘ENABLE_PKT_DUMP_DBG’ was not declared in this scope
+                     if (ENABLE_PKT_DUMP_DBG)
+                         ^~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/listeningroundtripphase.cpp:83:17: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                 _CXXABI_INIT_EXCEPTION_H
+network_module/roundtrip/listeningroundtripphase.cpp:86:16: error: ‘ENABLE_ROUNDTRIP_INFO_DBG’ was not declared in this scope
+     } else if (ENABLE_ROUNDTRIP_INFO_DBG) {
+                ^~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/askingroundtripphase.cpp:71:25: error: ‘ENABLE_PKT_DUMP_DBG’ was not declared in this scope
+                     if (ENABLE_PKT_DUMP_DBG)
+                         ^~~~~~~~~~~~~~~~~~~
+network_module/reservation/reservationphase.cpp:60:52: error: cannot convert ‘std::vector<unsigned char>’ to ‘const void*’ for argument ‘1’ to ‘void miosix::memDump(const void*, int)’
+                         memDump(packet, result.size);
+                                                    ^
+network_module/reservation/reservationphase.cpp: In member function ‘void miosix::ReservationPhase::forwardPacket()’:
+network_module/reservation/reservationphase.cpp:86:17: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/askingroundtripphase.cpp:81:17: error: ‘ENABLE_ROUNDTRIP_INFO_DBG’ was not declared in this scope
+             if (ENABLE_ROUNDTRIP_INFO_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/reservation/reservationphase.cpp:86:17: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                 _CXXABI_INIT_EXCEPTION_H
+network_module/reservation/reservationphase.cpp:89:13: error: ‘ENABLE_FLOODING_INFO_DBG’ was not declared in this scope
+         if (ENABLE_FLOODING_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/askingroundtripphase.cpp:83:20: error: ‘ENABLE_ROUNDTRIP_INFO_DBG’ was not declared in this scope
+         } else if (ENABLE_ROUNDTRIP_INFO_DBG) {
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/roundtrip/listeningroundtripphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/roundtrip/listeningroundtripphase.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/reservation/reservationphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/reservation/reservationphase.o] Error 1
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/roundtrip/askingroundtripphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/roundtrip/askingroundtripphase.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+23:38:23 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp: In member function ‘virtual void miosix::AskingRoundtripPhase::execute(miosix::MACContext&)’:
+network_module/roundtrip/askingroundtripphase.cpp:48:17: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/askingroundtripphase.cpp:48:17: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                 _CXXABI_INIT_EXCEPTION_H
+network_module/roundtrip/askingroundtripphase.cpp:51:13: error: ‘ENABLE_ROUNDTRIP_INFO_DBG’ was not declared in this scope
+         if (ENABLE_ROUNDTRIP_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/askingroundtripphase.cpp:65:21: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+                 if (ENABLE_RADIO_EXCEPTION_DBG)
+                     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/askingroundtripphase.cpp:65:21: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+                 if (ENABLE_RADIO_EXCEPTION_DBG)
+                     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                     _CXXABI_INIT_EXCEPTION_H
+network_module/roundtrip/askingroundtripphase.cpp:68:17: error: ‘ENABLE_PKT_INFO_DBG’ was not declared in this scope
+             if (ENABLE_PKT_INFO_DBG)
+                 ^~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/askingroundtripphase.cpp:71:25: error: ‘ENABLE_PKT_DUMP_DBG’ was not declared in this scope
+                     if (ENABLE_PKT_DUMP_DBG)
+                         ^~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/askingroundtripphase.cpp:81:17: error: ‘ENABLE_ROUNDTRIP_INFO_DBG’ was not declared in this scope
+             if (ENABLE_ROUNDTRIP_INFO_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/askingroundtripphase.cpp:83:20: error: ‘ENABLE_ROUNDTRIP_INFO_DBG’ was not declared in this scope
+         } else if (ENABLE_ROUNDTRIP_INFO_DBG) {
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~
+make[1]: *** [../out/gcc-release/src/network_module/roundtrip/askingroundtripphase.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/roundtrip/askingroundtripphase.o' failed
+network_module/reservation/reservationphase.cpp: In member function ‘void miosix::ReservationPhase::receiveOrGetEmpty(miosix::MACContext&)’:
+network_module/reservation/reservationphase.cpp:61:52: error: cannot convert ‘std::vector<unsigned char>’ to ‘const void*’ for argument ‘1’ to ‘void miosix::memDump(const void*, int)’
+                         memDump(packet, result.size);
+                                                    ^
+network_module/roundtrip/listeningroundtripphase.cpp: In member function ‘virtual void miosix::ListeningRoundtripPhase::execute(miosix::MACContext&)’:
+network_module/roundtrip/listeningroundtripphase.cpp:48:9: error: ‘ENABLE_ROUNDTRIP_INFO_DBG’ was not declared in this scope
+     if (ENABLE_ROUNDTRIP_INFO_DBG)
+         ^~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/listeningroundtripphase.cpp:62:17: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/listeningroundtripphase.cpp:62:17: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                 _CXXABI_INIT_EXCEPTION_H
+network_module/roundtrip/listeningroundtripphase.cpp:65:13: error: ‘ENABLE_PKT_INFO_DBG’ was not declared in this scope
+         if (ENABLE_PKT_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/listeningroundtripphase.cpp:68:21: error: ‘ENABLE_PKT_DUMP_DBG’ was not declared in this scope
+                 if (ENABLE_PKT_DUMP_DBG)
+                     ^~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/listeningroundtripphase.cpp:75:13: error: ‘ENABLE_ROUNDTRIP_INFO_DBG’ was not declared in this scope
+         if (ENABLE_ROUNDTRIP_INFO_DBG)
+             ^~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/listeningroundtripphase.cpp:83:17: error: ‘ENABLE_RADIO_EXCEPTION_DBG’ was not declared in this scope
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+network_module/roundtrip/listeningroundtripphase.cpp:83:17: note: suggested alternative: ‘_CXXABI_INIT_EXCEPTION_H’
+             if (ENABLE_RADIO_EXCEPTION_DBG)
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+                 _CXXABI_INIT_EXCEPTION_H
+network_module/roundtrip/listeningroundtripphase.cpp:86:16: error: ‘ENABLE_ROUNDTRIP_INFO_DBG’ was not declared in this scope
+     } else if (ENABLE_ROUNDTRIP_INFO_DBG) {
+                ^~~~~~~~~~~~~~~~~~~~~~~~~
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/reservation/reservationphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/reservation/reservationphase.o] Error 1
+make[1]: *** [../out/gcc-release/src/network_module/roundtrip/listeningroundtripphase.o] Error 1
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/roundtrip/listeningroundtripphase.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+23:38:45 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+network_module/reservation/reservationphase.cpp: In member function ‘void miosix::ReservationPhase::receiveOrGetEmpty(miosix::MACContext&)’:
+network_module/reservation/reservationphase.cpp:61:52: error: cannot convert ‘std::vector<unsigned char>’ to ‘const void*’ for argument ‘1’ to ‘void miosix::memDump(const void*, int)’
+                         memDump(packet, result.size);
+                                                    ^
+make[1]: *** [../out/gcc-release/src/network_module/reservation/reservationphase.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+Makefile:141: recipe for target '../out/gcc-release/src/network_module/reservation/reservationphase.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+23:38:58 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/reservation/reservationphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/roundtrip/led_bar.o: In function `miosix::memDump(void const*, int)':
+led_bar.cpp:(.text+0x0): multiple definition of `miosix::memDump(void const*, int)'
+../out/gcc-release/src/miosix_utils_sim.o:miosix_utils_sim.cpp:(.text+0x3b0): first defined here
+collect2: error: ld returned 1 exit status
+Makefile:132: recipe for target '../out/gcc-release/src/WandstemMac' failed
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+23:47:47 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
