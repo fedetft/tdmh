@@ -37,7 +37,7 @@ HookingFloodingPhase::~HookingFloodingPhase() {
 void HookingFloodingPhase::execute(MACContext& ctx)
 {   
     if (ENABLE_FLOODING_INFO_DBG)
-        printf("[F] Resync\n");
+        print_dbg("[F] Resync\n");
     auto* status = ctx.getSyncStatus();
     auto* synchronizer = status->synchronizer;
     synchronizer->reset();
@@ -53,14 +53,14 @@ void HookingFloodingPhase::execute(MACContext& ctx)
             result = transceiver.recv(packet, syncPacketSize, infiniteTimeout);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
-                printf("%s\n", e.what());
+                print_dbg("%s\n", e.what());
         }
         if (ENABLE_PKT_INFO_DBG)
             if(result.size){
-                printf("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+                print_dbg("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
                 if (ENABLE_PKT_DUMP_DBG)
                     memDump(packet, result.size);
-            } else printf("No packet received, timeout reached\n");
+            } else print_dbg("No packet received, timeout reached\n");
     }
     ++packet[2];
     rebroadcast(result.timestamp, packet, networkConfig.maxHops);
@@ -69,7 +69,7 @@ void HookingFloodingPhase::execute(MACContext& ctx)
     transceiver.turnOff();
     
     if (ENABLE_FLOODING_INFO_DBG)
-        printf("[F] ERT=%lld, RT=%lld\n", status->computedFrameStart, result.timestamp);
+        print_dbg("[F] ERT=%lld, RT=%lld\n", status->computedFrameStart, result.timestamp);
     
     status->initialize(synchronizer->getReceiverWindow(), result.timestamp);
     ctx.setHop(packet[2]);
@@ -77,7 +77,7 @@ void HookingFloodingPhase::execute(MACContext& ctx)
     //Correct frame start considering hops
     //measuredFrameStart-=hop*packetRebroadcastTime;
     if (ENABLE_FLOODING_INFO_DBG)
-        printf("[F] hop=%d, w=%d, rssi=%d\n", packet[2], status->receiverWindow, result.rssi);
+        print_dbg("[F] hop=%d, w=%d, rssi=%d\n", packet[2], status->receiverWindow, result.rssi);
 }
 }
 

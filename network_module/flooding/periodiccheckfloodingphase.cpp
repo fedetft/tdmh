@@ -47,7 +47,7 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     unsigned char packet[syncPacketSize];
     
     if (ENABLE_FLOODING_INFO_DBG)
-        printf("[F] WU=%lld TO=%lld\n", wakeupTimeout.first, timeoutTime);
+        print_dbg("[F] WU=%lld TO=%lld\n", wakeupTimeout.first, timeoutTime);
 
     transceiver.turnOn();
     RecvResult result;
@@ -57,7 +57,7 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     //check if we skipped the synchronization time
     if (now >= localFirstActivityTime - syncStatus->receiverWindow) {
         if (ENABLE_FLOODING_ERROR_DBG)
-            printf("[F] started too late\n");
+            print_dbg("[F] started too late\n");
         syncStatus->missedPacket();
         return;
     }
@@ -73,14 +73,14 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
             result = transceiver.recv(packet, syncPacketSize, timeoutTime, Transceiver::Unit::NS, Transceiver::Correct::UNCORR);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
-                printf("%s\n", e.what());
+                print_dbg("%s\n", e.what());
         }
         if (ENABLE_PKT_INFO_DBG)
             if(result.size){
-                printf("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+                print_dbg("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
                 if (ENABLE_PKT_DUMP_DBG)
                     memDump(packet, result.size);
-            } else printf("No packet received, timeout reached\n");
+            } else print_dbg("No packet received, timeout reached\n");
     }
     
     transceiver.idle(); //Save power waiting for rebroadcast time
@@ -95,16 +95,16 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     if (success) {
         syncStatus->receivedPacket(result.timestamp);
         if (ENABLE_FLOODING_INFO_DBG)
-            printf("[F] RT=%lld\ne=%lld u=%d w=%d rssi=%d\n",
+            print_dbg("[F] RT=%lld\ne=%lld u=%d w=%d rssi=%d\n",
                     result.timestamp,
                     syncStatus->getError(),
                     syncStatus->clockCorrection,
                     syncStatus->receiverWindow,
                    result.rssi);
     } else if (ENABLE_FLOODING_INFO_DBG) {
-        printf("[F] miss u=%d w=%d\n", syncStatus->clockCorrection, syncStatus->receiverWindow);
+        print_dbg("[F] miss u=%d w=%d\n", syncStatus->clockCorrection, syncStatus->receiverWindow);
         if (syncStatus->missedPacket() >= maxMissedPackets)
-            printf("[F] lost sync\n");
+            print_dbg("[F] lost sync\n");
     }
 }
 }

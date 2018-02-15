@@ -38,6 +38,9 @@ void ledOff();
 long long getTime();
 void memDump(const void *start, int len);
 
+#define print_dbg print_dbg_
+void print_dbg_(const char *fmt, ...);
+
 class Thread : public MiosixStaticInterface {
 public:
     static void nanoSleep(long long delta);

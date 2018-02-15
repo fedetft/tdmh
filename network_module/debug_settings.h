@@ -49,5 +49,15 @@ const bool ENABLE_ROUNDTRIP_INFO_DBG = true;
 //prints the flooding phase errors
 const bool ENABLE_ROUNDTRIP_ERROR_DBG = true;
 
+/**
+ * If you want to override this function's behavior, define the macro
+ * #define print_dbg myfun
+ * and define the function myfun.
+ * Do this anywhere before including any network_module file.
+ */
+namespace miosix {
+void print_dbg(const char *fmt, ...);
+}
+
 #endif /* DEBUG_SETTINGS_H */
 

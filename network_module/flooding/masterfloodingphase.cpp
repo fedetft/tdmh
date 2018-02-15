@@ -50,10 +50,10 @@ namespace miosix {
             transceiver.sendAt(getSyncPkt(ctx.getNetworkConfig()->panId).data(), syncPacketSize, globalFirstActivityTime);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
-                printf("%s\n", e.what());
+                print_dbg("%s\n", e.what());
         }
         if (ENABLE_FLOODING_INFO_DBG)
-            printf("[F] ST=%lld\n", globalFirstActivityTime);
+            print_dbg("[F] ST=%lld\n", globalFirstActivityTime);
         transceiver.turnOff();
         ledOff();
     }

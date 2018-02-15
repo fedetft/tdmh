@@ -47,10 +47,10 @@ namespace miosix {
                 getRoundtripAskPacket(ctx.getNetworkConfig()->panId).data(), askPacketSize, globalFirstActivityTime);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
-                printf("%s\n", e.what());
+                print_dbg("%s\n", e.what());
         }
         if (ENABLE_ROUNDTRIP_INFO_DBG)
-            printf("Asked Roundtrip\n");
+            print_dbg("Asked Roundtrip\n");
 
         //Expecting a ledbar reply from any node of the previous hop, crc disabled
         auto* tc = ctx.getTransceiverConfig();
@@ -64,14 +64,14 @@ namespace miosix {
                 result = transceiver.recv(p.getPacket(), p.getPacketSize(), globalFirstActivityTime + replyDelay);
             } catch(std::exception& e) {
                 if (ENABLE_RADIO_EXCEPTION_DBG)
-                    printf("%s\n", e.what());
+                    print_dbg("%s\n", e.what());
             }
             if (ENABLE_PKT_INFO_DBG)
                 if(result.error != RecvResult::ErrorCode::UNINITIALIZED){
-                    printf("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+                    print_dbg("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
                     if (ENABLE_PKT_DUMP_DBG)
                         memDump(p.getPacket(), result.size);
-                } else printf("No packet received, timeout reached\n");
+                } else print_dbg("No packet received, timeout reached\n");
         }
         transceiver.turnOff();
         greenLed::low();
@@ -80,9 +80,9 @@ namespace miosix {
             lastDelay = result.timestamp - (globalFirstActivityTime + replyDelay);
             totalDelay = p.decode().first * accuracy + lastDelay;
             if (ENABLE_ROUNDTRIP_INFO_DBG)
-                printf("delay=%lld total=%lld\n", lastDelay, totalDelay);
+                print_dbg("delay=%lld total=%lld\n", lastDelay, totalDelay);
         } else if (ENABLE_ROUNDTRIP_INFO_DBG) {
-            printf("No roundtrip reply received\n");
+            print_dbg("No roundtrip reply received\n");
         }
     }
 }

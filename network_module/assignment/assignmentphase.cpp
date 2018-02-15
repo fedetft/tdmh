@@ -43,7 +43,7 @@ namespace miosix {
         auto hop = ctx.getHop();
         auto now = getTime();
         if(now >= localFirstActivityTime - syncStatus->receiverWindow)
-            printf("AP start late\n");
+            print_dbg("AP start late\n");
         if (now < wakeUpTimeout.first)
             pm.deepSleepUntil(wakeUpTimeout.first);
         ledOn();
@@ -55,14 +55,14 @@ namespace miosix {
                 result = transceiver.recv(packet.data(), AssignmentPhase::assignmentPacketSize, wakeUpTimeout.second);
             } catch(std::exception& e) {
                 if (ENABLE_RADIO_EXCEPTION_DBG)
-                    printf("%s\n", e.what());
+                    print_dbg("%s\n", e.what());
             }
             if (ENABLE_PKT_INFO_DBG)
                 if(result.size) {
-                    printf("[RTT] Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+                    print_dbg("[RTT] Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
                     if (ENABLE_PKT_DUMP_DBG)
                         memDump(packet.data(), result.size);
-                } else printf("[RTT] No packet received, timeout reached\n");
+                } else print_dbg("[RTT] No packet received, timeout reached\n");
         }
         if(result.error != RecvResult::ErrorCode::OK) {//looks like i lost the connection to the parent hop. Let's broadcast about that.
             getEmptyPkt(panId, hop);
@@ -81,10 +81,10 @@ namespace miosix {
             transceiver.sendAt(packet.data(), sizeof(packet), sendTime);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
-                printf("%s\n", e.what());
+                print_dbg("%s\n", e.what());
         }
         if (ENABLE_FLOODING_INFO_DBG)
-            printf("Sync packet sent at %lld\n", sendTime);
+            print_dbg("Sync packet sent at %lld\n", sendTime);
     }
     
      void AssignmentPhase::processPacket() {

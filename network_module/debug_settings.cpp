@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2018 by Terraneo Federico, Polidori Paolo              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,23 +25,16 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "floodingphase.h"
-#include <stdio.h>
-#include "../debug_settings.h"
+#include "debug_settings.h"
+#include <cstdarg>
+#include <cstdio>
 
-namespace miosix{
+namespace miosix {
 
-FloodingPhase::~FloodingPhase() {
-}
-
-void FloodingPhase::rebroadcast(long long receivedTimestamp, unsigned char* packet, unsigned char maxHops){
-    if(packet[2] == maxHops) return;
-    try {
-        transceiver.sendAt(packet, syncPacketSize, receivedTimestamp + rebroadcastInterval);
-    } catch(std::exception& e) {
-        if (ENABLE_RADIO_EXCEPTION_DBG)
-            print_dbg("%s\n", e.what());
-    }
+void print_dbg(const char *fmt, ...) {
+    va_list args;
+    va_start (args, fmt);
+    vprintf (fmt, args);
+    va_end (args);
 }
 }
-
