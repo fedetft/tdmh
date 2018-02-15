@@ -14554,3 +14554,1111 @@ network_module/roundtrip/askingroundtripphase.cpp
 network_module/roundtrip/listeningroundtripphase.cpp
 Creating executable: ../out/gcc-release/src/WandstemMac
 make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+00:04:09 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+miosix_utils_sim.cpp
+network_module/debug_settings.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+In file included from /usr/include/c++/7/cstdarg:43:0,
+                 from network_module/debug_settings.cpp:29:
+network_module/debug_settings.cpp: In function ‘void miosix::print_dbg(const char*, ...)’:
+network_module/debug_settings.cpp:39:21: error: ‘format’ was not declared in this scope
+     va_start (args, format);
+                     ^
+network_module/debug_settings.cpp:39:21: note: suggested alternative: ‘fmt’
+Makefile:140: recipe for target '../out/gcc-release/src/network_module/debug_settings.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/debug_settings.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make: *** [all] Error 2
+Makefile:2: recipe for target 'all' failed
+00:04:53 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/debug_settings.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/debug_settings.o: In function `miosix::print_dbg(char const*, ...)':
+debug_settings.cpp:(.text+0x0): multiple definition of `miosix::print_dbg(char const*, ...)'
+../out/gcc-release/src/miosix_utils_sim.o:miosix_utils_sim.cpp:(.text+0x790): first defined here
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+collect2: error: ld returned 1 exit status
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+00:05:38 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/debug_settings.o: In function `miosix::print_dbg(char const*, ...)':
+debug_settings.cpp:(.text+0x0): multiple definition of `miosix::print_dbg(char const*, ...)'
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+../out/gcc-release/src/miosix_utils_sim.o:miosix_utils_sim.cpp:(.text+0x790): first defined here
+collect2: error: ld returned 1 exit status
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+00:06:50 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+miosix_utils_sim.cpp
+MiosixInterface.cpp
+MiosixStaticInterface.cpp
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+interfaces-impl/power_manager.cpp
+interfaces-impl/transceiver.cpp
+interfaces-impl/virtual_clock.cpp
+kernel/timeconversion.cpp
+network_module/maccontext.cpp
+network_module/macphase.cpp
+network_module/mediumaccesscontroller.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/assignment/dynamicassignmentphase.cpp
+network_module/assignment/lasthopassignmentphase.cpp
+network_module/assignment/masterassignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/macround/dynamicmacround.cpp
+network_module/macround/macround.cpp
+network_module/macround/mastermacround.cpp
+network_module/reservation/dynamicreservationphase.cpp
+network_module/reservation/lasthopreservationphase.cpp
+network_module/reservation/masterreservationphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+network_module/roundtrip/roundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/debug_settings.o: In function `miosix::print_dbg(char const*, ...)':
+debug_settings.cpp:(.text+0x0): multiple definition of `miosix::print_dbg(char const*, ...)'
+../out/gcc-release/src/miosix_utils_sim.o:miosix_utils_sim.cpp:(.text+0x790): first defined here
+collect2: error: ld returned 1 exit status
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+00:08:41 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+miosix_utils_sim.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/debug_settings.o: In function `miosix::print_dbg(char const*, ...)':
+debug_settings.cpp:(.text+0x0): multiple definition of `miosix::print_dbg(char const*, ...)'
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+../out/gcc-release/src/miosix_utils_sim.o:miosix_utils_sim.cpp:(.text+0x790): first defined here
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+collect2: error: ld returned 1 exit status
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+00:10:28 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/debug_settings.cpp
+network_module/debug_settings.cpp:36:2: error: #error cristo
+ #error cristo
+  ^~~~~
+make[1]: *** [../out/gcc-release/src/network_module/debug_settings.o] Error 1
+Makefile:140: recipe for target '../out/gcc-release/src/network_module/debug_settings.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+00:13:21 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+miosix_utils_sim.cpp
+MiosixInterface.cpp
+MiosixStaticInterface.cpp
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+interfaces-impl/power_manager.cpp
+interfaces-impl/transceiver.cpp
+interfaces-impl/virtual_clock.cpp
+kernel/timeconversion.cpp
+network_module/debug_settings.cpp
+network_module/maccontext.cpp
+network_module/macphase.cpp
+network_module/mediumaccesscontroller.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/assignment/dynamicassignmentphase.cpp
+network_module/assignment/lasthopassignmentphase.cpp
+network_module/assignment/masterassignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/macround/dynamicmacround.cpp
+network_module/macround/macround.cpp
+network_module/macround/mastermacround.cpp
+network_module/reservation/dynamicreservationphase.cpp
+network_module/reservation/lasthopreservationphase.cpp
+network_module/reservation/masterreservationphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+network_module/roundtrip/roundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/debug_settings.o: In function `miosix::print_dbg(char const*, ...)':
+debug_settings.cpp:(.text+0x0): multiple definition of `miosix::print_dbg(char const*, ...)'
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+../out/gcc-release/src/miosix_utils_sim.o:miosix_utils_sim.cpp:(.text+0x790): first defined here
+collect2: error: ld returned 1 exit status
+Makefile:2: recipe for target 'all' failed
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+00:14:05 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+miosix_utils_sim.cpp
+MiosixInterface.cpp
+MiosixStaticInterface.cpp
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+interfaces-impl/power_manager.cpp
+interfaces-impl/transceiver.cpp
+interfaces-impl/virtual_clock.cpp
+kernel/timeconversion.cpp
+network_module/maccontext.cpp
+network_module/macphase.cpp
+network_module/mediumaccesscontroller.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/assignment/dynamicassignmentphase.cpp
+network_module/assignment/lasthopassignmentphase.cpp
+network_module/assignment/masterassignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/macround/dynamicmacround.cpp
+network_module/macround/macround.cpp
+network_module/macround/mastermacround.cpp
+network_module/reservation/dynamicreservationphase.cpp
+network_module/reservation/lasthopreservationphase.cpp
+network_module/reservation/masterreservationphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+network_module/roundtrip/roundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/debug_settings.o: In function `miosix::print_dbg(char const*, ...)':
+debug_settings.cpp:(.text+0x0): multiple definition of `miosix::print_dbg(char const*, ...)'
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+../out/gcc-release/src/miosix_utils_sim.o:miosix_utils_sim.cpp:(.text+0x790): first defined here
+collect2: error: ld returned 1 exit status
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+00:15:18 **** Clean-only build of configuration release for project WandstemMac ****
+make MODE=release -j4 clean 
+cd src && make clean
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Cleaning WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+00:15:18 **** Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+MiosixInterface.cpp
+miosix_utils_sim.cpp
+MiosixStaticInterface.cpp
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+interfaces-impl/power_manager.cpp
+interfaces-impl/transceiver.cpp
+interfaces-impl/virtual_clock.cpp
+kernel/timeconversion.cpp
+network_module/debug_settings.cpp
+network_module/maccontext.cpp
+network_module/macphase.cpp
+network_module/mediumaccesscontroller.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/assignment/dynamicassignmentphase.cpp
+network_module/assignment/lasthopassignmentphase.cpp
+network_module/assignment/masterassignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/flooding/time_synchronizers/flopsync1.cpp
+network_module/flooding/time_synchronizers/flopsync2.cpp
+network_module/flooding/time_synchronizers/synchronizer.cpp
+network_module/macround/dynamicmacround.cpp
+network_module/macround/macround.cpp
+network_module/macround/mastermacround.cpp
+network_module/reservation/dynamicreservationphase.cpp
+network_module/reservation/lasthopreservationphase.cpp
+network_module/reservation/masterreservationphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+network_module/roundtrip/roundtripphase.cpp
+network_module/slots_management/dynamicslotsnegotiator.cpp
+network_module/slots_management/masterslotsnegotiator.cpp
+network_module/slots_management/slotsnegotiator.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/debug_settings.o: In function `miosix::print_dbg(char const*, ...)':
+debug_settings.cpp:(.text+0x0): multiple definition of `miosix::print_dbg(char const*, ...)'
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+../out/gcc-release/src/miosix_utils_sim.o:miosix_utils_sim.cpp:(.text+0x790): first defined here
+collect2: error: ld returned 1 exit status
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+00:19:37 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/debug_settings.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+00:20:21 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/debug_settings.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/debug_settings.o: In function `miosix::print_dbg(char const*, ...)':
+debug_settings.cpp:(.text+0x0): multiple definition of `miosix::print_dbg(char const*, ...)'
+../out/gcc-release/src/miosix_utils_sim.o:miosix_utils_sim.cpp:(.text+0x790): first defined here
+collect2: error: ld returned 1 exit status
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+00:21:05 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/debug_settings.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/debug_settings.o: In function `miosix::print_dbg(char const*, ...)':
+debug_settings.cpp:(.text+0x0): multiple definition of `miosix::print_dbg(char const*, ...)'
+../out/gcc-release/src/miosix_utils_sim.o:miosix_utils_sim.cpp:(.text+0x790): first defined here
+collect2: error: ld returned 1 exit status
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+00:21:31 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/debug_settings.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/debug_settings.o: In function `miosix::print_dbg(char const*, ...)':
+debug_settings.cpp:(.text+0x0): multiple definition of `miosix::print_dbg(char const*, ...)'
+../out/gcc-release/src/miosix_utils_sim.o:miosix_utils_sim.cpp:(.text+0x790): first defined here
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+collect2: error: ld returned 1 exit status
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+00:21:45 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/debug_settings.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+00:22:51 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+miosix_utils_sim.cpp
+MiosixStaticInterface.cpp
+MiosixInterface.cpp
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+interfaces-impl/power_manager.cpp
+interfaces-impl/transceiver.cpp
+interfaces-impl/virtual_clock.cpp
+kernel/timeconversion.cpp
+network_module/debug_settings.cpp
+network_module/maccontext.cpp
+network_module/macphase.cpp
+network_module/mediumaccesscontroller.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/assignment/dynamicassignmentphase.cpp
+network_module/assignment/lasthopassignmentphase.cpp
+network_module/assignment/masterassignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/macround/dynamicmacround.cpp
+network_module/macround/macround.cpp
+network_module/macround/mastermacround.cpp
+network_module/reservation/dynamicreservationphase.cpp
+network_module/reservation/lasthopreservationphase.cpp
+network_module/reservation/masterreservationphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+network_module/roundtrip/roundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/debug_settings.o: In function `miosix::print_dbg(char const*, ...)':
+debug_settings.cpp:(.text+0x0): multiple definition of `miosix::print_dbg(char const*, ...)'
+../out/gcc-release/src/miosix_utils_sim.o:miosix_utils_sim.cpp:(.text+0x790): first defined here
+collect2: error: ld returned 1 exit status
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+00:23:57 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+MiosixInterface.cpp
+miosix_utils_sim.cpp
+MiosixStaticInterface.cpp
+Node.cpp
+In file included from miosix_utils_sim.cpp:28:0:
+miosix_utils_sim.h:67:2: error: #endif without #if
+ #endif /* MIOSIX_UTILS_SIM_H_ */
+  ^~~~~
+In file included from NodeBase.h:19:0,
+                 from miosix_utils_sim.cpp:29:
+miosix_utils_sim.h:67:2: error: #endif without #if
+ #endif /* MIOSIX_UTILS_SIM_H_ */
+  ^~~~~
+In file included from NodeBase.h:19:0,
+                 from Node.h:18,
+                 from Node.cpp:16:
+miosix_utils_sim.h:67:2: error: #endif without #if
+ #endif /* MIOSIX_UTILS_SIM_H_ */
+  ^~~~~
+In file included from NodeBase.h:19:0,
+                 from MiosixStaticInterface.cpp:31:
+miosix_utils_sim.h:67:2: error: #endif without #if
+ #endif /* MIOSIX_UTILS_SIM_H_ */
+  ^~~~~
+In file included from NodeBase.h:19:0,
+                 from MiosixInterface.h:31,
+                 from MiosixInterface.cpp:28:
+miosix_utils_sim.h:67:2: error: #endif without #if
+ #endif /* MIOSIX_UTILS_SIM_H_ */
+  ^~~~~
+miosix_utils_sim.h:45:45: error: expected class-name before ‘{’ token
+ class Thread : public MiosixStaticInterface {
+                                             ^
+miosix_utils_sim.h:63:1: error: expected declaration before ‘}’ token
+ }
+ ^
+Makefile:140: recipe for target '../out/gcc-release/src/miosix_utils_sim.o' failed
+make[1]: *** [../out/gcc-release/src/miosix_utils_sim.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+make[1]: *** [../out/gcc-release/src/MiosixStaticInterface.o] Error 1
+Makefile:140: recipe for target '../out/gcc-release/src/MiosixStaticInterface.o' failed
+Makefile:140: recipe for target '../out/gcc-release/src/MiosixInterface.o' failed
+make[1]: *** [../out/gcc-release/src/MiosixInterface.o] Error 1
+make[1]: *** [../out/gcc-release/src/Node.o] Error 1
+Makefile:140: recipe for target '../out/gcc-release/src/Node.o' failed
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+00:24:23 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+miosix_utils_sim.cpp
+MiosixInterface.cpp
+MiosixStaticInterface.cpp
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+interfaces-impl/power_manager.cpp
+interfaces-impl/transceiver.cpp
+interfaces-impl/virtual_clock.cpp
+kernel/timeconversion.cpp
+network_module/maccontext.cpp
+network_module/macphase.cpp
+network_module/mediumaccesscontroller.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/assignment/dynamicassignmentphase.cpp
+network_module/assignment/lasthopassignmentphase.cpp
+network_module/assignment/masterassignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/macround/dynamicmacround.cpp
+network_module/macround/macround.cpp
+network_module/macround/mastermacround.cpp
+network_module/reservation/dynamicreservationphase.cpp
+network_module/reservation/lasthopreservationphase.cpp
+network_module/reservation/masterreservationphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+network_module/roundtrip/roundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/debug_settings.o: In function `miosix::print_dbg(char const*, ...)':
+debug_settings.cpp:(.text+0x0): multiple definition of `miosix::print_dbg(char const*, ...)'
+../out/gcc-release/src/miosix_utils_sim.o:miosix_utils_sim.cpp:(.text+0x790): first defined here
+collect2: error: ld returned 1 exit status
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+00:26:21 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/debug_settings.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+00:26:47 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+miosix_utils_sim.cpp
+MiosixInterface.cpp
+MiosixStaticInterface.cpp
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+interfaces-impl/power_manager.cpp
+interfaces-impl/transceiver.cpp
+interfaces-impl/virtual_clock.cpp
+kernel/timeconversion.cpp
+network_module/maccontext.cpp
+network_module/macphase.cpp
+network_module/mediumaccesscontroller.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/assignment/dynamicassignmentphase.cpp
+network_module/assignment/lasthopassignmentphase.cpp
+network_module/assignment/masterassignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/macround/dynamicmacround.cpp
+network_module/macround/macround.cpp
+network_module/macround/mastermacround.cpp
+network_module/reservation/dynamicreservationphase.cpp
+network_module/reservation/lasthopreservationphase.cpp
+network_module/reservation/masterreservationphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+network_module/roundtrip/roundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/assignment/assignmentphase.o: In function `print_dbg(char const*, ...)':
+assignmentphase.cpp:(.text+0x0): multiple definition of `print_dbg(char const*, ...)'
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+../out/gcc-release/src/network_module/debug_settings.o:debug_settings.cpp:(.text+0x0): first defined here
+../out/gcc-release/src/network_module/flooding/floodingphase.o: In function `print_dbg(char const*, ...)':
+floodingphase.cpp:(.text+0x0): multiple definition of `print_dbg(char const*, ...)'
+../out/gcc-release/src/network_module/debug_settings.o:debug_settings.cpp:(.text+0x0): first defined here
+../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o: In function `print_dbg(char const*, ...)':
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+hookingfloodingphase.cpp:(.text+0x2e0): multiple definition of `print_dbg(char const*, ...)'
+../out/gcc-release/src/network_module/debug_settings.o:debug_settings.cpp:(.text+0x0): first defined here
+../out/gcc-release/src/network_module/flooding/masterfloodingphase.o: In function `print_dbg(char const*, ...)':
+Makefile:2: recipe for target 'all' failed
+masterfloodingphase.cpp:(.text+0x1b0): multiple definition of `print_dbg(char const*, ...)'
+../out/gcc-release/src/network_module/debug_settings.o:debug_settings.cpp:(.text+0x0): first defined here
+../out/gcc-release/src/network_module/flooding/periodiccheckfloodingphase.o: In function `print_dbg(char const*, ...)':
+periodiccheckfloodingphase.cpp:(.text+0x4c0): multiple definition of `print_dbg(char const*, ...)'
+../out/gcc-release/src/network_module/debug_settings.o:debug_settings.cpp:(.text+0x0): first defined here
+../out/gcc-release/src/network_module/reservation/reservationphase.o: In function `print_dbg(char const*, ...)':
+reservationphase.cpp:(.text+0x0): multiple definition of `print_dbg(char const*, ...)'
+../out/gcc-release/src/network_module/debug_settings.o:debug_settings.cpp:(.text+0x0): first defined here
+../out/gcc-release/src/network_module/roundtrip/askingroundtripphase.o: In function `print_dbg(char const*, ...)':
+askingroundtripphase.cpp:(.text+0x3b0): multiple definition of `print_dbg(char const*, ...)'
+../out/gcc-release/src/network_module/debug_settings.o:debug_settings.cpp:(.text+0x0): first defined here
+../out/gcc-release/src/network_module/roundtrip/listeningroundtripphase.o: In function `print_dbg(char const*, ...)':
+listeningroundtripphase.cpp:(.text+0x390): multiple definition of `print_dbg(char const*, ...)'
+../out/gcc-release/src/network_module/debug_settings.o:debug_settings.cpp:(.text+0x0): first defined here
+collect2: error: ld returned 1 exit status
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+00:28:45 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/debug_settings.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+00:29:01 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+miosix_utils_sim.cpp
+MiosixInterface.cpp
+MiosixStaticInterface.cpp
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+interfaces-impl/power_manager.cpp
+interfaces-impl/transceiver.cpp
+interfaces-impl/virtual_clock.cpp
+kernel/timeconversion.cpp
+network_module/maccontext.cpp
+network_module/macphase.cpp
+network_module/mediumaccesscontroller.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/assignment/dynamicassignmentphase.cpp
+network_module/assignment/lasthopassignmentphase.cpp
+network_module/assignment/masterassignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/macround/dynamicmacround.cpp
+network_module/macround/macround.cpp
+network_module/macround/mastermacround.cpp
+network_module/reservation/dynamicreservationphase.cpp
+network_module/reservation/lasthopreservationphase.cpp
+network_module/reservation/masterreservationphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+network_module/roundtrip/roundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/debug_settings.o: In function `miosix::print_dbg(char const*, ...)':
+debug_settings.cpp:(.text+0x0): multiple definition of `miosix::print_dbg(char const*, ...)'
+../out/gcc-release/src/miosix_utils_sim.o:miosix_utils_sim.cpp:(.text+0x790): first defined here
+collect2: error: ld returned 1 exit status
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+00:38:24 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+miosix_utils_sim.cpp
+MiosixInterface.cpp
+MiosixStaticInterface.cpp
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+interfaces-impl/power_manager.cpp
+interfaces-impl/transceiver.cpp
+interfaces-impl/virtual_clock.cpp
+kernel/timeconversion.cpp
+network_module/debug_settings.cpp
+network_module/maccontext.cpp
+network_module/macphase.cpp
+network_module/mediumaccesscontroller.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/assignment/dynamicassignmentphase.cpp
+network_module/assignment/lasthopassignmentphase.cpp
+network_module/assignment/masterassignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/macround/dynamicmacround.cpp
+network_module/macround/macround.cpp
+network_module/macround/mastermacround.cpp
+network_module/reservation/dynamicreservationphase.cpp
+network_module/reservation/lasthopreservationphase.cpp
+network_module/reservation/masterreservationphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+network_module/roundtrip/roundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+00:42:47 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/assignment/assignmentphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+In file included from ./interfaces-impl/../NodeBase.h:19:0,
+                 from ./interfaces-impl/../MiosixInterface.h:31,
+                 from ./interfaces-impl/transceiver.h:34,
+                 from network_module/flooding/floodingphase.h:31,
+                 from network_module/flooding/hookingfloodingphase.h:31,
+                 from network_module/flooding/hookingfloodingphase.cpp:28:
+network_module/flooding/hookingfloodingphase.cpp: In member function ‘virtual void miosix::HookingFloodingPhase::execute(miosix::MACContext&)’:
+./interfaces-impl/../miosix_utils_sim.h:41:56: error: expected primary-expression before ‘)’ token
+ #define print_dbg(fmt, ...) print_dbg_(fmt, __VA_ARGS__)
+                                                        ^
+network_module/flooding/hookingfloodingphase.cpp:40:9: note: in expansion of macro ‘print_dbg’
+         print_dbg("[F] Resync\n");
+         ^~~~~~~~~
+./interfaces-impl/../miosix_utils_sim.h:41:56: error: expected primary-expression before ‘)’ token
+ #define print_dbg(fmt, ...) print_dbg_(fmt, __VA_ARGS__)
+                                                        ^
+network_module/flooding/hookingfloodingphase.cpp:63:20: note: in expansion of macro ‘print_dbg’
+             } else print_dbg("No packet received, timeout reached\n");
+                    ^~~~~~~~~
+In file included from ./interfaces-impl/../NodeBase.h:19:0,
+                 from ./interfaces-impl/../MiosixInterface.h:31,
+                 from ./interfaces-impl/transceiver.h:34,
+                 from network_module/assignment/../maccontext.h:32,
+                 from network_module/assignment/../macphase.h:79,
+                 from network_module/assignment/assignmentphase.h:32,
+                 from network_module/assignment/assignmentphase.cpp:29:
+network_module/assignment/assignmentphase.cpp: In member function ‘void miosix::AssignmentPhase::receiveOrGetEmpty(miosix::MACContext&)’:
+./interfaces-impl/../miosix_utils_sim.h:41:56: error: expected primary-expression before ‘)’ token
+ #define print_dbg(fmt, ...) print_dbg_(fmt, __VA_ARGS__)
+                                                        ^
+network_module/assignment/assignmentphase.cpp:46:13: note: in expansion of macro ‘print_dbg’
+             print_dbg("AP start late\n");
+             ^~~~~~~~~
+./interfaces-impl/../miosix_utils_sim.h:41:56: error: expected primary-expression before ‘)’ token
+ #define print_dbg(fmt, ...) print_dbg_(fmt, __VA_ARGS__)
+                                                        ^
+network_module/assignment/assignmentphase.cpp:65:24: note: in expansion of macro ‘print_dbg’
+                 } else print_dbg("[RTT] No packet received, timeout reached\n");
+                        ^~~~~~~~~
+Makefile:140: recipe for target '../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+Makefile:140: recipe for target '../out/gcc-release/src/network_module/assignment/assignmentphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/assignment/assignmentphase.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+00:44:34 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+MiosixInterface.cpp
+Node.cpp
+miosix_utils_sim.cpp
+MiosixStaticInterface.cpp
+RootNode.cpp
+NodeBase.cpp
+interfaces-impl/power_manager.cpp
+interfaces-impl/transceiver.cpp
+interfaces-impl/virtual_clock.cpp
+kernel/timeconversion.cpp
+network_module/maccontext.cpp
+network_module/macphase.cpp
+network_module/mediumaccesscontroller.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/assignment/dynamicassignmentphase.cpp
+network_module/assignment/lasthopassignmentphase.cpp
+network_module/assignment/masterassignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/macround/dynamicmacround.cpp
+network_module/macround/macround.cpp
+network_module/macround/mastermacround.cpp
+network_module/reservation/dynamicreservationphase.cpp
+network_module/reservation/lasthopreservationphase.cpp
+network_module/reservation/masterreservationphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+network_module/roundtrip/roundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/assignment/assignmentphase.o: In function `miosix::AssignmentPhase::receiveOrGetEmpty(miosix::MACContext&)':
+assignmentphase.cpp:(.text+0x2aa): undefined reference to `print_dbg(char const*, ...)'
+assignmentphase.cpp:(.text+0x2fb): undefined reference to `print_dbg(char const*, ...)'
+../out/gcc-release/src/network_module/assignment/assignmentphase.o: In function `miosix::AssignmentPhase::forwardPacket()':
+assignmentphase.cpp:(.text+0x39f): undefined reference to `print_dbg(char const*, ...)'
+assignmentphase.cpp:(.text+0x3ed): undefined reference to `print_dbg(char const*, ...)'
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+../out/gcc-release/src/network_module/flooding/floodingphase.o: In function `miosix::FloodingPhase::rebroadcast(long long, unsigned char*, unsigned char)':
+floodingphase.cpp:(.text+0x10a): undefined reference to `print_dbg(char const*, ...)'
+../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o:hookingfloodingphase.cpp:(.text+0x61): more undefined references to `print_dbg(char const*, ...)' follow
+collect2: error: ld returned 1 exit status
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+00:46:56 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/debug_settings.cpp
+network_module/debug_settings.cpp:41:2: error: #endif without #if
+ #endif /* DO_DEFINE_PRINT_DBG_DEF */
+  ^~~~~
+Makefile:140: recipe for target '../out/gcc-release/src/network_module/debug_settings.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/debug_settings.o] Error 1
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+00:47:09 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/debug_settings.cpp
+network_module/assignment/assignmentphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/assignment/assignmentphase.o: In function `miosix::AssignmentPhase::receiveOrGetEmpty(miosix::MACContext&)':
+assignmentphase.cpp:(.text+0x2aa): undefined reference to `print_dbg(char const*, ...)'
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+assignmentphase.cpp:(.text+0x2fb): undefined reference to `print_dbg(char const*, ...)'
+../out/gcc-release/src/network_module/assignment/assignmentphase.o: In function `miosix::AssignmentPhase::forwardPacket()':
+assignmentphase.cpp:(.text+0x39f): undefined reference to `print_dbg(char const*, ...)'
+assignmentphase.cpp:(.text+0x3ed): undefined reference to `print_dbg(char const*, ...)'
+../out/gcc-release/src/network_module/flooding/floodingphase.o: In function `miosix::FloodingPhase::rebroadcast(long long, unsigned char*, unsigned char)':
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+floodingphase.cpp:(.text+0x10a): undefined reference to `print_dbg(char const*, ...)'
+../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o:hookingfloodingphase.cpp:(.text+0x61): more undefined references to `print_dbg(char const*, ...)' follow
+collect2: error: ld returned 1 exit status
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+00:50:49 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/debug_settings.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/debug_settings.cpp: In function ‘void miosix::print_dbg(const char*)’:
+network_module/debug_settings.cpp:35:5: error: ‘vrintf’ was not declared in this scope
+     vrintf (fmt);
+     ^~~~~~
+network_module/debug_settings.cpp:35:5: note: suggested alternative: ‘vprintf’
+     vrintf (fmt);
+     ^~~~~~
+     vprintf
+Makefile:140: recipe for target '../out/gcc-release/src/network_module/debug_settings.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/debug_settings.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+00:51:01 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/debug_settings.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/assignment/assignmentphase.o: In function `miosix::AssignmentPhase::receiveOrGetEmpty(miosix::MACContext&)':
+assignmentphase.cpp:(.text+0x2aa): undefined reference to `print_dbg(char const*, ...)'
+assignmentphase.cpp:(.text+0x2fb): undefined reference to `print_dbg(char const*, ...)'
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+../out/gcc-release/src/network_module/assignment/assignmentphase.o: In function `miosix::AssignmentPhase::forwardPacket()':
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+assignmentphase.cpp:(.text+0x39f): undefined reference to `print_dbg(char const*, ...)'
+assignmentphase.cpp:(.text+0x3ed): undefined reference to `print_dbg(char const*, ...)'
+../out/gcc-release/src/network_module/flooding/floodingphase.o: In function `miosix::FloodingPhase::rebroadcast(long long, unsigned char*, unsigned char)':
+floodingphase.cpp:(.text+0x10a): undefined reference to `print_dbg(char const*, ...)'
+../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o:hookingfloodingphase.cpp:(.text+0x61): more undefined references to `print_dbg(char const*, ...)' follow
+collect2: error: ld returned 1 exit status
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+00:51:32 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/debug_settings.cpp
+network_module/flooding/floodingphase.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp: In member function ‘virtual void miosix::HookingFloodingPhase::execute(miosix::MACContext&)’:
+network_module/flooding/hookingfloodingphase.cpp:40:33: error: call of overloaded ‘print_dbg(const char [12])’ is ambiguous
+         print_dbg("[F] Resync\n");
+                                 ^
+In file included from network_module/flooding/hookingfloodingphase.cpp:30:0:
+network_module/flooding/../debug_settings.h:59:6: note: candidate: void print_dbg(const char*)
+ void print_dbg(const char *fmt);
+      ^~~~~~~~~
+network_module/flooding/../debug_settings.h:60:6: note: candidate: void print_dbg(const char*, ...)
+ void print_dbg(const char *fmt, ...);
+      ^~~~~~~~~
+network_module/flooding/hookingfloodingphase.cpp:63:69: error: call of overloaded ‘print_dbg(const char [37])’ is ambiguous
+             } else print_dbg("No packet received, timeout reached\n");
+                                                                     ^
+In file included from network_module/flooding/hookingfloodingphase.cpp:30:0:
+network_module/flooding/../debug_settings.h:59:6: note: candidate: void print_dbg(const char*)
+ void print_dbg(const char *fmt);
+      ^~~~~~~~~
+network_module/flooding/../debug_settings.h:60:6: note: candidate: void print_dbg(const char*, ...)
+ void print_dbg(const char *fmt, ...);
+      ^~~~~~~~~
+network_module/assignment/assignmentphase.cpp: In member function ‘void miosix::AssignmentPhase::receiveOrGetEmpty(miosix::MACContext&)’:
+network_module/assignment/assignmentphase.cpp:46:40: error: call of overloaded ‘print_dbg(const char [15])’ is ambiguous
+             print_dbg("AP start late\n");
+                                        ^
+In file included from network_module/assignment/assignmentphase.cpp:31:0:
+network_module/assignment/../debug_settings.h:59:6: note: candidate: void print_dbg(const char*)
+ void print_dbg(const char *fmt);
+      ^~~~~~~~~
+network_module/assignment/../debug_settings.h:60:6: note: candidate: void print_dbg(const char*, ...)
+ void print_dbg(const char *fmt, ...);
+      ^~~~~~~~~
+network_module/assignment/assignmentphase.cpp:65:79: error: call of overloaded ‘print_dbg(const char [43])’ is ambiguous
+                 } else print_dbg("[RTT] No packet received, timeout reached\n");
+                                                                               ^
+In file included from network_module/assignment/assignmentphase.cpp:31:0:
+network_module/assignment/../debug_settings.h:59:6: note: candidate: void print_dbg(const char*)
+ void print_dbg(const char *fmt);
+      ^~~~~~~~~
+network_module/assignment/../debug_settings.h:60:6: note: candidate: void print_dbg(const char*, ...)
+ void print_dbg(const char *fmt, ...);
+      ^~~~~~~~~
+Makefile:140: recipe for target '../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+Makefile:140: recipe for target '../out/gcc-release/src/network_module/assignment/assignmentphase.o' failed
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: *** [../out/gcc-release/src/network_module/assignment/assignmentphase.o] Error 1
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+00:52:16 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/debug_settings.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+../out/gcc-release/src/network_module/assignment/assignmentphase.o: In function `miosix::AssignmentPhase::receiveOrGetEmpty(miosix::MACContext&)':
+assignmentphase.cpp:(.text+0x2aa): undefined reference to `print_dbg(char const*, ...)'
+assignmentphase.cpp:(.text+0x2fb): undefined reference to `print_dbg(char const*, ...)'
+../out/gcc-release/src/network_module/assignment/assignmentphase.o: In function `miosix::AssignmentPhase::forwardPacket()':
+assignmentphase.cpp:(.text+0x39f): undefined reference to `print_dbg(char const*, ...)'
+assignmentphase.cpp:(.text+0x3ed): undefined reference to `print_dbg(char const*, ...)'
+../out/gcc-release/src/network_module/flooding/floodingphase.o: In function `miosix::FloodingPhase::rebroadcast(long long, unsigned char*, unsigned char)':
+floodingphase.cpp:(.text+0x10a): undefined reference to `print_dbg(char const*, ...)'
+Makefile:131: recipe for target '../out/gcc-release/src/WandstemMac' failed
+../out/gcc-release/src/network_module/flooding/hookingfloodingphase.o:hookingfloodingphase.cpp:(.text+0x61): more undefined references to `print_dbg(char const*, ...)' follow
+collect2: error: ld returned 1 exit status
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make[1]: *** [../out/gcc-release/src/WandstemMac] Error 1
+make: *** [all] Error 2
+10:44:53 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+miosix_utils_sim.cpp
+MiosixInterface.cpp
+MiosixStaticInterface.cpp
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+interfaces-impl/power_manager.cpp
+interfaces-impl/transceiver.cpp
+interfaces-impl/virtual_clock.cpp
+kernel/timeconversion.cpp
+network_module/debug_settings.cpp
+network_module/maccontext.cpp
+network_module/macphase.cpp
+network_module/mediumaccesscontroller.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/assignment/dynamicassignmentphase.cpp
+network_module/assignment/lasthopassignmentphase.cpp
+network_module/assignment/masterassignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/macround/dynamicmacround.cpp
+network_module/macround/macround.cpp
+network_module/macround/mastermacround.cpp
+network_module/reservation/dynamicreservationphase.cpp
+network_module/reservation/lasthopreservationphase.cpp
+network_module/reservation/masterreservationphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+network_module/roundtrip/roundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+10:54:34 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+miosix_utils_sim.cpp
+MiosixInterface.cpp
+MiosixStaticInterface.cpp
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+interfaces-impl/power_manager.cpp
+interfaces-impl/transceiver.cpp
+interfaces-impl/virtual_clock.cpp
+kernel/timeconversion.cpp
+network_module/debug_settings.cpp
+network_module/debug_settings.cpp: In function ‘void miosix::print_dbg(const char*, ...)’:
+network_module/debug_settings.cpp:37:5: error: ‘viprintf’ was not declared in this scope
+     viprintf(fmt,arg);
+     ^~~~~~~~
+network_module/debug_settings.cpp:37:5: note: suggested alternative: ‘vdprintf’
+     viprintf(fmt,arg);
+     ^~~~~~~~
+     vdprintf
+Makefile:140: recipe for target '../out/gcc-release/src/network_module/debug_settings.o' failed
+make[1]: *** [../out/gcc-release/src/network_module/debug_settings.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+10:57:00 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+network_module/debug_settings.cpp
+network_module/mediumaccesscontroller.cpp
+network_module/macphase.cpp
+network_module/maccontext.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/assignment/dynamicassignmentphase.cpp
+In file included from ./interfaces-impl/../NodeBase.h:19:0,
+                 from ./interfaces-impl/../MiosixInterface.h:31,
+                 from ./interfaces-impl/transceiver.h:34,
+                 from network_module/assignment/../maccontext.h:32,
+                 from network_module/assignment/../macphase.h:79,
+                 from network_module/assignment/assignmentphase.h:32,
+                 from network_module/assignment/assignmentphase.cpp:29:
+network_module/assignment/assignmentphase.cpp: In member function ‘void miosix::AssignmentPhase::receiveOrGetEmpty(miosix::MACContext&)’:
+./interfaces-impl/../miosix_utils_sim.h:41:56: error: expected primary-expression before ‘)’ token
+ #define print_dbg(fmt, ...) print_dbg_(fmt, __VA_ARGS__)
+                                                        ^
+network_module/assignment/assignmentphase.cpp:46:13: note: in expansion of macro ‘print_dbg’
+             print_dbg("AP start late\n");
+             ^~~~~~~~~
+./interfaces-impl/../miosix_utils_sim.h:41:56: error: expected primary-expression before ‘)’ token
+ #define print_dbg(fmt, ...) print_dbg_(fmt, __VA_ARGS__)
+                                                        ^
+network_module/assignment/assignmentphase.cpp:65:24: note: in expansion of macro ‘print_dbg’
+                 } else print_dbg("[RTT] No packet received, timeout reached\n");
+                        ^~~~~~~~~
+network_module/assignment/lasthopassignmentphase.cpp
+network_module/assignment/masterassignmentphase.cpp
+make[1]: *** [../out/gcc-release/src/network_module/assignment/assignmentphase.o] Error 1
+Makefile:140: recipe for target '../out/gcc-release/src/network_module/assignment/assignmentphase.o' failed
+make[1]: *** Waiting for unfinished jobs....
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+Makefile:2: recipe for target 'all' failed
+make: *** [all] Error 2
+10:57:36 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+miosix_utils_sim.cpp
+MiosixInterface.cpp
+MiosixStaticInterface.cpp
+Node.cpp
+NodeBase.cpp
+RootNode.cpp
+interfaces-impl/power_manager.cpp
+interfaces-impl/transceiver.cpp
+interfaces-impl/virtual_clock.cpp
+kernel/timeconversion.cpp
+network_module/maccontext.cpp
+network_module/macphase.cpp
+network_module/mediumaccesscontroller.cpp
+network_module/assignment/assignmentphase.cpp
+network_module/assignment/dynamicassignmentphase.cpp
+network_module/assignment/lasthopassignmentphase.cpp
+network_module/assignment/masterassignmentphase.cpp
+network_module/flooding/floodingphase.cpp
+network_module/flooding/hookingfloodingphase.cpp
+network_module/flooding/masterfloodingphase.cpp
+network_module/flooding/periodiccheckfloodingphase.cpp
+network_module/macround/dynamicmacround.cpp
+network_module/macround/macround.cpp
+network_module/macround/mastermacround.cpp
+network_module/reservation/dynamicreservationphase.cpp
+network_module/reservation/lasthopreservationphase.cpp
+network_module/reservation/masterreservationphase.cpp
+network_module/reservation/reservationphase.cpp
+network_module/roundtrip/askingroundtripphase.cpp
+network_module/roundtrip/listeningroundtripphase.cpp
+network_module/roundtrip/roundtripphase.cpp
+Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+10:57:50 **** Incremental Build of configuration release for project WandstemMac ****
+make MODE=release -j4 all 
+cd src && make
+make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'

@@ -1,11 +1,9 @@
-23:47:47 **** Incremental Build of configuration release for project WandstemMac ****
+10:57:50 **** Incremental Build of configuration release for project WandstemMac ****
 make MODE=release -j4 all 
 cd src && make
 make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
-network_module/roundtrip/askingroundtripphase.cpp
-network_module/roundtrip/listeningroundtripphase.cpp
-Creating executable: ../out/gcc-release/src/WandstemMac
+make[1]: Nothing to be done for 'all'.
 make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
 
-23:47:48 Build Finished (took 1s.567ms)
+10:57:51 Build Finished (took 364ms)
 
