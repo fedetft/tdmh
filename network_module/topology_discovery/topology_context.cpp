@@ -122,8 +122,11 @@ unsigned short MasterMeshTopologyContext::receivedMessage(unsigned char* pkt, un
     unsigned short i;
     for (i = 0; i + size < len;) {
         auto* newData = NeighborMessage::fromPkt(config->maxNodes, config->networkIdBits, config->hopBits, pkt, len - i, i);
+        if (ENABLE_TOPOLOGY_INFO_DBG)
+            print_dbg("Received topology :[%d/%d->%d]:%s\n", newData->getSender(), newData->getHop(), newData->getAssignee(), newData->getNeighborsString().c_str());
         if (newData == nullptr) throw std::runtime_error("Wrongly checked received invalid length topology packet");
-        if (i == 0 && newData->getSender() != nodeIdByTopologySlot) {
+        auto sender = newData->getSender();
+        if (i == 0 && sender != nodeIdByTopologySlot) {
             unreceivedMessage(nodeIdByTopologySlot);
             throw std::runtime_error("Received topology packet from a node whose timeslot is different");
         }
@@ -131,11 +134,11 @@ unsigned short MasterMeshTopologyContext::receivedMessage(unsigned char* pkt, un
         for (unsigned short j = 0, node = 0; node < config->maxNodes; j++, node++) {
             if (node == nodeIdByTopologySlot) node++;
             if (newData->getNeighbors(j)) {
-                if (!topology.hasEdge(nodeIdByTopologySlot, node))
-                    topology.addEdge(nodeIdByTopologySlot, node);
+                if (!topology.hasEdge(sender, node))
+                    topology.addEdge(sender, node);
             } else {
-                if (topology.hasEdge(nodeIdByTopologySlot, node))
-                    topology.removeEdge(nodeIdByTopologySlot, node);
+                if (topology.hasEdge(sender, node))
+                    topology.removeEdge(sender, node);
             }
         }
     }
