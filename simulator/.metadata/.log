@@ -7843,3 +7843,23 @@ Command-line arguments:  -os linux -ws gtk -arch x86_64
 
 !ENTRY org.omnetpp.main 1 0 2018-02-28 10:25:49.302
 !MESSAGE OMNeT++ IDE 5.2.1.171211-da8f6bc started.
+
+!ENTRY org.eclipse.launchbar.core 2 0 2018-02-28 11:15:56.610
+!MESSAGE Enablement expression is missing for descriptor type org.eclipse.cdt.debug.core.coreBuildDescriptorType
+
+!ENTRY org.eclipse.launchbar.core 2 0 2018-02-28 11:15:56.612
+!MESSAGE Enablement expression is missing for config provider for org.eclipse.cdt.debug.core.coreBuildDescriptorType
+
+!ENTRY org.omnetpp.launch 4 134 2018-02-28 22:30:41.216
+!MESSAGE Finished with Error
+!STACK 0
+java.lang.RuntimeException: 
+	at org.omnetpp.launch.SimulationLauncherJob.run(SimulationLauncherJob.java:153)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:56)
+
+!ENTRY org.omnetpp.launch 4 134 2018-02-28 23:01:10.408
+!MESSAGE Finished with Error
+!STACK 0
+java.lang.RuntimeException: 
+	at org.omnetpp.launch.SimulationLauncherJob.run(SimulationLauncherJob.java:153)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:56)

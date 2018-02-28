@@ -1,248 +1,266 @@
-00:30:44 **** Incremental Build of configuration debug for project WandstemMac ****
+22:56:36 **** Incremental Build of configuration debug for project WandstemMac ****
 make MODE=debug -j4 all 
 cd src && make
 make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
 Node.cpp
 RootNode.cpp
 network_module/maccontext.cpp
+interfaces-impl/transceiver.cpp
+In file included from RootNode.cpp:18:0:
+network_module/macround/mastermacround.h:65:127: warning: "/*" within comment [-Wcomment]
+                     /*topology = new MasterTopologyDiscoveryPhase(roundtrip->getPhaseEnd(), ctx.getNetworkConfig()->maxNodes);/*,
+                                                                                                                                
+In file included from network_module/macround/../topology_discovery/topology_context.h:31:0,
+                 from network_module/macround/../maccontext.h:33,
+                 from network_module/macround/macround.h:31,
+                 from network_module/macround/dynamicmacround.h:31,
+                 from Node.cpp:18:
+network_module/macround/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/macround/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/macround/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/macround/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/topology_discovery/topology_context.h:31:0,
+                 from network_module/maccontext.h:33,
+                 from network_module/maccontext.cpp:28:
+network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/macround/../topology_discovery/topology_context.h:31:0,
+                 from network_module/macround/../maccontext.h:33,
+                 from network_module/macround/macround.h:31,
+                 from network_module/macround/mastermacround.h:31,
+                 from RootNode.cpp:18:
+network_module/macround/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/macround/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/macround/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/macround/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/maccontext.h:33:0,
+                 from network_module/maccontext.cpp:28:
+network_module/topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+In file included from network_module/macround/../maccontext.h:33:0,
+                 from network_module/macround/macround.h:31,
+                 from network_module/macround/dynamicmacround.h:31,
+                 from Node.cpp:18:
+network_module/macround/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/macround/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/macround/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/macround/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+In file included from network_module/macround/../maccontext.h:33:0,
+                 from network_module/macround/macround.h:31,
+                 from network_module/macround/mastermacround.h:31,
+                 from RootNode.cpp:18:
+network_module/macround/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/macround/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/macround/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/macround/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
 network_module/macphase.cpp
-In file included from network_module/topology_discovery/topology_context.h:31:0,
-                 from network_module/maccontext.h:33,
-                 from network_module/macphase.h:79,
-                 from network_module/macphase.cpp:28:
-network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-In file included from network_module/topology_discovery/topology_context.h:31:0,
-                 from network_module/maccontext.h:33,
-                 from network_module/maccontext.cpp:28:
-network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-In file included from network_module/macround/../topology_discovery/topology_context.h:31:0,
-                 from network_module/macround/../maccontext.h:33,
-                 from network_module/macround/macround.h:31,
-                 from network_module/macround/mastermacround.h:31,
-                 from RootNode.cpp:18:
-network_module/macround/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/macround/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/macround/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/macround/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-In file included from network_module/maccontext.h:33:0,
-                 from network_module/macphase.h:79,
-                 from network_module/macphase.cpp:28:
-network_module/topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-In file included from network_module/maccontext.h:33:0,
-                 from network_module/maccontext.cpp:28:
-network_module/topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-In file included from network_module/macround/../maccontext.h:33:0,
-                 from network_module/macround/macround.h:31,
-                 from network_module/macround/mastermacround.h:31,
-                 from RootNode.cpp:18:
-network_module/macround/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/macround/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/macround/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/macround/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-In file included from network_module/macround/../topology_discovery/topology_context.h:31:0,
-                 from network_module/macround/../maccontext.h:33,
-                 from network_module/macround/macround.h:31,
-                 from network_module/macround/dynamicmacround.h:31,
-                 from Node.cpp:18:
-network_module/macround/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/macround/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/macround/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/macround/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-In file included from network_module/macround/../maccontext.h:33:0,
-                 from network_module/macround/macround.h:31,
-                 from network_module/macround/dynamicmacround.h:31,
-                 from Node.cpp:18:
-network_module/macround/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/macround/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/macround/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/macround/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
 network_module/mediumaccesscontroller.cpp
 network_module/network_configuration.cpp
 network_module/assignment/assignmentphase.cpp
+In file included from network_module/topology_discovery/topology_context.h:31:0,
+                 from network_module/maccontext.h:33,
+                 from network_module/mediumaccesscontroller.cpp:29:
+network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/topology_discovery/topology_context.h:31:0,
+                 from network_module/maccontext.h:33,
+                 from network_module/network_configuration.cpp:29:
+network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/topology_discovery/topology_context.h:31:0,
+                 from network_module/maccontext.h:33,
+                 from network_module/macphase.h:79,
+                 from network_module/macphase.cpp:28:
+network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/maccontext.h:33:0,
+                 from network_module/network_configuration.cpp:29:
+network_module/topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+In file included from network_module/maccontext.h:33:0,
+                 from network_module/mediumaccesscontroller.cpp:29:
+network_module/topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+In file included from network_module/maccontext.h:33:0,
+                 from network_module/macphase.h:79,
+                 from network_module/macphase.cpp:28:
+network_module/topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+In file included from network_module/assignment/../topology_discovery/topology_context.h:31:0,
+                 from network_module/assignment/../maccontext.h:33,
+                 from network_module/assignment/../macphase.h:79,
+                 from network_module/assignment/assignmentphase.h:32,
+                 from network_module/assignment/assignmentphase.cpp:29:
+network_module/assignment/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/assignment/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/assignment/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/assignment/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/assignment/../maccontext.h:33:0,
+                 from network_module/assignment/../macphase.h:79,
+                 from network_module/assignment/assignmentphase.h:32,
+                 from network_module/assignment/assignmentphase.cpp:29:
+network_module/assignment/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/assignment/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/assignment/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/assignment/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
 network_module/assignment/dynamicassignmentphase.cpp
-In file included from network_module/topology_discovery/topology_context.h:31:0,
-                 from network_module/maccontext.h:33,
-                 from network_module/network_configuration.cpp:29:
-network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-In file included from network_module/maccontext.h:33:0,
-                 from network_module/network_configuration.cpp:29:
-network_module/topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-In file included from network_module/topology_discovery/topology_context.h:31:0,
-                 from network_module/maccontext.h:33,
-                 from network_module/mediumaccesscontroller.cpp:29:
-network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-In file included from network_module/assignment/../topology_discovery/topology_context.h:31:0,
-                 from network_module/assignment/../maccontext.h:33,
-                 from network_module/assignment/../macphase.h:79,
-                 from network_module/assignment/assignmentphase.h:32,
-                 from network_module/assignment/assignmentphase.cpp:29:
-network_module/assignment/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/assignment/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/assignment/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/assignment/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-In file included from network_module/maccontext.h:33:0,
-                 from network_module/mediumaccesscontroller.cpp:29:
-network_module/topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-In file included from network_module/assignment/../maccontext.h:33:0,
-                 from network_module/assignment/../macphase.h:79,
-                 from network_module/assignment/assignmentphase.h:32,
-                 from network_module/assignment/assignmentphase.cpp:29:
-network_module/assignment/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/assignment/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/assignment/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/assignment/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-In file included from network_module/assignment/../topology_discovery/topology_context.h:31:0,
-                 from network_module/assignment/../maccontext.h:33,
-                 from network_module/assignment/../macphase.h:79,
-                 from network_module/assignment/assignmentphase.h:32,
-                 from network_module/assignment/dynamicassignmentphase.h:32,
-                 from network_module/assignment/dynamicassignmentphase.cpp:29:
-network_module/assignment/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/assignment/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/assignment/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/assignment/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-In file included from network_module/assignment/../maccontext.h:33:0,
-                 from network_module/assignment/../macphase.h:79,
-                 from network_module/assignment/assignmentphase.h:32,
-                 from network_module/assignment/dynamicassignmentphase.h:32,
-                 from network_module/assignment/dynamicassignmentphase.cpp:29:
-network_module/assignment/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/assignment/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/assignment/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/assignment/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
 network_module/assignment/lasthopassignmentphase.cpp
 network_module/assignment/masterassignmentphase.cpp
 network_module/flooding/floodingphase.cpp
+In file included from network_module/assignment/../topology_discovery/topology_context.h:31:0,
+                 from network_module/assignment/../maccontext.h:33,
+                 from network_module/assignment/../macphase.h:79,
+                 from network_module/assignment/assignmentphase.h:32,
+                 from network_module/assignment/dynamicassignmentphase.h:32,
+                 from network_module/assignment/dynamicassignmentphase.cpp:29:
+network_module/assignment/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/assignment/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/assignment/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/assignment/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/assignment/../topology_discovery/topology_context.h:31:0,
+                 from network_module/assignment/../maccontext.h:33,
+                 from network_module/assignment/../macphase.h:79,
+                 from network_module/assignment/assignmentphase.h:32,
+                 from network_module/assignment/lasthopassignmentphase.h:32,
+                 from network_module/assignment/lasthopassignmentphase.cpp:29:
+network_module/assignment/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/assignment/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/assignment/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/assignment/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/assignment/../maccontext.h:33:0,
+                 from network_module/assignment/../macphase.h:79,
+                 from network_module/assignment/assignmentphase.h:32,
+                 from network_module/assignment/dynamicassignmentphase.h:32,
+                 from network_module/assignment/dynamicassignmentphase.cpp:29:
+network_module/assignment/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/assignment/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/assignment/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/assignment/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+In file included from network_module/assignment/../maccontext.h:33:0,
+                 from network_module/assignment/../macphase.h:79,
+                 from network_module/assignment/assignmentphase.h:32,
+                 from network_module/assignment/lasthopassignmentphase.h:32,
+                 from network_module/assignment/lasthopassignmentphase.cpp:29:
+network_module/assignment/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/assignment/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/assignment/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/assignment/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+In file included from network_module/assignment/../topology_discovery/topology_context.h:31:0,
+                 from network_module/assignment/../maccontext.h:33,
+                 from network_module/assignment/../macphase.h:79,
+                 from network_module/assignment/assignmentphase.h:32,
+                 from network_module/assignment/masterassignmentphase.h:32,
+                 from network_module/assignment/masterassignmentphase.cpp:29:
+network_module/assignment/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/assignment/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/assignment/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/assignment/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/flooding/../topology_discovery/topology_context.h:31:0,
+                 from network_module/flooding/../maccontext.h:33,
+                 from network_module/flooding/../macphase.h:79,
+                 from network_module/flooding/floodingphase.h:33,
+                 from network_module/flooding/floodingphase.cpp:28:
+network_module/flooding/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/flooding/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/flooding/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/flooding/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
 network_module/flooding/hookingfloodingphase.cpp
-In file included from network_module/assignment/../topology_discovery/topology_context.h:31:0,
-                 from network_module/assignment/../maccontext.h:33,
-                 from network_module/assignment/../macphase.h:79,
-                 from network_module/assignment/assignmentphase.h:32,
-                 from network_module/assignment/lasthopassignmentphase.h:32,
-                 from network_module/assignment/lasthopassignmentphase.cpp:29:
-network_module/assignment/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/assignment/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/assignment/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/assignment/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-In file included from network_module/assignment/../topology_discovery/topology_context.h:31:0,
-                 from network_module/assignment/../maccontext.h:33,
-                 from network_module/assignment/../macphase.h:79,
-                 from network_module/assignment/assignmentphase.h:32,
-                 from network_module/assignment/masterassignmentphase.h:32,
-                 from network_module/assignment/masterassignmentphase.cpp:29:
-network_module/assignment/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/assignment/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/assignment/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/assignment/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-In file included from network_module/flooding/../topology_discovery/topology_context.h:31:0,
-                 from network_module/flooding/../maccontext.h:33,
-                 from network_module/flooding/../macphase.h:79,
-                 from network_module/flooding/floodingphase.h:33,
-                 from network_module/flooding/floodingphase.cpp:28:
-network_module/flooding/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/flooding/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/flooding/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/flooding/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
 In file included from network_module/assignment/../maccontext.h:33:0,
                  from network_module/assignment/../macphase.h:79,
                  from network_module/assignment/assignmentphase.h:32,
@@ -256,50 +274,10 @@ network_module/assignment/../topology_discovery/topology_context.h: In member fu
 network_module/assignment/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
      virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
                                                                                                                                       ^
-In file included from network_module/assignment/../maccontext.h:33:0,
-                 from network_module/assignment/../macphase.h:79,
-                 from network_module/assignment/assignmentphase.h:32,
-                 from network_module/assignment/lasthopassignmentphase.h:32,
-                 from network_module/assignment/lasthopassignmentphase.cpp:29:
-network_module/assignment/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/assignment/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/assignment/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/assignment/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
 In file included from network_module/flooding/../maccontext.h:33:0,
                  from network_module/flooding/../macphase.h:79,
                  from network_module/flooding/floodingphase.h:33,
                  from network_module/flooding/floodingphase.cpp:28:
-network_module/flooding/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/flooding/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/flooding/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/flooding/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-In file included from network_module/flooding/../topology_discovery/topology_context.h:31:0,
-                 from network_module/flooding/../maccontext.h:33,
-                 from network_module/flooding/../macphase.h:79,
-                 from network_module/flooding/floodingphase.h:33,
-                 from network_module/flooding/hookingfloodingphase.h:31,
-                 from network_module/flooding/hookingfloodingphase.cpp:28:
-network_module/flooding/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/flooding/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/flooding/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/flooding/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-In file included from network_module/flooding/../maccontext.h:33:0,
-                 from network_module/flooding/../macphase.h:79,
-                 from network_module/flooding/floodingphase.h:33,
-                 from network_module/flooding/hookingfloodingphase.h:31,
-                 from network_module/flooding/hookingfloodingphase.cpp:28:
 network_module/flooding/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
 network_module/flooding/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
      virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
@@ -311,47 +289,101 @@ network_module/flooding/../topology_discovery/topology_context.h:146:134: warnin
 network_module/flooding/masterfloodingphase.cpp
 network_module/flooding/periodiccheckfloodingphase.cpp
 network_module/macround/dynamicmacround.cpp
+In file included from network_module/flooding/../topology_discovery/topology_context.h:31:0,
+                 from network_module/flooding/../maccontext.h:33,
+                 from network_module/flooding/../macphase.h:79,
+                 from network_module/flooding/floodingphase.h:33,
+                 from network_module/flooding/hookingfloodingphase.h:31,
+                 from network_module/flooding/hookingfloodingphase.cpp:28:
+network_module/flooding/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/flooding/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/flooding/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/flooding/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/flooding/../maccontext.h:33:0,
+                 from network_module/flooding/../macphase.h:79,
+                 from network_module/flooding/floodingphase.h:33,
+                 from network_module/flooding/hookingfloodingphase.h:31,
+                 from network_module/flooding/hookingfloodingphase.cpp:28:
+network_module/flooding/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/flooding/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/flooding/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/flooding/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+In file included from network_module/flooding/../topology_discovery/topology_context.h:31:0,
+                 from network_module/flooding/../maccontext.h:33,
+                 from network_module/flooding/../macphase.h:79,
+                 from network_module/flooding/floodingphase.h:33,
+                 from network_module/flooding/masterfloodingphase.h:31,
+                 from network_module/flooding/masterfloodingphase.cpp:28:
+network_module/flooding/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/flooding/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/flooding/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/flooding/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/flooding/../maccontext.h:33:0,
+                 from network_module/flooding/../macphase.h:79,
+                 from network_module/flooding/floodingphase.h:33,
+                 from network_module/flooding/masterfloodingphase.h:31,
+                 from network_module/flooding/masterfloodingphase.cpp:28:
+network_module/flooding/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/flooding/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/flooding/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/flooding/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+In file included from network_module/flooding/../topology_discovery/topology_context.h:31:0,
+                 from network_module/flooding/../maccontext.h:33,
+                 from network_module/flooding/../macphase.h:79,
+                 from network_module/flooding/floodingphase.h:33,
+                 from network_module/flooding/periodiccheckfloodingphase.h:31,
+                 from network_module/flooding/periodiccheckfloodingphase.cpp:28:
+network_module/flooding/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/flooding/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/flooding/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/flooding/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/macround/../topology_discovery/topology_context.h:31:0,
+                 from network_module/macround/../maccontext.h:33,
+                 from network_module/macround/macround.h:31,
+                 from network_module/macround/dynamicmacround.h:31,
+                 from network_module/macround/dynamicmacround.cpp:28:
+network_module/macround/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/macround/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/macround/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/macround/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/flooding/../maccontext.h:33:0,
+                 from network_module/flooding/../macphase.h:79,
+                 from network_module/flooding/floodingphase.h:33,
+                 from network_module/flooding/periodiccheckfloodingphase.h:31,
+                 from network_module/flooding/periodiccheckfloodingphase.cpp:28:
+network_module/flooding/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/flooding/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/flooding/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/flooding/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
 network_module/macround/macround.cpp
-In file included from network_module/flooding/../topology_discovery/topology_context.h:31:0,
-                 from network_module/flooding/../maccontext.h:33,
-                 from network_module/flooding/../macphase.h:79,
-                 from network_module/flooding/floodingphase.h:33,
-                 from network_module/flooding/masterfloodingphase.h:31,
-                 from network_module/flooding/masterfloodingphase.cpp:28:
-network_module/flooding/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/flooding/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/flooding/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/flooding/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-In file included from network_module/flooding/../maccontext.h:33:0,
-                 from network_module/flooding/../macphase.h:79,
-                 from network_module/flooding/floodingphase.h:33,
-                 from network_module/flooding/masterfloodingphase.h:31,
-                 from network_module/flooding/masterfloodingphase.cpp:28:
-network_module/flooding/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/flooding/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/flooding/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/flooding/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-In file included from network_module/macround/../topology_discovery/topology_context.h:31:0,
-                 from network_module/macround/../maccontext.h:33,
-                 from network_module/macround/macround.h:31,
-                 from network_module/macround/dynamicmacround.h:31,
-                 from network_module/macround/dynamicmacround.cpp:28:
-network_module/macround/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/macround/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/macround/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/macround/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
 In file included from network_module/macround/../maccontext.h:33:0,
                  from network_module/macround/macround.h:31,
                  from network_module/macround/dynamicmacround.h:31,
@@ -364,60 +396,25 @@ network_module/macround/../topology_discovery/topology_context.h: In member func
 network_module/macround/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
      virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
                                                                                                                                       ^
-In file included from network_module/flooding/../topology_discovery/topology_context.h:31:0,
-                 from network_module/flooding/../maccontext.h:33,
-                 from network_module/flooding/../macphase.h:79,
-                 from network_module/flooding/floodingphase.h:33,
-                 from network_module/flooding/periodiccheckfloodingphase.h:31,
-                 from network_module/flooding/periodiccheckfloodingphase.cpp:28:
-network_module/flooding/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/flooding/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/flooding/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/flooding/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-In file included from network_module/flooding/../maccontext.h:33:0,
-                 from network_module/flooding/../macphase.h:79,
-                 from network_module/flooding/floodingphase.h:33,
-                 from network_module/flooding/periodiccheckfloodingphase.h:31,
-                 from network_module/flooding/periodiccheckfloodingphase.cpp:28:
-network_module/flooding/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/flooding/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/flooding/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/flooding/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-In file included from network_module/macround/../topology_discovery/topology_context.h:31:0,
-                 from network_module/macround/../maccontext.h:33,
-                 from network_module/macround/macround.h:31,
-                 from network_module/macround/macround.cpp:28:
-network_module/macround/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/macround/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/macround/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/macround/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
 network_module/macround/mastermacround.cpp
-In file included from network_module/macround/../maccontext.h:33:0,
-                 from network_module/macround/macround.h:31,
-                 from network_module/macround/macround.cpp:28:
-network_module/macround/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/macround/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/macround/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/macround/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
+In file included from network_module/macround/mastermacround.cpp:28:0:
+network_module/macround/mastermacround.h:65:127: warning: "/*" within comment [-Wcomment]
+                     /*topology = new MasterTopologyDiscoveryPhase(roundtrip->getPhaseEnd(), ctx.getNetworkConfig()->maxNodes);/*,
+                                                                                                                                
 network_module/reservation/dynamicreservationphase.cpp
 network_module/reservation/lasthopreservationphase.cpp
-network_module/reservation/masterreservationphase.cpp
+In file included from network_module/macround/../topology_discovery/topology_context.h:31:0,
+                 from network_module/macround/../maccontext.h:33,
+                 from network_module/macround/macround.h:31,
+                 from network_module/macround/macround.cpp:28:
+network_module/macround/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/macround/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/macround/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/macround/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
 In file included from network_module/macround/../topology_discovery/topology_context.h:31:0,
                  from network_module/macround/../maccontext.h:33,
                  from network_module/macround/macround.h:31,
@@ -431,6 +428,17 @@ network_module/macround/../topology_discovery/topology_message.h: In member func
 network_module/macround/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
      virtual std::vector<unsigned char> getPkt() { /* TODO */ }
                                                               ^
+In file included from network_module/macround/../maccontext.h:33:0,
+                 from network_module/macround/macround.h:31,
+                 from network_module/macround/macround.cpp:28:
+network_module/macround/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/macround/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/macround/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/macround/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
 In file included from network_module/macround/../maccontext.h:33:0,
                  from network_module/macround/macround.h:31,
                  from network_module/macround/mastermacround.h:31,
@@ -457,20 +465,6 @@ network_module/reservation/../topology_discovery/topology_message.h: In member f
 network_module/reservation/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
      virtual std::vector<unsigned char> getPkt() { /* TODO */ }
                                                               ^
-In file included from network_module/reservation/../topology_discovery/topology_context.h:31:0,
-                 from network_module/reservation/../maccontext.h:33,
-                 from network_module/reservation/../macphase.h:79,
-                 from network_module/reservation/reservationphase.h:31,
-                 from network_module/reservation/lasthopreservationphase.h:30,
-                 from network_module/reservation/lasthopreservationphase.cpp:28:
-network_module/reservation/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/reservation/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/reservation/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/reservation/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
 In file included from network_module/reservation/../maccontext.h:33:0,
                  from network_module/reservation/../macphase.h:79,
                  from network_module/reservation/reservationphase.h:31,
@@ -480,6 +474,26 @@ network_module/reservation/../topology_discovery/topology_context.h: In member f
 network_module/reservation/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
      virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
                                                                                                                                       ^
+network_module/reservation/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/reservation/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/reservation/masterreservationphase.cpp
+network_module/reservation/reservationphase.cpp
+In file included from network_module/reservation/../topology_discovery/topology_context.h:31:0,
+                 from network_module/reservation/../maccontext.h:33,
+                 from network_module/reservation/../macphase.h:79,
+                 from network_module/reservation/reservationphase.h:31,
+                 from network_module/reservation/lasthopreservationphase.h:30,
+                 from network_module/reservation/lasthopreservationphase.cpp:28:
+network_module/reservation/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/reservation/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/reservation/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/reservation/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
 In file included from network_module/reservation/../maccontext.h:33:0,
                  from network_module/reservation/../macphase.h:79,
                  from network_module/reservation/reservationphase.h:31,
@@ -493,41 +507,35 @@ network_module/reservation/../topology_discovery/topology_context.h: In member f
 network_module/reservation/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
      virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
                                                                                                                                       ^
-network_module/reservation/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/reservation/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-In file included from network_module/reservation/../topology_discovery/topology_context.h:31:0,
-                 from network_module/reservation/../maccontext.h:33,
-                 from network_module/reservation/../macphase.h:79,
-                 from network_module/reservation/reservationphase.h:31,
-                 from network_module/reservation/masterreservationphase.h:31,
-                 from network_module/reservation/masterreservationphase.cpp:28:
-network_module/reservation/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/reservation/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/reservation/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/reservation/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-In file included from network_module/reservation/../maccontext.h:33:0,
-                 from network_module/reservation/../macphase.h:79,
-                 from network_module/reservation/reservationphase.h:31,
-                 from network_module/reservation/masterreservationphase.h:31,
-                 from network_module/reservation/masterreservationphase.cpp:28:
-network_module/reservation/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/reservation/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/reservation/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/reservation/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/reservation/reservationphase.cpp
 network_module/roundtrip/askingroundtripphase.cpp
 network_module/roundtrip/listeningroundtripphase.cpp
-network_module/roundtrip/roundtripphase.cpp
+In file included from network_module/reservation/../topology_discovery/topology_context.h:31:0,
+                 from network_module/reservation/../maccontext.h:33,
+                 from network_module/reservation/../macphase.h:79,
+                 from network_module/reservation/reservationphase.h:31,
+                 from network_module/reservation/masterreservationphase.h:31,
+                 from network_module/reservation/masterreservationphase.cpp:28:
+network_module/reservation/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/reservation/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/reservation/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/reservation/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/reservation/../maccontext.h:33:0,
+                 from network_module/reservation/../macphase.h:79,
+                 from network_module/reservation/reservationphase.h:31,
+                 from network_module/reservation/masterreservationphase.h:31,
+                 from network_module/reservation/masterreservationphase.cpp:28:
+network_module/reservation/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/reservation/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/reservation/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/reservation/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
 In file included from network_module/reservation/../topology_discovery/topology_context.h:31:0,
                  from network_module/reservation/../maccontext.h:33,
                  from network_module/reservation/../macphase.h:79,
@@ -539,18 +547,6 @@ network_module/reservation/../topology_discovery/topology_message.h:111:62: warn
                                                               ^
 network_module/reservation/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
 network_module/reservation/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-In file included from network_module/roundtrip/../topology_discovery/topology_context.h:31:0,
-                 from network_module/roundtrip/../maccontext.h:33,
-                 from network_module/roundtrip/listeningroundtripphase.h:32,
-                 from network_module/roundtrip/listeningroundtripphase.cpp:29:
-network_module/roundtrip/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/roundtrip/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/roundtrip/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/roundtrip/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
      virtual std::vector<unsigned char> getPkt() { /* TODO */ }
                                                               ^
 In file included from network_module/roundtrip/../topology_discovery/topology_context.h:31:0,
@@ -584,6 +580,25 @@ network_module/roundtrip/../topology_discovery/topology_context.h: In member fun
 network_module/roundtrip/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
      virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
                                                                                                                                       ^
+network_module/roundtrip/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/roundtrip/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/roundtrip/roundtripphase.cpp
+network_module/topology_discovery/dynamic_topology_discovery_phase.cpp
+In file included from network_module/roundtrip/../topology_discovery/topology_context.h:31:0,
+                 from network_module/roundtrip/../maccontext.h:33,
+                 from network_module/roundtrip/listeningroundtripphase.h:32,
+                 from network_module/roundtrip/listeningroundtripphase.cpp:29:
+network_module/roundtrip/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/roundtrip/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/roundtrip/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/roundtrip/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/topology_discovery/master_topology_discovery_phase.cpp
 In file included from network_module/roundtrip/../maccontext.h:33:0,
                  from network_module/roundtrip/listeningroundtripphase.h:32,
                  from network_module/roundtrip/listeningroundtripphase.cpp:29:
@@ -595,12 +610,6 @@ network_module/roundtrip/../topology_discovery/topology_context.h: In member fun
 network_module/roundtrip/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
      virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
                                                                                                                                       ^
-network_module/roundtrip/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/roundtrip/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/topology_discovery/dynamic_topology_discovery_phase.cpp
-network_module/topology_discovery/master_topology_discovery_phase.cpp
 network_module/topology_discovery/topology_context.cpp
 In file included from network_module/roundtrip/../topology_discovery/topology_context.h:31:0,
                  from network_module/roundtrip/../maccontext.h:33,
@@ -627,16 +636,6 @@ network_module/roundtrip/../topology_discovery/topology_context.h: In member fun
 network_module/roundtrip/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
      virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
                                                                                                                                       ^
-network_module/topology_discovery/topology_message.cpp
-In file included from network_module/topology_discovery/topology_message.cpp:27:0:
-network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
 In file included from network_module/topology_discovery/../topology_discovery/topology_context.h:31:0,
                  from network_module/topology_discovery/../maccontext.h:33,
                  from network_module/topology_discovery/../macphase.h:79,
@@ -645,17 +644,6 @@ In file included from network_module/topology_discovery/../topology_discovery/to
                  from network_module/topology_discovery/dynamic_topology_discovery_phase.cpp:28:
 network_module/topology_discovery/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
 network_module/topology_discovery/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-In file included from network_module/topology_discovery/../topology_discovery/topology_context.h:31:0,
-                 from network_module/topology_discovery/../maccontext.h:33,
-                 from network_module/topology_discovery/topology_context.cpp:27:
-network_module/topology_discovery/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
-network_module/topology_discovery/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
-                                                              ^
-network_module/topology_discovery/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
-network_module/topology_discovery/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
      virtual std::vector<unsigned char> getPkt() { /* TODO */ }
                                                               ^
 network_module/topology_discovery/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
@@ -685,6 +673,10 @@ network_module/topology_discovery/../topology_discovery/topology_context.h: In m
 network_module/topology_discovery/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
      virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
                                                                                                                                       ^
+network_module/topology_discovery/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/topology_discovery/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
 In file included from network_module/topology_discovery/../maccontext.h:33:0,
                  from network_module/topology_discovery/../macphase.h:79,
                  from network_module/topology_discovery/topologydiscoveryphase.h:30,
@@ -692,20 +684,6 @@ In file included from network_module/topology_discovery/../maccontext.h:33:0,
                  from network_module/topology_discovery/master_topology_discovery_phase.cpp:28:
 network_module/topology_discovery/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
 network_module/topology_discovery/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/topology_discovery/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/topology_discovery/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-In file included from network_module/topology_discovery/../maccontext.h:33:0,
-                 from network_module/topology_discovery/topology_context.cpp:27:
-network_module/topology_discovery/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/topology_discovery/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
-     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
-                                                                                                                                      ^
-network_module/topology_discovery/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
-network_module/topology_discovery/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
      virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
                                                                                                                                       ^
 network_module/topology_discovery/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
@@ -713,6 +691,27 @@ network_module/topology_discovery/../topology_discovery/topology_context.h:146:1
      virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
                                                                                                                                       ^
 network_module/topology_discovery/topologydiscoveryphase.cpp
+In file included from network_module/topology_discovery/../topology_discovery/topology_context.h:31:0,
+                 from network_module/topology_discovery/../maccontext.h:33,
+                 from network_module/topology_discovery/topology_context.cpp:27:
+network_module/topology_discovery/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/topology_discovery/../topology_discovery/topology_message.h:111:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/topology_discovery/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/topology_discovery/../topology_discovery/topology_message.h:129:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/topology_discovery/../maccontext.h:33:0,
+                 from network_module/topology_discovery/topology_context.cpp:27:
+network_module/topology_discovery/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/topology_discovery/../topology_discovery/topology_context.h:132:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/topology_discovery/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/topology_discovery/../topology_discovery/topology_context.h:146:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
 In file included from network_module/topology_discovery/../topology_discovery/topology_context.h:31:0,
                  from network_module/topology_discovery/../maccontext.h:33,
                  from network_module/topology_discovery/../macphase.h:79,
@@ -741,5 +740,5 @@ network_module/topology_discovery/../topology_discovery/topology_context.h:146:1
 Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
 make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
 
-00:30:58 Build Finished (took 14s.886ms)
+22:56:50 Build Finished (took 14s.550ms)
 
