@@ -230,6 +230,7 @@ private:
     static std::map<NodeBase*, Transceiver*> instances;
 
     uint16_t computeCrc(const void* data, int size);
+    static const bool SIM_DBG;
 };
 }
 

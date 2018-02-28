@@ -115,6 +115,7 @@ namespace miosix {
         }
         
         inline long long correct(long long int uncorrected) {
+            //TODO FIXME this works by converting, applying the correction and converting back. This leads to a non-negligible error.
             return tc->tick2ns(vt.uncorrected2corrected(tc->ns2tick(uncorrected)));
         }
         

@@ -89,11 +89,11 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     if (success) {
         //This conversion is really necessary to get the corrected time in NS, to pass to transceiver
         long long correctedMeasuredFrameStart = syncStatus->correct(result.timestamp);
+        measuredGlobalFirstActivityTime = correctedMeasuredFrameStart - packet[2] * rebroadcastInterval;
         packet[2]++;
         //Rebroadcast the sync packet
         if (success) rebroadcast(correctedMeasuredFrameStart, packet, networkConfig.maxHops);
         syncStatus->receivedPacket(result.timestamp);
-        measuredGlobalFirstActivityTime = result.timestamp - (packet[2] - 1) * rebroadcastInterval;
         transceiver.turnOff();
         if (ENABLE_FLOODING_INFO_DBG)
             print_dbg("[F] RT=%lld\ne=%lld u=%d w=%d rssi=%d\n",
@@ -103,7 +103,7 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
                     syncStatus->receiverWindow,
                    result.rssi);
     } else {
-        measuredGlobalFirstActivityTime = syncStatus->computedFrameStart - (packet[2] - 1) * rebroadcastInterval;
+        measuredGlobalFirstActivityTime = syncStatus->computedFrameStart - ctx.getHop() * rebroadcastInterval;
         if (ENABLE_FLOODING_INFO_DBG) {
             print_dbg("[F] miss u=%d w=%d\n", syncStatus->clockCorrection, syncStatus->receiverWindow);
             if (syncStatus->missedPacket() >= maxMissedPackets)

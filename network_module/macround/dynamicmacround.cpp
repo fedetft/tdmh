@@ -53,7 +53,7 @@ namespace miosix {
                 topology = new DynamicTopologyDiscoveryPhase(roundtrip->getPhaseEnd(), ctx.getNetworkId(), cfg->maxNodes);
                 break;
         }
-        
+
         if (syncStatus->receiverWindow < MediumAccessController::maxAdmittableResyncReceivingWindow) {
             if (roundtrip != nullptr) roundtrip->execute(ctx);
             if (topology != nullptr) topology->execute(ctx);

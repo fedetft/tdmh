@@ -63,6 +63,7 @@ void HookingFloodingPhase::execute(MACContext& ctx)
             } else print_dbg("No packet received, timeout reached\n");
         }
     }
+    measuredGlobalFirstActivityTime = result.timestamp - packet[2] * rebroadcastInterval;
     ++packet[2];
     rebroadcast(result.timestamp, packet, networkConfig.maxHops);
     
@@ -74,7 +75,6 @@ void HookingFloodingPhase::execute(MACContext& ctx)
     
     status->initialize(synchronizer->getReceiverWindow(), result.timestamp);
     ctx.setHop(packet[2]);
-    measuredGlobalFirstActivityTime = result.timestamp - (packet[2] - 1) * rebroadcastInterval;
     print_dbg("MGFAT %llu\n", measuredGlobalFirstActivityTime);
     
     //Correct frame start considering hops

@@ -57,10 +57,11 @@ public:
      */
     static long long getPPDUDuration(int size)
     {
-        return getPSDUDuration(size) + preambleSfdLenTimeNs;
+        return getPSDUDuration(size) + preambleSfdTimeNs + lenTimeNs;
     }
 
-    static const int preambleSfdLenTimeNs = 192000;
+    static const int lenTimeNs = 32000;
+    static const int preambleSfdTimeNs = 160000;
     static const int constructiveInterferenceTimeNs = 500;
     static const int dataSize=127;
 
