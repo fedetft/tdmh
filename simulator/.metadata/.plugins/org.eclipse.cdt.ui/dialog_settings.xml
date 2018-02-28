@@ -10,15 +10,23 @@
 		<item value="513" key="DIALOG_X_ORIGIN"/>
 		<item value="162" key="DIALOG_Y_ORIGIN"/>
 	</section>
+	<section name="org.eclipse.cdt.internal.ui.text.QuickOutline">
+		<item value="true" key="org.eclipse.cdt.internal.ui.text.COutlineInformationControlDIALOG_USE_PERSISTED_SIZE"/>
+		<item value="367" key="org.eclipse.cdt.internal.ui.text.COutlineInformationControlDIALOG_Y_ORIGIN"/>
+		<item value="408" key="org.eclipse.cdt.internal.ui.text.COutlineInformationControlDIALOG_WIDTH"/>
+		<item value="true" key="org.eclipse.cdt.internal.ui.text.COutlineInformationControlDIALOG_USE_PERSISTED_LOCATION"/>
+		<item value="392" key="org.eclipse.cdt.internal.ui.text.COutlineInformationControlDIALOG_HEIGHT"/>
+		<item value="754" key="org.eclipse.cdt.internal.ui.text.COutlineInformationControlDIALOG_X_ORIGIN"/>
+	</section>
 	<section name="org.eclipse.cdt.ui.text.hover.CMacroExpansionExploration">
 	</section>
 	<section name="NewClassWizardPage">
-		<item value="false" key="stubSelected1"/>
+		<item value="true" key="stubSelected1"/>
 		<item value="true" key="stubVirtual1"/>
-		<item value="false" key="namespaceSelected"/>
+		<item value="true" key="namespaceSelected"/>
 		<item value="false" key="stubInline0"/>
 		<item value="false" key="stubInline1"/>
-		<item value="" key="namespace"/>
+		<item value="miosix" key="namespace"/>
 		<item value="false" key="testFileSelected"/>
 		<item value="true" key="stubSelected0"/>
 	</section>

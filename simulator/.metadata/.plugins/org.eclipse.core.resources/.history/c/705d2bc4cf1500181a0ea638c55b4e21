@@ -1,0 +1,61 @@
+/***************************************************************************
+ *   Copyright (C)  2018 by Polidori Paolo                                 *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   As a special exception, if other files instantiate templates or use   *
+ *   macros or inline functions from this file, or you compile this file   *
+ *   and link it with other works to produce a work based on this file,    *
+ *   this file does not by itself cause the resulting work to be covered   *
+ *   by the GNU General Public License. However the source code for this   *
+ *   file must still be made available in accordance with the GNU General  *
+ *   Public License. This exception does not invalidate any other reasons  *
+ *   why a work based on this file might be covered by the GNU General     *
+ *   Public License.                                                       *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
+ ***************************************************************************/
+#include "topology_context.h"
+
+namespace miosix {
+
+TopologyContext::TopologyContext() {
+    // TODO Auto-generated constructor stub
+
+}
+
+} /* namespace miosix */
+
+void miosix::MeshTopologyContext::receivedMessage(unsigned char* pkt, unsigned short len, short rssi) {
+    auto dimension = NeighborMessage<networkConfig->maxNodes, networkConfig->networkIdBits>::getPktMaxDimension();
+    if (len % dimension) throw runtime_error("received unparsable topology message");
+    for (auto i = 0; i < len; i += dimension) {
+        auto newData = NeighborMessage<networkConfig->maxNodes, networkConfig->networkIdBits>::fromPkt(pkt + i);
+        newData.pkt.sender
+        if (newData.pkt.assignee == networkConfig->networkId) {
+            //The node chosen me for forwarding the data
+            if (enqueuedTopologyMessages.hasKey(newData.pkt.assignee)) {
+                //if i already know the node
+                auto oldData = enqueuedTopologyMessages.getByKey(newData.pkt.sender);
+                if (((NeighborMessage<numNodes, nodesBits>&) oldData->second) != newData)
+                    //if i have old data
+                    enqueuedTopologyMessages.update(key, 0, newData);
+            } else {//new neighbor
+                enqueuedTopologyMessages.enqueue(key, 0, newData);
+            }
+        }
+    }
+}
+
+TopologyMessage* miosix::MeshTopologyContext::dequeueMessages(
+        unsigned short count) {
+}

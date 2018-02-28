@@ -1,0 +1,79 @@
+/***************************************************************************
+ *   Copyright (C)  2018 by Polidori Paolo              *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   As a special exception, if other files instantiate templates or use   *
+ *   macros or inline functions from this file, or you compile this file   *
+ *   and link it with other works to produce a work based on this file,    *
+ *   this file does not by itself cause the resulting work to be covered   *
+ *   by the GNU General Public License. However the source code for this   *
+ *   file must still be made available in accordance with the GNU General  *
+ *   Public License. This exception does not invalidate any other reasons  *
+ *   why a work based on this file might be covered by the GNU General     *
+ *   Public License.                                                       *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
+ ***************************************************************************/
+
+#ifndef NETWORK_CONFIGURATION_H
+#define NETWORK_CONFIGURATION_H
+
+namespace miosix {
+struct NetworkConfiguration {
+
+    enum TopologyMode {
+        NEIGHBOR_COLLECTION,
+        ROUTING_VECTOR
+    };
+    const unsigned char maxHops;
+    unsigned char hopBits;
+    const bool dynamicNetworkId = false;
+    unsigned short networkId;
+    const unsigned short maxNodes;
+    unsigned short networkIdBits;
+    const unsigned short panId;
+    const short txPower;
+    const unsigned int baseFrequency;
+    const TopologyMode topologyMode;
+    const unsigned char forwardedTopologies;
+    //TODO forwarded dead nodes
+    const unsigned short maxRoundsUnavailableBecomesDead;
+    const unsigned short maxRoundsUnreliableParent;
+    
+    NetworkConfiguration(const unsigned char maxHops, const unsigned short maxNodes, unsigned short networkId,
+            const unsigned short panId, const short txPower, const unsigned int baseFrequency,
+            const unsigned char forwardedTopologies,
+            const unsigned short maxRoundsUnavailableBecomesDead, const unsigned short maxRoundsUnreliableParent,
+            const TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION) :
+        maxHops(maxHops), maxNodes(maxNodes), networkId(networkId), panId(panId), txPower(txPower),
+            baseFrequency(baseFrequency), topologyMode(topologyMode), forwardedTopologies(forwardedTopologies),
+            maxRoundsUnavailableBecomesDead(maxRoundsUnavailableBecomesDead),
+            maxRoundsUnreliableParent(maxRoundsUnreliableParent) {
+        unsigned short addr = maxNodes;
+        networkIdBits = 0;
+        while (addr >>= 1) ++networkIdBits;
+        unsigned char h = maxHops;
+        hopBits = 0;
+        while (h >>= 1) ++hopBits;
+        switch (topologyMode) {
+        case TopologyMode::NEIGHBOR_COLLECTION:
+            break;
+        case TopologyMode::ROUTING_VECTOR:
+            break;
+        }
+    };
+};
+}
+
+#endif /* NETWORK_CONFIGURATION_H */
+

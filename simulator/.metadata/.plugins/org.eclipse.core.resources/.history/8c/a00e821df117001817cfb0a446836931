@@ -1,0 +1,98 @@
+/***************************************************************************
+ *   Copyright (C)  2018 by Polidori Paolo                                 *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   As a special exception, if other files instantiate templates or use   *
+ *   macros or inline functions from this file, or you compile this file   *
+ *   and link it with other works to produce a work based on this file,    *
+ *   this file does not by itself cause the resulting work to be covered   *
+ *   by the GNU General Public License. However the source code for this   *
+ *   file must still be made available in accordance with the GNU General  *
+ *   Public License. This exception does not invalidate any other reasons  *
+ *   why a work based on this file might be covered by the GNU General     *
+ *   Public License.                                                       *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
+ ***************************************************************************/
+
+#ifndef NETWORK_MODULE_TOPOLOGY_DISCOVERY_TOPOLOGY_CONTEXT_H_
+#define NETWORK_MODULE_TOPOLOGY_DISCOVERY_TOPOLOGY_CONTEXT_H_
+
+#include "topology_message.h"
+#include "../updatable_priority_queue.h"
+#include "../network_configuration.h"
+#include <map>
+#include <stdexcept>
+#include <vector>
+#include <algorithm>
+
+namespace miosix {
+
+class MACContext;
+class TopologyContext {
+public:
+    TopologyContext(MACContext& ctx) : ctx(ctx) {};
+    virtual ~TopologyContext() {
+        // TODO Auto-generated destructor stub
+    }
+
+    virtual NetworkConfiguration::TopologyMode getTopologyType();
+    virtual void receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi);
+    virtual void unreceivedMessage(unsigned short nodeIdByTopologySlot);
+    virtual std::vector<TopologyMessage> dequeueMessages(unsigned short count);
+    virtual TopologyMessage getMyTopologyMessage();
+    virtual unsigned short getBestPredecessor();
+
+protected:
+    MACContext& ctx;
+    UpdatablePriorityQueue<unsigned short, TopologyMessage, unsigned char> enqueuedTopologyMessages;
+    std::map<unsigned short, std::pair<short, unsigned short>> predecessorsRSSIUnseenSince;
+    std::map<unsigned short, unsigned short> neighborsUnseenSince;
+    struct CompareRSSI {
+        CompareRSSI(unsigned short maxUnseenSince) : mus(maxUnseenSince) {}
+        bool operator()(const std::pair<unsigned short, std::pair<short, unsigned short>>& left,
+                const std::pair<unsigned short, std::pair<short, unsigned short>>& right) const {
+            return (left.second.second < mus && right.second.second < mus) ||
+                    left.second.second < mus;
+        }
+        unsigned short mus;
+    };
+};
+
+class MeshTopologyContext : public TopologyContext {
+public:
+    MeshTopologyContext(MACContext& ctx) : TopologyContext(ctx) {};
+    virtual NetworkConfiguration::TopologyMode getTopologyType() {
+        return NetworkConfiguration::TopologyMode::NEIGHBOR_COLLECTION;
+    }
+    virtual void receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi);
+    virtual void unreceivedMessage(unsigned short nodeIdByTopologySlot);
+    virtual std::vector<TopologyMessage> dequeueMessages(unsigned short count);
+    virtual TopologyMessage getMyTopologyMessage();
+
+};
+
+
+class TreeTopologyContext : public TopologyContext {
+public:
+    TreeTopologyContext(MACContext& ctx) : TopologyContext(ctx) { throw std::runtime_error("not implemented, do it!"); }
+    virtual NetworkConfiguration::TopologyMode getTopologyType() {
+        return NetworkConfiguration::TopologyMode::ROUTING_VECTOR;
+    }
+
+};
+
+
+} /* namespace miosix */
+
+#endif /* NETWORK_MODULE_TOPOLOGY_DISCOVERY_TOPOLOGY_CONTEXT_H_ */

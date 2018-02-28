@@ -1,0 +1,21 @@
+/*
+ * topology_map.h
+ *
+ *  Created on: Feb 26, 2018
+ *      Author: paolo
+ */
+
+#ifndef NETWORK_MODULE_TOPOLOGY_DISCOVERY_TOPOLOGY_MAP_H_
+#define NETWORK_MODULE_TOPOLOGY_DISCOVERY_TOPOLOGY_MAP_H_
+
+namespace miosix {
+
+class TopologyMap {
+public:
+    TopologyMap();
+    virtual ~TopologyMap();
+};
+
+} /* namespace miosix */
+
+#endif /* NETWORK_MODULE_TOPOLOGY_DISCOVERY_TOPOLOGY_MAP_H_ */

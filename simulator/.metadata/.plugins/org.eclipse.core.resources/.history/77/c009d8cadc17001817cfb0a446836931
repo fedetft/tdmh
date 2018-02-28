@@ -1,0 +1,105 @@
+/***************************************************************************
+ *   Copyright (C)  2018 by Polidori Paolo                                 *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   As a special exception, if other files instantiate templates or use   *
+ *   macros or inline functions from this file, or you compile this file   *
+ *   and link it with other works to produce a work based on this file,    *
+ *   this file does not by itself cause the resulting work to be covered   *
+ *   by the GNU General Public License. However the source code for this   *
+ *   file must still be made available in accordance with the GNU General  *
+ *   Public License. This exception does not invalidate any other reasons  *
+ *   why a work based on this file might be covered by the GNU General     *
+ *   Public License.                                                       *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
+ ***************************************************************************/
+
+#include "dynamic_topology_discovery_phase.h"
+#include "../debug_settings.h"
+#include "../flooding/syncstatus.h"
+
+namespace miosix {
+
+DynamicTopologyDiscoveryPhase::DynamicTopologyDiscoveryPhase() {
+    // TODO Auto-generated constructor stub
+
+}
+
+DynamicTopologyDiscoveryPhase::~DynamicTopologyDiscoveryPhase() {
+    // TODO Auto-generated destructor stub
+}
+
+void DynamicTopologyDiscoveryPhase::receiveByNode(MACContext& ctx, unsigned short nodeId) {
+    if (ENABLE_TOPOLOGY_INFO_DBG)
+        print_dbg("[T] Collect\n");
+    auto* status = ctx.getSyncStatus();
+    auto timestampFrom = getNodeTransmissionTime(nodeId);
+    auto wakeUpTimeout = status->getWakeupAndTimeout(timestampFrom);
+    auto* cfg = ctx.getNetworkConfig();
+    auto* topology = ctx.getTopologyContext();
+    RecvResult result;
+    auto now = getTime();
+    if (now >= timestampFrom - status->receiverWindow)
+        print_dbg("RP start late\n");
+    if (now < wakeUpTimeout.first)
+        pm.deepSleepUntil(wakeUpTimeout.first);
+    ledOn();
+    try {
+        result = transceiver.recv(packet, ctx.maxPacketSize, wakeUpTimeout.second);
+    } catch(std::exception& e) {
+        if (ENABLE_RADIO_EXCEPTION_DBG)
+            print_dbg("%s\n", e.what());
+    }
+    if (ENABLE_PKT_INFO_DBG)
+        if(result.size){
+            print_dbg("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+            if (ENABLE_PKT_DUMP_DBG)
+                memDump(packet, result.size);
+        } else print_dbg("No packet received, timeout reached\n");
+    if (result.error == RecvResult::ErrorCode::OK) {
+        topology->receivedMessage(packet, result.rssi);
+        if (ENABLE_TOPOLOGY_INFO_DBG)
+            print_dbg("[T] N=%ud", nodeId);
+    } else {
+        topology->unreceivedMessage(nodeId);
+    }
+}
+
+void DynamicTopologyDiscoveryPhase::sendMyTopology(MACContext& ctx) {
+    auto* topology = ctx.getTopologyContext();
+    TopologyMessage msg = topology->getMyTopologyMessage();
+    auto msgdata = msg.getPkt();
+    auto pktSize = msg.getSize();
+    ctx.bitwisePopulateBitArrBot(packet, ctx.maxPacketSize, msgdata.data(), msgdata.size(), 0, pktSize);
+    for (auto& msg : topology->dequeueMessages(cfg->forwardedTopologies) {
+        auto size = msg.getSize();
+        msgdata = msg.getPkt()
+        ctx.bitwisePopulateBitArrBot(packet, ctx.maxPacketSize, msgdata.data(), msgdata.size(), pktSize, size);
+        pktSize += size;
+    }
+    transceiver.sendAt(pkt, (pktSize - 1) % sizeof(unsigned char) + 1, getNodeTransmissionTime(cfg->networkId));
+}
+
+void DynamicTopologyDiscoveryPhase::execute(MACContext& ctx) {
+    auto* cfg = ctx.getNetworkConfig();
+    transceiver.configure(ctx.getTransceiverConfig());
+    ledOn();
+    transceiver.turnOn();
+    for (unsigned short nodeId = 1; nodeId < cfg->maxNodes; nodeId++) {
+        if (i == cfg->networkId) sendMyTopology(ctx);
+        else receiveByNode(ctx, nodeId);
+    }
+}
+
+} /* namespace miosix */

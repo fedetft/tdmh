@@ -1,3 +1,0 @@
-[General]
-network = SimpleTopology
-cpu-time-limit = 60s
