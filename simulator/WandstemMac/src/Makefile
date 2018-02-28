@@ -45,6 +45,7 @@ OBJS = \
     $O/network_module/maccontext.o \
     $O/network_module/macphase.o \
     $O/network_module/mediumaccesscontroller.o \
+    $O/network_module/network_configuration.o \
     $O/network_module/assignment/assignmentphase.o \
     $O/network_module/assignment/dynamicassignmentphase.o \
     $O/network_module/assignment/lasthopassignmentphase.o \
@@ -68,7 +69,13 @@ OBJS = \
     $O/network_module/roundtrip/roundtripphase.o \
     $O/network_module/slots_management/dynamicslotsnegotiator.o \
     $O/network_module/slots_management/masterslotsnegotiator.o \
-    $O/network_module/slots_management/slotsnegotiator.o
+    $O/network_module/slots_management/slotsnegotiator.o \
+    $O/network_module/topology_discovery/dynamic_topology_discovery_phase.o \
+    $O/network_module/topology_discovery/master_topology_discovery_phase.o \
+    $O/network_module/topology_discovery/topology_context.o \
+    $O/network_module/topology_discovery/topology_map.o \
+    $O/network_module/topology_discovery/topology_message.o \
+    $O/network_module/topology_discovery/topologydiscoveryphase.o
 
 # Message files
 MSGFILES =

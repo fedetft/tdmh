@@ -36,10 +36,9 @@ namespace miosix {
     class RoundtripPhase;
     class ReservationPhase;
     class AssignmentPhase;
+    class TopologyDiscoveryPhase;
     class MACRound {
     public:
-        MACRound(FloodingPhase* flooding, RoundtripPhase* roundtrip, ReservationPhase* reservation, AssignmentPhase* assignment) :
-                flooding(flooding), roundtrip(roundtrip), reservation(reservation), assignment(assignment) {};
         MACRound(const MACRound& orig) = delete;
         virtual ~MACRound();
 
@@ -55,12 +54,16 @@ namespace miosix {
         void setAssignmentPhase(AssignmentPhase* as);
         inline AssignmentPhase* getAssignmentPhase() { return assignment; }
 
+        void setTopologyDiscoveryPhase(TopologyDiscoveryPhase* top);
+        inline TopologyDiscoveryPhase* getTopologyDiscoveryPhase() { return topology; }
+
         virtual void run(MACContext& ctx);
         static const long long roundDuration = 10000000000LL; //10s
     protected:
         MACRound() {};
         FloodingPhase* flooding = nullptr;
         RoundtripPhase* roundtrip = nullptr;
+        TopologyDiscoveryPhase* topology = nullptr;
         ReservationPhase* reservation = nullptr;
         AssignmentPhase* assignment = nullptr;
 

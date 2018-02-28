@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2018 by Polidori Paolo              *
+ *   Copyright (C)  2018 by Polidori Paolo                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -29,18 +29,33 @@
 #define NETWORK_CONFIGURATION_H
 
 namespace miosix {
+class MACContext;
 struct NetworkConfiguration {
+
+    enum TopologyMode {
+        NEIGHBOR_COLLECTION,
+        ROUTING_VECTOR
+    };
     const unsigned char maxHops;
-    const bool dynamicNetworkId;
-    const unsigned short networkId;
+    unsigned char hopBits;
+    const bool dynamicNetworkId = false;
+    const unsigned short staticNetworkId;
+    const unsigned short maxNodes;
+    unsigned short networkIdBits;
     const unsigned short panId;
     const short txPower;
     const unsigned int baseFrequency;
+    const TopologyMode topologyMode;
+    const unsigned char forwardedTopologies;
+    //TODO forwarded dead nodes
+    const unsigned short maxRoundsUnavailableBecomesDead;
+    const unsigned short maxRoundsUnreliableParent;
     
-    NetworkConfiguration(const unsigned char maxHops, const bool dynamicNetworkId, const unsigned short networkId,
-            const unsigned short panId, const short txPower, const unsigned int baseFrequency) :
-        maxHops(maxHops), dynamicNetworkId(dynamicNetworkId), networkId(networkId), panId(panId), txPower(txPower),
-            baseFrequency(baseFrequency) {};
+    NetworkConfiguration(const unsigned char maxHops, const unsigned short maxNodes, unsigned short networkId,
+            const unsigned short panId, const short txPower, const unsigned int baseFrequency,
+            const unsigned char forwardedTopologies,
+            const unsigned short maxRoundsUnavailableBecomesDead, const unsigned short maxRoundsUnreliableParent,
+            const TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION);
 };
 }
 

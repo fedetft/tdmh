@@ -25,45 +25,53 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "power_manager.h"
-#include <omnetpp.h>
-
-using namespace omnetpp;
+#include "master_topology_discovery_phase.h"
+#include "topology_context.h"
+#include "../debug_settings.h"
+#include <limits>
 
 namespace miosix {
 
-std::mutex PowerManager::instanceMutex;
-std::map<NodeBase*, PowerManager*> PowerManager::instances;
-
-PowerManager::PowerManager() : MiosixInterface() {
-    // TODO Auto-generated constructor stub
-
+MasterTopologyDiscoveryPhase::~MasterTopologyDiscoveryPhase() {
+    // TODO Auto-generated destructor stub
 }
 
-PowerManager::~PowerManager() {
-    PowerManager::instances.erase(MiosixStaticInterface::getNode());
-}
-
-PowerManager& PowerManager::instance() {
-    auto* curNode = MiosixStaticInterface::getNode();
-    PowerManager* retval;
-    std::map<NodeBase*, PowerManager*>::iterator it = PowerManager::instances.find(curNode);
-    if (it == PowerManager::instances.end()) {
-        std::lock_guard<std::mutex> myLock(PowerManager::instanceMutex);
-        it = PowerManager::instances.find(curNode);
-        if (it == PowerManager::instances.end()) {
-            retval = new PowerManager();
-            PowerManager::instances[curNode] = retval;
+void MasterTopologyDiscoveryPhase::execute(MACContext& ctx) {
+    if (ENABLE_TOPOLOGY_INFO_DBG)
+        print_dbg("[T] GFAT=%llu\n", globalFirstActivityTime);
+    unsigned char packet[ctx.maxPacketSize];
+    transceiver.configure(ctx.getTransceiverConfig());
+    auto* cfg = ctx.getNetworkConfig();
+    auto* topology = ctx.getTopologyContext();
+    RecvResult result;
+    transceiver.turnOn();
+    for (unsigned short nodeId = cfg->maxNodes - 1; nodeId > 0; nodeId--) {
+        try {
+            result = transceiver.recv(packet, ctx.maxPacketSize,
+                    getNodeTransmissionTime(nodeId) + MediumAccessController::maxPropagationDelay + packetTime + MediumAccessController::maxAdmittableResyncReceivingWindow);
+        } catch(std::exception& e) {
+            if (ENABLE_RADIO_EXCEPTION_DBG)
+                print_dbg("%s\n", e.what());
         }
-    } else retval = it->second;
-    return *retval;
-}
-
-void PowerManager::deepSleep(long long delta) {
-    parentNode->waitAndDeletePackets(SimTime(delta, SIMTIME_NS));
-}
-void PowerManager::deepSleepUntil(long long when) {
-    parentNode->waitAndDeletePackets(SimTime(when, SIMTIME_NS) - simTime());
+        if (ENABLE_PKT_INFO_DBG) {
+            if(result.size) {
+                print_dbg("Received packet, error %d, size %d, timestampValid %d: ",
+                        result.error, result.size, result.timestampValid);
+                if (ENABLE_PKT_DUMP_DBG)
+                    memDump(packet, result.size);
+            } else print_dbg("No packet received, timeout reached\n");
+        }
+        if (result.error == RecvResult::ErrorCode::OK) {
+            topology->receivedMessage(packet, result.size * std::numeric_limits<unsigned char>::digits, nodeId, result.rssi);
+            if (ENABLE_TOPOLOGY_INFO_DBG)
+                print_dbg("[T] <- N=%u @%llu\n", nodeId, result.timestamp);
+        } else {
+            topology->unreceivedMessage(nodeId);
+        }
+    }
+    if (ENABLE_TOPOLOGY_INFO_DBG) {
+        dynamic_cast<MasterMeshTopologyContext*>(topology)->print();
+    }
 }
 
 } /* namespace miosix */

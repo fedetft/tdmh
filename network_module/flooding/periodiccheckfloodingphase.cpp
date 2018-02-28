@@ -43,7 +43,7 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
     auto timeoutTime = syncStatus->correct(wakeupTimeout.second);
     
     //Transceiver configured with non strict timeout
-    transceiver.configure(*ctx.getTransceiverConfig());
+    transceiver.configure(ctx.getTransceiverConfig());
     unsigned char packet[syncPacketSize];
     
     if (ENABLE_FLOODING_INFO_DBG)
@@ -75,25 +75,26 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
             if (ENABLE_RADIO_EXCEPTION_DBG)
                 print_dbg("%s\n", e.what());
         }
-        if (ENABLE_PKT_INFO_DBG)
+        if (ENABLE_PKT_INFO_DBG) {
             if(result.size){
                 print_dbg("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
                 if (ENABLE_PKT_DUMP_DBG)
                     memDump(packet, result.size);
             } else print_dbg("No packet received, timeout reached\n");
+        }
     }
     
     transceiver.idle(); //Save power waiting for rebroadcast time
     
-    //This conversion is really necessary to get the corrected time in NS, to pass to transceiver
-    long long correctedMeasuredFrameStart = syncStatus->correct(result.timestamp);
-    //Rebroadcast the sync packet
-    if (success) rebroadcast(correctedMeasuredFrameStart, packet, networkConfig.maxHops);
-    transceiver.turnOff();
-    ledOff();
-    
     if (success) {
+        //This conversion is really necessary to get the corrected time in NS, to pass to transceiver
+        long long correctedMeasuredFrameStart = syncStatus->correct(result.timestamp);
+        packet[2]++;
+        //Rebroadcast the sync packet
+        if (success) rebroadcast(correctedMeasuredFrameStart, packet, networkConfig.maxHops);
         syncStatus->receivedPacket(result.timestamp);
+        measuredGlobalFirstActivityTime = result.timestamp - (packet[2] - 1) * rebroadcastInterval;
+        transceiver.turnOff();
         if (ENABLE_FLOODING_INFO_DBG)
             print_dbg("[F] RT=%lld\ne=%lld u=%d w=%d rssi=%d\n",
                     result.timestamp,
@@ -101,11 +102,16 @@ void PeriodicCheckFloodingPhase::execute(MACContext& ctx)
                     syncStatus->clockCorrection,
                     syncStatus->receiverWindow,
                    result.rssi);
-    } else if (ENABLE_FLOODING_INFO_DBG) {
-        print_dbg("[F] miss u=%d w=%d\n", syncStatus->clockCorrection, syncStatus->receiverWindow);
-        if (syncStatus->missedPacket() >= maxMissedPackets)
-            print_dbg("[F] lost sync\n");
+    } else {
+        measuredGlobalFirstActivityTime = syncStatus->computedFrameStart - (packet[2] - 1) * rebroadcastInterval;
+        if (ENABLE_FLOODING_INFO_DBG) {
+            print_dbg("[F] miss u=%d w=%d\n", syncStatus->clockCorrection, syncStatus->receiverWindow);
+            if (syncStatus->missedPacket() >= maxMissedPackets)
+                print_dbg("[F] lost sync\n");
+        }
     }
+    print_dbg("[F] MGFAT %llu\n", measuredGlobalFirstActivityTime);
+    ledOff();
 }
 }
 

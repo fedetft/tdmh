@@ -52,6 +52,13 @@ namespace miosix {
          * @return 
          */
         virtual SlotsNegotiator* getSlotsNegotiator(MACContext& ctx) const = 0;
+
+        /**
+         * Generates a new TopologyContext to be used for collecting the network topology.
+         * @param ctx
+         * @return
+         */
+        virtual TopologyContext* getTopologyContext(MACContext& ctx) const = 0;
     };
 }
 

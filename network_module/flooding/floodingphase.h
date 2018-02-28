@@ -30,7 +30,6 @@
 
 #include "interfaces-impl/transceiver.h"
 #include "interfaces-impl/power_manager.h"
-#include "../mediumaccesscontroller.h"
 #include "../macphase.h"
 #include <utility>
 
@@ -50,7 +49,7 @@ public:
     
     virtual ~FloodingPhase();
     
-    long long getPhaseEnd() const { return globalFirstActivityTime + phaseDuration; }
+    virtual long long getPhaseEnd() const { return globalFirstActivityTime + phaseDuration; }
     
     //Minimum ~550us, 200us of slack added
     //TODO move to maccontroller as sendingnodewakeupadvance
@@ -59,6 +58,7 @@ public:
     static const unsigned short maxMissedPackets = 3;
     static const int syncPacketSize = 7;
     static const int rebroadcastInterval = 1016000; //32us per-byte + 600us total delta
+    //TODO fixme, should depend on the number of hops
     static const long long phaseDuration = 500000000; //duration of the flooding phase, 500ms
     
 protected:
@@ -67,11 +67,12 @@ protected:
      * @param masterSendTime
      */
     FloodingPhase(long long masterSendTime) :
-            FloodingPhase(masterSendTime, masterSendTime) {};
-    FloodingPhase(long long masterSendTime, long long expectedReceivingTime) :
+            FloodingPhase(masterSendTime, masterSendTime, masterSendTime) {};
+    FloodingPhase(long long masterSendTime, long long expectedReceivingTime, long long measuredGlobalFirstActivityTime = 0) :
             MACPhase(masterSendTime - phaseStartupTime, masterSendTime, expectedReceivingTime),
             transceiver(Transceiver::instance()),
-            pm(PowerManager::instance()) {};
+            pm(PowerManager::instance()),
+            measuredGlobalFirstActivityTime(measuredGlobalFirstActivityTime) {};
     /**
      * Rebroadcst the synchronization packet using glossy
      * \param receivedTimestamp the timestamp when the packet was received
@@ -100,6 +101,7 @@ protected:
     
     Transceiver& transceiver;
     PowerManager& pm;
+    long long measuredGlobalFirstActivityTime;
     
 private:
     

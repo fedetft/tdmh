@@ -23,8 +23,8 @@ Define_Module(RootNode);
 void RootNode::activity()
 {
     using namespace miosix;
-    printf("Master node\n");
-    const NetworkConfiguration config(3, false, address, 6, 1, 2450);
+    print_dbg("Master node\n");
+    const NetworkConfiguration config(3, 256, address, 6, 1, 2450, 2, 3, 3);
     MediumAccessController controller(new MasterMACRound::MasterMACRoundFactory(), &config);
     controller.run();
 }

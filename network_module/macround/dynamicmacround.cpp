@@ -29,6 +29,7 @@
 #include "../flooding/periodiccheckfloodingphase.h"
 #include "../flooding/syncstatus.h"
 #include "../slots_management/dynamicslotsnegotiator.h"
+#include "../topology_discovery/topology_context.h"
 
 namespace miosix {
     DynamicMACRound::~DynamicMACRound() {
@@ -39,18 +40,25 @@ namespace miosix {
         ctx.setNextRound(nextRound);
         flooding->execute(ctx);
         SyncStatus* syncStatus = ctx.getSyncStatus();
+        auto* cfg = ctx.getNetworkConfig();
         switch (syncStatus->getInternalStatus()) {
             case SyncStatus::MacroStatus::DESYNCHRONIZED:
                 roundtrip = nullptr;
+                topology = nullptr;
                 break;
             case SyncStatus::MacroStatus::IN_SYNC:
                 //TODO add phase changes
-                roundtrip = new ListeningRoundtripPhase(
-                        syncStatus->measuredFrameStart + FloodingPhase::phaseDuration);
+                auto t = flooding->getPhaseEnd();
+                roundtrip = new ListeningRoundtripPhase(t);
+                topology = new DynamicTopologyDiscoveryPhase(roundtrip->getPhaseEnd(), ctx.getNetworkId(), cfg->maxNodes);
                 break;
         }
-        if (roundtrip != nullptr) roundtrip->execute(ctx);
         
+        if (syncStatus->receiverWindow < MediumAccessController::maxAdmittableResyncReceivingWindow) {
+            if (roundtrip != nullptr) roundtrip->execute(ctx);
+            if (topology != nullptr) topology->execute(ctx);
+        }
+
         //switch to next round programming
         syncStatus->next();
         switch (syncStatus->getInternalStatus()) {
@@ -77,6 +85,12 @@ namespace miosix {
     SlotsNegotiator* DynamicMACRound::DynamicMACRoundFactory::getSlotsNegotiator(MACContext& ctx) const {
         return new DynamicSlotsNegotiator(ctx, 120, 1);
     }
+
+TopologyContext* DynamicMACRound::DynamicMACRoundFactory::getTopologyContext(MACContext& ctx) const {
+    return ctx.getNetworkConfig()->topologyMode == NetworkConfiguration::TopologyMode::NEIGHBOR_COLLECTION?
+                        ((TopologyContext*) new DynamicMeshTopologyContext(ctx)):
+                        ((TopologyContext*) new DynamicTreeTopologyContext(ctx));
+}
 
 }
 

@@ -30,6 +30,7 @@
 #include "../roundtrip/roundtripphase.h"
 #include "../reservation/reservationphase.h"
 #include "../assignment/assignmentphase.h"
+#include "../topology_discovery/topologydiscoveryphase.h"
 
 namespace miosix {
     MACRound::~MACRound() {
@@ -42,6 +43,7 @@ namespace miosix {
     void MACRound::run(MACContext& ctx) {
         if (flooding != nullptr) flooding->execute(ctx);
         if (roundtrip != nullptr) roundtrip->execute(ctx);
+        if (topology != nullptr) topology->execute(ctx);
         if (reservation != nullptr) reservation->execute(ctx);
         if (assignment != nullptr) assignment->execute(ctx);
     }
@@ -64,6 +66,11 @@ namespace miosix {
     void MACRound::setAssignmentPhase(AssignmentPhase* as) {
         delete assignment;
         assignment = as;
+    }
+
+    void MACRound::setTopologyDiscoveryPhase(TopologyDiscoveryPhase* top) {
+        delete topology;
+        topology = top;
     }
 
 }

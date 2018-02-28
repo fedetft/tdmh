@@ -38,7 +38,7 @@ namespace miosix {
 
     void MasterFloodingPhase::execute(MACContext& ctx)
     {
-        transceiver.configure(*ctx.getTransceiverConfig());
+        transceiver.configure(ctx.getTransceiverConfig());
         transceiver.turnOn();
         //Thread::nanoSleepUntil(startTime);
         auto deepsleepDeadline = globalFirstActivityTime - rootNodeWakeupAdvance;

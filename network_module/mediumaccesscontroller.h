@@ -44,12 +44,13 @@ namespace miosix {
         virtual ~MediumAccessController();
         void run();
         //5 byte (4 preamble, 1 SFD) * 32us/byte
-        static const int packetPreambleTime = 160000;
+        static const unsigned int packetPreambleTime = 160000;
         //350us and forced receiverWindow=1 fails, keeping this at minimum
         //This is dependent on the optimization level, i usually use level -O2
-        static const int receivingNodeWakeupAdvance = 450000;
-        static const int sendingNodeWakeupAdvance = 500000; //500 us TODO fine tune, it was guessed
-        static const int maxAdmittableReceivingWindow = 6000000; //6 ms
+        static const unsigned int maxPropagationDelay = 100;
+        static const unsigned int receivingNodeWakeupAdvance = 450000;
+        static const unsigned int sendingNodeWakeupAdvance = 500000; //500 us TODO fine tune, it was guessed
+        static const unsigned int maxAdmittableResyncReceivingWindow = 1000000; //1 ms
         inline int getOutgoingCount() { return sendQueue.size(); }
         /**
          * A method for asynchronically send a packet.

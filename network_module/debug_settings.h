@@ -49,6 +49,12 @@ const bool ENABLE_ROUNDTRIP_INFO_DBG = true;
 //prints the flooding phase errors
 const bool ENABLE_ROUNDTRIP_ERROR_DBG = true;
 
+//prints the flooding phase debug info
+const bool ENABLE_TOPOLOGY_INFO_DBG = true;
+
+//prints the flooding phase errors
+const bool ENABLE_TOPOLOGY_ERROR_DBG = true;
+
 /**
  * If you want to override this function's behavior, define the macro
  * #define print_dbg myfun

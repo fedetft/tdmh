@@ -44,7 +44,7 @@ public:
      * @param startTime
      */
     RoundtripPhase(long long masterFloodingEndTime) : 
-            MACPhase(masterFloodingEndTime, masterFloodingEndTime + senderDelay),
+            MACPhase(masterFloodingEndTime, masterFloodingEndTime + senderDelay + tPktElab),
             transceiver(Transceiver::instance()),
             pm(PowerManager::instance()) {};
     RoundtripPhase() = delete;
@@ -53,12 +53,17 @@ public:
     
     long long getPhaseEnd() const { return globalStartTime + phaseDuration; }
     
-    static const int receiverWindow = 100000; //100us
-    static const int senderDelay = 50000; //50us
-    static const int replyDelay = 100000; //100us
-    static const int askPacketSize = 7;
-    static const int replyPacketSize = 125;
-    static const long long phaseDuration = 5000000; //duration of the roundtrip phase, 5ms
+    static const unsigned int receiverWindow = 200000; //200us
+    static const unsigned int senderDelay = 100000; //100us
+    static const unsigned short tPktElab = 50000; //50us
+    static const unsigned int replyDelay = 100000; //100us
+    static const unsigned short askPacketSize = 7;
+    static const unsigned int tAskPkt = 416000; //416us
+    static const unsigned short replyPacketSize = 125;
+    static const unsigned int tReplyPkt = 4256000; //4256us
+    //phase should last at least 5588200 ns. Given 6ms.
+    //tPktElab + maxPropDelay + tAskPkt + rcvWin + replyDelay + maxPropDelay + tReplyPkt + rcvWin + tPktElab
+    static const unsigned long long phaseDuration = 6000000;
     
     /**
      * We are very limited with possible value to send through led bar, 

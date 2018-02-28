@@ -33,9 +33,8 @@ namespace miosix {
     }
     void DynamicAssignmentPhase::execute(MACContext& ctx)
     {
-        auto* config = ctx.getTransceiverConfig();
-        TransceiverConfiguration cfg(config->frequency, config->txPower, false, false);
-        transceiver.configure(cfg);
+        auto config = ctx.getTransceiverConfig(false, false);
+        transceiver.configure(config);
         transceiver.turnOn();
         receiveOrGetEmpty(ctx);
         forwardPacket();

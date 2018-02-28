@@ -37,29 +37,29 @@ using namespace miosix;
 
 void masterNode(void*){    
     printf("Master node\n");
-    const NetworkConfiguration config(2, false, 0, 6, 1, 2450);
-    MediumAccessController& controller = MediumAccessController::instance(new MasterMACRound::MasterMACRoundFactory(), &config);
+    const NetworkConfiguration config(3, 256, 0, 6, 1, 2450, 2, 3, 3);
+    MediumAccessController controller(new MasterMACRound::MasterMACRoundFactory(), &config);
     controller.run();
 }
 
 void node1Hop1(void*){    
     printf("Dynamic node 1 hop 1\n");
-    const NetworkConfiguration config(2, false, 1, 6, 1, 2450);
-    MediumAccessController& controller = MediumAccessController::instance(new DynamicMACRound::DynamicMACRoundFactory(), &config);
+    const NetworkConfiguration config(3, 256, 1, 6, 1, 2450, 2, 3, 3);
+    MediumAccessController controller(new DynamicMACRound::DynamicMACRoundFactory(), &config);
     controller.run();
 }
 
 void node2Hop1(void*){    
     printf("Dynamic node 2 hop 1\n");
-    const NetworkConfiguration config(2, false, 2, 6, 1, 2450);
-    MediumAccessController& controller = MediumAccessController::instance(new DynamicMACRound::DynamicMACRoundFactory(), &config);
+    const NetworkConfiguration config(3, 256, 2, 6, 1, 2450, 2, 3, 3);
+    MediumAccessController controller(new DynamicMACRound::DynamicMACRoundFactory(), &config);
     controller.run();
 }
 
 void node3Hop2(void*){    
     printf("Dynamic node 3 hop 2\n");
-    const NetworkConfiguration config(3, false, 3, 6, 1, 2450);
-    MediumAccessController& controller = MediumAccessController::instance(new DynamicMACRound::DynamicMACRoundFactory(), &config);
+    const NetworkConfiguration config(3, 256, 3, 6, 1, 2450, 2, 3, 3);
+    MediumAccessController controller(new DynamicMACRound::DynamicMACRoundFactory(), &config);
     controller.run();
 }
 

@@ -35,14 +35,15 @@
 #include "../roundtrip/listeningroundtripphase.h"
 #include "../reservation/masterreservationphase.h"
 #include "../assignment/masterassignmentphase.h"
+#include "../topology_discovery/master_topology_discovery_phase.h"
 #include <cstdio>
 
 namespace miosix {
     class MasterMACRound : public MACRound {
     public:
         MasterMACRound() = delete;
-        explicit MasterMACRound(const MediumAccessController& mac) :
-                MasterMACRound(mac, getTime() + MasterMACRound::initializationDelay) {}
+        explicit MasterMACRound(MACContext& ctx) :
+                MasterMACRound(ctx, getTime() + MasterMACRound::initializationDelay) {}
         MasterMACRound(const MasterMACRound& orig) = delete;
         virtual ~MasterMACRound();
         virtual void run(MACContext& ctx) override;
@@ -52,14 +53,16 @@ namespace miosix {
             MasterMACRoundFactory() {};
             MACRound* create(MACContext& ctx) const override;
             SlotsNegotiator* getSlotsNegotiator(MACContext& ctx) const override;
+            TopologyContext* getTopologyContext(MACContext& ctx) const override;
             virtual ~MasterMACRoundFactory() {};
         };
         
     protected:
-        MasterMACRound(const MediumAccessController& mac, long long roundStart) :
-                MACRound(new MasterFloodingPhase(roundStart), nullptr, nullptr, nullptr),
-                roundStart(roundStart) {
-                    roundtrip = new ListeningRoundtripPhase(flooding->getPhaseEnd());/*,
+        MasterMACRound(MACContext& ctx, long long roundStart) :
+                MACRound(), roundStart(roundStart) {
+                    flooding = new MasterFloodingPhase(roundStart);
+                    roundtrip = new ListeningRoundtripPhase(flooding->getPhaseEnd());
+                    topology = new MasterTopologyDiscoveryPhase(roundtrip->getPhaseEnd(), ctx.getNetworkConfig()->maxNodes);/*,
                     reservation = new MasterReservationPhase(roundtrip->getPhaseEnd()),
                     assignment = new MasterAssignmentPhase(reservation->getPhaseEnd())*/
                 }

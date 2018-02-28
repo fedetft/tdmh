@@ -38,7 +38,7 @@ VirtualClock::VirtualClock() : MiosixInterface() {
 }
 
 VirtualClock::~VirtualClock() {
-    VirtualClock::instances.clear();
+    VirtualClock::instances.erase(MiosixStaticInterface::getNode());
 }
 
 VirtualClock& VirtualClock::instance() {

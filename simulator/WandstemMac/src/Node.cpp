@@ -24,8 +24,8 @@ Define_Module(Node);
 void Node::activity()
 {
     using namespace miosix;
-    printf("Dynamic node 1 hop 1\n");
-    const NetworkConfiguration config(3, false, address, 6, 1, 2450);
+    print_dbg("Dynamic node 1 hop 1\n");
+    const NetworkConfiguration config(3, 256, address, 6, 1, 2450, 2, 3, 3);
     MediumAccessController controller(new DynamicMACRound::DynamicMACRoundFactory(), &config);
     controller.run();
 }

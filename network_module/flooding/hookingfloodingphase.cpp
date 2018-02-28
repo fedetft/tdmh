@@ -41,7 +41,7 @@ void HookingFloodingPhase::execute(MACContext& ctx)
     auto* status = ctx.getSyncStatus();
     auto* synchronizer = status->synchronizer;
     synchronizer->reset();
-    transceiver.configure(*ctx.getTransceiverConfig());
+    transceiver.configure(ctx.getTransceiverConfig());
     transceiver.turnOn();
     unsigned char packet[syncPacketSize];
     auto networkConfig = *ctx.getNetworkConfig();
@@ -55,12 +55,13 @@ void HookingFloodingPhase::execute(MACContext& ctx)
             if (ENABLE_RADIO_EXCEPTION_DBG)
                 print_dbg("%s\n", e.what());
         }
-        if (ENABLE_PKT_INFO_DBG)
+        if (ENABLE_PKT_INFO_DBG) {
             if(result.size){
                 print_dbg("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
                 if (ENABLE_PKT_DUMP_DBG)
                     memDump(packet, result.size);
             } else print_dbg("No packet received, timeout reached\n");
+        }
     }
     ++packet[2];
     rebroadcast(result.timestamp, packet, networkConfig.maxHops);
@@ -73,6 +74,8 @@ void HookingFloodingPhase::execute(MACContext& ctx)
     
     status->initialize(synchronizer->getReceiverWindow(), result.timestamp);
     ctx.setHop(packet[2]);
+    measuredGlobalFirstActivityTime = result.timestamp - (packet[2] - 1) * rebroadcastInterval;
+    print_dbg("MGFAT %llu\n", measuredGlobalFirstActivityTime);
     
     //Correct frame start considering hops
     //measuredFrameStart-=hop*packetRebroadcastTime;

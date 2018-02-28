@@ -33,15 +33,15 @@
 #include "../flooding/hookingfloodingphase.h"
 #include "../roundtrip/listeningroundtripphase.h"
 #include "../roundtrip/askingroundtripphase.h"
+#include "../topology_discovery/dynamic_topology_discovery_phase.h"
 
 namespace miosix {
     class DynamicMACRound : public MACRound {
     public:
         DynamicMACRound(const DynamicMACRound& orig) = delete;
-        explicit DynamicMACRound(const MediumAccessController& mac) :
-                MACRound(
-                    new HookingFloodingPhase(),
-                    nullptr, nullptr, nullptr) {}
+        explicit DynamicMACRound(const MediumAccessController& mac) : MACRound() {
+            flooding = new HookingFloodingPhase();
+        }
         virtual void run(MACContext& ctx) override;
         virtual ~DynamicMACRound();
 
@@ -50,6 +50,7 @@ namespace miosix {
             DynamicMACRoundFactory() {};
             MACRound* create(MACContext& ctx) const override;
             SlotsNegotiator* getSlotsNegotiator(MACContext& ctx) const override;
+            TopologyContext* getTopologyContext(MACContext& ctx) const override;
             virtual ~DynamicMACRoundFactory() {};
         };
 

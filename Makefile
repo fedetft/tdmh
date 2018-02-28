@@ -18,33 +18,13 @@ SUBDIRS := $(KPATH)
 ##
 SRC :=\
 main.cpp\
-network_module/mediumaccesscontroller.cpp\
-network_module/maccontext.cpp\
-network_module/macphase.cpp\
-network_module/slots_management/slotsnegotiator.cpp\
-network_module/slots_management/dynamicslotsnegotiator.cpp\
-network_module/slots_management/masterslotsnegotiator.cpp\
-network_module/flooding/floodingphase.cpp\
-network_module/flooding/hookingfloodingphase.cpp\
-network_module/flooding/masterfloodingphase.cpp\
-network_module/flooding/periodiccheckfloodingphase.cpp\
-network_module/flooding/time_synchronizers/synchronizer.cpp\
-network_module/flooding/time_synchronizers/flopsync2.cpp\
-network_module/macround/macround.cpp\
-network_module/macround/mastermacround.cpp\
-network_module/macround/dynamicmacround.cpp\
-network_module/roundtrip/led_bar.cpp\
-network_module/roundtrip/roundtripphase.cpp\
-network_module/roundtrip/listeningroundtripphase.cpp\
-network_module/roundtrip/askingroundtripphase.cpp\
-network_module/reservation/reservationphase.cpp\
-network_module/reservation/dynamicreservationphase.cpp\
-network_module/reservation/masterreservationphase.cpp\
-network_module/reservation/lasthopreservationphase.cpp\
-network_module/assignment/assignmentphase.cpp\
-network_module/assignment/dynamicassignmentphase.cpp\
-network_module/assignment/masterassignmentphase.cpp\
-network_module/assignment/lasthopassignmentphase.cpp\
+$(wildcard network_module/*.cpp) $(wildcard network_module/**/*.cpp)
+
+##
+## List here your test source files (both .s, .c and .cpp) inside the "tests" folder
+##
+TEST_SRC :=\
+bitalign_test.cpp
 
 ##
 ## List here additional static libraries with relative path
@@ -68,8 +48,11 @@ Q := @
 ECHO := @echo
 endif
 
+TEST_PATH := tests/
+
 ## Replaces both "foo.cpp"-->"foo.o" and "foo.c"-->"foo.o"
 OBJ := $(addsuffix .o, $(basename $(SRC)))
+TEST_OBJ := $(addsuffix .o, $(basename $(TEST_SRC)))
 
 ## Includes the miosix base directory for C/C++
 ## Always include CONFPATH first, as it overrides the config file location
@@ -130,6 +113,9 @@ main.elf: $(OBJ) all-recursive
 %.o : %.cpp
 	$(ECHO) "[CXX ] $<"
 	$(Q)$(CXX) $(DFLAGS) $(CXXFLAGS) $< -o $@
+
+test: $(TEST_PATH)$(TEST_OBJ)
+	$(Q)$(CC) $(DFLAGS) $(CXXFLAGS) $^ -o $(^:.o=)
 
 #pull in dependecy info for existing .o files
 -include $(OBJ:.o=.d)

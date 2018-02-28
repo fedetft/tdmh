@@ -21,3 +21,6 @@ checkmakefiles:
 	echo; \
 	exit 1; \
 	fi
+
+tests:
+	cd tests && $(MAKE) all

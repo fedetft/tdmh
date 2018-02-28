@@ -41,14 +41,14 @@ public:
     long long getPhaseEnd() const { return globalStartTime + phaseDuration; }
     
     static const int reservationPacketSize = 127;
-    static const int retransmissionDelay = 5000000; //5ms
+    static const int transmissionInterval = 5000000; //5ms
     static const int firstSenderDelay = 500000; //TODO tune it, guessed based on the need to RCV -> SND if was asking before
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
-    static const long long phaseDuration = 2 * retransmissionDelay + firstSenderDelay + packetArrivalAndProcessingTime;
+    static const long long phaseDuration = 2 * transmissionInterval + firstSenderDelay + packetArrivalAndProcessingTime;
 protected:
     ReservationPhase(long long roundtripEndTime, unsigned char hop, unsigned char maxHops) :
             MACPhase(roundtripEndTime, roundtripEndTime + firstSenderDelay,
-                    roundtripEndTime + firstSenderDelay + (maxHops - hop - 1) * retransmissionDelay),
+                    roundtripEndTime + firstSenderDelay + (maxHops - hop - 1) * transmissionInterval),
             transceiver(Transceiver::instance()),
             pm(PowerManager::instance()) {};
         

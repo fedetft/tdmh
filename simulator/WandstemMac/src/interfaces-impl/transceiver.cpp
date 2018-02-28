@@ -60,7 +60,7 @@ Transceiver& Transceiver::instance() {
 }
 
 Transceiver::~Transceiver() {
-    Transceiver::instances.clear();
+    Transceiver::instances.erase(MiosixStaticInterface::getNode());
 }
 
 void Transceiver::configure(const TransceiverConfiguration& config) {
@@ -96,9 +96,9 @@ void Transceiver::sendAt(const void* pkt, int size, long long when, string pktNa
     for(int i=0; i<parentNode->gateSize("wireless"); i++)
         parentNode->send(new RadioMessage(finalPkt, size + (cfg.crc? 2 : 0), pktName), "wireless$o", i);
 
-    EV_INFO << "starting to send packet " << simTime().inUnit(SIMTIME_NS) << endl;
+    //EV_INFO << "starting to send packet " << simTime().inUnit(SIMTIME_NS) << endl;
     parentNode->waitAndDeletePackets(SimTime(RadioMessage::getPPDUDuration(size), SIMTIME_NS));
-    EV_INFO << "finishing to send packet " << simTime().inUnit(SIMTIME_NS) << endl;
+    //EV_INFO << "finishing to send packet " << simTime().inUnit(SIMTIME_NS) << endl;
 }
 
 RecvResult Transceiver::recv(void* pkt, int size, long long timeout, Unit unit, Correct c) {
@@ -107,11 +107,11 @@ RecvResult Transceiver::recv(void* pkt, int size, long long timeout, Unit unit, 
     RecvResult result;
     cMessage* msg;
     if (timeout == infiniteTimeout) {
-        EV_INFO << "Awaiting packet for infinite time" << endl;
+        //EV_INFO << "Awaiting packet for infinite time" << endl;
         msg = parentNode->receive();
     } else {
         auto waitDelta = SimTime(timeout, SIMTIME_NS) - simTime();
-        EV_INFO << "Awaiting packet for " << waitDelta.inUnit(SIMTIME_NS) << " (until " << timeout << ") ns" << endl;
+        //EV_INFO << "Awaiting packet for " << waitDelta.inUnit(SIMTIME_NS) << " (until " << timeout << ") ns" << endl;
         msg = parentNode->receive(waitDelta);
     }
     auto* cPkt = dynamic_cast<RadioMessage*>(msg);
@@ -129,11 +129,11 @@ RecvResult Transceiver::recv(void* pkt, int size, long long timeout, Unit unit, 
     }
     cQueue interferingMsgs, collidingMsgs;
     //wait for the max confidence time to obtain a constructive interference
-    EV_INFO << "Awaiting interfering packets for " << RadioMessage::constructiveInterferenceTimeNs << " (until " << simTime().inUnit(SIMTIME_NS) + RadioMessage::constructiveInterferenceTimeNs << ")" << endl;
+    //EV_INFO << "Awaiting interfering packets for " << RadioMessage::constructiveInterferenceTimeNs << " (until " << simTime().inUnit(SIMTIME_NS) + RadioMessage::constructiveInterferenceTimeNs << ")" << endl;
     parentNode->waitAndEnqueue(SimTime(RadioMessage::constructiveInterferenceTimeNs, SIMTIME_NS), &interferingMsgs);
     //and wait for the whole message length
     auto msgDeadlineDelta = packetDuration - RadioMessage::constructiveInterferenceTimeNs;
-    EV_INFO << "Awaiting for the whole message to arrive for " << msgDeadlineDelta << " (until " << simTime().inUnit(SIMTIME_NS) + packetDuration << ")" << endl;
+    //EV_INFO << "Awaiting for the whole message to arrive for " << msgDeadlineDelta << " (until " << simTime().inUnit(SIMTIME_NS) + packetDuration << ")" << endl;
     parentNode->waitAndEnqueue(SimTime(msgDeadlineDelta, SIMTIME_NS), &collidingMsgs);
     if (!collidingMsgs.isEmpty()) {
         //if there was a collision, meaning any received packet during the message length

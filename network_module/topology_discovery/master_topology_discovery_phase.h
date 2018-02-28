@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2018 by Polidori Paolo                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,37 +25,21 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef PERIODICCHECKFLOODINGPHASE_H
-#define PERIODICCHECKFLOODINGPHASE_H
+#ifndef NETWORK_MODULE_TOPOLOGY_DISCOVERY_MASTER_TOPOLOGY_DISCOVERY_PHASE_H_
+#define NETWORK_MODULE_TOPOLOGY_DISCOVERY_MASTER_TOPOLOGY_DISCOVERY_PHASE_H_
 
-#include "floodingphase.h"
-#include "time_synchronizers/synchronizer.h"
-#include "time_synchronizers/flopsync2.h"
-#include "../maccontext.h"
-#include "syncstatus.h"
-#include <stdexcept>
+#include "topologydiscoveryphase.h"
 
-namespace miosix{
-class PeriodicCheckFloodingPhase : public FloodingPhase {
+namespace miosix {
+
+class MasterTopologyDiscoveryPhase : public TopologyDiscoveryPhase {
 public:
-    /**
-     * This function creates a PeriodicCheckFloodingPhase as first phase
-     * @param frameStart
-     */
-    explicit PeriodicCheckFloodingPhase(long long masterSendTime, long long expectedReceivingTime) :
-            FloodingPhase(masterSendTime, expectedReceivingTime) {};
-    PeriodicCheckFloodingPhase() = delete;
-    PeriodicCheckFloodingPhase(const PeriodicCheckFloodingPhase& orig) = delete;
-    void execute(MACContext& ctx) override;
-    virtual ~PeriodicCheckFloodingPhase();
-
-    virtual long long getPhaseEnd() const { return measuredGlobalFirstActivityTime + phaseDuration; }
-
-protected:
-    SyncStatus* syncStatus = nullptr;
-private:
+    MasterTopologyDiscoveryPhase(long long roundtripEndTime, unsigned short nodesCount) :
+        TopologyDiscoveryPhase(roundtripEndTime, 0, nodesCount) {}
+    virtual ~MasterTopologyDiscoveryPhase();
+    virtual void execute(MACContext& ctx) override;
 };
-}
 
-#endif /* PERIODICCHECKFLOODINGPHASE_H */
+} /* namespace miosix */
 
+#endif /* NETWORK_MODULE_TOPOLOGY_DISCOVERY_MASTER_TOPOLOGY_DISCOVERY_PHASE_H_ */

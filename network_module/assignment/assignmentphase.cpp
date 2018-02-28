@@ -57,12 +57,13 @@ namespace miosix {
                 if (ENABLE_RADIO_EXCEPTION_DBG)
                     print_dbg("%s\n", e.what());
             }
-            if (ENABLE_PKT_INFO_DBG)
+            if (ENABLE_PKT_INFO_DBG) {
                 if(result.size) {
                     print_dbg("[RTT] Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
                     if (ENABLE_PKT_DUMP_DBG)
                         memDump(packet.data(), result.size);
                 } else print_dbg("[RTT] No packet received, timeout reached\n");
+            }
         }
         if(result.error != RecvResult::ErrorCode::OK) {//looks like i lost the connection to the parent hop. Let's broadcast about that.
             getEmptyPkt(panId, hop);

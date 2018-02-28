@@ -54,12 +54,13 @@ namespace miosix {
                 if (ENABLE_RADIO_EXCEPTION_DBG)
                     print_dbg("%s\n", e.what());
             }
-            if (ENABLE_PKT_INFO_DBG)
+            if (ENABLE_PKT_INFO_DBG) {
                 if(result.size){
                     print_dbg("[RTT] Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
                     if (ENABLE_PKT_DUMP_DBG)
                         memDump(packet.data(), result.size);
                 } else print_dbg("[RTT] No packet received, timeout reached\n");
+            }
         }
         measuredActivityTime = result.timestamp;
         if(result.error != RecvResult::ErrorCode::OK) {//dead children, i desynchronize or just a leaf
@@ -80,7 +81,7 @@ namespace miosix {
     void ReservationPhase::forwardPacket() {
         //Sending synchronization start packet
         //TODO what's better, a causal consistency or a previously measured time?
-        long long sendTime = measuredActivityTime + ReservationPhase::retransmissionDelay;
+        long long sendTime = measuredActivityTime + ReservationPhase::transmissionInterval;
         try {
             transceiver.sendAt(packet.data(), sizeof(packet), sendTime);
         } catch(std::exception& e) {

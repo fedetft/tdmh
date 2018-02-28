@@ -27,6 +27,7 @@
 
 #include "mastermacround.h"
 #include "../slots_management/masterslotsnegotiator.h"
+#include "../topology_discovery/topology_context.h"
 
 namespace miosix {
     
@@ -35,17 +36,22 @@ namespace miosix {
 
     void MasterMACRound::run(MACContext& ctx) {
         MACRound::run(ctx);
-        ctx.setNextRound(new MasterMACRound(ctx.getMediumAccessController(), roundStart + roundDuration));
+        ctx.setNextRound(new MasterMACRound(ctx, roundStart + roundDuration));
     }
 
     MACRound* MasterMACRound::MasterMACRoundFactory::create(MACContext& ctx) const {
-        return new MasterMACRound(ctx.getMediumAccessController());
+        return new MasterMACRound(ctx);
     }
     
     SlotsNegotiator* MasterMACRound::MasterMACRoundFactory::getSlotsNegotiator(MACContext& ctx) const {
         return new MasterSlotsNegotiator(ctx, 120, 1);
     }
 
+TopologyContext* MasterMACRound::MasterMACRoundFactory::getTopologyContext(MACContext& ctx) const {
+    return ctx.getNetworkConfig()->topologyMode == NetworkConfiguration::TopologyMode::NEIGHBOR_COLLECTION?
+                        ((TopologyContext*) new MasterMeshTopologyContext(ctx)):
+                        ((TopologyContext*) new MasterTreeTopologyContext(ctx));
+}
 
 }
 

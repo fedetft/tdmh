@@ -88,7 +88,7 @@ namespace miosix {
         inline std::pair<long long, long long> getWakeupAndTimeout(long long sendTime) {
             return std::make_pair(
                     sendTime - (MediumAccessController::receivingNodeWakeupAdvance + receiverWindow),
-                    sendTime + receiverWindow + MediumAccessController::packetPreambleTime);
+                    sendTime + receiverWindow + MediumAccessController::packetPreambleTime + MediumAccessController::maxPropagationDelay);
         }
         
         inline unsigned char missedPacket() {
@@ -137,7 +137,7 @@ namespace miosix {
         long long theoreticalFrameStart;
     
         int clockCorrection;
-        int receiverWindow;
+        unsigned int receiverWindow;
         uint8_t missedPackets;
         
     private:

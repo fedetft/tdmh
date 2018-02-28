@@ -30,23 +30,29 @@
 #include "flooding/syncstatus.h"
 #include "slots_management/slotsnegotiator.h"
 #include "interfaces-impl/transceiver.h"
+#include "topology_discovery/topology_context.h"
+#include <type_traits>
 
 namespace miosix {
     
-    MACContext::MACContext(const MACRoundFactory* const roundFactory, const miosix::MediumAccessController& mac, const NetworkConfiguration* const config) :
+    MACContext::MACContext(const MACRoundFactory* const roundFactory, const miosix::MediumAccessController& mac,
+            const NetworkConfiguration* const config) :
             mac(mac),
-            transceiverConfig(new TransceiverConfiguration(config->baseFrequency, config->txPower, true, false)),
+            syncStatus(nullptr),
+            transceiverConfig(config->baseFrequency, config->txPower, true, false),
+            networkConfig(config),
+            topologyContext(roundFactory->getTopologyContext(*this)),
             currentRound(roundFactory->create(*this)),
             slotsNegotiator(roundFactory->getSlotsNegotiator(*this)),
-            networkConfig(config) {
+            networkId(config->staticNetworkId) {
         delete roundFactory;
     }
 
     MACContext::~MACContext() {
         delete currentRound;
         delete nextRound;
-        delete transceiverConfig;
         delete syncStatus;
+        delete topologyContext;
     }
 
     MACRound* MACContext::shiftRound() {
@@ -62,5 +68,6 @@ namespace miosix {
     }
     
     void MACContext::initializeSyncStatus(SyncStatus* syncStatus) { this->syncStatus = syncStatus; }
+
 
 }

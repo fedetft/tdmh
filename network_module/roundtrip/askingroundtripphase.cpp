@@ -39,7 +39,7 @@ namespace miosix {
         //Sending led bar request to the previous hop
         //Transceiver configured with non strict timeout
         greenLed::high();
-        transceiver.configure(*ctx.getTransceiverConfig());
+        transceiver.configure(ctx.getTransceiverConfig());
         transceiver.turnOn();
         //TODO deepsleep missing
         try {
@@ -53,25 +53,25 @@ namespace miosix {
             print_dbg("Asked Roundtrip\n");
 
         //Expecting a ledbar reply from any node of the previous hop, crc disabled
-        auto* tc = ctx.getTransceiverConfig();
-        transceiver.configure(TransceiverConfiguration(tc->frequency, tc->txPower, false, false));
+        transceiver.configure(ctx.getTransceiverConfig(false, false));
         LedBar<replyPacketSize> p;
         RecvResult result;
         bool success = false;
         for (RecvResult result; !(success || result.error == RecvResult::ErrorCode::TIMEOUT);
             success = isRoundtripPacket(result, p.getPacket(), ctx.getNetworkConfig()->panId, ctx.getHop())) {
             try {
-                result = transceiver.recv(p.getPacket(), p.getPacketSize(), globalFirstActivityTime + replyDelay);
+                result = transceiver.recv(p.getPacket(), p.getPacketSize(), globalFirstActivityTime + replyDelay + (MediumAccessController::maxPropagationDelay << 1) + tAskPkt + tReplyPkt + receiverWindow);
             } catch(std::exception& e) {
                 if (ENABLE_RADIO_EXCEPTION_DBG)
                     print_dbg("%s\n", e.what());
             }
-            if (ENABLE_PKT_INFO_DBG)
+            if (ENABLE_PKT_INFO_DBG) {
                 if(result.error != RecvResult::ErrorCode::UNINITIALIZED){
                     print_dbg("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
                     if (ENABLE_PKT_DUMP_DBG)
                         memDump(p.getPacket(), result.size);
                 } else print_dbg("No packet received, timeout reached\n");
+            }
         }
         transceiver.turnOff();
         greenLed::low();

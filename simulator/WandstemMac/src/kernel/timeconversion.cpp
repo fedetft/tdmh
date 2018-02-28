@@ -39,11 +39,11 @@ TimeConversion::~TimeConversion() {
 }
 
 long long TimeConversion::ns2tick(long long time) {
-    return ((unsigned long long) time * EFM32_HFXO_FREQ) / 1e9;
+    return (static_cast<unsigned __int128>(time) * EFM32_HFXO_FREQ / 1000000000LL);
 }
 
 long long TimeConversion::tick2ns(long long ticks) {
-    return ((unsigned long long) ticks * 1e9) / EFM32_HFXO_FREQ;
+    return (static_cast<unsigned __int128>(ticks) * 1000000000LL / EFM32_HFXO_FREQ);
 }
 
 } /* namespace miosix */

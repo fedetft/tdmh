@@ -61,6 +61,9 @@ public:
                 && packet[4] == static_cast<unsigned char>(panId & 0xff)
                 && packet[5] == 0xff && packet[6] == 0xff;
     }
+
+    virtual long long getPhaseEnd() const { return measuredGlobalFirstActivityTime + phaseDuration; }
+
 protected:
     bool consumed = false;
     SyncStatus* syncStatus = nullptr;

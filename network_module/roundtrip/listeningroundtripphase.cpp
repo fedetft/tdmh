@@ -39,13 +39,13 @@ ListeningRoundtripPhase::~ListeningRoundtripPhase() {
 void ListeningRoundtripPhase::execute(MACContext& ctx) {
     //TODO add a way to use the syncStatus also with the master for having an optimized receiving window
     //maybe with a different class for the master node?
-    long long timeoutTime = globalFirstActivityTime + receiverWindow;
+    long long timeoutTime = globalStartTime + tPktElab + receiverWindow + MediumAccessController::maxPropagationDelay + tAskPkt;
     //Transceiver configured with non strict timeout
-    transceiver.configure(*ctx.getTransceiverConfig());
+    transceiver.configure(ctx.getTransceiverConfig());
     transceiver.turnOn();
     
     unsigned char packet[askPacketSize];
-    auto deepsleepDeadline = globalFirstActivityTime - MediumAccessController::receivingNodeWakeupAdvance;
+    auto deepsleepDeadline = globalStartTime + tPktElab - MediumAccessController::receivingNodeWakeupAdvance;
     if (ENABLE_ROUNDTRIP_INFO_DBG)
         print_dbg("[RTT] WU=%lld TO=%lld\n", deepsleepDeadline, timeoutTime);
     RecvResult result;
@@ -63,12 +63,13 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
                 print_dbg("%s\n", e.what());
         }
-        if (ENABLE_PKT_INFO_DBG)
+        if (ENABLE_PKT_INFO_DBG) {
             if(result.size){
                 print_dbg("[RTT] Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
                 if (ENABLE_PKT_DUMP_DBG)
                     memDump(packet, result.size);
             } else print_dbg("[RTT] No packet received, timeout reached\n");
+        }
     }
     
     if(success){

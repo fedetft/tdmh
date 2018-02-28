@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2018 by Polidori Paolo                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,37 +25,41 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef PERIODICCHECKFLOODINGPHASE_H
-#define PERIODICCHECKFLOODINGPHASE_H
+#pragma once
 
-#include "floodingphase.h"
-#include "time_synchronizers/synchronizer.h"
-#include "time_synchronizers/flopsync2.h"
-#include "../maccontext.h"
-#include "syncstatus.h"
-#include <stdexcept>
+#include "../macphase.h"
+#include "interfaces-impl/power_manager.h"
 
-namespace miosix{
-class PeriodicCheckFloodingPhase : public FloodingPhase {
+namespace miosix {
+class TopologyDiscoveryPhase : public MACPhase {
 public:
-    /**
-     * This function creates a PeriodicCheckFloodingPhase as first phase
-     * @param frameStart
-     */
-    explicit PeriodicCheckFloodingPhase(long long masterSendTime, long long expectedReceivingTime) :
-            FloodingPhase(masterSendTime, expectedReceivingTime) {};
-    PeriodicCheckFloodingPhase() = delete;
-    PeriodicCheckFloodingPhase(const PeriodicCheckFloodingPhase& orig) = delete;
-    void execute(MACContext& ctx) override;
-    virtual ~PeriodicCheckFloodingPhase();
-
-    virtual long long getPhaseEnd() const { return measuredGlobalFirstActivityTime + phaseDuration; }
-
+    TopologyDiscoveryPhase(const TopologyDiscoveryPhase& orig) = delete;
+    virtual ~TopologyDiscoveryPhase();
+    
+    long long getPhaseEnd() const { return globalStartTime + phaseDuration; }
+    long long getNodeTransmissionTime(unsigned short networkId) const {
+        return globalFirstActivityTime + (nodesCount - networkId - 1) * (transmissionInterval + packetArrivalAndProcessingTime);
+    }
+    
+    static const int transmissionInterval = 1000000; //1ms
+    static const int firstSenderDelay = 1000000; //TODO tune it, guessed based on the need to RCV -> SND if was asking before
+    static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
+    static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
+    const long long phaseDuration;
 protected:
-    SyncStatus* syncStatus = nullptr;
+    TopologyDiscoveryPhase(long long roundtripEndTime, unsigned short networkId, unsigned short nodesCount) :
+            MACPhase(roundtripEndTime, roundtripEndTime + firstSenderDelay,
+                    roundtripEndTime + (nodesCount - networkId) * (transmissionInterval + packetArrivalAndProcessingTime)
+                    + firstSenderDelay),
+            phaseDuration(nodesCount * (transmissionInterval + packetArrivalAndProcessingTime) + firstSenderDelay),
+            transceiver(Transceiver::instance()),
+            pm(PowerManager::instance()),
+            nodesCount(nodesCount) {};
+    
+    Transceiver& transceiver;
+    PowerManager& pm;
+    unsigned short nodesCount;
 private:
 };
 }
-
-#endif /* PERIODICCHECKFLOODINGPHASE_H */
 

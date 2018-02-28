@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2018 by Polidori Paolo                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,37 +25,27 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef PERIODICCHECKFLOODINGPHASE_H
-#define PERIODICCHECKFLOODINGPHASE_H
+#include "network_configuration.h"
+#include "maccontext.h"
 
-#include "floodingphase.h"
-#include "time_synchronizers/synchronizer.h"
-#include "time_synchronizers/flopsync2.h"
-#include "../maccontext.h"
-#include "syncstatus.h"
-#include <stdexcept>
+namespace miosix {
 
-namespace miosix{
-class PeriodicCheckFloodingPhase : public FloodingPhase {
-public:
-    /**
-     * This function creates a PeriodicCheckFloodingPhase as first phase
-     * @param frameStart
-     */
-    explicit PeriodicCheckFloodingPhase(long long masterSendTime, long long expectedReceivingTime) :
-            FloodingPhase(masterSendTime, expectedReceivingTime) {};
-    PeriodicCheckFloodingPhase() = delete;
-    PeriodicCheckFloodingPhase(const PeriodicCheckFloodingPhase& orig) = delete;
-    void execute(MACContext& ctx) override;
-    virtual ~PeriodicCheckFloodingPhase();
-
-    virtual long long getPhaseEnd() const { return measuredGlobalFirstActivityTime + phaseDuration; }
-
-protected:
-    SyncStatus* syncStatus = nullptr;
-private:
+NetworkConfiguration::NetworkConfiguration(const unsigned char maxHops, const unsigned short maxNodes, unsigned short networkId,
+        const unsigned short panId, const short txPower, const unsigned int baseFrequency,
+        const unsigned char forwardedTopologies,
+        const unsigned short maxRoundsUnavailableBecomesDead, const unsigned short maxRoundsUnreliableParent,
+        const TopologyMode topologyMode) :
+    maxHops(maxHops), hopBits(MACContext::bitsForRepresentingCount(maxHops)), staticNetworkId(networkId), maxNodes(maxNodes),
+        networkIdBits(MACContext::bitsForRepresentingCount(maxNodes)), panId(panId), txPower(txPower),
+        baseFrequency(baseFrequency), topologyMode(topologyMode), forwardedTopologies(forwardedTopologies),
+        maxRoundsUnavailableBecomesDead(maxRoundsUnavailableBecomesDead),
+        maxRoundsUnreliableParent(maxRoundsUnreliableParent) {
+    switch (topologyMode) {
+    case TopologyMode::NEIGHBOR_COLLECTION:
+        break;
+    case TopologyMode::ROUTING_VECTOR:
+        break;
+    }
 };
-}
 
-#endif /* PERIODICCHECKFLOODINGPHASE_H */
-
+} /* namespace miosix */
