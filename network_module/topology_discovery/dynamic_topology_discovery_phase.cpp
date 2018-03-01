@@ -29,6 +29,7 @@
 #include "topology_message.h"
 #include "../debug_settings.h"
 #include "../flooding/syncstatus.h"
+#include "../bitwise_ops.h"
 #include <limits>
 
 namespace miosix {
@@ -49,9 +50,9 @@ void DynamicTopologyDiscoveryPhase::receiveByNode(MACContext& ctx, unsigned shor
     if (now < wakeUpTimeout.first)
         pm.deepSleepUntil(wakeUpTimeout.first);
     if(nodeId < 4)
-        print_dbg("[T] expect %u from %llu to %llu\n", nodeId, now, wakeUpTimeout.second - MediumAccessController::packetPreambleTime + packetTime);
+        print_dbg("[T] expect %u from %llu to %llu\n", nodeId, now, wakeUpTimeout.second);
     try {
-        result = transceiver.recv(packet, ctx.maxPacketSize, wakeUpTimeout.second - MediumAccessController::packetPreambleTime + packetTime);
+        result = transceiver.recv(packet, ctx.maxPacketSize, wakeUpTimeout.second);
     } catch(std::exception& e) {
         if (ENABLE_RADIO_EXCEPTION_DBG)
             print_dbg("%s\n", e.what());
@@ -79,12 +80,12 @@ void DynamicTopologyDiscoveryPhase::sendMyTopology(MACContext& ctx) {
     if (msg == nullptr) return; //I still dunno anything about any predecessor
     auto msgdata = msg->getPkt();
     auto size = msg->getSize();
-    ctx.bitwisePopulateBitArrTop<unsigned char>(packet, ctx.maxPacketSize, msgdata.data(), msgdata.size(), 0, size);
+    BitwiseOps::bitwisePopulateBitArrTop<unsigned char>(packet, ctx.maxPacketSize, msgdata.data(), msgdata.size(), 0, size);
     auto pktSize = size;
     for (auto* msg : topology->dequeueMessages(cfg->forwardedTopologies)) {
         size = msg->getSize();
         msgdata = msg->getPkt();
-        ctx.bitwisePopulateBitArrTop<unsigned char>(packet, ctx.maxPacketSize, msgdata.data(), msgdata.size(), pktSize, size);
+        BitwiseOps::bitwisePopulateBitArrTop<unsigned char>(packet, ctx.maxPacketSize, msgdata.data(), msgdata.size(), pktSize, size);
         pktSize += size;
     }
     auto time = getNodeTransmissionTime(ctx.getNetworkId());

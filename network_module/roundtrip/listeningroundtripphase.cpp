@@ -39,7 +39,7 @@ ListeningRoundtripPhase::~ListeningRoundtripPhase() {
 void ListeningRoundtripPhase::execute(MACContext& ctx) {
     //TODO add a way to use the syncStatus also with the master for having an optimized receiving window
     //maybe with a different class for the master node?
-    long long timeoutTime = globalStartTime + tPktElab + receiverWindow + MediumAccessController::maxPropagationDelay + tAskPkt;
+    long long timeoutTime = globalStartTime + tPktElab + receiverWindow + MediumAccessController::maxPropagationDelay;
     //Transceiver configured with non strict timeout
     transceiver.configure(ctx.getTransceiverConfig());
     transceiver.turnOn();
@@ -75,7 +75,8 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
     if(success){
         auto replyTime = result.timestamp + replyDelay;
         if (ENABLE_ROUNDTRIP_INFO_DBG)
-        print_dbg("[RTT] RT=%lld, LT=%lld\n", result.timestamp, replyTime);
+            print_dbg("[RTT] RT=%lld, LT=%lld\n", result.timestamp, replyTime);
+        transceiver.configure(ctx.getTransceiverConfig(false));
         //TODO sto pacchetto non e` compatibile manco con se stesso, servono header di compatibilita`, indirizzo, etc etc
         LedBar<replyPacketSize> p;
         p.encode(7); //TODO: 7?! should put a significant cumulated RTT here.

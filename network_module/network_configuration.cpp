@@ -27,6 +27,7 @@
 
 #include "network_configuration.h"
 #include "maccontext.h"
+#include "bitwise_ops.h"
 
 namespace miosix {
 
@@ -35,8 +36,8 @@ NetworkConfiguration::NetworkConfiguration(const unsigned char maxHops, const un
         const unsigned char forwardedTopologies,
         const unsigned short maxRoundsUnavailableBecomesDead, const unsigned short maxRoundsUnreliableParent,
         const TopologyMode topologyMode) :
-    maxHops(maxHops), hopBits(MACContext::bitsForRepresentingCount(maxHops)), staticNetworkId(networkId), maxNodes(maxNodes),
-        networkIdBits(MACContext::bitsForRepresentingCount(maxNodes)), panId(panId), txPower(txPower),
+    maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)), staticNetworkId(networkId), maxNodes(maxNodes),
+        networkIdBits(BitwiseOps::bitsForRepresentingCount(maxNodes)), panId(panId), txPower(txPower),
         baseFrequency(baseFrequency), topologyMode(topologyMode), forwardedTopologies(forwardedTopologies),
         maxRoundsUnavailableBecomesDead(maxRoundsUnavailableBecomesDead),
         maxRoundsUnreliableParent(maxRoundsUnreliableParent) {

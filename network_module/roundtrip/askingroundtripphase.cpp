@@ -60,7 +60,9 @@ namespace miosix {
         for (RecvResult result; !(success || result.error == RecvResult::ErrorCode::TIMEOUT);
             success = isRoundtripPacket(result, p.getPacket(), ctx.getNetworkConfig()->panId, ctx.getHop())) {
             try {
-                result = transceiver.recv(p.getPacket(), p.getPacketSize(), globalFirstActivityTime + replyDelay + (MediumAccessController::maxPropagationDelay << 1) + tAskPkt + tReplyPkt + receiverWindow);
+                result = transceiver.recv(p.getPacket(), p.getPacketSize(), globalFirstActivityTime + replyDelay +
+                        (MediumAccessController::maxPropagationDelay << 1) + tAskPkt +
+                        MediumAccessController::packetPreambleTime + receiverWindow);
             } catch(std::exception& e) {
                 if (ENABLE_RADIO_EXCEPTION_DBG)
                     print_dbg("%s\n", e.what());

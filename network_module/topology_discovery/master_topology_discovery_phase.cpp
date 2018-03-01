@@ -48,7 +48,7 @@ void MasterTopologyDiscoveryPhase::execute(MACContext& ctx) {
     for (unsigned short nodeId = cfg->maxNodes - 1; nodeId > 0; nodeId--) {
         try {
             result = transceiver.recv(packet, ctx.maxPacketSize,
-                    getNodeTransmissionTime(nodeId) + MediumAccessController::maxPropagationDelay + packetTime + MediumAccessController::maxAdmittableResyncReceivingWindow);
+                    getNodeTransmissionTime(nodeId) + MediumAccessController::maxPropagationDelay + MediumAccessController::maxAdmittableResyncReceivingWindow);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
                 print_dbg("%s\n", e.what());
