@@ -2,6 +2,6 @@ LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/arch
 LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/os=linux
 configDescList=org.eclipse.launchbar.core.descriptorType.default\:simulations
 eclipse.preferences.version=1
-org.eclipse.launchbar.core.descriptorType.default\:simulations/activeLaunchMode=debug
+org.eclipse.launchbar.core.descriptorType.default\:simulations/activeLaunchMode=run
 org.eclipse.launchbar.core.descriptorType.default\:simulations/activeLaunchTarget=org.eclipse.launchbar.core.launchTargetType.local\:Local
 org.eclipse.launchbar.core.descriptorType.default\:tests/activeLaunchMode=debug

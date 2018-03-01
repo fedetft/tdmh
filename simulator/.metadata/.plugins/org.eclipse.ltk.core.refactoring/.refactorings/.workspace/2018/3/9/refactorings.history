@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Delete resource &apos;WandstemMac/src/network_module/bitwise_ops&apos;" deleteContents="false" description="Delete resource &apos;WandstemMac/src/network_module/bitwise_ops&apos;" element1="/WandstemMac/src/network_module/bitwise_ops" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1519898151856"/>
+</session>
