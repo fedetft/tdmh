@@ -1,38 +1,31 @@
-11:52:45 **** Incremental Build of configuration release for project WandstemMac ****
-make MODE=release -j4 all 
+21:02:21 **** Incremental Build of configuration debug for project WandstemMac ****
+make MODE=debug -j4 all 
 cd src && make
 make[1]: Entering directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
-Node.cpp
-RootNode.cpp
-network_module/maccontext.cpp
-network_module/macphase.cpp
-network_module/mediumaccesscontroller.cpp
-network_module/network_configuration.cpp
-network_module/assignment/assignmentphase.cpp
-network_module/assignment/dynamicassignmentphase.cpp
-network_module/assignment/lasthopassignmentphase.cpp
-network_module/assignment/masterassignmentphase.cpp
-network_module/flooding/floodingphase.cpp
-network_module/flooding/hookingfloodingphase.cpp
-network_module/flooding/masterfloodingphase.cpp
-network_module/flooding/periodiccheckfloodingphase.cpp
-network_module/macround/dynamicmacround.cpp
-network_module/macround/macround.cpp
-network_module/macround/mastermacround.cpp
-network_module/reservation/dynamicreservationphase.cpp
-network_module/reservation/lasthopreservationphase.cpp
-network_module/reservation/masterreservationphase.cpp
-network_module/reservation/reservationphase.cpp
-network_module/roundtrip/askingroundtripphase.cpp
-network_module/roundtrip/listeningroundtripphase.cpp
-network_module/roundtrip/roundtripphase.cpp
-network_module/topology_discovery/dynamic_topology_discovery_phase.cpp
-network_module/topology_discovery/master_topology_discovery_phase.cpp
 network_module/topology_discovery/topology_context.cpp
-network_module/topology_discovery/topology_map.cpp
-network_module/topology_discovery/topologydiscoveryphase.cpp
-Creating executable: ../out/gcc-release/src/WandstemMac
+In file included from network_module/topology_discovery/../topology_discovery/topology_context.h:31:0,
+                 from network_module/topology_discovery/../maccontext.h:33,
+                 from network_module/topology_discovery/topology_context.cpp:27:
+network_module/topology_discovery/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::RoutingVector::getPkt()’:
+network_module/topology_discovery/../topology_discovery/topology_message.h:120:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+network_module/topology_discovery/../topology_discovery/topology_message.h: In member function ‘virtual std::vector<unsigned char> miosix::VLRoutingVector::getPkt()’:
+network_module/topology_discovery/../topology_discovery/topology_message.h:138:62: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual std::vector<unsigned char> getPkt() { /* TODO */ }
+                                                              ^
+In file included from network_module/topology_discovery/../maccontext.h:33:0,
+                 from network_module/topology_discovery/topology_context.cpp:27:
+network_module/topology_discovery/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::DynamicTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/topology_discovery/../topology_discovery/topology_context.h:133:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+network_module/topology_discovery/../topology_discovery/topology_context.h: In member function ‘virtual short unsigned int miosix::MasterTreeTopologyContext::receivedMessage(unsigned char*, short unsigned int, short unsigned int, short int)’:
+network_module/topology_discovery/../topology_discovery/topology_context.h:147:134: warning: no return statement in function returning non-void [-Wreturn-type]
+     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {};
+                                                                                                                                      ^
+Creating executable: ../out/gcc-debug/src/WandstemMac_dbg
 make[1]: Leaving directory '/home/paolo/src/wandstem-mac/simulator/WandstemMac/src'
 
-11:52:58 Build Finished (took 13s.499ms)
+21:02:23 Build Finished (took 2s.417ms)
 
