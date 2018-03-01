@@ -131,7 +131,7 @@ struct BitwiseOps {
         unsigned short trailingBits = endBit % (std::numeric_limits<T>::digits);
         T ones = ~((T) 0);
         auto leftShiftCount = std::numeric_limits<T>::digits - startBit;
-        if (cellsLen) { // > 0
+        if (cellsLen > 0) {
             unsigned short j = startIndex;
             unsigned short i = 0;
             arr[j] = (arr[j] & (ones << leftShiftCount)) | //masking the bits to keep

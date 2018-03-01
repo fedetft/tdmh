@@ -52,11 +52,13 @@ std::vector<unsigned char> NeighborMessage::getPkt()  {
     firstBitPow += std::numeric_limits<unsigned char>::digits;
     pkt[idx] &= (~0) >> firstBitPow;
     memset(pkt + idx + 1, 0, byteSize - (idx + 1));
-    for (unsigned short j = 0; j < numNodes - 1; j++)
-        if (neighbors[j]) {
-            pkt[idx + (j + firstBitPow) / (std::numeric_limits<unsigned char>::digits)] |=
-                    1 << (std::numeric_limits<unsigned char>::digits - 1 - firstBitPow - j % (std::numeric_limits<unsigned char>::digits));
-        }
+    for (auto n : neighbors) {
+        auto i = n > sender? n - 1: n;
+        auto l = idx + (i + firstBitPow) / std::numeric_limits<unsigned char>::digits;
+        auto sh = std::numeric_limits<unsigned char>::digits - 1 - firstBitPow - i % std::numeric_limits<unsigned char>::digits;
+        pkt[l] |=
+                1 << (sh);
+    }
     return retval;
 }
 
@@ -87,13 +89,12 @@ NeighborMessage* NeighborMessage::fromPkt(unsigned short numNodes, unsigned shor
     assignee |= pkt[idx] >> -firstBitPow;
     assignee &= ones >> (std::numeric_limits<unsigned short>::digits - nodesBits);
     firstBitPow += std::numeric_limits<unsigned char>::digits;
-    std::vector<bool> neighbors(numNodes - 1);
-    for (unsigned short j = 0; j < numNodes - 1; j++) {
-        neighbors[j] = (pkt[idx + (j + firstBitPow) / (std::numeric_limits<unsigned char>::digits)] &
-            (1 << (std::numeric_limits<unsigned char>::digits - 1 - (j + firstBitPow) % (std::numeric_limits<unsigned char>::digits)))) > 0;
-    }
+    std::vector<unsigned short> neighbors;
+    for (unsigned short j = 0; j < numNodes - 1; j++)
+        if (pkt[idx + (j + firstBitPow) / (std::numeric_limits<unsigned char>::digits)] &
+            (1 << (std::numeric_limits<unsigned char>::digits - 1 - (j + firstBitPow) % (std::numeric_limits<unsigned char>::digits))))
+            neighbors.push_back(j >= sender? j + 1: j);
     return new NeighborMessage(numNodes, nodesBits, hopBits, sender, hop, assignee, std::move(neighbors));
-
 }
 
 bool NeighborMessage::operator ==(const NeighborMessage &b) const {

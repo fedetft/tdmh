@@ -42,39 +42,34 @@ unsigned short DynamicMeshTopologyContext::receivedMessage(unsigned char* pkt, u
         unsigned short nodeIdByTopologySlot, short rssi) {
     auto config = ctx.getNetworkConfig();
     auto size = NeighborMessage::getMaxSize(config->maxNodes, config->networkIdBits, config->hopBits);
-    unsigned short i;
     if (len < size)
         throw std::runtime_error("Received invalid length topology packet");
-    for (i = 0; i + size < len;) {
-        auto* newData = NeighborMessage::fromPkt(config->maxNodes, config->networkIdBits, config->hopBits, pkt, len - i, i);
-        if (newData == nullptr) throw std::runtime_error("Wrongly checked received invalid length topology packet");
-        if (i == 0 && newData->getSender() != nodeIdByTopologySlot) {
-            unreceivedMessage(nodeIdByTopologySlot);
-            throw std::runtime_error("Received topology packet from a node whose timeslot is different");
-        }
-        i += newData->getSize();
-        //add it as neighbor and update last seen
-        neighborsUnseenSince[newData->getSender()] = 0;
-        if (newData->getHop() < ctx.getHop())
-            //if it comes from the previous hop, set its RSSI for choosing the best assignee
-            predecessorsRSSIUnseenSince[newData->getSender()] = std::make_pair(rssi, 0);
-        if (newData->getAssignee() == ctx.getNetworkId()) {
-            //The node chosen me for forwarding the data
-            if (enqueuedTopologyMessages.hasKey(newData->getSender())) {
-                //if i already know the node
-                auto oldData = enqueuedTopologyMessages.getByKey(newData->getSender());
-                //if i have old data
-                if (*((NeighborMessage*) oldData) != *newData) {
-                    //if it's different, update it and reset its position in the queue
-                    enqueuedTopologyMessages.removeElement(newData->getSender());
-                    enqueuedTopologyMessages.enqueue(newData->getSender(), newData);
-                }
-            } else {//new neighbor's data
-                enqueuedTopologyMessages.enqueue(newData->getSender(), newData);
-            }
-        }
+    //message from my direct neighbor
+    NeighborMessage* newData = NeighborMessage::fromPkt(config->maxNodes, config->networkIdBits, config->hopBits, pkt, len);
+    if (newData == nullptr) throw std::runtime_error("Wrongly checked received invalid length topology packet");
+    if (newData->getSender() != nodeIdByTopologySlot) {
+        unreceivedMessage(nodeIdByTopologySlot);
+        throw std::runtime_error("Received topology packet from a node whose timeslot is different");
     }
-    return i;
+    //add it as neighbor and update last seen
+    neighborsUnseenSince[newData->getSender()] = 0;
+    if (newData->getHop() < ctx.getHop())
+        //if it comes from the previous hop, set its RSSI for choosing the best assignee
+        predecessorsRSSIUnseenSince[newData->getSender()] = std::make_pair(rssi, 0);
+    //check if my job is done
+    if (newData->getAssignee() != ctx.getNetworkId()) {
+        delete newData;
+        return size;
+    }
+    //okay, i need to forward its message...
+    checkEnqueueOrUpdate(newData);
+    //...and all the messages which carries
+    unsigned short readSize = newData->getSize();
+    for (readSize = size; readSize + size < len;) {
+        newData = NeighborMessage::fromPkt(config->maxNodes, config->networkIdBits, config->hopBits, pkt, len - readSize, readSize);
+        checkEnqueueOrUpdate(newData);
+    }
+    return readSize;
 }
 
 void DynamicMeshTopologyContext::unreceivedMessage(unsigned short nodeIdByTopologySlot) {
@@ -104,14 +99,29 @@ std::vector<TopologyMessage*> DynamicMeshTopologyContext::dequeueMessages(unsign
 
 TopologyMessage* DynamicMeshTopologyContext::getMyTopologyMessage() {
     auto* config = ctx.getNetworkConfig();
-    std::vector<bool> neighbors(config->maxNodes - 1);
-    for (unsigned short i = 0, j = 0; i < config->maxNodes - 1; i++){
-        if (i == ctx.getNetworkId()) continue;
-        else neighbors[j++] = neighborsUnseenSince.find(i) != neighborsUnseenSince.end();
-    }
-    if (ctx.getHop() == 1) neighbors[0] = true;
+    std::vector<unsigned short> neighbors;
+    if (ctx.getHop() == 1) neighbors.push_back(0);
+    for(auto it : neighborsUnseenSince)
+        neighbors.push_back(it.first);
     return hasPredecessor()? new NeighborMessage(config->maxNodes, config->networkIdBits, config->hopBits,
             ctx.getNetworkId(), ctx.getHop(), getBestPredecessor(), std::move(neighbors)) : nullptr;
+}
+
+void DynamicMeshTopologyContext::checkEnqueueOrUpdate(NeighborMessage* msg) {
+    //The node chosen me for forwarding the data
+    if (enqueuedTopologyMessages.hasKey(msg->getSender())) {
+        //if i already know the node
+        auto* oldData = dynamic_cast<NeighborMessage*>(enqueuedTopologyMessages.getByKey(msg->getSender()));
+        //if i have old data
+        if (*oldData != *msg) {
+            //if it's different, update it and reset its position in the queue
+            enqueuedTopologyMessages.removeElement(msg->getSender());
+            enqueuedTopologyMessages.enqueue(msg->getSender(), msg);
+            delete oldData;
+        }
+    } else {//new neighbor's data
+        enqueuedTopologyMessages.enqueue(msg->getSender(), msg);
+    }
 }
 
 unsigned short MasterMeshTopologyContext::receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi) {
@@ -131,9 +141,8 @@ unsigned short MasterMeshTopologyContext::receivedMessage(unsigned char* pkt, un
             throw std::runtime_error("Received topology packet from a node whose timeslot is different");
         }
         i += newData->getSize();
-        for (unsigned short j = 0, node = 0; node < config->maxNodes; j++, node++) {
-            if (node == nodeIdByTopologySlot) node++;
-            if (newData->getNeighbors(j)) {
+        for (unsigned short node = 0; node < config->maxNodes; node++) {
+            if (newData->getNeighbors(node)) {
                 if (!topology.hasEdge(sender, node))
                     topology.addEdge(sender, node);
             } else {

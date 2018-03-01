@@ -48,7 +48,7 @@ protected:
 class NeighborMessage : public TopologyMessage {
 public:
     NeighborMessage(unsigned short numNodes, unsigned short nodesBits, unsigned char hopBits, unsigned short sender,
-            unsigned short hop, unsigned short assignee, std::vector<bool>&& neighbor_list) :
+            unsigned short hop, unsigned short assignee, std::vector<unsigned short>&& neighbor_list) :
         numNodes(numNodes), nodesBits(nodesBits), hopBits(hopBits), sender(sender), hop(hop), assignee(assignee),
         neighbors(neighbor_list) {
     }
@@ -80,15 +80,13 @@ public:
     }
 
     bool getNeighbors(unsigned short i) const {
-        return neighbors[i];
+        return std::find(neighbors.begin(), neighbors.end(), i) != neighbors.end();
     }
 
     std::string getNeighborsString() const {
         std::string str;
-        for (auto it = std::find(std::begin(neighbors), std::end(neighbors), true); it != std::end(neighbors); it = std::find(std::next(it), std::end(neighbors), true)) {
-            auto dist = std::distance(std::begin(neighbors), it);
-            str += std::to_string(dist >= getSender()? dist + 1: dist) + ", ";
-        }
+        for (auto it : neighbors)
+            str += std::to_string(it) + ", ";
         return str.size()? str.substr(0, str.size() - 2) : str;
     }
 
@@ -105,7 +103,7 @@ private:
     unsigned short sender;
     unsigned short hop;
     unsigned short assignee;
-    std::vector<bool> neighbors;
+    std::vector<unsigned short> neighbors;
 };
 
 class RoutingVector : public TopologyMessage {

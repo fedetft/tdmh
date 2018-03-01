@@ -101,7 +101,8 @@ public:
     virtual void unreceivedMessage(unsigned short nodeIdByTopologySlot);
     virtual std::vector<TopologyMessage*> dequeueMessages(unsigned short count);
     virtual TopologyMessage* getMyTopologyMessage();
-
+protected:
+    virtual void checkEnqueueOrUpdate(NeighborMessage* msg);
 };
 
 class MasterMeshTopologyContext : public MasterTopologyContext {
