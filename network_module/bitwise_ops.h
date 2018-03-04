@@ -28,6 +28,8 @@
 #pragma once
 
 #include <limits>
+#include <type_traits>
+#include <cassert>
 
 namespace miosix {
 
@@ -35,83 +37,15 @@ struct BitwiseOps {
     template<typename T>
     static typename std::enable_if<std::is_integral<T>::value>::type
     setRightmost(T origValue, T value, unsigned short length) {
-        T mask = ~((T) 0);
-        mask <<= length;
+        T mask = (~0) << length;
         return (origValue & mask) | (value & ~mask);
-    }
-    template<typename T>
-    static typename std::enable_if<std::is_integral<T>::value>::type
-    setLeftmost(T origValue, T value, unsigned short length) {
-        T mask = ~((T) 0);
-        mask >>= length;
-        origValue &= mask;
-        mask = ~mask;
-    }
-    template<typename T>
-    static void bitwisePopulateBitArr(
-            typename std::enable_if<std::is_integral<T>::value>::type* arr,
-            unsigned short arrLen,
-            T value,
-            unsigned short startPos,
-            unsigned short length) {
-        assert(startPos + length < std::numeric_limits<T>::digits * arrLen);
-        unsigned short startBit = startPos % (std::numeric_limits<T>::digits);
-        unsigned short startIndex = startPos / (std::numeric_limits<T>::digits);
-        auto endBit = length  + startBit;
-        unsigned short cellsLen = (endBit - 1) / (std::numeric_limits<T>::digits);
-        unsigned short trailingBits = endBit % (std::numeric_limits<T>::digits);
-        T ones = ~((T) 0);
-        arr[startIndex] &= ~(ones >> startBit);
-        unsigned short i;
-        for (i = startIndex; i < startIndex + cellsLen - 1; i++)
-            arr[i] = 0;
-        if (cellsLen > 0)
-            arr[i] = value >> trailingBits;
-        if (cellsLen == 0) {
-            T mask = ones >> trailingBits;
-            arr[i] = (arr[i] & mask) | ((value << (std::numeric_limits<T>::digits - trailingBits)) & ~mask);
-        }
     }
 
     template<typename T>
-    static void bitwisePopulateBitArrBot(
-            T* arr,
-            unsigned short arrLen,
-            T* value,
-            unsigned short valLen,
-            unsigned short startPos,
-            unsigned short length) { //TODO fixme
-        assert(startPos + length < (std::numeric_limits<T>::digits) * arrLen);
-        unsigned short startBit = startPos % (std::numeric_limits<T>::digits);
-        unsigned short startIndex = startPos / (std::numeric_limits<T>::digits);
-        auto endBit = length  + startBit;
-        unsigned short cellsLen = (endBit - 1) / (std::numeric_limits<T>::digits);
-        unsigned short trailingBits = endBit % (std::numeric_limits<T>::digits);
-        T ones = ~((T) 0);
-        if (cellsLen) { // > 0
-            unsigned short j = startIndex + cellsLen;
-            arr[j] = (arr[j] & (ones >> trailingBits)) | (value[--valLen] << (std::numeric_limits<T>::digits - trailingBits));
-            //cells populated with vals
-            for (j--; valLen > 0 && j > startIndex; j--) {
-                arr[j] = (value[valLen] >> trailingBits);
-                arr[j] |=  (value[--valLen] << ((std::numeric_limits<T>::digits) - trailingBits));
-            }
-            //check if we are at the start cell of arr
-            if (valLen) { // > 0
-                arr[j] = (arr[j] & (ones << (std::numeric_limits<T>::digits - startBit))) | (value[valLen] >> trailingBits);
-            } else { // <=> valLen == 0: clear the first arr cell
-                arr[startIndex] &= ones << (std::numeric_limits<T>::digits - startBit);
-                if (j > startIndex) { //first value cell in middle of arr
-                    arr[j--] = value[0] >> trailingBits;
-                    for (; j > startIndex; j--) //clear the non-populated cells
-                        arr[j] = 0;
-                } else //first value cell, first arr cell
-                    arr[startIndex] |= value[0] >> trailingBits;
-            }
-        } else { //single cell impacted
-            T mask = ones << (std::numeric_limits<T>::digits - length) >> startBit;
-            arr[startIndex] = (arr[startIndex] & ~mask) | ((value[valLen - 1] << trailingBits) & mask);
-        }
+    static typename std::enable_if<std::is_integral<T>::value>::type
+    setLeftmost(T origValue, T value, unsigned short length) {
+        T mask = (~0) >> length;
+		return (origValue & mask) | (value & ~mask);
     }
 
     template<typename T>
@@ -122,29 +56,30 @@ struct BitwiseOps {
             unsigned short valLen,
             unsigned short startPos,
             unsigned short length) {
-        assert(startPos + length < std::numeric_limits<T>::digits * arrLen);
+        assert(startPos + length <= std::numeric_limits<T>::digits * arrLen);
         unsigned short startBit = startPos % (std::numeric_limits<T>::digits);
         unsigned short startIndex = startPos / (std::numeric_limits<T>::digits);
         auto endBit = length  + startBit;
         unsigned short cellsLen = (endBit - 1) / (std::numeric_limits<T>::digits);
-        auto lastCell = startIndex + cellsLen;
-        unsigned short trailingBits = endBit % (std::numeric_limits<T>::digits);
+        unsigned short trailingBits = (std::numeric_limits<T>::digits + endBit - 1) %
+			std::numeric_limits<T>::digits + 1;
         T ones = ~((T) 0);
         auto leftShiftCount = std::numeric_limits<T>::digits - startBit;
         if (cellsLen > 0) {
+			auto lastCell = startIndex + cellsLen;
             unsigned short j = startIndex;
             unsigned short i = 0;
             arr[j] = (arr[j] & (ones << leftShiftCount)) | //masking the bits to keep
                     (value[i] >> startBit);
             //cells populated with vals
-            for (j++; i < valLen && j < lastCell; j++) {
+            for (j++; i < valLen - 1 && j < lastCell; j++) {
                 arr[j] = value[i] << leftShiftCount; //preceding value
                 arr[j] |= value[++i] >> startBit;
             }
             //check if we are at the last cell of arr
             T remMask = ones >> trailingBits;
-            if (i < valLen) {
-                arr[j] = (arr[j] & (remMask)) | (((value[i] << leftShiftCount ) | (value[i + 1] >> startBit)) & ~remMask);
+            if (i < valLen - 1) {// <=> j == lastCell
+                arr[j] = (arr[j] & remMask) | (((value[i] << leftShiftCount ) | value[i + 1] >> startBit)) & ~remMask;
             } else { // <=> i == (valLen - 1): clear the last arr cell
                 arr[lastCell] &= remMask;
                 if (j < lastCell) { //last value cell in middle of arr
@@ -155,7 +90,7 @@ struct BitwiseOps {
                     arr[lastCell] |= (value[i] << leftShiftCount) & ~remMask;
             }
         } else { //single cell of arr impacted
-            T mask = ones << (std::numeric_limits<T>::digits - length) >> startBit;
+            T mask = static_cast<T>(ones << (std::numeric_limits<T>::digits - length)) >> startBit;
             arr[startIndex] = (arr[startIndex] & ~mask) |
                     ((value[0] >> startBit) & mask);
         }
@@ -169,48 +104,51 @@ struct BitwiseOps {
             unsigned short valLen,
             unsigned short startPos,
             unsigned short length,
-            unsigned short valStartPos) { //TODO fixme
-        assert(startPos + length < std::numeric_limits<T>::digits * arrLen);
+            unsigned short valStartPos) {
+        assert(startPos + length <= std::numeric_limits<T>::digits * arrLen);
         unsigned short startBit = startPos % (std::numeric_limits<T>::digits);
         unsigned short startIndex = startPos / (std::numeric_limits<T>::digits);
         auto endBit = length  + startBit;
         unsigned short cellsLen = (endBit - 1) / (std::numeric_limits<T>::digits);
-        auto lastCell = startIndex + cellsLen;
-        unsigned short trailingBits = endBit % (std::numeric_limits<T>::digits);
+        unsigned short trailingBits = (std::numeric_limits<T>::digits + endBit - 1) %
+			std::numeric_limits<T>::digits + 1;
         T ones = ~((T) 0);
         auto leftShiftCount = std::numeric_limits<T>::digits - startBit;
         unsigned short valStartBit = valStartPos % (std::numeric_limits<T>::digits);
         unsigned short valEndBit = std::numeric_limits<T>::digits - valStartBit;
-        if (cellsLen) { // > 0
+		auto getVal = [valStartBit, valEndBit, valLen, &value](unsigned short i_idx){
+			return static_cast<T>(value[i_idx] << valStartBit | ((i_idx < valLen - 1)? value[i_idx + 1] : 0) >> valEndBit);
+		};
+        if (cellsLen > 0) {
+			auto lastCell = startIndex + cellsLen;
             unsigned short j = startIndex;
             unsigned short i = valStartPos / (std::numeric_limits<T>::digits);
             arr[j] = (arr[j] & (ones << leftShiftCount)) | //masking the bits to keep
-                    (value[i] << valStartBit | ((i < valLen - 1)? value[i + 1] : 0) >> valEndBit) >> startBit;
+                    (getVal(i) >> startBit);
             //cells populated with vals
-            for (j++; i < (valLen - 1) && j < lastCell; j++) {
-                arr[j] = value[i] << (valStartBit + leftShiftCount);
-                arr[j] |= value[++i] >> (valEndBit + startBit);
+            for (j++; i < valLen - 1 && j < lastCell; j++) {
+                arr[j] = getVal(i) << leftShiftCount;
+                arr[j] |= getVal(++i) >> startBit;
             }
             //check if we are at the last cell of arr
-            if (i < (valLen - 1)) {
-                arr[j] = (arr[j] & (ones >> trailingBits)) | (value[i] << (valStartBit + leftShiftCount));
+			T remMask = ones >> trailingBits;
+            if (i < valLen - 1) { //didn't finish consuming value, need to populate properly last cell
+                arr[j] = (arr[j] & remMask) | (((getVal(i) << leftShiftCount ) | getVal(i + 1) >> startBit)) & ~remMask;
             } else { // <=> i == (valLen - 1): clear the last arr cell
-                arr[lastCell] &= ones >> trailingBits;
+                arr[lastCell] &= remMask;
                 if (j < lastCell) { //last value cell in middle of arr
-                    arr[j++] = value[i] >> (valEndBit + startBit);
+                    arr[j++] = getVal(i) << leftShiftCount;
                     for (; j < lastCell; j++) //clear the non-populated cells
                         arr[j] = 0;
                 } else //last value cell, last arr cell
-                    arr[lastCell] |= value[i] >> (valEndBit + startBit);
+                    arr[lastCell] |= (getVal(i) << leftShiftCount) & ~remMask;
             }
         } else { //single cell of arr impacted
-            T mask = ones << (std::numeric_limits<T>::digits - length) >> startBit;
+            T mask = static_cast<T>(ones << (std::numeric_limits<T>::digits - length)) >> startBit;
             arr[startIndex] = (arr[startIndex] & ~mask) |
-                    (value[0] << (valStartBit + trailingBits) |
-                            ((((valLen)? value[1] : 0) >> valEndBit << trailingBits) & mask));
+                    ((getVal(valStartPos / std::numeric_limits<T>::digits) >> startBit) & mask);
         }
     }
-
 
     template<typename T, typename V>
     static void bitwisePopulateBitArr(
