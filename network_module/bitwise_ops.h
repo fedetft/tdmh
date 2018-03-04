@@ -79,7 +79,7 @@ struct BitwiseOps {
             //check if we are at the last cell of arr
             T remMask = ones >> trailingBits;
             if (i < valLen - 1) {// <=> j == lastCell
-                arr[j] = (arr[j] & remMask) | (((value[i] << leftShiftCount ) | value[i + 1] >> startBit)) & ~remMask;
+                arr[j] = (arr[j] & remMask) | ((((value[i] << leftShiftCount) | (value[i + 1] >> startBit))) & ~remMask);
             } else { // <=> i == (valLen - 1): clear the last arr cell
                 arr[lastCell] &= remMask;
                 if (j < lastCell) { //last value cell in middle of arr
@@ -133,7 +133,7 @@ struct BitwiseOps {
             //check if we are at the last cell of arr
 			T remMask = ones >> trailingBits;
             if (i < valLen - 1) { //didn't finish consuming value, need to populate properly last cell
-                arr[j] = (arr[j] & remMask) | (((getVal(i) << leftShiftCount ) | getVal(i + 1) >> startBit)) & ~remMask;
+                arr[j] = (arr[j] & remMask) | ((((getVal(i) << leftShiftCount ) | (getVal(i + 1) >> startBit))) & ~remMask);
             } else { // <=> i == (valLen - 1): clear the last arr cell
                 arr[lastCell] &= remMask;
                 if (j < lastCell) { //last value cell in middle of arr

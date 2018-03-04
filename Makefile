@@ -21,12 +21,6 @@ main.cpp\
 $(wildcard network_module/*.cpp) $(wildcard network_module/**/*.cpp)
 
 ##
-## List here your test source files (both .s, .c and .cpp) inside the "tests" folder
-##
-TEST_SRC :=\
-bitalign_test.cpp
-
-##
 ## List here additional static libraries with relative path
 ##
 LIBS :=
@@ -48,11 +42,27 @@ Q := @
 ECHO := @echo
 endif
 
-TEST_PATH := tests/
+## Test files
+
+TEST_LPATH := tests/local
+TEST_BPATH := tests/board
+TEST_LFILES := $(addsuffix .local, $(wildcard $(TEST_LPATH)/*.cpp) $(wildcard $(TEST_LPATH)/**/*.cpp))
+TEST_BFILES := $(wildcard $(TEST_BPATH)/*.cpp) $(wildcard $(TEST_BPATH)/**/*.cpp)
 
 ## Replaces both "foo.cpp"-->"foo.o" and "foo.c"-->"foo.o"
 OBJ := $(addsuffix .o, $(basename $(SRC)))
-TEST_OBJ := $(addsuffix .o, $(basename $(TEST_SRC)))
+TEST_LOBJ := $(addsuffix .o.local, $(basename $(basename $(TEST_LFILES))))
+TEST_BBINS := $(addsuffix .bin, $(basename $(TEST_BFILES)))
+
+## From compiler prefix form the name of the compiler and other tools
+LCC  := gcc
+LCXX := g++
+LLD  := ld
+LAR  := ar
+LAS  := as
+LCP  := objcopy
+LOD  := objdump
+LSZ  := size
 
 ## Includes the miosix base directory for C/C++
 ## Always include CONFPATH first, as it overrides the config file location
@@ -65,6 +75,10 @@ CFLAGS   := $(CFLAGS_BASE)   -I$(CONFPATH) -I$(CONFPATH)/config/$(BOARD_INC)  \
 AFLAGS   := $(AFLAGS_BASE)
 LFLAGS   := $(LFLAGS_BASE)
 DFLAGS   := -MMD -MP
+
+LDFLAGS   := -MMD -MP
+LCXXFLAGS := -O0 -Wall -g -c
+
 
 LINK_LIBS := $(LIBS) -L$(KPATH) -Wl,--start-group -lmiosix -lstdc++ -lc \
              -lm -lgcc -Wl,--end-group
@@ -114,8 +128,26 @@ main.elf: $(OBJ) all-recursive
 	$(ECHO) "[CXX ] $<"
 	$(Q)$(CXX) $(DFLAGS) $(CXXFLAGS) $< -o $@
 
-test: $(TEST_PATH)$(TEST_OBJ)
-	$(Q)$(CC) $(DFLAGS) $(CXXFLAGS) $^ -o $(^:.o=)
+test: testlocal testboard
+
+testlocal: $(TEST_LOBJ)
+
+testboard: $(TEST_BBINS)
+
+%.bin: %.elf
+	$(ECHO) "[CP  ] $(addsuffix .hex, $(basename $@))"
+	$(Q)$(CP) -O ihex $< $(addsuffix .hex, $(basename $@))
+	$(ECHO) "[CP  ] $@"
+	$(Q)$(CP) -O binary $< $@
+	$(Q)$(SZ) $<
+
+%.elf: $(TEST_BOBJ) $(OBJ) all-recursive
+	$(ECHO) "[LD  ] $@"
+	$(Q)$(CXX) $(LFLAGS) -o $@ $(OBJ) $(KPATH)/$(BOOT_FILE) $(LINK_LIBS)
+
+%.o.local:
+	$(ECHO) "[CXX ] $(addsuffix .cpp, $(basename $(basename $@)))"
+	$(Q)$(LCXX) $(LDFLAGS) $(LCXXFLAGS) $(addsuffix .cpp, $(basename $(basename $@))) -o $(basename $@)
 
 #pull in dependecy info for existing .o files
 -include $(OBJ:.o=.d)
