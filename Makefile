@@ -77,7 +77,7 @@ LFLAGS   := $(LFLAGS_BASE)
 DFLAGS   := -MMD -MP
 
 LDFLAGS   := -MMD -MP
-LCXXFLAGS := -O0 -Wall -g -c
+LCXXFLAGS := -O0 -Wall -g
 
 
 LINK_LIBS := $(LIBS) -L$(KPATH) -Wl,--start-group -lmiosix -lstdc++ -lc \
