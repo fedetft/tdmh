@@ -30,7 +30,6 @@
 
 #include "macround.h"
 #include "macroundfactory.h"
-#include "../slots_management/slotsnegotiator.h"
 #include "../flooding/masterfloodingphase.h"
 #include "../roundtrip/listeningroundtripphase.h"
 #include "../reservation/masterreservationphase.h"

@@ -58,7 +58,7 @@ namespace miosix {
                 internalStatus(DESYNCHRONIZED) {
             vt.setSyncPeriod(MACRound::roundDuration);
         }
-        SyncStatus(const SyncStatus& orig);
+        SyncStatus(const SyncStatus& orig) = delete;
         virtual ~SyncStatus() {}
         
         void initialize(int receiverWindow, long long hookPktRcvTime) {

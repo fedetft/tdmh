@@ -61,6 +61,9 @@ public:
     virtual ~MasterTopologyContext() {
         // TODO Auto-generated destructor stub
     }
+protected:
+    TopologyMap<unsigned short> topology;
+    std::map<std::pair<unsigned short, unsigned short>, unsigned short> streams; //src, dst --> dataRate
 };
 
 class DynamicTopologyContext : public TopologyContext {
@@ -74,6 +77,7 @@ public:
     virtual TopologyMessage* getMyTopologyMessage()=0;
     virtual unsigned short getBestPredecessor();
     virtual bool hasPredecessor();
+    ResettablePriorityQueue<std::pair<unsigned short, unsigned short>, std::tuple<unsigned short, unsigned short, unsigned short>> enqueuedSMEs; //src, dst --> dataRate
 
 protected:
     ResettablePriorityQueue<unsigned short, TopologyMessage*> enqueuedTopologyMessages;
@@ -116,9 +120,6 @@ public:
     virtual unsigned short receivedMessage(unsigned char* pkt, unsigned short len, unsigned short nodeIdByTopologySlot, short rssi);
     virtual void unreceivedMessage(unsigned short nodeIdByTopologySlot);
     virtual void print();
-
-protected:
-    TopologyMap<unsigned short> topology;
 
 };
 

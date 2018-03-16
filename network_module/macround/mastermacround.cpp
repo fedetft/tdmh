@@ -26,7 +26,6 @@
  ***************************************************************************/
 
 #include "mastermacround.h"
-#include "../slots_management/masterslotsnegotiator.h"
 #include "../topology_discovery/topology_context.h"
 
 namespace miosix {
@@ -44,7 +43,7 @@ namespace miosix {
     }
     
     SlotsNegotiator* MasterMACRound::MasterMACRoundFactory::getSlotsNegotiator(MACContext& ctx) const {
-        return new MasterSlotsNegotiator(ctx, 120, 1);
+        return nullptr;
     }
 
 TopologyContext* MasterMACRound::MasterMACRoundFactory::getTopologyContext(MACContext& ctx) const {

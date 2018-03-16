@@ -30,7 +30,6 @@
 #define MASTERASSIGNMENTPHASE_H
 
 #include "assignmentphase.h"
-#include "../slots_management/slotsnegotiator.h"
 
 namespace miosix {
     class MasterAssignmentPhase : public AssignmentPhase {

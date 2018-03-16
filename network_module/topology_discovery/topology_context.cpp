@@ -27,6 +27,7 @@
 #include "../maccontext.h"
 #include "topology_context.h"
 #include "../debug_settings.h"
+#include "../bitwise_ops.h"
 #include <stdexcept>
 
 namespace miosix {
@@ -65,9 +66,19 @@ unsigned short DynamicMeshTopologyContext::receivedMessage(unsigned char* pkt, u
     checkEnqueueOrUpdate(newData);
     //...and all the messages which carries
     unsigned short readSize = newData->getSize();
-    for (readSize = size; readSize + size < len;) {
+    for (readSize = size; readSize + size < len; readSize += size) {
         newData = NeighborMessage::fromPkt(config->maxNodes, config->networkIdBits, config->hopBits, pkt, len - readSize, readSize);
         checkEnqueueOrUpdate(newData);
+    }
+    auto q = dynamic_cast<DynamicTopologyContext*>(ctx.getTopologyContext())->enqueuedSMEs;
+    for (auto i = readSize; i + 24 < len; i += 24) {
+        unsigned char val[3];
+        BitwiseOps::bitwisePopulateBitArrTop<unsigned char>(val, 24, pkt, len, 0, 24, i);
+        i += 24;
+        if(q.hasKey(std::make_pair(val[0], val[1])))
+            q.update(std::make_pair(val[0], val[1]), std::make_tuple(val[0], val[1], val[2]));
+        else
+            q.enqueue(std::make_pair(val[0], val[1]), std::make_tuple(val[0], val[1], val[2]));
     }
     return readSize;
 }
@@ -132,24 +143,37 @@ unsigned short MasterMeshTopologyContext::receivedMessage(unsigned char* pkt, un
     unsigned short i;
     for (i = 0; i + size < len;) {
         auto* newData = NeighborMessage::fromPkt(config->maxNodes, config->networkIdBits, config->hopBits, pkt, len - i, i);
-        if (ENABLE_TOPOLOGY_INFO_DBG)
-            print_dbg("Received topology :[%d/%d->%d]:%s\n", newData->getSender(), newData->getHop(), newData->getAssignee(), newData->getNeighborsString().c_str());
-        if (newData == nullptr) throw std::runtime_error("Wrongly checked received invalid length topology packet");
-        auto sender = newData->getSender();
-        if (i == 0 && sender != nodeIdByTopologySlot) {
-            unreceivedMessage(nodeIdByTopologySlot);
-            throw std::runtime_error("Received topology packet from a node whose timeslot is different");
-        }
-        i += newData->getSize();
-        for (unsigned short node = 0; node < config->maxNodes; node++) {
-            if (newData->getNeighbors(node)) {
-                if (!topology.hasEdge(sender, node))
-                    topology.addEdge(sender, node);
-            } else {
-                if (topology.hasEdge(sender, node))
-                    topology.removeEdge(sender, node);
+            if (ENABLE_TOPOLOGY_INFO_DBG)
+                print_dbg("Received topology :[%d/%d->%d]:%s\n", newData->getSender(), newData->getHop(), newData->getAssignee(), newData->getNeighborsString().c_str());
+            if (newData == nullptr) throw std::runtime_error("Wrongly checked received invalid length topology packet");
+            auto sender = newData->getSender();
+            if (i == 0 && sender != nodeIdByTopologySlot) {
+                unreceivedMessage(nodeIdByTopologySlot);
+                throw std::runtime_error("Received topology packet from a node whose timeslot is different");
             }
-        }
+            i += newData->getSize();
+            for (unsigned short node = 0; node < config->maxNodes; node++) {
+                if (newData->getNeighbors(node)) {
+                    if (!topology.hasEdge(sender, node))
+                        topology.addEdge(sender, node);
+                } else {
+                    if (topology.hasEdge(sender, node))
+                        topology.removeEdge(sender, node);
+                }
+            }
+    }
+    for (; i + 24 < len; i += 24) {
+        unsigned char val[3];
+        BitwiseOps::bitwisePopulateBitArrTop<unsigned char>(val, 24, pkt, len, 0, 24, i);
+        i += 24;
+        auto p = std::make_pair(val[0], val[1]);
+        if(val[2] == 0) {
+            auto d = streams.find(p);
+            if(d != streams.end()) {
+                streams.erase(d);
+            }
+        } else
+                streams[p] = val[2];
     }
     return i;
 }
@@ -161,6 +185,8 @@ void MasterMeshTopologyContext::unreceivedMessage(unsigned short nodeIdByTopolog
 void MasterMeshTopologyContext::print() {
     for (auto it : topology.getEdges())
         print_dbg("[%d] - [%d]\n", it.first, it.second);
+    for(auto it : streams)
+        print_dbg("stream : %d -> %d [%d]\n", it.first.first, it.first.second, it.second);
 }
 
 bool DynamicTopologyContext::hasPredecessor() {

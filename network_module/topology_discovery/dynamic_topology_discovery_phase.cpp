@@ -88,6 +88,17 @@ void DynamicTopologyDiscoveryPhase::sendMyTopology(MACContext& ctx) {
         BitwiseOps::bitwisePopulateBitArrTop<unsigned char>(packet, ctx.maxPacketSize, msgdata.data(), msgdata.size(), pktSize, size);
         pktSize += size;
     }
+    if (ctx.getNetworkId() == 1) {
+        unsigned char sme[] = {1, 0, 1};
+        BitwiseOps::bitwisePopulateBitArrTop<unsigned char>(packet, ctx.maxPacketSize, sme, 24, pktSize, 24);
+        pktSize += 24;
+    }
+    for (; pktSize < 1000; pktSize += 24) {
+        if(topology->enqueuedSMEs.isEmpty()) break;
+        auto sme = topology->enqueuedSMEs.dequeue();
+        unsigned char smep[3] = {std::get<0>(sme), std::get<1>(sme), std::get<2>(sme)};
+        BitwiseOps::bitwisePopulateBitArrTop<unsigned char>(packet, ctx.maxPacketSize, smep, 24, pktSize, 24);
+    }
     auto time = getNodeTransmissionTime(ctx.getNetworkId());
     if (ENABLE_TOPOLOGY_INFO_DBG)
         print_dbg("[T] N=%u -> @%llu\n", ctx.getNetworkId(), time);

@@ -28,7 +28,6 @@
 #include "maccontext.h"
 #include "macround/macroundfactory.h"
 #include "flooding/syncstatus.h"
-#include "slots_management/slotsnegotiator.h"
 #include "interfaces-impl/transceiver.h"
 #include "topology_discovery/topology_context.h"
 #include <type_traits>

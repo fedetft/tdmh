@@ -28,7 +28,6 @@
 #include "dynamicmacround.h"
 #include "../flooding/periodiccheckfloodingphase.h"
 #include "../flooding/syncstatus.h"
-#include "../slots_management/dynamicslotsnegotiator.h"
 #include "../topology_discovery/topology_context.h"
 
 namespace miosix {
@@ -83,7 +82,7 @@ namespace miosix {
     }
     
     SlotsNegotiator* DynamicMACRound::DynamicMACRoundFactory::getSlotsNegotiator(MACContext& ctx) const {
-        return new DynamicSlotsNegotiator(ctx, 120, 1);
+        return nullptr;
     }
 
 TopologyContext* DynamicMACRound::DynamicMACRoundFactory::getTopologyContext(MACContext& ctx) const {
