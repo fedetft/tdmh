@@ -47,7 +47,7 @@ network DoubleTailedKite
             address = 5;
             @display("p=227.04001,452.704");
         }
-        n6: RootNode {
+        n6: Node {
             address = 6;
             @display("p=225.664,561.408");
         }
