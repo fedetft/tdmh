@@ -72,15 +72,18 @@ unsigned short DynamicMeshTopologyContext::receivedMessage(unsigned char* pkt, u
         print_dbg("received: [%d/%d] : %s\n", newData->getSender(), newData->getHop(), newData->getNeighborsString().c_str());
         checkEnqueueOrUpdate(newData);
     }
-    auto q = dynamic_cast<DynamicTopologyContext*>(ctx.getTopologyContext())->enqueuedSMEs;
     for (auto i = readSize; i + 24 <= len; i += 24) {
         unsigned char val[3];
         BitwiseOps::bitwisePopulateBitArrTop<unsigned char>(val, 24, pkt, len, 0, 24, i);
         i += 24;
-        if(q.hasKey(std::make_pair(val[0], val[1])))
-            q.update(std::make_pair(val[0], val[1]), std::make_tuple(val[0], val[1], val[2]));
-        else
-            q.enqueue(std::make_pair(val[0], val[1]), std::make_tuple(val[0], val[1], val[2]));
+        if(enqueuedSMEs.hasKey(std::make_pair(val[0], val[1]))) {
+            enqueuedSMEs.update(std::make_pair(val[0], val[1]), std::make_tuple(val[0], val[1], val[2]));
+            print_dbg("[S] updated SME: SND %d -[%d]-> %d RCV\n", val[0], val[2], val[1]);
+        }
+        else {
+            enqueuedSMEs.enqueue(std::make_pair(val[0], val[1]), std::make_tuple(val[0], val[1], val[2]));
+            print_dbg("[S] enqueued SME: SND %d -[%d]-> %d RCV\n", val[0], val[2], val[1]);
+        }
     }
     return readSize;
 }
@@ -180,9 +183,12 @@ unsigned short MasterMeshTopologyContext::receivedMessage(unsigned char* pkt, un
             auto d = streams.find(p);
             if(d != streams.end()) {
                 streams.erase(d);
+                print_dbg("[S] Closed stream %d -> %d\n", val[0], val[1]);
             }
-        } else
+        } else {
                 streams[p] = val[2];
+                print_dbg("[S] Opened stream %d -[%d]-> %d\n", val[0], val[2], val[1]);
+        }
     }
     return i;
 }
@@ -192,10 +198,12 @@ void MasterMeshTopologyContext::unreceivedMessage(unsigned short nodeIdByTopolog
 }
 
 void MasterMeshTopologyContext::print() {
+    print_dbg("[T] Current topology:\n");
     for (auto it : topology.getEdges())
-        print_dbg("[%d] - [%d]\n", it.first, it.second);
+        print_dbg("[%d - %d]\n", it.first, it.second);
+    print_dbg("[S] Streams opened:\n");
     for(auto it : streams)
-        print_dbg("stream : %d -> %d [%d]\n", it.first.first, it.first.second, it.second);
+        print_dbg("%d -[%d]-> %d \n", it.first.first, it.second, it.first.second);
 }
 
 bool DynamicTopologyContext::hasPredecessor() {

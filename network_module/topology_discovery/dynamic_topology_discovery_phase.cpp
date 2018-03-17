@@ -88,16 +88,20 @@ void DynamicTopologyDiscoveryPhase::sendMyTopology(MACContext& ctx) {
         BitwiseOps::bitwisePopulateBitArrTop<unsigned char>(packet, ctx.maxPacketSize, msgdata.data(), msgdata.size(), pktSize, size);
         pktSize += size;
     }
-    if (ctx.getNetworkId() == 1) {
-        unsigned char sme[] = {1, 0, 1};
+    static std::set<unsigned char> sendOnce;
+    if (sendOnce.find(ctx.getNetworkId()) == sendOnce.end()) {
+    //if (ctx.getNetworkId() == 1) {
+        unsigned char sme[] = {ctx.getNetworkId(), 0, 1};
         BitwiseOps::bitwisePopulateBitArrTop<unsigned char>(packet, ctx.maxPacketSize, sme, 24, pktSize, 24);
         pktSize += 24;
+        sendOnce.insert(ctx.getNetworkId());
+        print_dbg("[S] Opening stream to 0 with rate 1\n");
     }
-    for (; pktSize < 1000; pktSize += 24) {
-        if(topology->enqueuedSMEs.isEmpty()) break;
+    for (; pktSize + 24 <= 1000 && !topology->enqueuedSMEs.isEmpty(); pktSize += 24) {
         auto sme = topology->enqueuedSMEs.dequeue();
         unsigned char smep[3] = {std::get<0>(sme), std::get<1>(sme), std::get<2>(sme)};
         BitwiseOps::bitwisePopulateBitArrTop<unsigned char>(packet, ctx.maxPacketSize, smep, 24, pktSize, 24);
+        print_dbg("[S] Forwarding SME: SND %d -[%d]-> %d\n", smep[0], smep[2], smep[1]);
     }
     auto time = getNodeTransmissionTime(ctx.getNetworkId());
     if (ENABLE_TOPOLOGY_INFO_DBG)
