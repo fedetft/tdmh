@@ -67,15 +67,19 @@ OBJS = \
     $O/network_module/roundtrip/askingroundtripphase.o \
     $O/network_module/roundtrip/listeningroundtripphase.o \
     $O/network_module/roundtrip/roundtripphase.o \
-    $O/network_module/slots_management/dynamicslotsnegotiator.o \
-    $O/network_module/slots_management/masterslotsnegotiator.o \
-    $O/network_module/slots_management/slotsnegotiator.o \
+    $O/network_module/schedule/dynamicscheduledownlink.o \
+    $O/network_module/schedule/masterscheduledownlink.o \
+    $O/network_module/schedule/schedule_context.o \
+    $O/network_module/schedule/scheduledownlink.o \
     $O/network_module/topology_discovery/dynamic_topology_discovery_phase.o \
     $O/network_module/topology_discovery/master_topology_discovery_phase.o \
     $O/network_module/topology_discovery/topology_context.o \
     $O/network_module/topology_discovery/topology_map.o \
     $O/network_module/topology_discovery/topology_message.o \
-    $O/network_module/topology_discovery/topologydiscoveryphase.o
+    $O/network_module/topology_discovery/topologydiscoveryphase.o \
+    $O/network_module/topology_discovery/slots_management/dynamicslotsnegotiator.o \
+    $O/network_module/topology_discovery/slots_management/masterslotsnegotiator.o \
+    $O/network_module/topology_discovery/slots_management/slotsnegotiator.o
 
 # Message files
 MSGFILES =
