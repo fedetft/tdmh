@@ -57,14 +57,13 @@ public:
         return getMaxSize();
     }
     static unsigned short getMaxSize(unsigned short numNodes, unsigned short nodesBits, unsigned char hopBits) {
-        return (nodesBits << 1) + hopBits + numNodes - 1;
+        return 280;
     }
     virtual unsigned short getMaxSize() {
         return NeighborMessage::getMaxSize(numNodes, nodesBits, hopBits);
     }
     virtual std::vector<unsigned char> getPkt();
-    static NeighborMessage* fromPkt(unsigned short numNodes, unsigned short nodesBits, unsigned char hopBits,
-            unsigned char* pkt, unsigned short bitLen, unsigned short startBit = 0);
+    static NeighborMessage* fromPkt(unsigned char* pkt, unsigned short bitLen, unsigned short startBit = 0);
 
     bool operator ==(const NeighborMessage &b) const;
     bool operator !=(const NeighborMessage &b) const {

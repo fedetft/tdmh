@@ -32,69 +32,32 @@
 namespace miosix {
 
 std::vector<unsigned char> NeighborMessage::getPkt()  {
-    auto bitSize = getMaxSize();
+    auto bitSize = 280;
     auto byteSize = (bitSize - 1) / (std::numeric_limits<unsigned char>::digits) + 1;
     std::vector<unsigned char> retval(byteSize);
     auto pkt = retval.data();
-    auto idx = 0;
-    short firstBitPow;
-    for (firstBitPow = nodesBits - std::numeric_limits<unsigned char>::digits;
-            firstBitPow >= 0;
-            firstBitPow -= std::numeric_limits<unsigned char>::digits)
-        pkt[idx++] = sender >> firstBitPow;
-    pkt[idx] |= sender << -firstBitPow;
-    for (firstBitPow = hopBits + firstBitPow; firstBitPow >= 0; firstBitPow -= std::numeric_limits<unsigned char>::digits)
-        pkt[idx++] |= hop >> firstBitPow;
-    pkt[idx] |= hop << -firstBitPow;
-    for (firstBitPow = nodesBits + firstBitPow; firstBitPow >= 0; firstBitPow -= std::numeric_limits<unsigned char>::digits)
-        pkt[idx++] |= assignee >> firstBitPow;
-    pkt[idx] |= assignee << -firstBitPow;
-    firstBitPow += std::numeric_limits<unsigned char>::digits;
-    pkt[idx] &= (~0) >> firstBitPow;
-    memset(pkt + idx + 1, 0, byteSize - (idx + 1));
+    pkt[0] = sender;
+    pkt[1] = hop;
+    pkt[2] = assignee;
     for (auto n : neighbors) {
-        auto i = n > sender? n - 1: n;
-        auto l = idx + (i + firstBitPow) / std::numeric_limits<unsigned char>::digits;
-        auto sh = std::numeric_limits<unsigned char>::digits - 1 - firstBitPow - i % std::numeric_limits<unsigned char>::digits;
-        pkt[l] |=
-                1 << (sh);
+        pkt[n/8 + 3] |= 1 << (7 - (n % 8));
     }
     return retval;
 }
 
-NeighborMessage* NeighborMessage::fromPkt(unsigned short numNodes, unsigned short nodesBits, unsigned char hopBits,
-        unsigned char* pkt, unsigned short bitLen, unsigned short startBit) {
-    auto size = NeighborMessage::getMaxSize(numNodes, nodesBits, hopBits);
+NeighborMessage* NeighborMessage::fromPkt(unsigned char* pkt, unsigned short bitLen, unsigned short startBit) {
+    auto size = 280;
     if (bitLen < size)
         return nullptr; //throw std::runtime_error("Invalid data, unparsable packet");
-    auto trailingBits = startBit % (std::numeric_limits<unsigned char>::digits);
-    auto idx = startBit / (std::numeric_limits<unsigned char>::digits);
-    unsigned short ones = ~0;
-    short firstBitPow;
-    unsigned short sender = 0;
-    for (firstBitPow = nodesBits - std::numeric_limits<unsigned char>::digits + trailingBits;
-            firstBitPow >= 0;
-            firstBitPow -= std::numeric_limits<unsigned char>::digits)
-        sender |= pkt[idx++] << firstBitPow;
-    sender |= pkt[idx] >> -firstBitPow;
-    sender &= ones >> (std::numeric_limits<unsigned short>::digits - nodesBits);
-    unsigned short hop = 0;
-    for (firstBitPow = hopBits + firstBitPow; firstBitPow >= 0; firstBitPow -= std::numeric_limits<unsigned char>::digits)
-        hop |= pkt[idx++] << firstBitPow;
-    hop |= pkt[idx] >> -firstBitPow;
-    hop &= ones >> (std::numeric_limits<unsigned short>::digits - hopBits);
-    unsigned short assignee = 0;
-    for (firstBitPow = nodesBits + firstBitPow; firstBitPow >= 0; firstBitPow -= std::numeric_limits<unsigned char>::digits)
-        assignee |= pkt[idx++] << firstBitPow;
-    assignee |= pkt[idx] >> -firstBitPow;
-    assignee &= ones >> (std::numeric_limits<unsigned short>::digits - nodesBits);
-    firstBitPow += std::numeric_limits<unsigned char>::digits;
+    auto i = (startBit + 7) / 8;
+    auto sender = pkt[i++];
+    auto hop = pkt[i++];
+    auto assignee = pkt[i++];
     std::vector<unsigned short> neighbors;
-    for (unsigned short j = 0; j < numNodes - 1; j++)
-        if (pkt[idx + (j + firstBitPow) / (std::numeric_limits<unsigned char>::digits)] &
-            (1 << (std::numeric_limits<unsigned char>::digits - 1 - (j + firstBitPow) % (std::numeric_limits<unsigned char>::digits))))
-            neighbors.push_back(j >= sender? j + 1: j);
-    return new NeighborMessage(numNodes, nodesBits, hopBits, sender, hop, assignee, std::move(neighbors));
+    for (unsigned short j = 0; j < 255 - 1; j++)
+        if (pkt[i + j / 8] & (1 << (7 - (j % 8))))
+            neighbors.push_back(j);
+    return new NeighborMessage(256, 8, 8, sender, hop, assignee, std::move(neighbors));
 }
 
 bool NeighborMessage::operator ==(const NeighborMessage &b) const {
