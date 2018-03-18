@@ -95,17 +95,15 @@ inline bool miosix::TopologyMap<T>::removeEdge(T a, T b) {
     auto range = edges.equal_range(a);
     for (auto it = range.first; it != range.second && !retval;)
         if (it->second == b) {
-            auto cur = it++;
             retval = true;
-            edges.erase(cur);
+            it = edges.erase(it);
         } else it++;
     if (!retval) return false;
     range = edges.equal_range(b);
     for (auto it = range.first; it != range.second && retval;)
         if (it->second == a) {
-            auto cur = it++;
             retval = false;
-            edges.erase(cur);
+            it = edges.erase(it);
         } else it++;
     return true;
 }
@@ -118,9 +116,8 @@ inline bool miosix::TopologyMap<T>::removeNode(T a) {
         bool notFound = true;
         for (auto it2 = range2.first; it2 != range2.second && notFound;) {
             if (it2->second == a) {
-                auto cur = it2++;
                 notFound = false;
-                edges.erase(cur);
+                it2 = edges.erase(it2);
             } else it2++;
         }
     }
