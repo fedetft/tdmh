@@ -25,32 +25,49 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef SLOTSNEGOTIATOR_H
-#define SLOTSNEGOTIATOR_H
+#pragma once
 
-namespace miosix {
-    class MACContext;
+#include "../mac_phase.h"
+#include "interfaces-impl/power_manager.h"
+#include "topology/topology_context.h"
+#include "stream_management/stream_management_context.h"
+#include "../mac_context.h"
+
+namespace mxnet {
+class UplinkPhase : public MACPhase {
+public:
+    UplinkPhase(const UplinkPhase& orig) = delete;
+    virtual ~UplinkPhase();
     
-    class SlotsNegotiator {
-    public:
-        SlotsNegotiator() = delete;
-        SlotsNegotiator(MACContext& ctx, unsigned short slotsPerDirectionPerRound, unsigned char nibblesPerSlot) :
-                reservationPhasesPerRoundCount((((slotsPerDirectionPerRound - 1) * nibblesPerSlot) / 240) + 1),
-                assignmentPhasesPerRoundCount((((slotsPerDirectionPerRound - 1) * nibblesPerSlot) / 120) + 1),
-                nibblesPerSlot(nibblesPerSlot),
-                hasDoubleRservation(reservationPhasesPerRoundCount == assignmentPhasesPerRoundCount),
-                ctx(ctx) {}
-        SlotsNegotiator(const SlotsNegotiator& orig) = delete;
-        virtual ~SlotsNegotiator();
+    /*long long getNodeTransmissionTime(unsigned short networkId) const {
+        return globalFirstActivityTime + (nodesCount - networkId - 1) * (transmissionInterval + packetArrivalAndProcessingTime);
+    }*/
+    
+    static const int transmissionInterval = 1000000; //1ms
+    static const int firstSenderDelay = 1000000; //TODO tune it, guessed based on the need to RCV -> SND if was asking before
+    static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
+    static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
+protected:
+    UplinkPhase(MACContext& ctx) :
+            MACPhase(ctx),
+            pm(miosix::PowerManager::instance()),
+            transceiver(ctx.getTransceiver()),
+            topology(ctx.getTopologyContext()),
+            streamManagement(ctx.getStreamManagementContext()),
+            nodesCount(ctx.getNetworkConfig()->getMaxNodes()) {};
+    
+    void nextNode() {
+        if (--currentNode < 0)
+            currentNode = nodesCount - 1;
+    }
 
-        const unsigned char reservationPhasesPerRoundCount;
-        const unsigned char assignmentPhasesPerRoundCount;
-        const unsigned char nibblesPerSlot;
-        const bool hasDoubleRservation;
-    private:
-        MACContext& ctx;
-    };
+    miosix::PowerManager& pm;
+    miosix::Transceiver& transceiver;
+    TopologyContext* const topology;
+    StreamManagementContext* const streamManagement;
+    unsigned char nodesCount;
+    unsigned char currentNode;
+private:
+};
 }
-
-#endif /* SLOTSNEGOTIATOR_H */
 

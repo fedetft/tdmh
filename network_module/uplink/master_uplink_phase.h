@@ -25,29 +25,19 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef NETWORK_MODULE_TOPOLOGY_DISCOVERY_DYNAMIC_TOPOLOGY_DISCOVERY_PHASE_H_
-#define NETWORK_MODULE_TOPOLOGY_DISCOVERY_DYNAMIC_TOPOLOGY_DISCOVERY_PHASE_H_
+#pragma once
 
-#include "topologydiscoveryphase.h"
-#include "../network_configuration.h"
+#include "uplink_phase.h"
 
-namespace miosix {
+namespace mxnet {
 
-class DynamicTopologyDiscoveryPhase : public TopologyDiscoveryPhase {
+class MasterUplinkPhase : public UplinkPhase {
 public:
-    DynamicTopologyDiscoveryPhase(long long roundtripEndTime, unsigned short networkId, unsigned short nodesCount) :
-        TopologyDiscoveryPhase(roundtripEndTime, networkId, nodesCount) {}
-    DynamicTopologyDiscoveryPhase();
-    virtual ~DynamicTopologyDiscoveryPhase();
-    virtual void execute(MACContext& ctx) override;
-    void receiveByNode(MACContext& ctx, unsigned short nodeId);
-    void sendMyTopology(MACContext& ctx);
-
-private:
-    unsigned char packet[MACContext::maxPacketSize];
-    const NetworkConfiguration* cfg;
+    MasterUplinkPhase(MACContext& ctx) :
+        UplinkPhase(ctx) {}
+    virtual ~MasterUplinkPhase() {};
+    virtual void execute(long long slotStart) override;
 };
 
-} /* namespace miosix */
+} /* namespace mxnet */
 
-#endif /* NETWORK_MODULE_TOPOLOGY_DISCOVERY_DYNAMIC_TOPOLOGY_DISCOVERY_PHASE_H_ */

@@ -25,8 +25,8 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "topology_map.h"
+#include "neighbor.h"
 
-namespace miosix {
+namespace mxnet {
 
-} /* namespace miosix */
+} /* namespace mxnet */

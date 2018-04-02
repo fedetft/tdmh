@@ -25,30 +25,25 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "master_topology_discovery_phase.h"
-#include "topology_context.h"
+#include "master_uplink_phase.h"
+#include "topology/mesh_topology_context.h"
 #include "../debug_settings.h"
 #include <limits>
 
-namespace miosix {
+using namespace miosix;
 
-MasterTopologyDiscoveryPhase::~MasterTopologyDiscoveryPhase() {
-    // TODO Auto-generated destructor stub
-}
+namespace mxnet {
 
-void MasterTopologyDiscoveryPhase::execute(MACContext& ctx) {
-    if (ENABLE_TOPOLOGY_INFO_DBG)
-        print_dbg("[T] GFAT=%llu\n", globalFirstActivityTime);
-    unsigned char packet[ctx.maxPacketSize];
+void MasterUplinkPhase::execute(long long slotStart) {
+    if (ENABLE_UPLINK_INFO_DBG)
+        print_dbg("[U] rcv %d @%llu\n", nodeId, slotStart);
     transceiver.configure(ctx.getTransceiverConfig());
-    auto* cfg = ctx.getNetworkConfig();
-    auto* topology = ctx.getTopologyContext();
     RecvResult result;
     transceiver.turnOn();
-    for (unsigned short nodeId = cfg->maxNodes - 1; nodeId > 0; nodeId--) {
+    while (result.error != miosix::RecvResult::TIMEOUT && result.error != miosix::RecvResult::OK) {
         try {
             result = transceiver.recv(packet, ctx.maxPacketSize,
-                    getNodeTransmissionTime(nodeId) + MediumAccessController::maxPropagationDelay + MediumAccessController::maxAdmittableResyncReceivingWindow);
+                    slotStart + MediumAccessController::maxPropagationDelay + MediumAccessController::maxAdmittableResyncReceivingWindow);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
                 print_dbg("%s\n", e.what());
@@ -61,17 +56,20 @@ void MasterTopologyDiscoveryPhase::execute(MACContext& ctx) {
                     memDump(packet, result.size);
             } else print_dbg("No packet received, timeout reached\n");
         }
-        if (result.error == RecvResult::ErrorCode::OK) {
-            topology->receivedMessage(packet, result.size * std::numeric_limits<unsigned char>::digits, nodeId, result.rssi);
-            if (ENABLE_TOPOLOGY_INFO_DBG)
-                print_dbg("[T] <- N=%u @%llu\n", nodeId, result.timestamp);
-        } else {
-            topology->unreceivedMessage(nodeId);
-        }
     }
-    if (ENABLE_TOPOLOGY_INFO_DBG) {
-        dynamic_cast<MasterMeshTopologyContext*>(topology)->print();
+    if (result.error == RecvResult::ErrorCode::OK) {
+        //TODO parse message and send it to topology and stream management contexts
+        auto msg = UplinkMessage::fromPkt(std::vector<unsigned char>(packet, packet + result.size), config);
+        topology.receivedMessage(msg, currentNode, result.rssi);
+        streamManagement.receive(msg.getSMEs());
+        if (ENABLE_UPLINK_INFO_DBG)
+            print_dbg("[U] <- N=%u @%llu\n", currentNode, result.timestamp);
+    } else {
+        topology.unreceivedMessage(currentNode);
+    }
+    if (ENABLE_UPLINK_INFO_DBG && ctx.getNetworkConfig()->getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION && currentNode == 1) {
+        dynamic_cast<MasterMeshTopologyContext&>(topology).print();
     }
 }
 
-} /* namespace miosix */
+} /* namespace mxnet */

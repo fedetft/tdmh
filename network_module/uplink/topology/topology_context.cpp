@@ -24,44 +24,61 @@
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
-#include "topology_message.h"
-#include <cstring>
-#include <stdexcept>
-#include <limits>
 
-namespace miosix {
+#include "topology_context.h"
 
-std::vector<unsigned char> NeighborMessage::getPkt()  {
-    auto bitSize = 280;
-    auto byteSize = (bitSize - 1) / (std::numeric_limits<unsigned char>::digits) + 1;
-    std::vector<unsigned char> retval(byteSize);
-    auto pkt = retval.data();
-    pkt[0] = sender;
-    pkt[1] = hop;
-    pkt[2] = assignee;
-    for (auto n : neighbors) {
-        pkt[n/8 + 3] |= 1 << (7 - (n % 8));
-    }
+namespace mxnet {
+
+unsigned char DynamicTopologyContext::getBestPredecessor() {
+    return (ctx.getHop() > 1)? min_element(predecessors.begin(),
+            predecessors.end(),
+            CompareRSSI())->getNodeId(): 0;
+}
+
+void DynamicTopologyContext::receivedMessage(UplinkMessage msg,
+        unsigned char sender, short rssi) {//TODO manage predecessor
+}
+
+void DynamicTopologyContext::unreceivedMessage(unsigned char sender) {
+}//TODO manage predecessor
+
+std::vector<TopologyElement*> DynamicTopologyContext::dequeueMessages(unsigned short count) {
+    std::vector<TopologyElement*> retval(std::min(enqueuedTopologyMessages.size(), count));
+    for (int i = 0; i < retval.size(); i++)
+        retval[i] = enqueuedTopologyMessages.dequeue();
     return retval;
 }
 
-NeighborMessage* NeighborMessage::fromPkt(unsigned char* pkt, unsigned short bitLen, unsigned short startBit) {
-    auto size = 280;
-    if (bitLen < size)
-        return nullptr; //throw std::runtime_error("Invalid data, unparsable packet");
-    auto i = (startBit + 7) / 8;
-    auto sender = pkt[i++];
-    auto hop = pkt[i++];
-    auto assignee = pkt[i++];
-    std::vector<unsigned short> neighbors;
-    for (unsigned short j = 0; j < 255 - 1; j++)
-        if (pkt[i + j / 8] & (1 << (7 - (j % 8))))
-            neighbors.push_back(j);
-    return new NeighborMessage(256, 8, 8, sender, hop, assignee, std::move(neighbors));
+bool DynamicTopologyContext::hasPredecessor() {
+    return ctx.getHop() < 2 || predecessors.size();
 }
 
-bool NeighborMessage::operator ==(const NeighborMessage &b) const {
-    return this->sender == b.sender && this->assignee == b.assignee && this->hop == b.hop && this->neighbors == b.neighbors;
+void TopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
+    if (msg.getHop() != ctx.getHop() + 1) return;
+    auto it = std::lower_bound(successors.begin(), successors.end(), sender);
+    if(it->getNodeId() != sender) {
+        successors.push_back(Successor(sender));
+    } else it->seen();
 }
 
-} /* namespace miosix */
+void TopologyContext::unreceivedMessage(unsigned char sender) {
+    if (msg.getHop() != ctx.getHop() + 1) return;
+    auto it = std::lower_bound(successors.begin(), successors.end(), sender);
+    if(it->getNodeId() != sender) return;
+    it->unseen();
+}
+
+void MasterTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
+    if (neighborsUnseenFor.find(sender) == neighborsUnseenFor.end()) {
+        topology.addEdge(sender, 0);
+    }
+    neighborsUnseenFor[sender] = 0;
+}
+
+void MasterTopologyContext::unreceivedMessage(unsigned char sender) {
+    if (neighborsUnseenFor.find(sender) == neighborsUnseenFor.end()) return;
+    if (++neighborsUnseenFor[sender] > ctx.getNetworkConfig()->getMaxRoundsUnavailableBecomesDead())
+        topology.removeEdge(sender, 0);
+}
+
+} /* namespace mxnet */

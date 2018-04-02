@@ -25,21 +25,45 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef NETWORK_MODULE_TOPOLOGY_DISCOVERY_MASTER_TOPOLOGY_DISCOVERY_PHASE_H_
-#define NETWORK_MODULE_TOPOLOGY_DISCOVERY_MASTER_TOPOLOGY_DISCOVERY_PHASE_H_
+#pragma once
 
-#include "topologydiscoveryphase.h"
+#include "topology_context.h"
+#include "topology_message.h"
+#include <map>
 
-namespace miosix {
+namespace mxnet {
 
-class MasterTopologyDiscoveryPhase : public TopologyDiscoveryPhase {
+class DynamicMeshTopologyContext : public DynamicTopologyContext {
 public:
-    MasterTopologyDiscoveryPhase(long long roundtripEndTime, unsigned short nodesCount) :
-        TopologyDiscoveryPhase(roundtripEndTime, 0, nodesCount) {}
-    virtual ~MasterTopologyDiscoveryPhase();
-    virtual void execute(MACContext& ctx) override;
+    DynamicMeshTopologyContext(MACContext& ctx) :
+        DynamicTopologyContext(ctx), //TODO al flooding aggiungere neighbor 0 se la topology è mesh
+        neighbors(ctx.getNetworkConfig()->getMaxNodes(), std::vector<unsigned char>()) {};
+    virtual ~DynamicMeshTopologyContext() {}
+    virtual NetworkConfiguration::TopologyMode getTopologyType() {
+        return NetworkConfiguration::TopologyMode::NEIGHBOR_COLLECTION;
+    }
+    virtual unsigned short receivedMessage(UplinkMessage msg, unsigned char sender, short rssi);
+    virtual void unreceivedMessage(unsigned char sender);
+    virtual std::vector<ForwardedNeighborMessage*> dequeueMessages(unsigned short count);
+    virtual TopologyMessage* getMyTopologyMessage();
+protected:
+    virtual void checkEnqueueOrUpdate(ForwardedNeighborMessage&& msg);
+    UpdatableQueue<unsigned short, ForwardedNeighborMessage*> enqueuedTopologyMessages;
+    NeighborTable neighbors;
+    std::map<unsigned char, unsigned char> neighborsUnseenFor;
 };
 
-} /* namespace miosix */
+class MasterMeshTopologyContext : public MasterTopologyContext {
+public:
+    MasterMeshTopologyContext(MACContext& ctx) : MasterTopologyContext(ctx) {};
+    virtual ~MasterMeshTopologyContext() {}
 
-#endif /* NETWORK_MODULE_TOPOLOGY_DISCOVERY_MASTER_TOPOLOGY_DISCOVERY_PHASE_H_ */
+    virtual NetworkConfiguration::TopologyMode getTopologyType() {
+        return NetworkConfiguration::TopologyMode::NEIGHBOR_COLLECTION;
+    }
+    virtual unsigned short receivedMessage(UplinkMessage msg, unsigned char sender, short rssi);
+    virtual void print();
+protected:
+};
+
+} /* namespace mxnet */

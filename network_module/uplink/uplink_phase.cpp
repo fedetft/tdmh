@@ -25,25 +25,15 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef DYNAMICSLOTSNEGOTIATOR_H
-#define DYNAMICSLOTSNEGOTIATOR_H
+#include "../debug_settings.h"
+#include "uplink_phase.h"
+#include "../timesync/syncstatus.h"
 
-#include "slotsnegotiator.h"
-#include <vector>
+namespace mxnet {
+    UplinkPhase::~UplinkPhase() {
+    }
 
-namespace miosix {
-    class DynamicSlotsNegotiator : public SlotsNegotiator {
-    public:
-        DynamicSlotsNegotiator() = delete;
-        DynamicSlotsNegotiator(MACContext& ctx, unsigned short slotsPerDirectionPerRound, unsigned char nibblesPerSlot) :
-                SlotsNegotiator(ctx, slotsPerDirectionPerRound, nibblesPerSlot) {}
-        DynamicSlotsNegotiator(const DynamicSlotsNegotiator& orig) = delete;
-        virtual ~DynamicSlotsNegotiator();
-        std::vector<unsigned char> getReservationPacket(unsigned char index);
-    private:
 
-    };
+
 }
-
-#endif /* DYNAMICSLOTSNEGOTIATOR_H */
 

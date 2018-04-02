@@ -25,15 +25,8 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "masterslotsnegotiator.h"
+#include "topology_map.h"
 
-namespace miosix {
-    MasterSlotsNegotiator::~MasterSlotsNegotiator() {
-    }
-    
-    std::vector<unsigned char> MasterSlotsNegotiator::getAssignmentPacket(unsigned char index) {
+namespace mxnet {
 
-    }
-
-}
-
+} /* namespace mxnet */

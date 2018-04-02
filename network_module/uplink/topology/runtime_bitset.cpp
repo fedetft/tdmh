@@ -25,11 +25,8 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "slotsnegotiator.h"
+#include "runtime_bitset.h"
 
-namespace miosix {
-    SlotsNegotiator::~SlotsNegotiator() {
-    }
+namespace mxnet {
 
-}
-
+} /* namespace mxnet */

@@ -31,7 +31,7 @@
 #include <vector>
 #include <algorithm>
 
-namespace miosix {
+namespace mxnet {
 
 template<typename T>
 class TopologyMap {
@@ -50,24 +50,24 @@ protected:
     std::multimap<T, T> edges;
 };
 
-} /* namespace miosix */
+} /* namespace mxnet */
 
 template<typename T>
-inline miosix::TopologyMap<T>::TopologyMap() {
+inline mxnet::TopologyMap<T>::TopologyMap() {
 }
 
 template<typename T>
-inline miosix::TopologyMap<T>::~TopologyMap() {
+inline mxnet::TopologyMap<T>::~TopologyMap() {
 }
 
 template<typename T>
-inline void miosix::TopologyMap<T>::addEdge(T a, T b) {
+inline void mxnet::TopologyMap<T>::addEdge(T a, T b) {
     edges.insert(std::make_pair(a, b));
     edges.insert(std::make_pair(b, a));
 }
 
 template<typename T>
-inline std::vector<std::pair<T, T>> miosix::TopologyMap<T>::getEdges() {
+inline std::vector<std::pair<T, T>> mxnet::TopologyMap<T>::getEdges() {
     std::vector<std::pair<T, T>> v;
     for(auto it : edges)
         if (it.first < it.second)
@@ -76,7 +76,7 @@ inline std::vector<std::pair<T, T>> miosix::TopologyMap<T>::getEdges() {
 }
 
 template<typename T>
-inline std::vector<T> miosix::TopologyMap<T>::getEdges(T a) {
+inline std::vector<T> mxnet::TopologyMap<T>::getEdges(T a) {
     auto it = edges.equal_range(a);
     std::vector<T> v;
     std::transform(it.first, it.second, std::back_inserter(v), [](std::pair<T, T> const& el) { return el.second; });
@@ -84,13 +84,13 @@ inline std::vector<T> miosix::TopologyMap<T>::getEdges(T a) {
 }
 
 template<typename T>
-inline bool miosix::TopologyMap<T>::hasEdge(T a, T b) {
+inline bool mxnet::TopologyMap<T>::hasEdge(T a, T b) {
     auto it = edges.equal_range(a);
     return std::count_if(it.first, it.second, [b](std::pair<T, T> const& el) { return el.second == b; }) > 0;
 }
 
 template<typename T>
-inline bool miosix::TopologyMap<T>::removeEdge(T a, T b) {
+inline bool mxnet::TopologyMap<T>::removeEdge(T a, T b) {
     bool retval = false;
     auto range = edges.equal_range(a);
     for (auto it = range.first; it != range.second && !retval;)
@@ -109,7 +109,7 @@ inline bool miosix::TopologyMap<T>::removeEdge(T a, T b) {
 }
 
 template<typename T>
-inline bool miosix::TopologyMap<T>::removeNode(T a) {
+inline bool mxnet::TopologyMap<T>::removeNode(T a) {
     auto range = edges.equal_range(a);
     for (auto it = range.first; it != range.second;) {
         auto range2 = edges.equal_range(it->second);

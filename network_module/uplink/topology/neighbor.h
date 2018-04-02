@@ -25,16 +25,51 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "topologydiscoveryphase.h"
+#pragma once
 
-#include "../flooding/syncstatus.h"
-#include "../debug_settings.h"
+namespace mxnet {
 
-namespace miosix {
-    TopologyDiscoveryPhase::~TopologyDiscoveryPhase() {
+class Neighbor {
+public:
+    Neighbor()  = delete;
+    Neighbor(unsigned char nodeId, unsigned char unseenSince = 0) : nodeId(nodeId), unseenSince(unseenSince) {
+
     }
+    virtual ~Neighbor() {};
+    unsigned char getNodeId() { return nodeId; }
+    void seen() { unseenSince = 0; }
+    void unseen() { unseenSince++; }
+    unsigned char getUnseen() const { return unseenSince; }
+    bool operator <(const Neighbor &b) const { return nodeId < b.nodeId; };
+    bool operator >(const Neighbor &b) const { return b < *this; }
+    bool operator <(const unsigned char &b) const { return nodeId < b; };
+    bool operator >(const unsigned char &b) const { return nodeId > b; }
+protected:
+    unsigned char nodeId;
+    unsigned char unseenSince;
+};
 
+class Predecessor : public Neighbor {
+public:
+    Predecessor(unsigned char nodeId, short rssi, unsigned char unseenSince = 0) :
+        Neighbor(nodeId, unseenSince), rssi(rssi) {};
+    Predecessor() = delete;
+    short getRssi() { return rssi; }
+    void setRssi(short rssi) { this->rssi = rssi; }
 
+    struct CompareRSSI {
+        bool operator()(const Predecessor& left, const Predecessor& right) const {
+            return left.getUnseen() < right.getUnseen();
+        }
+    };
+protected:
+    short rssi;
+};
 
-}
+class Successor : public Neighbor {
+public:
+    Successor() = delete;
+    Successor(unsigned char nodeId, unsigned char unseenSince = 0) : Neighbor(nodeId, unseenSince) {};
+};
+} /* namespace mxnet */
 

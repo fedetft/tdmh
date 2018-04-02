@@ -25,15 +25,35 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "dynamicslotsnegotiator.h"
+#include "uplink_message.h"
+#include <cstring>
 
-namespace miosix {
-    DynamicSlotsNegotiator::~DynamicSlotsNegotiator() {
-    }
-    
-    std::vector<unsigned char> DynamicSlotsNegotiator::getReservationPacket(unsigned char index) {
-            
-    }
+namespace mxnet {
 
+std::vector<unsigned char> UplinkMessage::getPkt() {
+    std::vector<unsigned char> retval(sizeof(content) + topology->getSize() + smes.size() * StreamManagementElement::getSize());
+    topology->getPkt(retval);
+    auto size = topology->getSize();
+    for (StreamManagementElement* sme : smes) {
+        sme->getPkt(std::vector<unsigned char>(retval.begin() + size, retval.end()));
+        size += sme->getSize();
+    }
+    return retval;
 }
 
+UplinkMessage UplinkMessage::fromPkt(std::vector<unsigned char> pkt, NetworkConfiguration* const config) {
+    UplinkMessage retval;
+    memcpy(retval.content, pkt.data(), sizeof(count));
+    switch (config->getTopologyMode()) {
+    case NetworkConfiguration::NEIGHBOR_COLLECTION:
+        retval.topology = NeighborMessage::fromPkt(std::vector<unsigned char>(pkt.begin() + sizeof(retval.content), pkt.end()), config);
+        break;
+    case NetworkConfiguration::ROUTING_VECTOR:
+        retval.topology = RoutingVector::fromPkt(std::vector<unsigned char>(pkt.begin() + sizeof(retval.content), pkt.end()), config);
+        break;
+    }
+    retval.smes = StreamManagementElement::fromPkt(std::vector<unsigned char>(pkt.begin() + sizeof(retval.content) + retval.topology->getSize(), pkt.end()));
+    return retval;
+}
+
+} /* namespace mxnet */

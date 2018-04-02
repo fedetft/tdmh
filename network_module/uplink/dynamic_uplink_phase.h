@@ -27,39 +27,26 @@
 
 #pragma once
 
-#include "../macphase.h"
-#include "interfaces-impl/power_manager.h"
+#include "../network_configuration.h"
+#include "uplink_phase.h"
+#include "../timesync/syncstatus.h"
 
-namespace miosix {
-class TopologyDiscoveryPhase : public MACPhase {
+namespace mxnet {
+
+class DynamicTopologyDiscoveryPhase : public UplinkPhase {
 public:
-    TopologyDiscoveryPhase(const TopologyDiscoveryPhase& orig) = delete;
-    virtual ~TopologyDiscoveryPhase();
-    
-    long long getPhaseEnd() const { return globalStartTime + phaseDuration; }
-    long long getNodeTransmissionTime(unsigned short networkId) const {
-        return globalFirstActivityTime + (nodesCount - networkId - 1) * (transmissionInterval + packetArrivalAndProcessingTime);
-    }
-    
-    static const int transmissionInterval = 1000000; //1ms
-    static const int firstSenderDelay = 1000000; //TODO tune it, guessed based on the need to RCV -> SND if was asking before
-    static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
-    static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
-    const long long phaseDuration;
-protected:
-    TopologyDiscoveryPhase(long long roundtripEndTime, unsigned short networkId, unsigned short nodesCount) :
-            MACPhase(roundtripEndTime, roundtripEndTime + firstSenderDelay,
-                    roundtripEndTime + (nodesCount - networkId) * (transmissionInterval + packetArrivalAndProcessingTime)
-                    + firstSenderDelay),
-            phaseDuration(nodesCount * (transmissionInterval + packetArrivalAndProcessingTime) + firstSenderDelay),
-            transceiver(Transceiver::instance()),
-            pm(PowerManager::instance()),
-            nodesCount(nodesCount) {};
-    
-    Transceiver& transceiver;
-    PowerManager& pm;
-    unsigned short nodesCount;
+    DynamicTopologyDiscoveryPhase(MACContext& ctx) :
+        UplinkPhase(ctx), cfg(ctx.getNetworkConfig()) , syncStatus(ctx.getSyncStatus()){}
+    DynamicTopologyDiscoveryPhase();
+    virtual ~DynamicTopologyDiscoveryPhase() {};
+    virtual void execute(long long slotStart) override;
+    void receiveByNode(long long slotStart);
+    void sendMyTopology(long long slotStart);
+
 private:
+    const NetworkConfiguration* const cfg;
+    SyncStatus& syncStatus;
 };
-}
+
+} /* namespace mxnet */
 
