@@ -31,9 +31,17 @@
 #include <type_traits>
 #include <cassert>
 
-namespace miosix {
+namespace mxnet {
 
 struct BitwiseOps {
+    /**
+     * Sets the least significant bits of a value, taking them from the least significant bits of another.
+     * @tparam T the type of both the value to which the bits are modified and the source one.
+     * @param origValue the value to which the bits will be set.
+     * @param value the value from which the bits are taken
+     * @param length the quantity of modified bits
+     * @return the modified value
+     */
     template<typename T>
     static typename std::enable_if<std::is_integral<T>::value>::type
     setRightmost(T origValue, T value, unsigned short length) {
@@ -41,6 +49,14 @@ struct BitwiseOps {
         return (origValue & mask) | (value & ~mask);
     }
 
+    /**
+     * Sets the most significant bits of a value, taking them from the most significant bits of another.
+     * @tparam T the type of both the value to which the bits are modified and the source one.
+     * @param origValue the value to which the bits will be set.
+     * @param value the value from which the bits are taken
+     * @param length the quantity of modified bits
+     * @return the modified value
+     */
     template<typename T>
     static typename std::enable_if<std::is_integral<T>::value>::type
     setLeftmost(T origValue, T value, unsigned short length) {
@@ -48,6 +64,17 @@ struct BitwiseOps {
 		return (origValue & mask) | (value & ~mask);
     }
 
+    /**
+     * Populates a part of an array starting from a certain bit with an array value.
+     * Both must be aligned to the first array value and the last value to the most significant bit.
+     * @tparam T the type of both the value to which the bits are modified and the source one.
+     * @param arr the target array to which the bits will be set.
+     * @param arrLen the number of elements in the target array.
+     * @param value the source array from which the bits are taken.
+     * @param valLen the number of elements in the source array.
+     * @param startPos the start position from which the values are set, in bits.
+     * @param length the quantity of modified bits.
+     */
     template<typename T>
     static void bitwisePopulateBitArrTop(
             typename std::enable_if<std::is_integral<T>::value, T>::type* arr,
@@ -96,6 +123,18 @@ struct BitwiseOps {
         }
     }
 
+    /**
+     * Populates a part of an array starting from a certain bit with an array value.
+     * Both must be aligned to the first array value and the last value to the most significant bit.
+     * @tparam T the type of both the value to which the bits are modified and the source one.
+     * @param arr the target array to which the bits will be set.
+     * @param arrLen the number of elements in the target array.
+     * @param value the source array from which the bits are taken.
+     * @param valLen the number of elements in the source array.
+     * @param startPos the start position from which the values are set, in bits.
+     * @param length the quantity of modified bits.
+     * @param valStartPos the number of bits of the source array that need to be skipped.
+     */
     template<typename T>
     static void bitwisePopulateBitArrTop(
             typename std::enable_if<std::is_integral<T>::value, T>::type* arr,
@@ -150,6 +189,19 @@ struct BitwiseOps {
         }
     }
 
+    /**
+     * Populates a part of an array starting from a certain bit with an array value.
+     * Both must be aligned to the first array value and the last value to the most significant bit.
+     * This function is safe for upcasting and downcasting.
+     * @tparam T the type of the value to which the bits are modified.
+     * @tparam T the type of the value to which the bits are taken from.
+     * @param arr the target array to which the bits will be set.
+     * @param arrLen the number of elements in the target array.
+     * @param value the source array from which the bits are taken.
+     * @param valLen the number of elements in the source array.
+     * @param startPos the start position from which the values are set, in bits.
+     * @param length the quantity of modified bits.
+     */
     template<typename T, typename V>
     static void bitwisePopulateBitArr(
             typename std::enable_if<std::is_integral<T>::value>::type* arr,
@@ -164,12 +216,36 @@ struct BitwiseOps {
             bitwisePopulateBitArr(((V*) arr), arrLen * sizeof(T) / sizeof(V), value, valLen, length);
     }
 
+    /**
+     * Returns the number of bits necessary for representing an amount of elements (logarithm base 2)
+     * using a fast algorithm (shift and bitwise ops).
+     * @tparam T the type of the elements count.
+     * @param count the number of elements to be represented.
+     */
     template<typename T, typename std::enable_if<std::is_integral<T>::value, T>::type = 0>
     static unsigned char bitsForRepresentingCount(T count) {
         T temp = count;
         unsigned char retval = 0;
         while (temp >>= 1) ++retval;
         return count ^ (1 << retval)? retval + 1: retval;
+    }
+
+    /**
+     * Returns the number of bits necessary for representing an amount of elements (logarithm base 2)
+     * and can be run at compile time.
+     * @tparam T the type of the elements count.
+     * @param count the number of elements to be represented.
+     */
+    template<typename T, typename std::enable_if<std::is_integral<T>::value, T>::type = 0>
+    constexpr static unsigned bitsForRepresentingCountConstexpr(T count) {
+        return count == 1 ? 0 : floorlog2(count - 1) + 1;
+    }
+
+private:
+    template<typename T, typename std::enable_if<std::is_integral<T>::value, T>::type = 0>
+    constexpr static unsigned floorlog2(T x)
+    {
+        return x == 1 ? 0 : 1 + floorlog2(x >> 1);
     }
 };
 }
