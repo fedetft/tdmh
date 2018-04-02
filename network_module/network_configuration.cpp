@@ -26,10 +26,10 @@
  ***************************************************************************/
 
 #include "network_configuration.h"
-#include "maccontext.h"
 #include "bitwise_ops.h"
+#include "mac_context.h"
 
-namespace miosix {
+namespace mxnet {
 
 NetworkConfiguration::NetworkConfiguration(const unsigned char maxHops, const unsigned short maxNodes, unsigned short networkId,
         const unsigned short panId, const short txPower, const unsigned int baseFrequency,
@@ -49,4 +49,4 @@ NetworkConfiguration::NetworkConfiguration(const unsigned char maxHops, const un
     }
 };
 
-} /* namespace miosix */
+} /* namespace mxnet */

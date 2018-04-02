@@ -25,17 +25,80 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef NETWORK_CONFIGURATION_H
-#define NETWORK_CONFIGURATION_H
+#pragma once
 
-namespace miosix {
+namespace mxnet {
 class MACContext;
-struct NetworkConfiguration {
-
+class NetworkConfiguration {
+public:
     enum TopologyMode {
         NEIGHBOR_COLLECTION,
         ROUTING_VECTOR
     };
+
+    NetworkConfiguration(const unsigned char maxHops, const unsigned short maxNodes, unsigned short networkId,
+            const unsigned short panId, const short txPower, const unsigned int baseFrequency,
+            const unsigned char forwardedTopologies,
+            const unsigned short maxRoundsUnavailableBecomesDead, const unsigned short maxRoundsUnreliableParent,
+            const TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION);
+
+    const unsigned int getBaseFrequency() const {
+        return baseFrequency;
+    }
+
+    const bool isDynamicNetworkId() const {
+        return dynamicNetworkId;
+    }
+
+    unsigned char getHopBits() const {
+        return hopBits;
+    }
+
+    const unsigned char getMaxForwardedTopologies() const {
+        return maxForwardedTopologies;
+    }
+
+    const unsigned char getMaxHops() const {
+        return maxHops;
+    }
+
+    const unsigned short getMaxNodes() const {
+        return maxNodes;
+    }
+
+    const unsigned short getMaxRoundsUnavailableBecomesDead() const {
+        return maxRoundsUnavailableBecomesDead;
+    }
+
+    const unsigned short getMaxRoundsUnreliableParent() const {
+        return maxRoundsUnreliableParent;
+    }
+
+    const unsigned short getMinRoundBecomeNeighbor() const {
+        return minRoundBecomeNeighbor;
+    }
+
+    unsigned short getNetworkIdBits() const {
+        return networkIdBits;
+    }
+
+    const unsigned short getPanId() const {
+        return panId;
+    }
+
+    const unsigned short getStaticNetworkId() const {
+        return staticNetworkId;
+    }
+
+    const TopologyMode getTopologyMode() const {
+        return topologyMode;
+    }
+
+    const short getTxPower() const {
+        return txPower;
+    }
+
+private:
     const unsigned char maxHops;
     unsigned char hopBits;
     const bool dynamicNetworkId = false;
@@ -46,18 +109,10 @@ struct NetworkConfiguration {
     const short txPower;
     const unsigned int baseFrequency;
     const TopologyMode topologyMode;
-    const unsigned char forwardedTopologies;
-    //TODO forwarded dead nodes
+    const unsigned char maxForwardedTopologies;
     const unsigned short maxRoundsUnavailableBecomesDead;
     const unsigned short maxRoundsUnreliableParent;
-    
-    NetworkConfiguration(const unsigned char maxHops, const unsigned short maxNodes, unsigned short networkId,
-            const unsigned short panId, const short txPower, const unsigned int baseFrequency,
-            const unsigned char forwardedTopologies,
-            const unsigned short maxRoundsUnavailableBecomesDead, const unsigned short maxRoundsUnreliableParent,
-            const TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION);
+    const unsigned short minRoundBecomeNeighbor;
 };
 }
-
-#endif /* NETWORK_CONFIGURATION_H */
 
