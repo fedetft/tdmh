@@ -25,8 +25,7 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef NETWORK_MODULE_RESETTABLE_PRIORITY_QUEUE_H_
-#define NETWORK_MODULE_RESETTABLE_PRIORITY_QUEUE_H_
+#pragma once
 
 #include <utility>
 #include <map>
@@ -34,50 +33,97 @@
 #include <algorithm>
 #include <stdexcept>
 
-namespace miosix {
+namespace mxnet {
 
+/**
+ * A queue data structure in which the elements are enqueued with a relative key, and they can be updated
+ * preserving the queue ordering of the old value. Elements must be unique by key.
+ * @tparam keyType the type of the key to which the element is associated.
+ * @tparam valType the type of the values stored in the queue.
+ */
 template<class keyType, class valType>
-class ResettablePriorityQueue {
+class UpdatableQueue {
 public:
-    ResettablePriorityQueue() {
+    UpdatableQueue() {
         // TODO Auto-generated constructor stub
 
     }
-    virtual ~ResettablePriorityQueue() {
+    virtual ~UpdatableQueue() {
         // TODO Auto-generated destructor stub
     }
-    valType& dequeue();
+    /**
+     * Extracts the next element in the queue.
+     * @return the next element in the queue.
+     */
+    valType&& dequeue();
+    /**
+     * Returns the next element in the queue without removing it.
+     * @return the next element in the queue.
+     */
     valType& top();
+    /**
+     * Adds an element to the queue.
+     * @param key unique reference for the value.
+     * @param val the value to be added.
+     */
     bool enqueue(keyType key, const valType& val);
+    /**
+     * Removed an element based on its key, if present.
+     * @param key the key for which the value needs to be removed.
+     * @return if the element was present and removed
+     */
     bool removeElement(keyType key);
+    /**
+     * Updates the value associated with a certain key.
+     * If no value is present, no modification will occur.
+     * @param key the identifier for the value.
+     * @param val the new value to be associated with the key.
+     * @return if any value was updated
+     */
     bool update(keyType key, const valType& val);
-    bool resetPriority(keyType key);
+    /**
+     * Returns an element by its key. An exception is thrown is no value is associated with such key
+     * @param key the key identifying the value.
+     * @return the value associated with the key.
+     */
     valType& getByKey(keyType key);
+    /**
+     * Checks whether an element related to the provided key is present.
+     * @param key the key for which the value presence is checked.
+     * @return if the value is present.
+     */
     bool hasKey(keyType key);
+    /**
+     * Checks if any element is present in the queue.
+     * @return if any element is present.
+     */
     bool isEmpty();
+
+    /** Returns the size of the %UpdatableQueue.  */
+    std::size_t size() { return data.size(); }
 private:
     std::map<keyType, valType> data;
     std::deque<keyType> queue;
 };
 
 template<class keyType, class valType>
-valType& ResettablePriorityQueue<keyType, valType>::dequeue() {
+valType&& UpdatableQueue<keyType, valType>::dequeue() {
     if (queue.empty()) throw std::runtime_error("no element in queue");
     auto key = queue.back();
     queue.pop_back();
-    auto& retval = data[key];
+    auto retval = data[key];
     data.erase(key);
-    return retval;
+    return std::move(retval);
 }
 
 template<class keyType, class valType>
-valType& ResettablePriorityQueue<keyType, valType>::top() {
+valType& UpdatableQueue<keyType, valType>::top() {
     if (queue.empty()) throw std::runtime_error("no element in queue");
     return data[queue.back()];
 }
 
 template<class keyType, class valType>
-bool miosix::ResettablePriorityQueue<keyType, valType>::enqueue(keyType key, const valType& val) {
+bool UpdatableQueue<keyType, valType>::enqueue(keyType key, const valType& val) {
     if(hasKey(key)) return false;
     data[key] = val;
     queue.push_front(key);
@@ -85,7 +131,7 @@ bool miosix::ResettablePriorityQueue<keyType, valType>::enqueue(keyType key, con
 }
 
 template<class keyType, class valType>
-bool miosix::ResettablePriorityQueue<keyType, valType>::removeElement(keyType key) {
+bool UpdatableQueue<keyType, valType>::removeElement(keyType key) {
     if(!hasKey(key)) return false;
     data.erase(key);
     queue.erase(std::find(queue.begin(), queue.end(), key));
@@ -93,36 +139,26 @@ bool miosix::ResettablePriorityQueue<keyType, valType>::removeElement(keyType ke
 }
 
 template<class keyType, class valType>
-bool miosix::ResettablePriorityQueue<keyType, valType>::update(keyType key, const valType& val) {
+bool UpdatableQueue<keyType, valType>::update(keyType key, const valType& val) {
     if(!hasKey(key)) return false;
     data[key] = val;
     return true;
 }
 
 template<class keyType, class valType>
-bool miosix::ResettablePriorityQueue<keyType, valType>::resetPriority(keyType key) {
-    if(!hasKey(key)) return false;
-    queue.erase(std::find(queue.begin(), queue.end(), key));
-    queue.push_front(key);
-    return true;
-}
-
-template<class keyType, class valType>
-inline valType& miosix::ResettablePriorityQueue<keyType, valType>::getByKey(keyType key) {
+inline valType& UpdatableQueue<keyType, valType>::getByKey(keyType key) {
     if (!hasKey(key)) throw new std::runtime_error("empty");
     return data[key];
 }
 
 template<class keyType, class valType>
-inline bool ResettablePriorityQueue<keyType, valType>::hasKey(keyType key) {
+inline bool UpdatableQueue<keyType, valType>::hasKey(keyType key) {
     return data.count(key);
 }
 
 template<class keyType, class valType>
-bool ResettablePriorityQueue<keyType, valType>::isEmpty() {
+bool UpdatableQueue<keyType, valType>::isEmpty() {
     return data.size() == 0;
 }
 
-} /* namespace miosix */
-
-#endif /* NETWORK_MODULE_RESETTABLE_PRIORITY_QUEUE_H_ */
+} /* namespace mxnet */
