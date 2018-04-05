@@ -27,13 +27,8 @@
 
 #include "../debug_settings.h"
 #include "uplink_phase.h"
-#include "../timesync/syncstatus.h"
+#include "../timesync/sync_status.h"
 
 namespace mxnet {
-    UplinkPhase::~UplinkPhase() {
-    }
-
-
-
 }
 

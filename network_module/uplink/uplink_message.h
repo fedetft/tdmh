@@ -27,13 +27,14 @@
 
 #pragma once
 
+#include "../serializable_message.h"
 #include "topology/topology_message.h"
 #include "stream_management/stream_management_element.h"
 #include <vector>
 
 namespace mxnet {
 
-class UplinkMessage {
+class UplinkMessage : public SerializableMessage {
 public:
     UplinkMessage(unsigned char hop,
             unsigned short assignee,
@@ -41,8 +42,9 @@ public:
             std::vector<StreamManagementElement*> smes) :
         content({hop, assignee}), topology(topology), smes(smes) {};
     virtual ~UplinkMessage() {};
-    std::vector<unsigned char> getPkt();
-    static UplinkMessage fromPkt(std::vector<unsigned char> pkt, NetworkConfiguration* const config);
+    void serialize(const char* pkt) override;
+    static UplinkMessage deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config);
+    static UplinkMessage deserialize(std::vector<unsigned char>::iterator pkt, const NetworkConfiguration* const config);
     static std::size_t getSizeWithoutSMEs(TopologyMessage* const tMsg) {
         return 2 + tMsg->getSize();
     }
@@ -52,13 +54,13 @@ public:
     void setAssignee(unsigned short assignee) { content.assignee = assignee; }
     TopologyMessage* getTopologyMessage() { return topology; }
     std::vector<StreamManagementElement*> getSMEs() { return smes; }
-    std::size_t getSize();
+    std::size_t getSize() override;
 protected:
     struct UplinkMessagePkt {
         unsigned char hop;
         unsigned short assignee;
     } __attribute__((packed));
-    //UplinkMessage() {};
+    UplinkMessage() {};
     UplinkMessagePkt content;
     TopologyMessage* const topology;
     std::vector<StreamManagementElement*> smes;

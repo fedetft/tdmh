@@ -35,33 +35,32 @@ namespace mxnet {
 
 void DynamicTopologyDiscoveryPhase::receiveByNode(long long slotStart) {
     auto wakeUpTimeout = syncStatus.getWakeupAndTimeout(slotStart);
-    RecvResult result;
     auto now = getTime();
     if (now >= timestampFrom - status.receiverWindow)
         print_dbg("[U] start late\n");
     if (now < wakeUpTimeout.first)
         pm.deepSleepUntil(wakeUpTimeout.first);
-    while (result.error != miosix::RecvResult::TIMEOUT && result.error != miosix::RecvResult::OK) {
+    while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK) {
         try {
-            result = transceiver.recv(packet, ctx.maxPacketSize, wakeUpTimeout.second);
+            rcvResult = transceiver.recv(packet, ctx.maxPacketSize, wakeUpTimeout.second);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
                 print_dbg("%s\n", e.what());
         }
         if (ENABLE_PKT_INFO_DBG) {
-            if(result.size) {
-                print_dbg("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+            if(rcvResult.size) {
+                print_dbg("Received packet, error %d, size %d, timestampValid %d: ", rcvResult.error, rcvResult.size, rcvResult.timestampValid);
                 if (ENABLE_PKT_DUMP_DBG)
-                    memDump(packet, result.size);
+                    memDump(packet, rcvResult.size);
             } else print_dbg("No packet received, timeout reached\n");
         }
     }
-    if (result.error == RecvResult::ErrorCode::OK) {
-        auto msg = UplinkMessage::fromPkt(std::vector<unsigned char>(packet, packet + result.size), config);
-        topology.receivedMessage(msg, currentNode, result.rssi);
+    if (rcvResult.error == RecvResult::ErrorCode::OK) {
+        auto msg = UplinkMessage::fromPkt(std::vector<unsigned char>(packet, packet + rcvResult.size), config);
+        topology.receivedMessage(msg, currentNode, rcvResult.rssi);
         streamManagement.receive(msg.getSMES());
         if (ENABLE_UPLINK_INFO_DBG)
-            print_dbg("[U] <- N=%u @%llu\n", currentNode, result.timestamp);
+            print_dbg("[U] <- N=%u @%llu\n", currentNode, rcvResult.timestamp);
     } else {
         topology.unreceivedMessage(currentNode);
     }
@@ -75,7 +74,7 @@ void DynamicTopologyDiscoveryPhase::sendMyTopology(long long slotStart) {
     unsigned char maxSMEs = (MediumAccessController::maxPktSize - UplinkMessage::getSizeWithoutSMEs(tMsg)) / StreamManagementElement::getSize();
     auto smes = dSMContext.dequeue(maxSMEs);
     UplinkMessage msg(ctx.getHop(), dTopology.getBestPredecessor(), tMsg, smes);
-    std::vector<unsigned char> pkt = msg.getPkt();
+    std::vector<unsigned char> pkt = msg.serialize();
     if (ENABLE_UPLINK_INFO_DBG)
         print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), slotStart);
     auto wuTime = slotStart - MediumAccessController::receivingNodeWakeupAdvance;
@@ -93,12 +92,10 @@ void DynamicTopologyDiscoveryPhase::sendMyTopology(long long slotStart) {
 void DynamicTopologyDiscoveryPhase::execute(long long slotStart) {
     print_dbg("[T] T=%lld\n", slotStart);
     transceiver.configure(ctx.getTransceiverConfig());
-    ledOn();
     transceiver.turnOn();
     if (currentNode == ctx.getNetworkId()) sendMyTopology(slotStart);
     else receiveByNode(slotStart);
     transceiver.turnOff();
-    ledOff();
 }
 
 } /* namespace mxnet */

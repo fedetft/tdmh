@@ -36,12 +36,9 @@
 namespace mxnet {
 class UplinkPhase : public MACPhase {
 public:
+    UplinkPhase() = delete;
     UplinkPhase(const UplinkPhase& orig) = delete;
-    virtual ~UplinkPhase();
-    
-    /*long long getNodeTransmissionTime(unsigned short networkId) const {
-        return globalFirstActivityTime + (nodesCount - networkId - 1) * (transmissionInterval + packetArrivalAndProcessingTime);
-    }*/
+    virtual ~UplinkPhase() {};
     
     static const int transmissionInterval = 1000000; //1ms
     static const int firstSenderDelay = 1000000; //TODO tune it, guessed based on the need to RCV -> SND if was asking before
@@ -50,8 +47,6 @@ public:
 protected:
     UplinkPhase(MACContext& ctx) :
             MACPhase(ctx),
-            pm(miosix::PowerManager::instance()),
-            transceiver(ctx.getTransceiver()),
             topology(ctx.getTopologyContext()),
             streamManagement(ctx.getStreamManagementContext()),
             nodesCount(ctx.getNetworkConfig()->getMaxNodes()) {};
@@ -61,13 +56,10 @@ protected:
             currentNode = nodesCount - 1;
     }
 
-    miosix::PowerManager& pm;
-    miosix::Transceiver& transceiver;
     TopologyContext* const topology;
     StreamManagementContext* const streamManagement;
     unsigned char nodesCount;
     unsigned char currentNode;
-private:
 };
 }
 

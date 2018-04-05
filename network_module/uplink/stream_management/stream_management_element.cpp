@@ -29,23 +29,27 @@
 
 namespace mxnet {
 
-std::vector<unsigned char> StreamManagementElement::getPkt() {
-    std::vector<unsigned char> retval(getSize());
-    getPkt(retval);
+void StreamManagementElement::serialize(td::vector<unsigned char>::iterator pkt) {
+    memcpy(pkt, content, getSize());
+}
+
+std::vector<StreamManagementElement> StreamManagementElement::deserialize(std::vector<unsigned char> pkt) {
+    auto count = pkt.size() / getSize();
+    std::vector<StreamManagementElement> retval(count);
+    for (int i = 0, bytes = 0; i < count; i++, bytes += getSize()) {
+        StreamManagementElement val;
+        memcpy(val.content, pkt[bytes], getSize());
+        retval[i] = val;
+    }
     return retval;
 }
 
-void StreamManagementElement::getPkt(std::vector<unsigned char>& dest) {
-    assert(dest.size() >= getSize());
-    memcpy(dest.data(), content, getSize());
-}
-
-std::vector<StreamManagementElement*> StreamManagementElement::fromPkt(std::vector<unsigned char> pkt) {
-    auto count = pkt.size() / getSize();
-    std::vector<StreamManagementElement*> retval(count);
+std::vector<StreamManagementElement> StreamManagementElement::deserialize(td::vector<unsigned char>::iterator pkt, std::size_t size) {
+    auto count = size / getMaxSize();
+    std::vector<StreamManagementElement> retval(count);
     for (int i = 0, bytes = 0; i < count; i++, bytes += getSize()) {
-        auto* val = new StreamManagementElement();
-        memcpy(val->content, pkt[bytes], getSize());
+        StreamManagementElement val;
+        memcpy(val.content, pkt[bytes], getSize());
         retval[i] = val;
     }
     return retval;

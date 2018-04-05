@@ -52,14 +52,14 @@ NeighborTable::NeighborTable& operator=(const NeighborTable& other) {
     memcpy(neighbors.data(), other.neighbors.data(), other.getByteSize());
 }
 
-std::vector<unsigned char> NeighborTable::getNeighbors() {
+std::vector<unsigned char>& NeighborTable::getNeighbors() {
     std::vector<unsigned char> retval;
     for (int i = 0; i < neighbors; i++)
         if(neighbors[i]) retval.push_back(i);
     return retval;
 }
 
-void NeighborTable::setNeighbors(std::vector<unsigned char> neighbors) {
+void NeighborTable::setNeighbors(std::vector<unsigned char>& neighbors) {
     assert(neighbors.size() <= this->neighbors.size());
     this->neighbors.setAll(false);
     for(auto n : neighbors)
@@ -72,20 +72,20 @@ void NeighborTable::setNeighbors(std::vector<bool>& neighbors) {
         this->neighbors = n;
 }
 
-std::vector<unsigned char> NeighborTable::serialize() {
-    std::vector<unsigned char> retval(neighbors.size());
-    serialize(retval);
+void NeighborTable::serialize(td::vector<unsigned char>::iterator pkt) {
+    memcpy(pkt, neighbors.data(), neighbors.size());
+}
+
+NeighborTable NeighborTable::deserialize(std::vector<unsigned char>& pkt, unsigned char nodeCount) {
+    assert(nodeCount <= pkt.size());
+    NeighborTable retval(nodeCount);
+    memcpy(retval.neighbors.data(), pkt.data(), nodeCount);
     return retval;
 }
 
-void NeighborTable::serialize(std::vector<unsigned char>& dest) {
-    assert(dest.size() >= neighbors.size());
-    memcpy(dest, neighbors.data(), neighbors.size());
-}
-
-NeighborTable NeighborTable::deserialize(std::vector<unsigned char> data, unsigned char nodeCount) {
+NeighborTable NeighborTable::deserialize(td::vector<unsigned char>::iterator pkt, unsigned char nodeCount) {
     NeighborTable retval(nodeCount);
-    memcpy(retval.neighbors.data(), neighbors.data(), nodeCount);
+    memcpy(retval.neighbors.data(), pkt, nodeCount);
     return retval;
 }
 
@@ -93,19 +93,19 @@ bool NeighborTable::operator ==(const NeighborTable& b) const {
     return neighbors == b.neighbors;
 }
 
-void NeighborTable::setRaw(std::vector<unsigned char> data) {
+void NeighborTable::setRaw(std::vector<unsigned char>& data) {
     memcpy(neighbors.data(), data.data(), neighbors.wordSize());
 }
 
 ForwardedNeighborMessage::ForwardedNeighborMessage(
-        NetworkConfiguration* const config,
+        const NetworkConfiguration* const config,
         unsigned char nodeId,
         std::vector<unsigned char> neighbors) :
             MACMessage(), neighbors(config->getMaxNodes(), neighbors), nodeId(nodeId) {
 }
 
 ForwardedNeighborMessage::ForwardedNeighborMessage(
-        NetworkConfiguration* const config,
+        const NetworkConfiguration* const config,
         unsigned char nodeId,
         std::vector<bool>& neighbors) :
             MACMessage(), neighbors(config->getMaxNodes(), neighbors), nodeId(nodeId) {
@@ -120,73 +120,75 @@ bool ForwardedNeighborMessage::operator ==(const ForwardedNeighborMessage& b) co
 }
 
 unsigned short ForwardedNeighborMessage::getSize() {
-    return getByteSize() + 1;
+    return neighbors.getSize() + 1;
 }
 
-std::vector<unsigned char> ForwardedNeighborMessage::getPkt() {
-    std::vector<unsigned char> retval(getSize());
-    getPkt(retval);
+void ForwardedNeighborMessage::serialize(td::vector<unsigned char>::iterator pkt) {
+    dest[0] = pkt[0];
+    neighbors.serialize(pkt + 1);
+}
+
+ForwardedNeighborMessage ForwardedNeighborMessage::deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config) {
+    assert(config->getMaxNodes() + 1 < pkt.size());
+    ForwardedNeighborMessage retval(config, NeighborTable::deserialize(pkt.begin() + 1, config->getMaxNodes()));
+    retval.nodeId = pkt[0];
     return retval;
 }
 
-void ForwardedNeighborMessage::getPkt(std::vector<unsigned char>& dest) {
-    assert(dest.size() > neighbors.getByteSize());
-    auto it = dest.begin();
-    dest[0] = *(it++);
-    neighbors.serialize(std::vector<unsigned char>(it, dest.end()));
-}
-
-ForwardedNeighborMessage ForwardedNeighborMessage::fromPkt(std::vector<unsigned char> pkt, NetworkConfiguration* const config) {
-    assert(config->getMaxNodes() < pkt.size());
-    ForwardedNeighborMessage retval(config, NeighborTable::deserialize(std::vector<unsigned char>(pkt.begin() + 1, pkt.end()), config->getMaxNodes()));
+ForwardedNeighborMessage ForwardedNeighborMessage::deserialize(td::vector<unsigned char>::iterator pkt, const NetworkConfiguration* const config) {
+    ForwardedNeighborMessage retval(config, NeighborTable::deserialize(pkt + 1, config->getMaxNodes()));
     retval.nodeId = pkt[0];
     return retval;
 }
 
 NeighborMessage::NeighborMessage(
-        std::vector<unsigned char> neighbors,
+        std::vector<unsigned char>&& neighbors,
         std::vector<ForwardedNeighborMessage>&& forwarded,
-        NetworkConfiguration* const config) :
+        const NetworkConfiguration* const config) :
             TopologyMessage(config), neighbors(config->getMaxNodes(), neighbors), forwardedTopologies(forwarded) {
 }
 
 NeighborMessage::NeighborMessage(
         std::vector<bool>&& neighbors,
         std::vector<ForwardedNeighborMessage>&& forwarded,
-        NetworkConfiguration* const config) :
+        const NetworkConfiguration* const config) :
             TopologyMessage(config), neighbors(config->getMaxNodes(), neighbors), forwardedTopologies(forwarded) {
         }
 
 NeighborMessage::NeighborMessage(NeighborTable&& neighbors,
         std::vector<ForwardedNeighborMessage>&& forwarded,
-        NetworkConfiguration* const config) :
+        const NetworkConfiguration* const config) :
                     TopologyMessage(config), neighbors(neighbors), forwardedTopologies(forwarded) {
 }
 
-std::vector<unsigned char> NeighborMessage::getPkt() {
-    std::vector retval(getSize());
-    getPkt(retval);
-    return retval;
-}
-
-void NeighborMessage::getPkt(std::vector<unsigned char>& dest) {
-    assert(dest >= getSize());
-    neighbors.serialize(dest);
-    auto curSize = getByteSize();
-    dest[curSize++] = forwardedTopologies.size();
+void NeighborMessage::serialize(td::vector<unsigned char>::iterator pkt) {
+    neighbors.serialize(pkt);
+    auto curSize = neighbors.getSize();
+    pkt[curSize++] = forwardedTopologies.size();
     for (auto t: forwardedTopologies) {
-        t.getPkt(std::vector<unsigned char>(dest.begin() + curSize, dest.end()));
+        t.serialize(pkt + curSize);
         curSize += t.getSize();
     }
 }
 
-NeighborMessage* NeighborMessage::fromPkt(std::vector<unsigned char> pkt, NetworkConfiguration* const config) {
+NeighborMessage* NeighborMessage::deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config) {
     auto neighbors = NeighborTable::deserialize(pkt, config->getMaxNodes());
     auto idx = neighbors.getByteSize();
     std::vector<ForwardedNeighborMessage> forwarded(pkt[idx++]);
-    assert(pkt >= idx + forward.size() * (1 + neighbors.getByteSize()));
+    assert(pkt.size() >= (idx + forward.size() * (1 + neighbors.getSize())));
     for (int i = 0; i < forwarded.size(); i++){
-        forwarded[i] = ForwardedNeighborMessage::fromPkt(std::vector<unsigned char>(pkt.begin() + idx, pkt.end()), config);
+        forwarded[i] = ForwardedNeighborMessage::fromPkt(pkt.begin() + idx, config);
+        idx += forwarded[i].getSize();
+    }
+    return new NeighborMessage(neighbors, std::move(forwarded), config);
+}
+
+NeighborMessage* NeighborMessage::deserialize(td::vector<unsigned char>::iterator pkt, const NetworkConfiguration* const config) {
+    auto neighbors = NeighborTable::deserialize(pkt, config->getMaxNodes());
+    auto idx = neighbors.getByteSize();
+    std::vector<ForwardedNeighborMessage> forwarded(pkt[idx++]);
+    for (int i = 0; i < forwarded.size(); i++){
+        forwarded[i] = ForwardedNeighborMessage::fromPkt(pkt.begin() + idx, config);
         idx += forwarded[i].getSize();
     }
     return new NeighborMessage(neighbors, std::move(forwarded), config);
@@ -200,21 +202,20 @@ bool RoutingLink::operator ==(const RoutingLink& b) const {
     return memcmp(content, b.content, sizeof(RoutingLinkPkt)) == 0;
 }
 
-std::vector<unsigned char> RoutingLink::getPkt() {
-    return std::vector<unsigned char> {{
-        content.nodeId, content.predecessorId
-    }};
+void RoutingLink::serialize(td::vector<unsigned char>::iterator pkt) {
+    memcpy(content, pkt, sizeof(RoutingLinkPkt));
 }
 
-void RoutingLink::getPkt(std::vector<unsigned char>& dest) {
-    assert(dest.size() >= 2);
-    dest[0] = content.nodeId;
-    dest[1] = content.predecessorId;
+RoutingLink RoutingLink::deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config) {
+    assert(pkt.size() >= sizeof(RoutingLinkPkt));
+    RoutingLink retval;
+    memcpy(retval.content, pkt.data(), sizeof(RoutingLinkPkt));
+    return retval;
 }
 
-RoutingLink* RoutingLink::fromPkt(std::vector<unsigned char> pkt, NetworkConfiguration* const config) {
-    auto* retval = new RoutingLink();
-    memcpy(retval->content, pkt.data(), sizeof(RoutingLinkPkt));
+RoutingLink RoutingLink::deserialize(td::vector<unsigned char>::iterator pkt, const NetworkConfiguration* const config) {
+    RoutingLink retval;
+    memcpy(retval.content, pkt, sizeof(RoutingLinkPkt));
     return retval;
 }
 
@@ -224,22 +225,29 @@ std::vector<unsigned char> RoutingVector::getPkt() {
     return retval;
 }
 
-void RoutingVector::getPkt(std::vector<unsigned char>& dest) {
-    assert(dest.size() >= getSize());
+void RoutingVector::serialize(td::vector<unsigned char>::iterator pkt) {
     auto linkSize = RoutingLink::getMaxSize();
     auto it = links.begin();
     for (int i = 0; it != links.end(); i += linkSize, it++)
-        memcpy(dest.data() + i, links[i]->getPkt(), linkSize);
+        memcpy(pkt + i, links[i].getPkt(), linkSize);
 }
 
-RoutingVector* RoutingVector::fromPkt(std::vector<unsigned char> pkt, NetworkConfiguration* const config) {
+RoutingVector* RoutingVector::deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config) {
     unsigned char count = pkt[0];
-    if (sizeof(pkt) < count * RoutingLink::getMaxSize())
-        throw std::runtime_error("non parsable routing topology packet");
+    assert(sizeof(pkt) >= count * RoutingLink::getMaxSize());
     auto* retval = new RoutingVector();
     retval->links.resize(count);
     for (int i = 0, bytes = 0; i < count; i++, bytes += count)
-        retval->links.push_back(RoutingLink::fromPkt(std::vector(pkt.begin() + bytes, pkt.end())));
+        retval->links.push_back(RoutingLink::fromPkt(pkt.begin() + bytes));
+    return retval;
+}
+
+RoutingVector* RoutingVector::deserialize(td::vector<unsigned char>::iterator pkt, const NetworkConfiguration* const config) {
+    unsigned char count = pkt[0];
+    auto* retval = new RoutingVector();
+    retval->links.resize(count);
+    for (int i = 0, bytes = 0; i < count; i++, bytes += count)
+        retval->links.push_back(RoutingLink::fromPkt(pkt + bytes));
     return retval;
 }
 

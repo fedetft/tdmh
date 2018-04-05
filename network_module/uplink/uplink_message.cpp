@@ -30,29 +30,33 @@
 
 namespace mxnet {
 
-std::vector<unsigned char> UplinkMessage::getPkt() {
-    std::vector<unsigned char> retval(sizeof(content) + topology->getSize() + smes.size() * StreamManagementElement::getSize());
-    topology->getPkt(retval);
-    auto size = topology->getSize();
+void UplinkMessage::serialize(td::vector<unsigned char>::iterator pkt) {
+    memcpy(pkt, content, sizeof(UplinkMessagePkt));
+    pkt += sizeof(UplinkMessagePkt);
+    topology->getPkt(pkt);
+    pkt += topology->getSize();
     for (StreamManagementElement* sme : smes) {
-        sme->getPkt(std::vector<unsigned char>(retval.begin() + size, retval.end()));
-        size += sme->getSize();
+        sme->serialize(pkt);
+        pkt += sme->getSize();
     }
-    return retval;
 }
 
-UplinkMessage UplinkMessage::fromPkt(std::vector<unsigned char> pkt, NetworkConfiguration* const config) {
+UplinkMessage UplinkMessage::deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config) {
+    return deserialize(pkt.begin(), config);
+}
+
+UplinkMessage UplinkMessage::deserialize(td::vector<unsigned char>::iterator pkt, const NetworkConfiguration* const config) {
     UplinkMessage retval;
-    memcpy(retval.content, pkt.data(), sizeof(count));
+    memcpy(retval.content, pkt, sizeof(count));
     switch (config->getTopologyMode()) {
     case NetworkConfiguration::NEIGHBOR_COLLECTION:
-        retval.topology = NeighborMessage::fromPkt(std::vector<unsigned char>(pkt.begin() + sizeof(retval.content), pkt.end()), config);
+        retval.topology = NeighborMessage::fromPkt(pkt + sizeof(retval.content), config);
         break;
     case NetworkConfiguration::ROUTING_VECTOR:
-        retval.topology = RoutingVector::fromPkt(std::vector<unsigned char>(pkt.begin() + sizeof(retval.content), pkt.end()), config);
+        retval.topology = RoutingVector::fromPkt(pkt + sizeof(retval.content), config);
         break;
     }
-    retval.smes = StreamManagementElement::fromPkt(std::vector<unsigned char>(pkt.begin() + sizeof(retval.content) + retval.topology->getSize(), pkt.end()));
+    retval.smes = StreamManagementElement::fromPkt(pkt + sizeof(retval.content) + retval.topology->getSize());
     return retval;
 }
 

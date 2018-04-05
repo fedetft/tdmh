@@ -29,23 +29,19 @@
 
 #include "../network_configuration.h"
 #include "uplink_phase.h"
-#include "../timesync/syncstatus.h"
+#include "../timesync/sync_status.h"
 
 namespace mxnet {
 
 class DynamicTopologyDiscoveryPhase : public UplinkPhase {
 public:
     DynamicTopologyDiscoveryPhase(MACContext& ctx) :
-        UplinkPhase(ctx), cfg(ctx.getNetworkConfig()) , syncStatus(ctx.getSyncStatus()){}
+        UplinkPhase(ctx) {}
     DynamicTopologyDiscoveryPhase();
     virtual ~DynamicTopologyDiscoveryPhase() {};
     virtual void execute(long long slotStart) override;
     void receiveByNode(long long slotStart);
     void sendMyTopology(long long slotStart);
-
-private:
-    const NetworkConfiguration* const cfg;
-    SyncStatus& syncStatus;
 };
 
 } /* namespace mxnet */

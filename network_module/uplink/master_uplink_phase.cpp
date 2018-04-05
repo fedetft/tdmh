@@ -38,32 +38,32 @@ void MasterUplinkPhase::execute(long long slotStart) {
     if (ENABLE_UPLINK_INFO_DBG)
         print_dbg("[U] rcv %d @%llu\n", nodeId, slotStart);
     transceiver.configure(ctx.getTransceiverConfig());
-    RecvResult result;
     transceiver.turnOn();
-    while (result.error != miosix::RecvResult::TIMEOUT && result.error != miosix::RecvResult::OK) {
+    while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK) {
         try {
-            result = transceiver.recv(packet, ctx.maxPacketSize,
+            rcvResult = transceiver.recv(packet, ctx.maxPacketSize,
                     slotStart + MediumAccessController::maxPropagationDelay + MediumAccessController::maxAdmittableResyncReceivingWindow);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
                 print_dbg("%s\n", e.what());
         }
         if (ENABLE_PKT_INFO_DBG) {
-            if(result.size) {
+            if(rcvResult.size) {
                 print_dbg("Received packet, error %d, size %d, timestampValid %d: ",
-                        result.error, result.size, result.timestampValid);
+                        rcvResult.error, rcvResult.size, rcvResult.timestampValid);
                 if (ENABLE_PKT_DUMP_DBG)
-                    memDump(packet, result.size);
+                    memDump(packet, rcvResult.size);
             } else print_dbg("No packet received, timeout reached\n");
         }
     }
-    if (result.error == RecvResult::ErrorCode::OK) {
+    transceiver.turnOff();
+    if (rcvResult.error == RecvResult::ErrorCode::OK) {
         //TODO parse message and send it to topology and stream management contexts
-        auto msg = UplinkMessage::fromPkt(std::vector<unsigned char>(packet, packet + result.size), config);
-        topology.receivedMessage(msg, currentNode, result.rssi);
+        auto msg = UplinkMessage::fromPkt(std::vector<unsigned char>(packet, packet + rcvResult.size), config);
+        topology.receivedMessage(msg, currentNode, rcvResult.rssi);
         streamManagement.receive(msg.getSMEs());
         if (ENABLE_UPLINK_INFO_DBG)
-            print_dbg("[U] <- N=%u @%llu\n", currentNode, result.timestamp);
+            print_dbg("[U] <- N=%u @%llu\n", currentNode, rcvResult.timestamp);
     } else {
         topology.unreceivedMessage(currentNode);
     }

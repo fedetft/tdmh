@@ -27,12 +27,12 @@
 
 #pragma once
 
-#include "../../mac_message.h"
+#include "../../serializable_message.h"
 #include <vector>
 
 namespace mxnet {
 
-class StreamManagementElement : public MACMessage {
+class StreamManagementElement : public SerializableMessage {
 public:
     class SMEId {
     public:
@@ -54,9 +54,6 @@ public:
         content({src, dst, dataRate}), id(src, dst) {};
     virtual ~StreamManagementElement() {};
     static unsigned short getMaxSize() { return sizeof(StreamManagementElementPkt); }
-    std::vector<unsigned char> getPkt() override;
-    void getPkt(std::vector<unsigned char>& dest) override;
-    static std::vector<StreamManagementElement*> fromPkt(std::vector<unsigned char> pkt);
     unsigned char getSrc() { return content.src; }
     unsigned char getDst() { return content.dst; }
     unsigned char getDataRate() { return content.dataRate; }
@@ -67,8 +64,13 @@ public:
     bool operator !=(const StreamManagementElement& other) const {
         return !(*this == other);
     }
+
+    void serialize(const unsigned char* pkt) override;
+    static std::vector<StreamManagementElement> deserialize(std::vector<unsigned char>& pkt);
+    static std::vector<StreamManagementElement> deserialize(std::vector<unsigned char>::iterator pkt, std::size_t size);
+    std::size_t getSize() override { return getMaxSize(); }
 protected:
-    //StreamManagementElement() {};
+    StreamManagementElement() {};
     struct StreamManagementElementPkt {
         unsigned char src;
         unsigned char dst;
