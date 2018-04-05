@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Polidori Paolo                                 *
+ *   Copyright (C)  2018 by Polidori Paolo                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,48 +25,7 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "maccontext.h"
-#include "macround/macroundfactory.h"
-#include "flooding/syncstatus.h"
-#include "interfaces-impl/transceiver.h"
-#include "topology_discovery/topology_context.h"
-#include <type_traits>
+#include "dynamic_medium_access_controller.h"
 
-namespace miosix {
-    
-    MACContext::MACContext(const MACRoundFactory* const roundFactory, const miosix::MediumAccessController& mac,
-            const NetworkConfiguration* const config) :
-            mac(mac),
-            syncStatus(nullptr),
-            transceiverConfig(config->baseFrequency, config->txPower, true, false),
-            networkConfig(config),
-            topologyContext(roundFactory->getTopologyContext(*this)),
-            currentRound(roundFactory->create(*this)),
-            slotsNegotiator(roundFactory->getSlotsNegotiator(*this)),
-            networkId(config->staticNetworkId) {
-        delete roundFactory;
-    }
-
-    MACContext::~MACContext() {
-        delete currentRound;
-        delete nextRound;
-        delete syncStatus;
-        delete topologyContext;
-    }
-
-    MACRound* MACContext::shiftRound() {
-        delete currentRound;
-        currentRound = nextRound;
-        nextRound = nullptr;
-        return currentRound;
-    }
-    
-    void MACContext::setNextRound(MACRound* round) {
-        delete nextRound;
-        nextRound = round;
-    }
-    
-    void MACContext::initializeSyncStatus(SyncStatus* syncStatus) { this->syncStatus = syncStatus; }
-
-
-}
+namespace mxnet {
+} /* namespace mxnet */

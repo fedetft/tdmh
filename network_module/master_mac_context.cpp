@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Polidori Paolo                                 *
+ *   Copyright (C)  2018 by Polidori Paolo                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,43 +25,8 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef MACROUNDFACTORY_H
-#define MACROUNDFACTORY_H
 
-namespace miosix {
-    class MACRound;
-    class MACContext;
-    class SlotsNegotiator;
-    
-    class MACRoundFactory {
-    public:
-        MACRoundFactory() {};
-        virtual ~MACRoundFactory() {};
-        MACRoundFactory& operator=(const MACRoundFactory& right) = delete;
+#include "master_mac_context.h"
 
-        /**
-         * Generates a new MACRound for bootstrapping the network.
-         * @param ctx
-         * @return 
-         */
-        virtual MACRound* create(MACContext& ctx) const = 0;
-
-        /**
-         * Generates a new SlotsNegotiator to be used for managing round scheduling.
-         * @param ctx
-         * @return 
-         */
-        virtual SlotsNegotiator* getSlotsNegotiator(MACContext& ctx) const = 0;
-
-        /**
-         * Generates a new TopologyContext to be used for collecting the network topology.
-         * @param ctx
-         * @return
-         */
-        virtual TopologyContext* getTopologyContext(MACContext& ctx) const = 0;
-    };
-}
-
-
-#endif /* MACROUNDFACTORY_H */
-
+namespace mxnet {
+} /* namespace mxnet */

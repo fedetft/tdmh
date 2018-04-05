@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2018 by Polidori Paolo                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,40 +25,7 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef DYNAMICMACROUND_H
-#define DYNAMICMACROUND_H
+#include "master_medium_access_controller.h"
 
-#include "macround.h"
-#include "macroundfactory.h"
-#include "../flooding/hookingfloodingphase.h"
-#include "../roundtrip/listeningroundtripphase.h"
-#include "../roundtrip/askingroundtripphase.h"
-#include "../topology_discovery/dynamic_topology_discovery_phase.h"
-
-namespace miosix {
-    class DynamicMACRound : public MACRound {
-    public:
-        DynamicMACRound(const DynamicMACRound& orig) = delete;
-        explicit DynamicMACRound(const MediumAccessController& mac) : MACRound() {
-            flooding = new HookingFloodingPhase();
-        }
-        virtual void run(MACContext& ctx) override;
-        virtual ~DynamicMACRound();
-
-        class DynamicMACRoundFactory : public MACRoundFactory {
-        public:
-            DynamicMACRoundFactory() {};
-            MACRound* create(MACContext& ctx) const override;
-            SlotsNegotiator* getSlotsNegotiator(MACContext& ctx) const override;
-            TopologyContext* getTopologyContext(MACContext& ctx) const override;
-            virtual ~DynamicMACRoundFactory() {};
-        };
-
-    protected:
-        DynamicMACRound() {};
-    private:
-    };
-}
-
-#endif /* DYNAMICMACROUND_H */
-
+namespace mxnet {
+} /* namespace mxnet */

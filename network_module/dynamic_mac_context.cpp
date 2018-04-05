@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2018 by Polidori Paolo                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,50 +25,8 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef NETWORKROUND_H
-#define NETWORKROUND_H
 
-#include "../maccontext.h"
-#include <memory>
+#include "dynamic_mac_context.h"
 
-namespace miosix {
-    class FloodingPhase;
-    class RoundtripPhase;
-    class ReservationPhase;
-    class AssignmentPhase;
-    class TopologyDiscoveryPhase;
-    class MACRound {
-    public:
-        MACRound(const MACRound& orig) = delete;
-        virtual ~MACRound();
-
-        void setFloodingPhase(FloodingPhase* fp);
-        inline FloodingPhase* getFloodingPhase() { return flooding; }
-
-        void setRoundTripPhase(RoundtripPhase* rtp);
-        inline RoundtripPhase* getRoundtripPhase() { return roundtrip; }
-
-        void setReservationPhase(ReservationPhase* rp);
-        inline ReservationPhase* getReservationPhase() { return reservation; }
-
-        void setAssignmentPhase(AssignmentPhase* as);
-        inline AssignmentPhase* getAssignmentPhase() { return assignment; }
-
-        void setTopologyDiscoveryPhase(TopologyDiscoveryPhase* top);
-        inline TopologyDiscoveryPhase* getTopologyDiscoveryPhase() { return topology; }
-
-        virtual void run(MACContext& ctx);
-        static const long long roundDuration = 10000000000LL; //10s
-    protected:
-        MACRound() {};
-        FloodingPhase* flooding = nullptr;
-        RoundtripPhase* roundtrip = nullptr;
-        TopologyDiscoveryPhase* topology = nullptr;
-        ReservationPhase* reservation = nullptr;
-        AssignmentPhase* assignment = nullptr;
-
-    };
-}
-
-#endif /* NETWORKROUND_H */
-
+namespace mxnet {
+} /* namespace mxnet */

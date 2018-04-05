@@ -38,8 +38,10 @@ public:
 
     NetworkConfiguration(const unsigned char maxHops, const unsigned short maxNodes, unsigned short networkId,
             const unsigned short panId, const short txPower, const unsigned int baseFrequency,
-            const unsigned char forwardedTopologies,
+            const unsigned long long slotframeDuration, const unsigned char maxForwardedTopologies,
+            const unsigned long long maxAdmittedRcvWindow,
             const unsigned short maxRoundsUnavailableBecomesDead, const unsigned short maxRoundsUnreliableParent,
+            const unsigned char maxMissedTimesyncs, const unsigned short minRoundBecomeNeighbor,
             const TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION);
 
     const unsigned int getBaseFrequency() const {
@@ -52,6 +54,18 @@ public:
 
     unsigned char getHopBits() const {
         return hopBits;
+    }
+
+    const unsigned char getMaxMissedTimesyncs() const {
+        return maxMissedTimesyncs;
+    }
+
+    const unsigned char getMaxAdmittedRcvWindow() const {
+        return maxAdmittedRcvWindow;
+    }
+
+    const unsigned long long getSlotframeDuration() const {
+        return slotframeDuration;
     }
 
     const unsigned char getMaxForwardedTopologies() const {
@@ -109,6 +123,9 @@ private:
     const short txPower;
     const unsigned int baseFrequency;
     const TopologyMode topologyMode;
+    const unsigned long long slotframeDuration;
+    const unsigned char maxMissedTimesyncs;
+    const unsigned long long maxAdmittedRcvWindow;
     const unsigned char maxForwardedTopologies;
     const unsigned short maxRoundsUnavailableBecomesDead;
     const unsigned short maxRoundsUnreliableParent;

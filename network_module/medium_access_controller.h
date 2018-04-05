@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2017 by Polidori Paolo              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,32 +25,39 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "mastermacround.h"
-#include "../topology_discovery/topology_context.h"
+#pragma once
 
-namespace miosix {
-    
-    MasterMACRound::~MasterMACRound() {
-    }
+#include "interfaces-impl/transceiver.h"
+#include "network_configuration.h"
 
-    void MasterMACRound::run(MACContext& ctx) {
-        MACRound::run(ctx);
-        ctx.setNextRound(new MasterMACRound(ctx, roundStart + roundDuration));
-    }
-
-    MACRound* MasterMACRound::MasterMACRoundFactory::create(MACContext& ctx) const {
-        return new MasterMACRound(ctx);
-    }
-    
-    SlotsNegotiator* MasterMACRound::MasterMACRoundFactory::getSlotsNegotiator(MACContext& ctx) const {
-        return nullptr;
-    }
-
-TopologyContext* MasterMACRound::MasterMACRoundFactory::getTopologyContext(MACContext& ctx) const {
-    return ctx.getNetworkConfig()->topologyMode == NetworkConfiguration::TopologyMode::NEIGHBOR_COLLECTION?
-                        ((TopologyContext*) new MasterMeshTopologyContext(ctx)):
-                        ((TopologyContext*) new MasterTreeTopologyContext(ctx));
-}
-
+namespace mxnet {
+class MACContext;
+class UplinkPhase;
+class ScheduleDownlinkPhase;
+class DataPhase;
+class MediumAccessController {
+public:
+    MediumAccessController() = delete;
+    MediumAccessController(const MediumAccessController& orig) = delete;
+    virtual ~MediumAccessController();
+    void run();
+    //5 byte (4 preamble, 1 SFD) * 32us/byte
+    static const unsigned int packetPreambleTime = 160000;
+    //350us and forced receiverWindow=1 fails, keeping this at minimum
+    //This is dependent on the optimization level, i usually use level -O2
+    static const unsigned int maxPropagationDelay = 100;
+    static const unsigned int receivingNodeWakeupAdvance = 450000;
+    //Minimum ~550us, 200us of slack added
+    static const unsigned int sendingNodeWakeupAdvance = 500000; //500 us TODO fine tune, it was guessed, used to be 750
+    static const unsigned int maxAdmittableResyncReceivingWindow = 150000; //150 us
+    static const unsigned char maxPktSize = 125;
+    static const unsigned char maxPktSizeNoCRC = 127;
+protected:
+    MediumAccessController(MACContext* const ctx) : ctx(ctx) {};
+    MACContext* const ctx;
+    UplinkPhase* uplink;
+    ScheduleDownlinkPhase* schedule;
+    DataPhase* data;
+};
 }
 

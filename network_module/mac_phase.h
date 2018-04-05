@@ -25,58 +25,38 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef NETWORKPHASE_H
-#define NETWORKPHASE_H
+#pragma once
 
-#include "mediumaccesscontroller.h"
-#include <utility>
+#include "medium_access_controller.h"
+//#include "timesync/sync_status.h"
+#include "interfaces-impl/transceiver.h"
+#include "interfaces-impl/power_manager.h"
+#include <array>
 
-namespace miosix {
-    class MACContext;
-    class MACPhase {
-    public:
-        MACPhase() = delete;
-        /**
-         * Constructor to be used if the node is the first one sending in this phase
-         * @param startTime
-         * @param activityTime
-         */
-        MACPhase(long long startTime, long long activityTime) :
-                MACPhase(startTime, activityTime, activityTime) {};
-        /**
-         * Constructor to be used if the node has to wait before acting in this phase
-         * @param startTime
-         * @param globalActivityTime
-         * @param activityTime
-         */
-        MACPhase(long long startTime, long long globalActivityTime, long long activityTime) :
-                globalStartTime(startTime),
-                globalFirstActivityTime(globalActivityTime),
-                localFirstActivityTime(activityTime) {};
-        MACPhase(const MACPhase& orig) = delete;
-        virtual ~MACPhase();
-        virtual void execute(MACContext& ctx) = 0;
-    protected:
-        
-        /**
-         * Represents when the network theoretically switched to this phase.
-         * Can be considered a worst case start time of execution.
-         */
-        const long long globalStartTime;
-        /**
-         * Represents when the node making the first action of the phase must do it.
-         */
-        const long long globalFirstActivityTime;
-        /**
-         * Represents when at least one node in the network starts this phase.
-         */
-        const long long localFirstActivityTime;
-    private:
-
-    };
+namespace mxnet {
+class SyncStatus;
+class MACPhase {
+public:
+    MACPhase() = delete;
+    /**
+     * Constructor to be used if the node is the first one sending in this phase.
+     * @param ctx the MACContext containing the status of the whole protocol in its phases.
+     */
+    MACPhase(MACContext& ctx);
+    MACPhase(const MACPhase& orig) = delete;
+    virtual ~MACPhase() {};
+    /**
+     * Executes the phase for the slot starting when specified.
+     * @param slotStart timestamp identifying the first action computed in the network.
+     */
+    virtual void execute(long long slotStart) = 0;
+protected:
+    MACContext& ctx;
+    SyncStatus* const syncStatus;
+    miosix::PowerManager& pm;
+    miosix::Transceiver& transceiver;
+    std::array<unsigned char, MediumAccessController::maxPktSize> packet;
+    miosix::RecvResult rcvResult;
+};
 }
-
-#include "maccontext.h"
-
-#endif /* NETWORKPHASE_H */
 

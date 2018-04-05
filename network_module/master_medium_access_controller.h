@@ -25,31 +25,18 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "network_configuration.h"
-#include "bitwise_ops.h"
-#include "mac_context.h"
+#pragma once
+
+#include "medium_access_controller.h"
+#include "master_mac_context.h"
 
 namespace mxnet {
 
-NetworkConfiguration::NetworkConfiguration(const unsigned char maxHops, const unsigned short maxNodes, unsigned short networkId,
-        const unsigned short panId, const short txPower, const unsigned int baseFrequency,
-        const unsigned long long slotframeDuration, const unsigned char maxForwardedTopologies,
-        const unsigned long long maxAdmittedRcvWindow,
-        const unsigned short maxRoundsUnavailableBecomesDead, const unsigned short maxRoundsUnreliableParent,
-        const unsigned char maxMissedTimesyncs, const unsigned short minRoundBecomeNeighbor,
-        const TopologyMode topologyMode) :
-    maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)), staticNetworkId(networkId), maxNodes(maxNodes),
-        networkIdBits(BitwiseOps::bitsForRepresentingCount(maxNodes)), panId(panId), txPower(txPower),
-        baseFrequency(baseFrequency), topologyMode(topologyMode), slotframeDuration(slotframeDuration),
-        maxMissedTimesyncs(maxMissedTimesyncs), maxAdmittedRcvWindow(maxAdmittedRcvWindow), maxForwardedTopologies(maxForwardedTopologies),
-        maxRoundsUnavailableBecomesDead(maxRoundsUnavailableBecomesDead),
-        maxRoundsUnreliableParent(maxRoundsUnreliableParent), minRoundBecomeNeighbor(minRoundBecomeNeighbor) {
-    switch (topologyMode) {
-    case TopologyMode::NEIGHBOR_COLLECTION:
-        break;
-    case TopologyMode::ROUTING_VECTOR:
-        break;
-    }
+class MasterMediumAccessController : public MediumAccessController {
+public:
+    MasterMediumAccessController(miosix::Transceiver& transceiver, const NetworkConfiguration* const config) :
+        MediumAccessController(new MasterMACContext(*this, transceiver, config)) {};
+    virtual ~MasterMediumAccessController();
 };
 
 } /* namespace mxnet */

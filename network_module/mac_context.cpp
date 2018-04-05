@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2017 by Polidori Paolo                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,9 +25,27 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "macphase.h"
+#include "interfaces-impl/transceiver.h"
+#include "schedule/schedule_context.h"
+#include <type_traits>
 
-namespace miosix {
-MACPhase::~MACPhase() {
-}
+#include "mac_context.h"
+
+#include "timesync/sync_status.h"
+
+namespace mxnet {
+    
+    MACContext::MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config, SyncStatus* const syncStatus) :
+            mac(mac),
+            transceiverConfig(config->getBaseFrequency(), config->getTxPower(), true, false),
+            networkConfig(config),
+            networkId(config->getStaticNetworkId()),
+            transceiver(transceiver),
+            syncStatus(syncStatus) {}
+
+    MACContext::~MACContext() {
+        delete networkConfig;
+    }
+
+
 }

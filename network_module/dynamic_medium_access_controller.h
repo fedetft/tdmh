@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2018 by Polidori Paolo                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,52 +25,19 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "macround.h"
-#include "../flooding/floodingphase.h"
-#include "../roundtrip/roundtripphase.h"
-#include "../reservation/reservationphase.h"
-#include "../assignment/assignmentphase.h"
-#include "../topology_discovery/topologydiscoveryphase.h"
+#pragma once
 
-namespace miosix {
-    MACRound::~MACRound() {
-        delete flooding;
-        delete roundtrip;
-        delete reservation;
-        delete assignment;
-    }
-    
-    void MACRound::run(MACContext& ctx) {
-        if (flooding != nullptr) flooding->execute(ctx);
-        if (roundtrip != nullptr) roundtrip->execute(ctx);
-        if (topology != nullptr) topology->execute(ctx);
-        if (reservation != nullptr) reservation->execute(ctx);
-        if (assignment != nullptr) assignment->execute(ctx);
-    }
+#include "medium_access_controller.h"
+#include "dynamic_mac_context.h"
 
-    void MACRound::setFloodingPhase(FloodingPhase* fp) {
-        delete flooding;
-        flooding = fp;
-    }
+namespace mxnet {
 
-    void MACRound::setRoundTripPhase(RoundtripPhase* rtp) {
-        delete roundtrip;
-        roundtrip = rtp;
-    }
-    
-    void MACRound::setReservationPhase(ReservationPhase* rp) {
-        delete reservation;
-        reservation = rp;
-    }
-    
-    void MACRound::setAssignmentPhase(AssignmentPhase* as) {
-        delete assignment;
-        assignment = as;
-    }
+class DynamicMediumAccessController : public MediumAccessController {
+public:
+    DynamicMediumAccessController(miosix::Transceiver& transceiver, const NetworkConfiguration* const config) :
+        MediumAccessController(new DynamicMACContext(*this, transceiver, config)) {};
+    virtual ~DynamicMediumAccessController() {};
+};
 
-    void MACRound::setTopologyDiscoveryPhase(TopologyDiscoveryPhase* top) {
-        delete topology;
-        topology = top;
-    }
+} /* namespace mxnet */
 
-}

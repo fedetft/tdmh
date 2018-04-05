@@ -25,36 +25,13 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "mediumaccesscontroller.h"
-#include "maccontext.h"
-#include "macround/macround.h"
+#include "medium_access_controller.h"
+#include "mac_context.h"
 
-namespace miosix {
-    MediumAccessController::MediumAccessController(const MACRoundFactory* const roundFactory, const NetworkConfiguration* const config) :
-        ctx(new MACContext(roundFactory, *this, config)) {}
+namespace mxnet {
 
-    MediumAccessController::~MediumAccessController() {
-        delete ctx;
-    }
+void MediumAccessController::run() {
 
-    void MediumAccessController::run() {
-        for(MACRound* round = ctx->getCurrentRound(); ; round = ctx->shiftRound()){
-            round->run(*ctx);
-        }
-    }
-    
-    void MediumAccessController::send(const void* data, int dataSize, unsigned short toNode, bool acked) {
-        auto panId = ctx->getNetworkConfig()->panId;
-        unsigned char packet[] = {
-            0x46, //frame type 0b110 (reserved), intra pan
-            0x08, //no source addressing, short destination addressing
-            0, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
-            static_cast<unsigned char>(panId>>8),
-            static_cast<unsigned char>(panId & 0xff), //destination pan ID
-            0xff, 0xff 
-        };
-        //TODO populate the packet content
-        sendQueue.insert(std::make_pair(toNode, packet));
-    }
+}
 }
 

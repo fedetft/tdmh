@@ -38,7 +38,7 @@ const bool ENABLE_PKT_DUMP_DBG = false;
 const bool ENABLE_RADIO_EXCEPTION_DBG = true;
 
 //prints the flooding phase debug info
-const bool ENABLE_FLOODING_INFO_DBG = true;
+const bool ENABLE_TIMESYNC_DL_INFO_DBG = true;
 
 //prints the flooding phase errors
 const bool ENABLE_FLOODING_ERROR_DBG = true;
@@ -50,7 +50,7 @@ const bool ENABLE_ROUNDTRIP_INFO_DBG = true;
 const bool ENABLE_ROUNDTRIP_ERROR_DBG = true;
 
 //prints the flooding phase debug info
-const bool ENABLE_TOPOLOGY_INFO_DBG = true;
+const bool ENABLE_UPLINK_INFO_DBG = true;
 
 //prints the flooding phase errors
 const bool ENABLE_TOPOLOGY_ERROR_DBG = true;
@@ -61,7 +61,7 @@ const bool ENABLE_TOPOLOGY_ERROR_DBG = true;
  * and define the function myfun.
  * Do this anywhere before including any network_module file.
  */
-namespace miosix {
+namespace mxnet {
 void print_dbg(const char *fmt, ...);
 }
 
