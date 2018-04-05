@@ -26,41 +26,26 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef ROUNDTRIPPHASE_H
-#define ROUNDTRIPPHASE_H
+#pragma once
 
-#include "../mediumaccesscontroller.h"
-#include "../macphase.h"
-#include "interfaces-impl/transceiver.h"
-#include "interfaces-impl/power_manager.h"
-#include <utility>
+#include "../../mac_phase.h"
 
-namespace miosix {
-class RoundtripPhase : public MACPhase {
+namespace mxnet {
+class RoundtripSubphase : public MACPhase {
 public:
-    /**
-     * First phase constructor
-     * @param mac
-     * @param startTime
-     */
-    RoundtripPhase(long long masterFloodingEndTime) : 
-            MACPhase(masterFloodingEndTime, masterFloodingEndTime + senderDelay + tPktElab),
-            transceiver(Transceiver::instance()),
-            pm(PowerManager::instance()) {};
-    RoundtripPhase() = delete;
-    RoundtripPhase(const RoundtripPhase& orig) = delete;
-    virtual ~RoundtripPhase();
-    
-    long long getPhaseEnd() const { return globalStartTime + phaseDuration; }
+    RoundtripSubphase(MACContext& ctx) : MACPhase(ctx) {};
+    RoundtripSubphase() = delete;
+    RoundtripSubphase(const RoundtripSubphase& orig) = delete;
+    virtual ~RoundtripSubphase() {};
     
     static const unsigned int receiverWindow = 200000; //200us
     static const unsigned int senderDelay = 100000; //100us
     static const unsigned short tPktElab = 50000; //50us
     static const unsigned int replyDelay = 100000; //100us
     static const unsigned short askPacketSize = 7;
-    static const unsigned int tAskPkt = 416000; //416us
-    static const unsigned short replyPacketSize = 125;
-    static const unsigned int tReplyPkt = 4256000; //4256us
+    static const unsigned int tAskPkt = 416000; //416us, 32us/B x 13B
+    static const unsigned short replyPacketSize = 127;
+    static const unsigned int tReplyPkt = 4256000; //4256us, 32us/B x 133B
     //phase should last at least 5588200 ns. Given 6ms.
     //tPktElab + maxPropDelay + tAskPkt + rcvWin + replyDelay + maxPropDelay + tReplyPkt + rcvWin + tPktElab
     static const unsigned long long phaseDuration = 6000000;
@@ -73,47 +58,7 @@ public:
      * 3,795e9s * 3e8m/s=1138.5m
      * Remember that each tick@48Mhz are 6.3m at speed of light.
      */
-    static const int accuracy = 15;
-protected:
-    Transceiver& transceiver;
-    PowerManager& pm;
-    long long lastDelay;
-    long long totalDelay;
-    
-    inline bool isRoundtripAskPacket(RecvResult& result, unsigned char *packet, unsigned short panId, unsigned char myHop) {
-        return result.error == RecvResult::OK && result.timestampValid
-                && result.size == askPacketSize
-                && packet[0] == 0x46 && packet[1] == 0x08
-                && packet[2] == myHop + 1
-                && packet[3] == static_cast<unsigned char> (panId >> 8)
-                && packet[4] == static_cast<unsigned char> (panId & 0xff)
-                && packet[5] == 0xff && packet[6] == 0xff;
-    }
-    
-    inline bool isRoundtripPacket(RecvResult& result, unsigned char *packet, unsigned short panId, unsigned char myHop) {
-        //TODO fix this, actually the packet doesn't have this format
-        if (!(result.error == RecvResult::OK && result.timestampValid
-                && result.size == replyPacketSize
-                && packet[0] == 0x46 && packet[1] == 0x08
-                && packet[2] == myHop + 1
-                && packet[3] == static_cast<unsigned char> (panId >> 8)
-                && packet[4] == static_cast<unsigned char> (panId & 0xff)
-                && packet[5] == 0xff && packet[6] == 0xff)) return false;
-        bool legit = true;
-        bool isFs = true;
-        for (int i = 7; i < replyPacketSize && legit; i++) {
-            auto elem = packet[i];
-            if (isFs) {
-                if (elem != 0xFF) {
-                    isFs = elem != 0xF0;
-                    legit = elem == 0xF0 || !elem;
-                }
-            } else if (elem) legit = false;
-        }
-        return legit;
-    }
+    static const int accuracy = 15; //TODO set as config parameter
 };
 }
-
-#endif /* ROUNDTRIPPHASE_H */
 

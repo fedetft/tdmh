@@ -26,10 +26,8 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "roundtripphase.h"
+#include "roundtrip_subphase.h"
 
-namespace miosix{
-RoundtripPhase::~RoundtripPhase() {
-}
+namespace mxnet {
 }
 

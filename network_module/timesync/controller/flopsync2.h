@@ -28,7 +28,7 @@
 #ifndef OPTIMIZED_RAMP_FLOPSYNC_2_H
 #define	OPTIMIZED_RAMP_FLOPSYNC_2_H
 
-#include "synchronizer.h"
+#include "../controller/synchronizer.h"
 
 /**
  * A new flopsync controller that can reach zero steady-state error both

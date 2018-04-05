@@ -25,37 +25,23 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "masterfloodingphase.h"
-#include "../maccontext.h"
-#include "../macround/macround.h"
 #include <stdio.h>
 #include "../debug_settings.h"
+#include "timesync_downlink.h"
 
-namespace miosix {
+namespace mxnet{
 
-    MasterFloodingPhase::~MasterFloodingPhase() {
-    }
-
-    void MasterFloodingPhase::execute(MACContext& ctx)
-    {
-        transceiver.configure(ctx.getTransceiverConfig());
-        transceiver.turnOn();
-        //Thread::nanoSleepUntil(startTime);
-        auto deepsleepDeadline = globalFirstActivityTime - rootNodeWakeupAdvance;
-        if(getTime() < deepsleepDeadline)
-            pm.deepSleepUntil(deepsleepDeadline);
-        ledOn();
-        //Sending synchronization start packet
-        try {
-            transceiver.sendAt(getSyncPkt(ctx.getNetworkConfig()->panId).data(), syncPacketSize, globalFirstActivityTime);
-        } catch(std::exception& e) {
-            if (ENABLE_RADIO_EXCEPTION_DBG)
-                print_dbg("%s\n", e.what());
-        }
-        if (ENABLE_FLOODING_INFO_DBG)
-            print_dbg("[F] ST=%lld\n", globalFirstActivityTime);
-        transceiver.turnOff();
-        ledOff();
-    }
-
+TimesyncDownlink::~TimesyncDownlink() {
 }
+
+void TimesyncDownlink::rebroadcast(long long resendTs){
+    if(packet[2] == networkConfig->getMaxHops()) return;
+    try {
+        transceiver.sendAt(packet, syncPacketSize, resendTs + rebroadcastInterval);
+    } catch(std::exception& e) {
+        if (ENABLE_RADIO_EXCEPTION_DBG)
+            print_dbg("%s\n", e.what());
+    }
+}
+}
+

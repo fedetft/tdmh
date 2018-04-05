@@ -26,45 +26,29 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "listeningroundtripphase.h"
-#include "led_bar.h"
-#include "../macround/macround.h"
 #include <stdio.h>
+
+#include "../../timesync/led_bar.h"
 #include "../debug_settings.h"
+#include "listening_roundtrip.h"
 
-namespace miosix{
-ListeningRoundtripPhase::~ListeningRoundtripPhase() {
-}
+namespace mxnet{
 
-void ListeningRoundtripPhase::execute(MACContext& ctx) {
+void ListeningRoundtripPhase::execute(long long slotStart) {
     //TODO add a way to use the syncStatus also with the master for having an optimized receiving window
     //maybe with a different class for the master node?
-    long long timeoutTime = globalStartTime + tPktElab + receiverWindow + MediumAccessController::maxPropagationDelay;
-    //Transceiver configured with non strict timeout
-    transceiver.configure(ctx.getTransceiverConfig());
-    transceiver.turnOn();
+    long long timeoutTime = slotStart + receiverWindow + MediumAccessController::maxPropagationDelay + MediumAccessController::packetPreambleTime;
     
-    unsigned char packet[askPacketSize];
-    auto deepsleepDeadline = globalStartTime + tPktElab - MediumAccessController::receivingNodeWakeupAdvance;
-    if (ENABLE_ROUNDTRIP_INFO_DBG)
-        print_dbg("[RTT] WU=%lld TO=%lld\n", deepsleepDeadline, timeoutTime);
-    RecvResult result;
     bool success = false;
-    
-    if(getTime() < deepsleepDeadline)
-        pm.deepSleepUntil(deepsleepDeadline);
-    greenLed::high();
-    for(; !(success || result.error == RecvResult::ErrorCode::TIMEOUT);
-            success = isRoundtripAskPacket(result, packet, ctx.getNetworkConfig()->panId, ctx.getHop()))
-    {
+    for(; !(success || rcvResult.error == miosix::RecvResult::TIMEOUT); success = isRoundtripAskPacket()) {
         try {
-            result = transceiver.recv(packet, replyPacketSize, timeoutTime);
+            rcvResult = transceiver.recv(packet, replyPacketSize, timeoutTime);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
                 print_dbg("%s\n", e.what());
         }
         if (ENABLE_PKT_INFO_DBG) {
-            if(result.size){
+            if(rcvResult.size){
                 print_dbg("[RTT] Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
                 if (ENABLE_PKT_DUMP_DBG)
                     memDump(packet, result.size);
@@ -72,14 +56,14 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
         }
     }
     
-    if(success){
-        auto replyTime = result.timestamp + replyDelay;
+    if (success) {
+        auto replyTime = rcvResult.timestamp + replyDelay;
         if (ENABLE_ROUNDTRIP_INFO_DBG)
-            print_dbg("[RTT] RT=%lld, LT=%lld\n", result.timestamp, replyTime);
+            print_dbg("[T/R] ta=%lld, tr=%lld\n", rcvResult.timestamp, replyTime);
         transceiver.configure(ctx.getTransceiverConfig(false));
         //TODO sto pacchetto non e` compatibile manco con se stesso, servono header di compatibilita`, indirizzo, etc etc
         LedBar<replyPacketSize> p;
-        p.encode(7); //TODO: 7?! should put a significant cumulated RTT here.
+        p.encode(ctx.getDelayToMaster() / accuracy); //TODO: 7?! should put a significant cumulated RTT here.
         try {
             transceiver.sendAt(p.getPacket(), p.getPacketSize(), replyTime);
         } catch(std::exception& e) {
@@ -87,11 +71,10 @@ void ListeningRoundtripPhase::execute(MACContext& ctx) {
                 print_dbg("%s\n", e.what());
         }
     } else if (ENABLE_ROUNDTRIP_INFO_DBG) {
-        print_dbg("[RTT] RT=null\n");
+        print_dbg("[T/R] tr=null\n");
     }
     
     transceiver.turnOff();
-    greenLed::low();
 }
 }
 

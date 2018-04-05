@@ -25,37 +25,34 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef MASTERFLOODINGPHASE_H
-#define MASTERFLOODINGPHASE_H
+#pragma once
 
-#include "floodingphase.h"
+#include "interfaces-impl/transceiver.h"
+#include "interfaces-impl/power_manager.h"
 #include <utility>
-#include <array>
+#include "../mac_phase.h"
+#include "sync_status.h"
+#include "roundtrip/listening_roundtrip.h"
 
-namespace miosix {
-class MasterFloodingPhase : public FloodingPhase {
+namespace mxnet {
+class TimesyncDownlink : public MACPhase {
 public:
-    explicit MasterFloodingPhase(long long masterSendTime) :
-            FloodingPhase(masterSendTime) {};
-    MasterFloodingPhase() = delete;
-    MasterFloodingPhase(const MasterFloodingPhase& orig) = delete;
-    void execute(MACContext& ctx) override;
-    virtual ~MasterFloodingPhase();
+    TimesyncDownlink() = delete;
+    TimesyncDownlink(const TimesyncDownlink& orig) = delete;
+    virtual ~TimesyncDownlink();
+    static const int phaseStartupTime = 450000;
+    static const int syncPacketSize = 7;
+    static const int rebroadcastInterval = 1016000; //32us per-byte + 600us total delta
     
 protected:
-    inline std::array<unsigned char, syncPacketSize> getSyncPkt(int panId) {
-        return {{
-            0x46, //frame type 0b110 (reserved), intra pan
-            0x08, //no source addressing, short destination addressing
-            0x00, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
-            static_cast<unsigned char>(panId>>8),
-            static_cast<unsigned char>(panId & 0xff), //destination pan ID
-            0xff, 0xff                                //destination addr (broadcast)
-                }};
-    }
-private:
+    TimesyncDownlink(MACContext& ctx) :
+            MACPhase(ctx),
+            networkConfig(ctx.getNetworkConfig()),
+            listeningRTP(ctx) {};
+    void rebroadcast(long long resendTs);
+    
+    const NetworkConfiguration* const networkConfig;
+    ListeningRoundtripPhase listeningRTP;
 };
 }
-
-#endif /* MASTERFLOODINGPHASE_H */
 

@@ -28,7 +28,7 @@
 #ifndef CONTROLLER_FLOPSYNC_H
 #define	CONTROLLER_FLOPSYNC_H
 
-#include "synchronizer.h"
+#include "../controller/synchronizer.h"
 
 /**
  * Old flopsync controller.

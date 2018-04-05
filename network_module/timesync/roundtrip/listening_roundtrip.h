@@ -26,26 +26,30 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef LISTENINGROUNDTRIPPHASE_H
-#define LISTENINGROUNDTRIPPHASE_H
+#pragma once
 
-#include "../maccontext.h"
-#include "roundtripphase.h"
-#include <memory>
+#include "roundtrip_subphase.h"
 
-namespace miosix{
-class ListeningRoundtripPhase : public RoundtripPhase  {
+namespace mxnet {
+class ListeningRoundtripPhase : public RoundtripSubphase  {
 public:
-    explicit ListeningRoundtripPhase(long long masterFloodingEndTime) :
-            RoundtripPhase(masterFloodingEndTime) {};
+    explicit ListeningRoundtripPhase(MACContext& ctx) : RoundtripSubphase(ctx) {};
     ListeningRoundtripPhase() = delete;
     ListeningRoundtripPhase(const ListeningRoundtripPhase& orig) = delete;
-    virtual ~ListeningRoundtripPhase();
-    void execute(MACContext& ctx) override;
+    virtual ~ListeningRoundtripPhase() {};
+    void execute(long long slotStart) override;
 private:
+    bool isRoundtripAskPacket() {
+        auto panId = ctx.getNetworkConfig()->getPanId();
+        return rcvResult.error == miosix::RecvResult::OK && rcvResult.timestampValid
+                && rcvResult.size == askPacketSize
+                && packet[0] == 0x46 && packet[1] == 0x08
+                && packet[2] == ctx.getHop() + 1
+                && packet[3] == static_cast<unsigned char> (panId >> 8)
+                && packet[4] == static_cast<unsigned char> (panId & 0xff)
+                && packet[5] == 0xff && packet[6] == 0xff;
+    }
 
 };
 }
-
-#endif /* LISTENINGROUNDTRIPPHASE_H */
 

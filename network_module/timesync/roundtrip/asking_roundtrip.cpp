@@ -25,44 +25,38 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "askingroundtripphase.h"
-#include "listeningroundtripphase.h"
-#include "led_bar.h"
 #include <stdio.h>
+
+#include "../../timesync/led_bar.h"
 #include "../debug_settings.h"
+#include "asking_roundtrip.h"
+#include "listening_roundtrip.h"
 
-namespace miosix {
-    AskingRoundtripPhase::~AskingRoundtripPhase() {
-    }
+namespace mxnet {
 
-    void AskingRoundtripPhase::execute(MACContext& ctx) {
+    void AskingRoundtripPhase::execute(long long slotStart) {
         //Sending led bar request to the previous hop
         //Transceiver configured with non strict timeout
-        greenLed::high();
-        transceiver.configure(ctx.getTransceiverConfig());
-        transceiver.turnOn();
         //TODO deepsleep missing
         try {
-            transceiver.sendAt(
-                getRoundtripAskPacket(ctx.getNetworkConfig()->panId).data(), askPacketSize, globalFirstActivityTime);
+            transceiver.sendAt(getRoundtripAskPacket().data(), askPacketSize, slotStart);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
                 print_dbg("%s\n", e.what());
         }
         if (ENABLE_ROUNDTRIP_INFO_DBG)
-            print_dbg("Asked Roundtrip\n");
+            print_dbg("[T/R] Asked Roundtrip\n");
 
         //Expecting a ledbar reply from any node of the previous hop, crc disabled
-        transceiver.configure(ctx.getTransceiverConfig(false, false));
+        transceiver.configure(ctx.getTransceiverConfig(false));
         LedBar<replyPacketSize> p;
-        RecvResult result;
         bool success = false;
-        for (RecvResult result; !(success || result.error == RecvResult::ErrorCode::TIMEOUT);
-            success = isRoundtripPacket(result, p.getPacket(), ctx.getNetworkConfig()->panId, ctx.getHop())) {
+        for (; !(success || rcvResult.error == miosix::RecvResult::TIMEOUT); success = isRoundtripPacket()) {
             try {
-                result = transceiver.recv(p.getPacket(), p.getPacketSize(), globalFirstActivityTime + replyDelay +
+                rcvResult = transceiver.recv(packet.data(), packet.size(), slotStart + replyDelay +
                         (MediumAccessController::maxPropagationDelay << 1) + tAskPkt +
-                        MediumAccessController::packetPreambleTime + receiverWindow);
+                        MediumAccessController::packetPreambleTime + receiverWindow
+                );
             } catch(std::exception& e) {
                 if (ENABLE_RADIO_EXCEPTION_DBG)
                     print_dbg("%s\n", e.what());
@@ -76,13 +70,15 @@ namespace miosix {
             }
         }
         transceiver.turnOff();
-        greenLed::low();
 
-        if(result.size == p.getPacketSize() && result.error == RecvResult::ErrorCode::OK && result.timestampValid) {
+        memcpy(p.getPacket(), packet.data(), result.size);
+        if(rcvResult.size == p.getPacketSize() && rcvResult.error == miosix::RecvResult::OK && rcvResult.timestampValid) {
             lastDelay = result.timestamp - (globalFirstActivityTime + replyDelay);
-            totalDelay = p.decode().first * accuracy + lastDelay;
+            auto prevDelay = p.decode().first * accuracy;
+            auto hopDelay = (rcvResult.timestamp - (slotStart + replyDelay)) >> 1; //time at which is received - time at which is sent / 2
+            ctx.setDelayToMaster(prevDelay + hopDelay);
             if (ENABLE_ROUNDTRIP_INFO_DBG)
-                print_dbg("delay=%lld total=%lld\n", lastDelay, totalDelay);
+                print_dbg("[T/R] d=%lld d_h=%lld\n", prevDelay, hopDelay);
         } else if (ENABLE_ROUNDTRIP_INFO_DBG) {
             print_dbg("No roundtrip reply received\n");
         }

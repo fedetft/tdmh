@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2013 by Terraneo Federico                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,37 +25,10 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef PERIODICCHECKFLOODINGPHASE_H
-#define PERIODICCHECKFLOODINGPHASE_H
+#include "../controller/synchronizer.h"
 
-#include "floodingphase.h"
-#include "time_synchronizers/synchronizer.h"
-#include "time_synchronizers/flopsync2.h"
-#include "../maccontext.h"
-#include "syncstatus.h"
-#include <stdexcept>
+//
+// class Synchronizer
+//
 
-namespace miosix{
-class PeriodicCheckFloodingPhase : public FloodingPhase {
-public:
-    /**
-     * This function creates a PeriodicCheckFloodingPhase as first phase
-     * @param frameStart
-     */
-    explicit PeriodicCheckFloodingPhase(long long masterSendTime, long long expectedReceivingTime) :
-            FloodingPhase(masterSendTime, expectedReceivingTime) {};
-    PeriodicCheckFloodingPhase() = delete;
-    PeriodicCheckFloodingPhase(const PeriodicCheckFloodingPhase& orig) = delete;
-    void execute(MACContext& ctx) override;
-    virtual ~PeriodicCheckFloodingPhase();
-
-    virtual long long getPhaseEnd() const { return measuredGlobalFirstActivityTime + phaseDuration; }
-
-protected:
-    SyncStatus* syncStatus = nullptr;
-private:
-};
-}
-
-#endif /* PERIODICCHECKFLOODINGPHASE_H */
-
+Synchronizer::~Synchronizer() {}

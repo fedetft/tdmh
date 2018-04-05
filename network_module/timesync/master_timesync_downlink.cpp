@@ -25,62 +25,36 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "hookingfloodingphase.h"
-#include "periodiccheckfloodingphase.h"
 #include "../debug_settings.h"
+#include "master_timesync_downlink.h"
+#include "../mac_context.h"
 
-namespace miosix {
+namespace mxnet {
 
-HookingFloodingPhase::~HookingFloodingPhase() {
-}
+    MasterTimesyncDownlink::~MasterTimesyncDownlink() {
+    }
 
-void HookingFloodingPhase::execute(MACContext& ctx)
-{   
-    if (ENABLE_FLOODING_INFO_DBG)
-        print_dbg("[F] Resync\n");
-    auto* status = ctx.getSyncStatus();
-    auto* synchronizer = status->synchronizer;
-    synchronizer->reset();
-    transceiver.configure(ctx.getTransceiverConfig());
-    transceiver.turnOn();
-    unsigned char packet[syncPacketSize];
-    auto networkConfig = *ctx.getNetworkConfig();
-    //TODO: attach to strongest signal, not just to the first received packet
-    RecvResult result;
-    ledOn();
-    for (bool success = false; !success; success = isSyncPacket(result, packet, networkConfig.panId)) {
+    void MasterTimesyncDownlink::execute(long long slotStart)
+    {
+        transceiver.configure(ctx.getTransceiverConfig());
+        transceiver.turnOn();
+        //Thread::nanoSleepUntil(startTime);
+        auto deepsleepDeadline = syncStatus->getSenderWakeup(slotStart);
+        if(getTime() < deepsleepDeadline)
+            pm.deepSleepUntil(deepsleepDeadline);
+        //Sending synchronization start packet
         try {
-            result = transceiver.recv(packet, syncPacketSize, infiniteTimeout);
+            transceiver.sendAt(getSyncPkt(networkConfig->panId).data(), syncPacketSize, slotStart);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
                 print_dbg("%s\n", e.what());
         }
-        if (ENABLE_PKT_INFO_DBG) {
-            if(result.size){
-                print_dbg("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
-                if (ENABLE_PKT_DUMP_DBG)
-                    memDump(packet, result.size);
-            } else print_dbg("No packet received, timeout reached\n");
-        }
+        transceiver.idle();
+        if (ENABLE_TIMESYNC_DL_INFO_DBG)
+            print_dbg("[T] st=%lld\n", slotStart);
+        if (false)
+            listeningRTP.execute(slotStart + RoundtripSubphase::senderDelay);
+        transceiver.turnOff();
     }
-    measuredGlobalFirstActivityTime = result.timestamp - packet[2] * rebroadcastInterval;
-    ++packet[2];
-    rebroadcast(result.timestamp, packet, networkConfig.maxHops);
-    
-    ledOff();
-    transceiver.turnOff();
-    
-    if (ENABLE_FLOODING_INFO_DBG)
-        print_dbg("[F] ERT=%lld, RT=%lld\n", status->computedFrameStart, result.timestamp);
-    
-    status->initialize(synchronizer->getReceiverWindow(), result.timestamp);
-    ctx.setHop(packet[2]);
-    print_dbg("MGFAT %llu\n", measuredGlobalFirstActivityTime);
-    
-    //Correct frame start considering hops
-    //measuredFrameStart-=hop*packetRebroadcastTime;
-    if (ENABLE_FLOODING_INFO_DBG)
-        print_dbg("[F] hop=%d, w=%d, rssi=%d\n", packet[2], status->receiverWindow, result.rssi);
-}
-}
 
+}

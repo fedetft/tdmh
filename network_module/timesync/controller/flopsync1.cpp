@@ -25,7 +25,8 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "flopsync1.h"
+#include "../controller/flopsync1.h"
+
 #include <algorithm>
 
 using namespace std;

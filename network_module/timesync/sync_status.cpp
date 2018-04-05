@@ -1,6 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Polidori Paolo, Terraneo Federico,             *
- *                          Riccardi Fabiano                               *
+ *   Copyright (C)  2018 by Polidori Paolo                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -26,38 +25,30 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef ASKINGROUNDTRIPPHASE_H
-#define ASKINGROUNDTRIPPHASE_H
+#include "sync_status.h"
 
-#include "../maccontext.h"
-#include "roundtripphase.h"
-#include <memory>
-#include <array>
+namespace mxnet {
 
-namespace miosix {
-class AskingRoundtripPhase : public RoundtripPhase {
-public:
-    AskingRoundtripPhase(long long masterFloodingEndTime) :
-            RoundtripPhase(masterFloodingEndTime) {};
-    AskingRoundtripPhase() = delete;
-    AskingRoundtripPhase(const AskingRoundtripPhase& orig) = delete;
-    virtual ~AskingRoundtripPhase();
-    void execute(MACContext& ctx) override;
-protected:
-    inline std::array<unsigned char, askPacketSize> getRoundtripAskPacket(int panId) {
-        return {{
-            0x46, //frame type 0b110 (reserved), intra pan
-            0x08, //no source addressing, short destination addressing
-            0x00, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
-            static_cast<unsigned char>(panId>>8),
-            static_cast<unsigned char>(panId & 0xff), //destination pan ID
-            0xff, 0xff                                //destination addr (broadcast)
-                }};
+unsigned char SyncStatus::missedPacket() {
+    if(++missedPackets >= config->getMaxMissedTimesyncs()) {
+        internalStatus = DESYNCHRONIZED;
+        synchronizer->reset();
+    } else {
+        measuredFrameStart = computedFrameStart;
+        std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->lostPacket();
+        clockCorrection = clockCorrectionReceiverWindow.first;
+        receiverWindow = clockCorrectionReceiverWindow.second;
+        updateVt();
     }
-private:
-
-};
+    return missedPackets;
 }
 
-#endif /* ASKINGROUNDTRIPPHASE_H */
-
+void SyncStatus::receivedPacket(long long arrivalTime) {
+    measuredFrameStart = arrivalTime;
+    std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->computeCorrection(arrivalTime - computedFrameStart);
+    missedPackets = 0;
+    clockCorrection = clockCorrectionReceiverWindow.first;
+    receiverWindow = clockCorrectionReceiverWindow.second;
+    updateVt();
+}
+}

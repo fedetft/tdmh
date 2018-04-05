@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2013 by Terraneo Federico                              *
+ *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,10 +25,37 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "synchronizer.h"
+#pragma once
 
-//
-// class Synchronizer
-//
+#include "timesync_downlink.h"
+#include "../controller/flopsync2.h"
+#include "../controller/synchronizer.h"
+#include "sync_status.h"
+#include "roundtrip/asking_roundtrip.h"
 
-Synchronizer::~Synchronizer() {}
+namespace mxnet {
+class DynamicTimesyncDownlink : public TimesyncDownlink {
+public:
+    DynamicTimesyncDownlink() = delete;
+    explicit DynamicTimesyncDownlink(MACContext& ctx) : TimesyncDownlink(ctx), askingRTP(ctx) {};
+    DynamicTimesyncDownlink(const DynamicTimesyncDownlink& orig) = delete;
+    virtual ~DynamicTimesyncDownlink() {};
+    inline void execute(long long slotStart) override;
+    void periodicSync(long long slotStart);
+    void resync();
+
+    virtual long long getPhaseEnd() const { return measuredGlobalFirstActivityTime + phaseDuration; }
+    virtual bool isSyncPacket() {
+        auto panId = networkConfig->getPanId();
+        return rcvResult.error == RecvResult::OK
+                && rcvResult.timestampValid && rcvResult.size == syncPacketSize
+                && packet[0] == 0x46 && packet[1] == 0x08
+                && packet[3] == static_cast<unsigned char>(panId >> 8)
+                && packet[4] == static_cast<unsigned char>(panId & 0xff)
+                && packet[5] == 0xff && packet[6] == 0xff;
+    }
+protected:
+    AskingRoundtripPhase askingRTP;
+};
+}
+

@@ -14,6 +14,15 @@ class LedBar
 {
 public:
     /**
+     * Constructs an objects and encodes in it a number in range [0; N*2].
+     * Number is rounded in that range.
+     * @param num the number to be encoded.
+     */
+    LedBar(int num) {
+        encode(num);
+    };
+    virtual ~LedBar() {};
+    /**
      * Encode a number in range [0; N*2]. Number is rounded in that range.
      * @param num
      */
