@@ -32,6 +32,16 @@
 #include <cstring>
 
 namespace mxnet {
+/**
+ * This class implements a bitset whose size is definable at runtime.
+ * Its implementation varies if on ARM MCU (>M0) or others.
+ * In ARM the bit banding memory area is used for bitwise fast access.
+ * In other architectures the memory is allocated word by word (4B on 32 bits, 8B on 64 bits arches).
+ * To achieve cross-compatibility, The values are set referencing the order used on ARM MCUs when using bit banding.
+ * So bits are ordered from 0 to n while the vector address increases.
+ * In ARM the same memory, accesses by-word uses b0 as the MSB and b31 as the LSB.
+ * Thus this order is respected, in order to grant cross-compatibility.
+ */
 class RuntimeBitset {
 public:
     typedef unsigned long word_t;
@@ -73,9 +83,9 @@ public:
         bool& operator=(const bool& rhs) {
             if (rhs)
 #ifndef _ARCH_CORTEXM3_EFM32GG
-                content[wordIdx] |= 1 << bitPow;
+                content[wordIdx] |= b0 >> bitPow;
             else
-                content[wordIdx] &= ~(1 << bitPow);
+                content[wordIdx] &= ~(b0 >> bitPow);
 #else
                 content[wordIdx] = 1;
             else
@@ -98,8 +108,9 @@ public:
         return Bit(bbData, false, 0);
 #else
         if (i < bitCount) {
-            unsigned char bitPow = i & mask;
-            return Bit(content, content[i >> shiftDivisor] & (1 << bitPow) > 0, i >> shiftDivisor, bitPow);
+            unsigned char bitPow = i & indexSplitterMask;
+            auto index = i >> shiftDivisor;
+            return Bit(content, content[index] & (b0 >> bitPow) > 0, index, bitPow);
         }
         return Bit(content, false, 0, 0);
 #endif
@@ -112,8 +123,9 @@ public:
         return Bit(bbData, false, 0);
 #else
         if (i < bitCount) {
-            unsigned char bitPow = i & mask;
-            return Bit(content, content[i >> shiftDivisor] & (1 << bitPow) > 0, i >> shiftDivisor, bitPow);
+            unsigned char bitPow = i & indexSplitterMask;
+            auto index = i >> shiftDivisor;
+            return Bit(content, content[index] & (b0 >> bitPow) > 0, index, bitPow);
         }
         return Bit(content, false, 0, 0);
 #endif
@@ -139,7 +151,8 @@ private:
 #endif
     static const unsigned char shiftDivisor = BitwiseOps::bitsForRepresentingCountConstexpr(std::numeric_limits<word_t>::digits);
 #ifndef _ARCH_CORTEXM3_EFM32GG
-    static const unsigned char mask = static_cast<unsigned char>(static_cast<unsigned char>(~0) << shiftDivisor);
+    static const word_t b0 = 1 << (std::numeric_limits<word_t>::digits - 1);
+    static const unsigned char indexSplitterMask = static_cast<unsigned char>(static_cast<unsigned char>(~0) << shiftDivisor);
 #else
     static const unsigned long sramBase = 0x20000000;
     static const unsigned long bitBandBase = 0x22000000;
