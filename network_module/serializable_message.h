@@ -42,11 +42,11 @@ public:
     }
     virtual void serialize(std::vector<unsigned char>& pkt) {
         assert(pkt.size() >= getSize());
-        serialize(pkt.begin());
+        serialize(pkt.data());
     }
-    virtual void serialize(std::vector<unsigned char>::iterator pkt);
+    virtual void serialize(unsigned char* pkt) = 0;
     //static SerializableMessage deserialize(std::vector<unsigned char>& pkt);
-    //static SerializableMessage deserialize(const unsigned char* pkt);
+    //static SerializableMessage deserialize(unsigned char* pkt);
     virtual std::size_t getSize() = 0;
 protected:
     SerializableMessage() {};
@@ -57,15 +57,15 @@ public:
     virtual ~BitSerializableMessage() {};
     virtual std::vector<unsigned char> serialize() {
         std::vector<unsigned char> retval(getSize());
-        serialize(retval.begin(), 0);
+        serialize(retval.data(), 0);
         return retval;
     }
-    virtual void serialize(std::vector<unsigned char>& pkt, unsigned char startBit) {
-        serialize(pkt.begin(), startBit);
+    virtual void serialize(std::vector<unsigned char>& pkt, unsigned short startBit) {
+        serialize(pkt.data(), startBit);
     }
-    virtual void serialize(std::vector<unsigned char>::iterator pkt, const unsigned char startBit) = 0;
+    virtual void serialize(unsigned char* pkt, unsigned short startBit) = 0;
     //static SerializableMessage deserialize(std::vector<unsigned char>& pkt, const unsigned char startBit);
-    //static SerializableMessage deserialize(const unsigned char* pkt, const unsigned char startBit);
+    //static SerializableMessage deserialize(unsigned char* pkt, const unsigned char startBit);
     virtual std::size_t getSize() = 0;
     virtual std::size_t getBitSize() = 0;
 protected:
