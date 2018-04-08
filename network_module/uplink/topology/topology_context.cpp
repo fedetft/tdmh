@@ -26,13 +26,14 @@
  ***************************************************************************/
 
 #include "topology_context.h"
+#include "../../mac_context.h"
 
 namespace mxnet {
 
 unsigned char DynamicTopologyContext::getBestPredecessor() {
     return (ctx.getHop() > 1)? min_element(predecessors.begin(),
             predecessors.end(),
-            CompareRSSI())->getNodeId(): 0;
+            Predecessor::CompareRSSI())->getNodeId(): 0;
 }
 
 void DynamicTopologyContext::receivedMessage(UplinkMessage msg,
@@ -42,11 +43,19 @@ void DynamicTopologyContext::receivedMessage(UplinkMessage msg,
 void DynamicTopologyContext::unreceivedMessage(unsigned char sender) {
 }//TODO manage predecessor
 
-std::vector<TopologyElement*> DynamicTopologyContext::dequeueMessages(unsigned short count) {
+std::vector<TopologyElement*> DynamicTopologyContext::dequeueMessages(std::size_t count) {
     std::vector<TopologyElement*> retval(std::min(enqueuedTopologyMessages.size(), count));
     for (int i = 0; i < retval.size(); i++)
         retval[i] = enqueuedTopologyMessages.dequeue();
     return retval;
+}
+
+void DynamicTopologyContext::setMasterAsNeighbor(bool yes) {
+   if (yes) { if (predecessors.empty()) predecessors.push_back(Predecessor(0, 5)); }
+   else {
+       auto it = std::find(predecessors.begin(), predecessors.end(), 0);
+       if (it != predecessors.end()) predecessors.erase(it);
+   }
 }
 
 bool DynamicTopologyContext::hasPredecessor() {
@@ -62,7 +71,6 @@ void TopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, s
 }
 
 void TopologyContext::unreceivedMessage(unsigned char sender) {
-    if (msg.getHop() != ctx.getHop() + 1) return;
     auto it = std::lower_bound(successors.begin(), successors.end(), sender);
     if(it->getNodeId() != sender) return;
     it->unseen();

@@ -40,7 +40,7 @@ void MasterStreamManagementContext::open(StreamManagementElement* sme) {
     if (it == opened.end())
         opened.push_back(sme);
     else {
-        delete it;
+        delete *it;
         it = opened.erase(it);
         opened.insert(it, sme);
     }
@@ -48,7 +48,7 @@ void MasterStreamManagementContext::open(StreamManagementElement* sme) {
 
 void DynamicStreamManagementContext::receive(std::vector<StreamManagementElement*>& smes) {
     for (auto sme : smes) {
-        auto id = sme.getId();
+        auto id = sme->getId();
         if (queue.hasKey(id)) {
             delete queue.getByKey(id);
             queue.update(id, sme);
@@ -59,14 +59,15 @@ void DynamicStreamManagementContext::receive(std::vector<StreamManagementElement
 
 void DynamicStreamManagementContext::open(StreamManagementElement* sme) {
     pending.push_back(sme);
-    queue.enqueue(sme.getId(), sme);
+    queue.enqueue(sme->getId(), sme);
 }
 
 void DynamicStreamManagementContext::opened(StreamManagementElement* sme) {
-    auto it = pending.find(sme);
+    auto it = std::find(pending.begin(), pending.end(), sme);
     if (it == pending.end()) return;
     pending.erase(it);
-    auto it2 = queue.removeElement(sme.getId());
+    auto it2 = queue.getByKey(sme->getId());
+    queue.removeElement(sme->getId());
     delete it2;
 }
 
@@ -78,7 +79,7 @@ std::vector<StreamManagementElement*> DynamicStreamManagementContext::dequeue(st
         retval[i] = val;
         auto it = std::find(pending.begin(), pending.end(), val);
         if (it != pending.end())
-            queue.enqueue(it->getId(), *it);
+            queue.enqueue((*it)->getId(), *it);
     }
     return retval;
 }

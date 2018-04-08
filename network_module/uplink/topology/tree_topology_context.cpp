@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "tree_topology_context.h"
+#include "../../mac_context.h"
 #include <iterator>
 #include <functional>
 
@@ -54,16 +55,16 @@ void DynamicTreeTopologyContext::receivedMessage(UplinkMessage msg, unsigned cha
 
 TopologyMessage* DynamicTreeTopologyContext::getMyTopologyMessage() {
     auto* config = ctx.getNetworkConfig();
-    auto count = std::min(enqueuedTopologyMessages.size(), config->getMaxForwardedTopologies());
+    auto count = std::min(enqueuedTopologyMessages.size(), static_cast<std::size_t>(config->getMaxForwardedTopologies()));
     std::vector<RoutingLink*> links(count);
     auto forward = dequeueMessages(count);
-    std::transform(forward.begin(), forward.end(), std::back_inserter(link), [](TopologyElement* elem){
+    std::transform(forward.begin(), forward.end(), std::back_inserter(links), [](TopologyElement* elem){
         return dynamic_cast<RoutingLink*>(elem);
     });
     return new RoutingVector(std::move(links), config);
 }
 
-unsigned short MasterTreeTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
+void MasterTreeTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
     MasterTopologyContext::receivedMessage(msg, sender, rssi);
     auto* tMsg = dynamic_cast<RoutingVector*>(msg.getTopologyMessage());
     std::vector<RoutingLink*> links = tMsg->getLinks();

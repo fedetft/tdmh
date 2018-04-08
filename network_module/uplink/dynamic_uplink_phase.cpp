@@ -34,15 +34,15 @@ using namespace miosix;
 namespace mxnet {
 
 void DynamicTopologyDiscoveryPhase::receiveByNode(long long slotStart) {
-    auto wakeUpTimeout = syncStatus.getWakeupAndTimeout(slotStart);
+    auto wakeUpTimeout = syncStatus->getWakeupAndTimeout(slotStart);
     auto now = getTime();
-    if (now >= timestampFrom - status.receiverWindow)
+    if (dynamic_cast<DynamicSyncStatus*>(syncStatus)->checkExpired(now, slotStart))
         print_dbg("[U] start late\n");
     if (now < wakeUpTimeout.first)
         pm.deepSleepUntil(wakeUpTimeout.first);
     while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK) {
         try {
-            rcvResult = transceiver.recv(packet, ctx.maxPacketSize, wakeUpTimeout.second);
+            rcvResult = transceiver.recv(packet.data(), packet.size(), wakeUpTimeout.second);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
                 print_dbg("%s\n", e.what());
@@ -51,30 +51,31 @@ void DynamicTopologyDiscoveryPhase::receiveByNode(long long slotStart) {
             if(rcvResult.size) {
                 print_dbg("Received packet, error %d, size %d, timestampValid %d: ", rcvResult.error, rcvResult.size, rcvResult.timestampValid);
                 if (ENABLE_PKT_DUMP_DBG)
-                    memDump(packet, rcvResult.size);
+                    memDump(packet.data(), rcvResult.size);
             } else print_dbg("No packet received, timeout reached\n");
         }
     }
     if (rcvResult.error == RecvResult::ErrorCode::OK) {
-        auto msg = UplinkMessage::fromPkt(std::vector<unsigned char>(packet, packet + rcvResult.size), config);
-        topology.receivedMessage(msg, currentNode, rcvResult.rssi);
-        streamManagement.receive(msg.getSMES());
+        auto msg = UplinkMessage::deserialize(packet.data(), packet.size(), ctx.getNetworkConfig());
+        topology->receivedMessage(msg, currentNode, rcvResult.rssi);
+        auto smes = msg.getSMEs();
+        streamManagement->receive(smes);
         if (ENABLE_UPLINK_INFO_DBG)
             print_dbg("[U] <- N=%u @%llu\n", currentNode, rcvResult.timestamp);
     } else {
-        topology.unreceivedMessage(currentNode);
+        topology->unreceivedMessage(currentNode);
     }
 }
 
 void DynamicTopologyDiscoveryPhase::sendMyTopology(long long slotStart) {
-    auto dTopology = dynamic_cast<DynamicTopologyContext&>(topology);
-    auto dSMContext = dynamic_cast<DynamicStreamManagementContext&>(streamManagement);
-    if (!dTopology.hasPredecessor()) return;
-    auto* tMsg = dTopology.getMyTopologyMessage();
-    unsigned char maxSMEs = (MediumAccessController::maxPktSize - UplinkMessage::getSizeWithoutSMEs(tMsg)) / StreamManagementElement::getSize();
-    auto smes = dSMContext.dequeue(maxSMEs);
-    UplinkMessage msg(ctx.getHop(), dTopology.getBestPredecessor(), tMsg, smes);
-    std::vector<unsigned char> pkt = msg.serialize();
+    auto* dTopology = dynamic_cast<DynamicTopologyContext*>(topology);
+    auto* dSMContext = dynamic_cast<DynamicStreamManagementContext*>(streamManagement);
+    if (!dTopology->hasPredecessor()) return;
+    auto* tMsg = dTopology->getMyTopologyMessage();
+    unsigned char maxSMEs = (MediumAccessController::maxPktSize - UplinkMessage::getSizeWithoutSMEs(tMsg)) / StreamManagementElement::getMaxSize();
+    auto smes = dSMContext->dequeue(maxSMEs);
+    UplinkMessage msg(ctx.getHop(), dTopology->getBestPredecessor(), tMsg, smes);
+    msg.serialize(packet.begin());
     if (ENABLE_UPLINK_INFO_DBG)
         print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), slotStart);
     auto wuTime = slotStart - MediumAccessController::receivingNodeWakeupAdvance;
@@ -83,7 +84,7 @@ void DynamicTopologyDiscoveryPhase::sendMyTopology(long long slotStart) {
         print_dbg("[U] start late\n");
     if (now < wuTime)
         pm.deepSleepUntil(wuTime);
-    transceiver.sendAt(pkt.data(), pkt.size(), slotStart);
+    transceiver.sendAt(packet.data(), packet.size(), slotStart);
     tMsg->deleteForwarded();
     delete tMsg;
     smes.clear();

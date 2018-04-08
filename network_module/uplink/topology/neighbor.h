@@ -42,8 +42,12 @@ public:
     unsigned char getUnseen() const { return unseenSince; }
     bool operator <(const Neighbor &b) const { return nodeId < b.nodeId; };
     bool operator >(const Neighbor &b) const { return b < *this; }
+    bool operator ==(const Neighbor &b) const { return nodeId == b.nodeId; }
+    bool operator !=(const Neighbor &b) const { return nodeId != b.nodeId; }
     bool operator <(const unsigned char &b) const { return nodeId < b; };
     bool operator >(const unsigned char &b) const { return nodeId > b; }
+    bool operator ==(const unsigned char &b) const { return nodeId == b; }
+    bool operator !=(const unsigned char &b) const { return nodeId != b; }
 protected:
     unsigned char nodeId;
     unsigned char unseenSince;

@@ -35,12 +35,11 @@ class DynamicTreeTopologyContext : public DynamicTopologyContext {
 public:
     DynamicTreeTopologyContext(MACContext& ctx) : DynamicTopologyContext(ctx) {};
     virtual ~DynamicTreeTopologyContext() {};
-    virtual NetworkConfiguration::TopologyMode getTopologyType() {
+    NetworkConfiguration::TopologyMode getTopologyType() override {
         return NetworkConfiguration::TopologyMode::ROUTING_VECTOR;
     }
-    virtual void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi);
-    virtual std::vector<TopologyElement*> dequeueMessages(unsigned short count);
-    virtual TopologyMessage* getMyTopologyMessage();
+    void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
+    TopologyMessage* getMyTopologyMessage() override;
 };
 
 
@@ -48,11 +47,11 @@ class MasterTreeTopologyContext : public MasterTopologyContext {
 public:
     MasterTreeTopologyContext(MACContext& ctx) : MasterTopologyContext(ctx) {};
     virtual ~MasterTreeTopologyContext() {};
-    virtual NetworkConfiguration::TopologyMode getTopologyType() {
+    NetworkConfiguration::TopologyMode getTopologyType() override {
         return NetworkConfiguration::TopologyMode::ROUTING_VECTOR;
     }
-    virtual unsigned short receivedMessage(UplinkMessage msg, unsigned char sender, short rssi);
-    virtual void unreceivedMessage(unsigned char sender);
+    void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
+    void unreceivedMessage(unsigned char sender) override;
 };
 
 } /* namespace mxnet */

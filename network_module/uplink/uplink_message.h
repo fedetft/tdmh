@@ -42,11 +42,11 @@ public:
             std::vector<StreamManagementElement*> smes) :
         content({hop, assignee}), topology(topology), smes(smes) {};
     virtual ~UplinkMessage() {};
-    void serialize(const char* pkt) override;
+    void serialize(unsigned char* pkt) override;
     static UplinkMessage deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config);
-    static UplinkMessage deserialize(std::vector<unsigned char>::iterator pkt, const NetworkConfiguration* const config);
+    static UplinkMessage deserialize(unsigned char*, std::size_t size, const NetworkConfiguration* const config);
     static std::size_t getSizeWithoutSMEs(TopologyMessage* const tMsg) {
-        return 2 + tMsg->getSize();
+        return sizeof(UplinkMessagePkt) + tMsg->getSize();
     }
     unsigned char getHop() { return content.hop; }
     void setHop(unsigned char hop) { content.hop = hop; }
@@ -54,13 +54,15 @@ public:
     void setAssignee(unsigned short assignee) { content.assignee = assignee; }
     TopologyMessage* getTopologyMessage() { return topology; }
     std::vector<StreamManagementElement*> getSMEs() { return smes; }
-    std::size_t getSize() override;
+    std::size_t getSize() override {
+        return getSizeWithoutSMEs(topology) + smes.size() * StreamManagementElement::getMaxSize();
+    }
 protected:
     struct UplinkMessagePkt {
         unsigned char hop;
         unsigned short assignee;
     } __attribute__((packed));
-    UplinkMessage() {};
+    UplinkMessage(TopologyMessage* const topology) : topology(topology) {};
     UplinkMessagePkt content;
     TopologyMessage* const topology;
     std::vector<StreamManagementElement*> smes;

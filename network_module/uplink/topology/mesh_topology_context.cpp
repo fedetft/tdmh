@@ -26,9 +26,17 @@
  ***************************************************************************/
 
 #include "mesh_topology_context.h"
+#include "../../mac_context.h"
 #include <algorithm>
 
+using namespace miosix;
+
 namespace mxnet {
+
+DynamicMeshTopologyContext::DynamicMeshTopologyContext(MACContext& ctx)  :
+    DynamicTopologyContext(ctx), //TODO al flooding aggiungere neighbor 0 se la topology è mesh
+    neighbors(ctx.getNetworkConfig()->getMaxNodes(), std::vector<unsigned char>()) {};
+
 void DynamicMeshTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
     DynamicTopologyContext::receivedMessage(msg, sender, rssi);
     neighbors.addNeighbor(sender);
@@ -44,24 +52,20 @@ void DynamicMeshTopologyContext::receivedMessage(UplinkMessage msg, unsigned cha
 
 void DynamicMeshTopologyContext::unreceivedMessage(unsigned char nodeIdByTopologySlot) {
     DynamicTopologyContext::unreceivedMessage(nodeIdByTopologySlot);
-    auto it = map.find(nodeIdByTopologySlot);
+    auto it = neighborsUnseenFor.find(nodeIdByTopologySlot);
     if (it == neighborsUnseenFor.end()) return;
     neighborsUnseenFor.erase(it);
     neighbors.removeNeighbor(nodeIdByTopologySlot);
 }
 
-std::vector<ForwardedNeighborMessage*> DynamicMeshTopologyContext::dequeueMessages(unsigned short count) {
-    count = std::min(count, enqueuedTopologyMessages.size());
-    std::vector<ForwardedNeighborMessage*> retval;
-    for (unsigned short i = 0; i < count && !enqueuedTopologyMessages.isEmpty(); i++) {
-        retval.push_back(enqueuedTopologyMessages.dequeue());
-    }
-    return retval;
-}
-
-TopologyMessage DynamicMeshTopologyContext::getMyTopologyMessage() {
+TopologyMessage* DynamicMeshTopologyContext::getMyTopologyMessage() {
     auto* config = ctx.getNetworkConfig();
-    return new NeighborMessage(neighbors, dequeueMessages(config->getMaxForwardedTopologies()), config);
+    std::vector<ForwardedNeighborMessage*> forwarded(config->getMaxForwardedTopologies());
+    auto forward = dequeueMessages(config->getMaxForwardedTopologies());
+    std::transform(forward.begin(), forward.end(), std::back_inserter(forwarded), [](TopologyElement* elem){
+        return dynamic_cast<ForwardedNeighborMessage*>(elem);
+    });
+    return new NeighborMessage(neighbors, std::move(forwarded), config);
 }
 
 void DynamicMeshTopologyContext::checkEnqueueOrUpdate(ForwardedNeighborMessage* msg) {
@@ -102,4 +106,5 @@ void MasterMeshTopologyContext::print() {
         print_dbg("[%d - %d]\n", it.first, it.second);
 }
 
-} /* namespace mxnet */
+}
+/* namespace mxnet */

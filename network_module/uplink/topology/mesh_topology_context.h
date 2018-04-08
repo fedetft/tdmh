@@ -35,19 +35,21 @@ namespace mxnet {
 
 class DynamicMeshTopologyContext : public DynamicTopologyContext {
 public:
-    DynamicMeshTopologyContext(MACContext& ctx) :
-        DynamicTopologyContext(ctx), //TODO al flooding aggiungere neighbor 0 se la topology è mesh
-        neighbors(ctx.getNetworkConfig()->getMaxNodes(), std::vector<unsigned char>()) {};
+    DynamicMeshTopologyContext(MACContext& ctx);
     virtual ~DynamicMeshTopologyContext() {}
     virtual NetworkConfiguration::TopologyMode getTopologyType() {
         return NetworkConfiguration::TopologyMode::NEIGHBOR_COLLECTION;
     }
-    virtual unsigned short receivedMessage(UplinkMessage msg, unsigned char sender, short rssi);
-    virtual void unreceivedMessage(unsigned char sender);
-    virtual std::vector<ForwardedNeighborMessage*> dequeueMessages(unsigned short count);
-    virtual TopologyMessage* getMyTopologyMessage();
+    void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
+    void unreceivedMessage(unsigned char sender) override;
+    TopologyMessage* getMyTopologyMessage() override;
+    void setMasterAsNeighbor(bool yes) override {
+        DynamicTopologyContext::setMasterAsNeighbor(yes);
+        if (yes) neighbors.addNeighbor(0);
+        else neighbors.removeNeighbor(0);
+    }
 protected:
-    virtual void checkEnqueueOrUpdate(ForwardedNeighborMessage&& msg);
+    void checkEnqueueOrUpdate(ForwardedNeighborMessage* msg);
     UpdatableQueue<unsigned short, ForwardedNeighborMessage*> enqueuedTopologyMessages;
     NeighborTable neighbors;
     std::map<unsigned char, unsigned char> neighborsUnseenFor;
@@ -61,8 +63,8 @@ public:
     virtual NetworkConfiguration::TopologyMode getTopologyType() {
         return NetworkConfiguration::TopologyMode::NEIGHBOR_COLLECTION;
     }
-    virtual unsigned short receivedMessage(UplinkMessage msg, unsigned char sender, short rssi);
-    virtual void print();
+    void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
+    void print();
 protected:
 };
 

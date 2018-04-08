@@ -64,8 +64,8 @@ public:
     MasterTopologyContext() = delete;
     MasterTopologyContext(MACContext& ctx) : TopologyContext(ctx) {};
     virtual ~MasterTopologyContext() {}
-    virtual void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi);
-    virtual void unreceivedMessage(unsigned char sender);
+    void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
+    void unreceivedMessage(unsigned char sender) override;
 protected:
     std::map<unsigned char, unsigned char> neighborsUnseenFor;
     TopologyMap<unsigned char> topology;
@@ -76,12 +76,13 @@ public:
     DynamicTopologyContext() = delete;
     DynamicTopologyContext(MACContext& ctx) : TopologyContext(ctx) {};
     virtual ~DynamicTopologyContext() {}
-    virtual void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi);
-    virtual void unreceivedMessage(unsigned char sender);
-    virtual std::vector<TopologyElement*> dequeueMessages(unsigned short count);
+    void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
+    void unreceivedMessage(unsigned char sender) override;
+    std::vector<TopologyElement*> dequeueMessages(std::size_t count);
     virtual TopologyMessage* getMyTopologyMessage()=0;
     virtual unsigned char getBestPredecessor();
     virtual bool hasPredecessor();
+    virtual void setMasterAsNeighbor(bool yes);
 
 protected:
     UpdatableQueue<unsigned char, TopologyElement*> enqueuedTopologyMessages;

@@ -30,10 +30,10 @@
 
 namespace mxnet {
 
-void UplinkMessage::serialize(td::vector<unsigned char>::iterator pkt) {
-    memcpy(pkt, content, sizeof(UplinkMessagePkt));
+void UplinkMessage::serialize(unsigned char* pkt) {
+    memcpy(pkt, reinterpret_cast<unsigned char*>(&content), sizeof(UplinkMessagePkt));
     pkt += sizeof(UplinkMessagePkt);
-    topology->getPkt(pkt);
+    topology->serialize(pkt);
     pkt += topology->getSize();
     for (StreamManagementElement* sme : smes) {
         sme->serialize(pkt);
@@ -42,21 +42,23 @@ void UplinkMessage::serialize(td::vector<unsigned char>::iterator pkt) {
 }
 
 UplinkMessage UplinkMessage::deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config) {
-    return deserialize(pkt.begin(), config);
+    return deserialize(pkt.data(), pkt.size(), config);
 }
 
-UplinkMessage UplinkMessage::deserialize(td::vector<unsigned char>::iterator pkt, const NetworkConfiguration* const config) {
-    UplinkMessage retval;
-    memcpy(retval.content, pkt, sizeof(count));
+UplinkMessage UplinkMessage::deserialize(unsigned char* pkt, std::size_t size, const NetworkConfiguration* const config) {
+    TopologyMessage* topology;
     switch (config->getTopologyMode()) {
     case NetworkConfiguration::NEIGHBOR_COLLECTION:
-        retval.topology = NeighborMessage::fromPkt(pkt + sizeof(retval.content), config);
+        topology = NeighborMessage::deserialize(pkt + sizeof(UplinkMessagePkt), config);
         break;
     case NetworkConfiguration::ROUTING_VECTOR:
-        retval.topology = RoutingVector::fromPkt(pkt + sizeof(retval.content), config);
+        topology = RoutingVector::deserialize(pkt + sizeof(UplinkMessagePkt), config);
         break;
     }
-    retval.smes = StreamManagementElement::fromPkt(pkt + sizeof(retval.content) + retval.topology->getSize());
+    UplinkMessage retval(topology);
+    memcpy(reinterpret_cast<unsigned char*>(&retval.content), pkt, sizeof(UplinkMessagePkt));
+    auto noSMESize = getSizeWithoutSMEs(retval.topology);
+    retval.smes = StreamManagementElement::deserialize(pkt + noSMESize, size - noSMESize);
     return retval;
 }
 

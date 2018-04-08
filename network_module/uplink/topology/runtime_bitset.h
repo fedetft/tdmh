@@ -51,7 +51,7 @@ public:
         wordCount(((size - 1) >> shiftDivisor) + 1),
         content(new word_t[wordCount])
 #ifdef _ARCH_CORTEXM3_EFM32GG
-    , bbData((data - sramBase) << 5 + bitBandBase)
+    , bbData((content - sramBase) << 5 + bitBandBase)
 #endif
     {}
 
@@ -62,7 +62,6 @@ public:
     virtual ~RuntimeBitset() {
         delete content;
     }
-    RuntimeBitset(const RuntimeBitset& other) = delete;
 
     class Bit {
     public:
@@ -139,9 +138,25 @@ public:
     std::size_t size() const { return bitCount; }
     std::size_t wordSize() { return wordCount; }
 
-    bool operator ==(const RuntimeBitset& b) const {
-        return b.bitCount == bitCount && memcmp(content, b.content, wordCount);
+    bool operator ==(const RuntimeBitset& other) const {
+        return other.bitCount == bitCount && memcmp(content, other.content, wordCount);
     }
+    bool operator !=(const RuntimeBitset& other) const {
+        return !(*this == other);
+    }
+    RuntimeBitset(const RuntimeBitset& other) :
+        bitCount(other.bitCount),
+        wordCount(other.wordCount),
+        content(new word_t[wordCount])
+#ifdef _ARCH_CORTEXM3_EFM32GG
+        , bbData((content - sramBase) << 5 + bitBandBase)
+#endif
+    {
+        memcpy(content, other.content, wordCount);
+    }
+    RuntimeBitset(RuntimeBitset&& other) = delete;
+    RuntimeBitset& operator=(const RuntimeBitset& other) = delete;
+    RuntimeBitset& operator=(RuntimeBitset&& other) = delete;
 private:
     std::size_t bitCount;
     std::size_t wordCount;
@@ -151,7 +166,7 @@ private:
 #endif
     static const unsigned char shiftDivisor = BitwiseOps::bitsForRepresentingCountConstexpr(std::numeric_limits<word_t>::digits);
 #ifndef _ARCH_CORTEXM3_EFM32GG
-    static const word_t b0 = 1 << (std::numeric_limits<word_t>::digits - 1);
+    static const word_t b0 = ((word_t) 1) << (std::numeric_limits<word_t>::digits - 1);
     static const unsigned char indexSplitterMask = static_cast<unsigned char>(static_cast<unsigned char>(~0) << shiftDivisor);
 #else
     static const unsigned long sramBase = 0x20000000;

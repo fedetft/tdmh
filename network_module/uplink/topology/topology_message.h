@@ -62,18 +62,20 @@ public:
     ~NeighborTable() {};
     NeighborTable(const NeighborTable& other);
     NeighborTable(NeighborTable&& other) = default;
-    NeighborTable& operator=(const NeighborTable& other);
+    NeighborTable& operator=(const NeighborTable& other) {
+        new (&neighbors) RuntimeBitset(other.neighbors);
+    }
     NeighborTable& operator=(NeighborTable&& other) = default;
-    std::vector<unsigned char>& getNeighbors();
+    std::vector<unsigned char> getNeighbors();
     void addNeighbor(unsigned char neighbor) { neighbors[neighbor] = true; }
     void removeNeighbor(unsigned char neighbor) { neighbors[neighbor] = false; }
     bool hasNeighbor(unsigned char id) { return neighbors[id]; }
     void setNeighbors(std::vector<unsigned char>& neighbors);
     void setNeighbors(std::vector<bool>& neighbors);
 
-    void serialize(const unsigned char* pkt) override;
+    void serialize(unsigned char* pkt) override;
     static NeighborTable deserialize(std::vector<unsigned char>& pkt, unsigned char nodeCount);
-    static NeighborTable deserialize(std::vector<unsigned char>::iterator pkt, unsigned char nodeCount);
+    static NeighborTable deserialize(unsigned char* pkt, unsigned char nodeCount);
     std::size_t getSize() override { return neighbors.wordSize(); }
 
     std::string getNeighborsString() const {
@@ -108,9 +110,9 @@ public:
     unsigned char getNodeId() { return nodeId; }
     NeighborTable getNeighbors() { return neighbors; }
 
-    void serialize(const unsigned char* pkt) override;
-    static ForwardedNeighborMessage deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config);
-    static ForwardedNeighborMessage deserialize(std::vector<unsigned char>::iterator pkt, const NetworkConfiguration* const config);
+    void serialize(unsigned char* pkt) override;
+    static ForwardedNeighborMessage* deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config);
+    static ForwardedNeighborMessage* deserialize(unsigned char* pkt, const NetworkConfiguration* const config);
     std::size_t getSize() override;
 protected:
     ForwardedNeighborMessage(NeighborTable&& table) : neighbors(table) {};
@@ -122,7 +124,7 @@ class NeighborMessage : public TopologyMessage  {
 public:
     NeighborMessage(std::vector<unsigned char>& neighbors, std::vector<ForwardedNeighborMessage*>&& forwarded, const NetworkConfiguration* const config);
     NeighborMessage(std::vector<bool>&& neighbors, std::vector<ForwardedNeighborMessage*>&& forwarded, const NetworkConfiguration* const config);
-    NeighborMessage(NeighborTable&& neighbors, std::vector<ForwardedNeighborMessage*>&& forwarded, const NetworkConfiguration* const config);
+    NeighborMessage(NeighborTable neighbors, std::vector<ForwardedNeighborMessage*>&& forwarded, const NetworkConfiguration* const config);
     NeighborMessage() = delete;
     virtual ~NeighborMessage() {};
     void deleteForwarded() override {
@@ -135,9 +137,9 @@ public:
     NeighborTable getNeighbors() { return neighbors; }
     std::vector<ForwardedNeighborMessage*> getForwardedTopologies() { return forwardedTopologies; }
 
-    void serialize(const unsigned char* pkt) override;
+    void serialize(unsigned char* pkt) override;
     static NeighborMessage* deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config);
-    static NeighborMessage* deserialize(std::vector<unsigned char>::iterator pkt, const NetworkConfiguration* const config);
+    static NeighborMessage* deserialize(unsigned char* pkt, const NetworkConfiguration* const config);
     std::size_t getSize() override {
         return getSize(config, forwardedTopologies.size());
     }
@@ -163,14 +165,14 @@ public:
     bool operator !=(const RoutingLink &b) const {
         return !(*this == b);
     }
-    unsigned short getSize() override { return getMaxSize(); }
     unsigned char getNodeId() { return content.nodeId; }
     unsigned char getPredecessor() { return content.predecessorId; }
     static unsigned short getMaxSize() { return sizeof(RoutingLinkPkt); }
 
-    void serialize(const unsigned char* pkt) override;
-    static RoutingLink deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config);
-    static RoutingLink deserialize(std::vector<unsigned char>::iterator pkt, const NetworkConfiguration* const config);
+    using TopologyElement::serialize;
+    void serialize(unsigned char* pkt) override;
+    static RoutingLink* deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config);
+    static RoutingLink* deserialize(unsigned char* pkt, const NetworkConfiguration* const config);
     std::size_t getSize() override { return getMaxSize(); }
 protected:
     struct RoutingLinkPkt {
@@ -183,11 +185,11 @@ protected:
 
 class RoutingVector : public TopologyMessage {
 public:
-    RoutingVector(std::vector<RoutingLink>&& links, const NetworkConfiguration* const config) :
+    RoutingVector(std::vector<RoutingLink*>&& links, const NetworkConfiguration* const config) :
         TopologyMessage(config), links(links) {}
     RoutingVector() = delete;
     virtual ~RoutingVector() {};
-    std::vector<RoutingLink>& getLinks() { return std::vector<RoutingLink>(links); }
+    std::vector<RoutingLink*>& getLinks() { return links; }
     void deleteForwarded() override {
         links.clear();
     };
@@ -197,13 +199,13 @@ public:
     static std::size_t getSize(unsigned char forwardedTopologies) {
         return forwardedTopologies * RoutingLink::getMaxSize();
     }
-
-    void serialize(const unsigned char* pkt) override;
-    static RoutingVector* deserialize(std::vector<unsigned char> pkt, const NetworkConfiguration* const config);
-    static RoutingVector* deserialize(std::vector<unsigned char>::iterator pkt, const NetworkConfiguration* const config);
+    using TopologyMessage::serialize;
+    void serialize(unsigned char* pkt) override;
+    static RoutingVector* deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config);
+    static RoutingVector* deserialize(unsigned char* pkt, const NetworkConfiguration* const config);
     std::size_t getSize() override { return getSize(links.size()); }
 private:
-    std::vector<RoutingLink> links;
+    std::vector<RoutingLink*> links;
 };
 }
 

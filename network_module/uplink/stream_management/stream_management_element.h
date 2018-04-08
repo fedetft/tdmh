@@ -36,16 +36,24 @@ class StreamManagementElement : public SerializableMessage {
 public:
     class SMEId {
     public:
-        SMEId() = delete;
+        friend class StreamManagementElement;
         SMEId(unsigned char src, unsigned char dst) : src(src), dst(dst) {};
         unsigned char getSrc() { return src; }
         unsigned char getDst() { return dst; }
+        bool operator <(const SMEId& other) const {
+            return src < other.src || src == other.src && dst < other.dst;
+        }
+        bool operator >(const SMEId& other) const {
+            return !(*this < other);
+        }
         bool operator ==(const SMEId& other) const {
             return src == other.src && dst == other.dst;
         }
         bool operator !=(const SMEId& other) const {
             return !(*this == other);
         }
+    protected:
+        SMEId() {};
     private:
         unsigned char src;
         unsigned char dst;
@@ -65,9 +73,9 @@ public:
         return !(*this == other);
     }
 
-    void serialize(const unsigned char* pkt) override;
-    static std::vector<StreamManagementElement> deserialize(std::vector<unsigned char>& pkt);
-    static std::vector<StreamManagementElement> deserialize(std::vector<unsigned char>::iterator pkt, std::size_t size);
+    void serialize(unsigned char* pkt) override;
+    static std::vector<StreamManagementElement*> deserialize(std::vector<unsigned char>& pkt);
+    static std::vector<StreamManagementElement*> deserialize(unsigned char* pkt, std::size_t size);
     std::size_t getSize() override { return getMaxSize(); }
 protected:
     StreamManagementElement() {};
