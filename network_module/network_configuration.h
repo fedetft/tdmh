@@ -112,6 +112,11 @@ public:
         return txPower;
     }
 
+    const unsigned short calculateDataSlots() const {
+        //TODO
+        return slotframeDuration;
+    }
+
 private:
     const unsigned char maxHops;
     unsigned char hopBits;
