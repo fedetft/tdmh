@@ -29,7 +29,7 @@
 #include <cstdarg>
 #include <cstdio>
 
-namespace mxnet {
+namespace miosix {
 
 void print_dbg(const char *fmt, ...) {
     va_list args;
