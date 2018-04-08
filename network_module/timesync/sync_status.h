@@ -152,6 +152,10 @@ public:
         return now >= tExpected - receiverWindow;
     }
 
+    std::pair<int, unsigned> getControllerData() {
+        return std::make_pair(clockCorrection, receiverWindow);
+    }
+
 private:
     miosix::TimeConversion* const tc;
     miosix::VirtualClock& vt;

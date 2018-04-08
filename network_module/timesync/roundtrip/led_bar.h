@@ -21,6 +21,14 @@ public:
     LedBar(int num) {
         encode(num);
     };
+    /**
+     * Constructs an objects from encoded information.
+     * @param data the buffer from which the raw data is taken.
+     */
+    LedBar(unsigned char* data) {
+        memcpy(packet, data, N);
+    };
+
     virtual ~LedBar() {};
     /**
      * Encode a number in range [0; N*2]. Number is rounded in that range.
@@ -59,6 +67,22 @@ public:
 
 private:
     unsigned char packet[N];
+
+#ifndef _MIOSIX
+    static void memPrint(const char *data, char len)
+    {
+        printf("0x%08x | ",reinterpret_cast<const unsigned char*>(data)[0]);
+        for(int i=0;i<len;i++) printf("%02x ",static_cast<unsigned char>(data[i]));
+        for(int i=0;i<(16-len);i++) printf("   ");
+        printf("| ");
+        for(int i=0;i<len;i++)
+        {
+            if((data[i]>=32)&&(data[i]<127)) printf("%c",data[i]);
+            else printf(".");
+        }
+        printf("\n");
+    }
+#endif
 };
 
 template<unsigned N>
@@ -125,9 +149,26 @@ std::pair<int,bool> LedBar<N>::decode()
     if(fromRight-fromLeft>threshold) return make_pair(0,false);
     else return make_pair((fromLeft+fromRight+1)/2,true);
 }
-
+#ifndef _MIOSIX
 template<unsigned N>
-void LedBar<N>::print() { miosix::memDump(packet, N); }
+void LedBar<N>::print() {
+    auto len = N;
+    const char *data=reinterpret_cast<const char*>(packet);
+    while(len>16)
+    {
+        memPrint(data,16);
+        len-=16;
+        data+=16;
+    }
+    if(len>0) memPrint(data,len);
+}
+#else
+template<unsigned N>
+void LedBar<N>::print() {
+    miosix::memDump(packet, N);
+}
+#endif
+
 
 typedef LedBar<16> packet16;
 typedef LedBar<64> packet64;

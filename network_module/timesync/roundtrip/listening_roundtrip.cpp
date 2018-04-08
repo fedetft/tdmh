@@ -28,11 +28,13 @@
 
 #include <stdio.h>
 
-#include "../../timesync/led_bar.h"
-#include "../debug_settings.h"
+#include "led_bar.h"
+#include "../../debug_settings.h"
 #include "listening_roundtrip.h"
 
-namespace mxnet{
+using namespace miosix;
+
+namespace mxnet {
 
 void ListeningRoundtripPhase::execute(long long slotStart) {
     //TODO add a way to use the syncStatus also with the master for having an optimized receiving window
@@ -42,16 +44,16 @@ void ListeningRoundtripPhase::execute(long long slotStart) {
     bool success = false;
     for(; !(success || rcvResult.error == miosix::RecvResult::TIMEOUT); success = isRoundtripAskPacket()) {
         try {
-            rcvResult = transceiver.recv(packet, replyPacketSize, timeoutTime);
+            rcvResult = transceiver.recv(packet.data(), replyPacketSize, timeoutTime);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
                 print_dbg("%s\n", e.what());
         }
         if (ENABLE_PKT_INFO_DBG) {
             if(rcvResult.size){
-                print_dbg("[RTT] Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+                print_dbg("[RTT] Received packet, error %d, size %d, timestampValid %d: ", rcvResult.error, rcvResult.size, rcvResult.timestampValid);
                 if (ENABLE_PKT_DUMP_DBG)
-                    memDump(packet, result.size);
+                    memDump(packet.data(), rcvResult.size);
             } else print_dbg("[RTT] No packet received, timeout reached\n");
         }
     }
@@ -61,9 +63,7 @@ void ListeningRoundtripPhase::execute(long long slotStart) {
         if (ENABLE_ROUNDTRIP_INFO_DBG)
             print_dbg("[T/R] ta=%lld, tr=%lld\n", rcvResult.timestamp, replyTime);
         transceiver.configure(ctx.getTransceiverConfig(false));
-        //TODO sto pacchetto non e` compatibile manco con se stesso, servono header di compatibilita`, indirizzo, etc etc
-        LedBar<replyPacketSize> p;
-        p.encode(ctx.getDelayToMaster() / accuracy); //TODO: 7?! should put a significant cumulated RTT here.
+        LedBar<replyPacketSize> p(ctx.getDelayToMaster() / accuracy);
         try {
             transceiver.sendAt(p.getPacket(), p.getPacketSize(), replyTime);
         } catch(std::exception& e) {

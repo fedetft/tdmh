@@ -29,6 +29,8 @@
 #include "master_timesync_downlink.h"
 #include "../mac_context.h"
 
+using namespace miosix;
+
 namespace mxnet {
 
     MasterTimesyncDownlink::~MasterTimesyncDownlink() {
@@ -44,7 +46,7 @@ namespace mxnet {
             pm.deepSleepUntil(deepsleepDeadline);
         //Sending synchronization start packet
         try {
-            transceiver.sendAt(getSyncPkt(networkConfig->panId).data(), syncPacketSize, slotStart);
+            transceiver.sendAt(getSyncPkt(networkConfig->getPanId()).data(), syncPacketSize, slotStart);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
                 print_dbg("%s\n", e.what());

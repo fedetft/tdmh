@@ -29,7 +29,7 @@
 
 namespace mxnet {
 
-unsigned char SyncStatus::missedPacket() {
+unsigned char DynamicSyncStatus::missedPacket() {
     if(++missedPackets >= config->getMaxMissedTimesyncs()) {
         internalStatus = DESYNCHRONIZED;
         synchronizer->reset();
@@ -43,7 +43,7 @@ unsigned char SyncStatus::missedPacket() {
     return missedPackets;
 }
 
-void SyncStatus::receivedPacket(long long arrivalTime) {
+void DynamicSyncStatus::receivedPacket(long long arrivalTime) {
     measuredFrameStart = arrivalTime;
     std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->computeCorrection(arrivalTime - computedFrameStart);
     missedPackets = 0;

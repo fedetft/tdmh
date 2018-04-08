@@ -29,12 +29,13 @@
 #pragma once
 
 #include "roundtrip_subphase.h"
+#include "../../mac_context.h"
 
 namespace mxnet {
 class AskingRoundtripPhase : public RoundtripSubphase {
 public:
-    AskingRoundtripPhase(long long masterFloodingEndTime) :
-            RoundtripPhase(masterFloodingEndTime) {};
+    AskingRoundtripPhase(MACContext& ctx) :
+        RoundtripSubphase(ctx) {};
     AskingRoundtripPhase() = delete;
     AskingRoundtripPhase(const AskingRoundtripPhase& orig) = delete;
     virtual ~AskingRoundtripPhase() {};
@@ -45,7 +46,7 @@ protected:
         packet = {{
             0x46, //frame type 0b110 (reserved), intra pan
             0x08, //no source addressing, short destination addressing
-            ctx.getHop() - 1, //seq no reused as glossy hop count, 0=root node, it has to contain the dest hop
+            static_cast<unsigned char>(ctx.getHop() - 1), //seq no reused as glossy hop count, 0=root node, it has to contain the dest hop
             static_cast<unsigned char>(panId>>8),
             static_cast<unsigned char>(panId & 0xff), //destination pan ID
             0xff, 0xff                                //destination addr (broadcast)
@@ -53,13 +54,14 @@ protected:
     }
 private:
     bool isRoundtripPacket() {
+        auto panId = ctx.getNetworkConfig()->getPanId();
         //TODO fix this, actually the packet doesn't have this format
         if (!(rcvResult.error == miosix::RecvResult::OK && rcvResult.timestampValid
                 && rcvResult.size == replyPacketSize
                 && packet[0] == 0x46 && packet[1] == 0x08
                 && packet[2] == ctx.getHop()
-                && packet[3] == static_cast<unsigned char> (panId >> 8)
-                && packet[4] == static_cast<unsigned char> (panId & 0xff)
+                && packet[3] == static_cast<unsigned char>(panId >> 8)
+                && packet[4] == static_cast<unsigned char>(panId & 0xff)
                 && packet[5] == 0xff && packet[6] == 0xff)) return false;
         bool legit = true;
         for (int i = 0; i < replyPacketSize && legit; i++) {

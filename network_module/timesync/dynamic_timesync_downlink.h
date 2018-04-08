@@ -28,8 +28,8 @@
 #pragma once
 
 #include "timesync_downlink.h"
-#include "../controller/flopsync2.h"
-#include "../controller/synchronizer.h"
+#include "controller/flopsync2.h"
+#include "controller/synchronizer.h"
 #include "sync_status.h"
 #include "roundtrip/asking_roundtrip.h"
 
@@ -44,10 +44,10 @@ public:
     void periodicSync(long long slotStart);
     void resync();
 
-    virtual long long getPhaseEnd() const { return measuredGlobalFirstActivityTime + phaseDuration; }
+    /*virtual long long getPhaseEnd() const { return measuredGlobalFirstActivityTime + phaseDuration; }*/
     virtual bool isSyncPacket() {
         auto panId = networkConfig->getPanId();
-        return rcvResult.error == RecvResult::OK
+        return rcvResult.error == miosix::RecvResult::OK
                 && rcvResult.timestampValid && rcvResult.size == syncPacketSize
                 && packet[0] == 0x46 && packet[1] == 0x08
                 && packet[3] == static_cast<unsigned char>(panId >> 8)

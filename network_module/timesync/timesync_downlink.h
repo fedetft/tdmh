@@ -33,6 +33,7 @@
 #include "../mac_phase.h"
 #include "sync_status.h"
 #include "roundtrip/listening_roundtrip.h"
+#include "../mac_context.h"
 
 namespace mxnet {
 class TimesyncDownlink : public MACPhase {
@@ -49,7 +50,7 @@ protected:
             MACPhase(ctx),
             networkConfig(ctx.getNetworkConfig()),
             listeningRTP(ctx) {};
-    void rebroadcast(long long resendTs);
+    void rebroadcast(long long arrivalTs);
     
     const NetworkConfiguration* const networkConfig;
     ListeningRoundtripPhase listeningRTP;

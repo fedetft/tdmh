@@ -27,10 +27,12 @@
 
 #include <stdio.h>
 
-#include "../../timesync/led_bar.h"
-#include "../debug_settings.h"
+#include "led_bar.h"
+#include "../../debug_settings.h"
 #include "asking_roundtrip.h"
 #include "listening_roundtrip.h"
+
+using namespace miosix;
 
 namespace mxnet {
 
@@ -38,8 +40,9 @@ namespace mxnet {
         //Sending led bar request to the previous hop
         //Transceiver configured with non strict timeout
         //TODO deepsleep missing
+        getRoundtripAskPacket();
         try {
-            transceiver.sendAt(getRoundtripAskPacket().data(), askPacketSize, slotStart);
+            transceiver.sendAt(packet.data(), askPacketSize, slotStart);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
                 print_dbg("%s\n", e.what());
@@ -49,7 +52,6 @@ namespace mxnet {
 
         //Expecting a ledbar reply from any node of the previous hop, crc disabled
         transceiver.configure(ctx.getTransceiverConfig(false));
-        LedBar<replyPacketSize> p;
         bool success = false;
         for (; !(success || rcvResult.error == miosix::RecvResult::TIMEOUT); success = isRoundtripPacket()) {
             try {
@@ -62,18 +64,17 @@ namespace mxnet {
                     print_dbg("%s\n", e.what());
             }
             if (ENABLE_PKT_INFO_DBG) {
-                if(result.error != RecvResult::ErrorCode::UNINITIALIZED){
-                    print_dbg("Received packet, error %d, size %d, timestampValid %d: ", result.error, result.size, result.timestampValid);
+                if(rcvResult.error != RecvResult::UNINITIALIZED){
+                    print_dbg("Received packet, error %d, size %d, timestampValid %d: ", rcvResult.error, rcvResult.size, rcvResult.timestampValid);
                     if (ENABLE_PKT_DUMP_DBG)
-                        memDump(p.getPacket(), result.size);
+                        memDump(packet.data(), rcvResult.size);
                 } else print_dbg("No packet received, timeout reached\n");
             }
         }
         transceiver.turnOff();
 
-        memcpy(p.getPacket(), packet.data(), result.size);
+        LedBar<replyPacketSize> p(packet.data());
         if(rcvResult.size == p.getPacketSize() && rcvResult.error == miosix::RecvResult::OK && rcvResult.timestampValid) {
-            lastDelay = result.timestamp - (globalFirstActivityTime + replyDelay);
             auto prevDelay = p.decode().first * accuracy;
             auto hopDelay = (rcvResult.timestamp - (slotStart + replyDelay)) >> 1; //time at which is received - time at which is sent / 2
             ctx.setDelayToMaster(prevDelay + hopDelay);
