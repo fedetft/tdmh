@@ -70,7 +70,4 @@ private:
     std::vector<MasterScheduleTransition> transitions;
 };
 
-class MasterSchedule {
-};
-
 } /* namespace mxnet */
