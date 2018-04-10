@@ -83,7 +83,8 @@ void Transceiver::sendAt(const void* pkt, int size, long long when, string pktNa
     if(!isOn) throw runtime_error("Cannot send with transceiver turned off!");
     if (unit != Unit::NS) throw runtime_error("Not implemented");
     auto waitTime = SimTime(when, SIMTIME_NS) - simTime();
-    if(waitTime < 0) throw runtime_error("Transceiver::sendAt too late to send");
+    if(waitTime < 0)
+        throw runtime_error("Transceiver::sendAt too late to send");
     parentNode->waitAndDeletePackets(waitTime);
 
     unsigned char finalPkt[size + (cfg.crc? 2 : 0)];

@@ -32,8 +32,6 @@
 
 namespace miosix {
 
-const unsigned int EFM32_HFXO_FREQ = 48000000LL;
-
 class TimeConversion : MiosixInterface {
 public:
     TimeConversion()=delete;

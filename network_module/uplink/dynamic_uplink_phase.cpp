@@ -33,7 +33,7 @@ using namespace miosix;
 
 namespace mxnet {
 
-void DynamicTopologyDiscoveryPhase::receiveByNode(long long slotStart) {
+void DynamicUplinkPhase::receiveByNode(long long slotStart) {
     auto wakeUpTimeout = syncStatus->getWakeupAndTimeout(slotStart);
     auto now = getTime();
     if (dynamic_cast<DynamicSyncStatus*>(syncStatus)->checkExpired(now, slotStart))
@@ -67,7 +67,7 @@ void DynamicTopologyDiscoveryPhase::receiveByNode(long long slotStart) {
     }
 }
 
-void DynamicTopologyDiscoveryPhase::sendMyTopology(long long slotStart) {
+void DynamicUplinkPhase::sendMyTopology(long long slotStart) {
     auto* dTopology = dynamic_cast<DynamicTopologyContext*>(topology);
     auto* dSMContext = dynamic_cast<DynamicStreamManagementContext*>(streamManagement);
     if (!dTopology->hasPredecessor()) return;
@@ -90,7 +90,7 @@ void DynamicTopologyDiscoveryPhase::sendMyTopology(long long slotStart) {
     smes.clear();
 }
 
-void DynamicTopologyDiscoveryPhase::execute(long long slotStart) {
+void DynamicUplinkPhase::execute(long long slotStart) {
     print_dbg("[T] T=%lld\n", slotStart);
     transceiver.configure(ctx.getTransceiverConfig());
     transceiver.turnOn();

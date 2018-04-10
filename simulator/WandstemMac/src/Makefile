@@ -42,44 +42,45 @@ OBJS = \
     $O/interfaces-impl/virtual_clock.o \
     $O/kernel/timeconversion.o \
     $O/network_module/debug_settings.o \
-    $O/network_module/maccontext.o \
-    $O/network_module/macphase.o \
-    $O/network_module/mediumaccesscontroller.o \
+    $O/network_module/dynamic_mac_context.o \
+    $O/network_module/dynamic_medium_access_controller.o \
+    $O/network_module/mac_context.o \
+    $O/network_module/mac_phase.o \
+    $O/network_module/master_mac_context.o \
+    $O/network_module/master_medium_access_controller.o \
+    $O/network_module/medium_access_controller.o \
     $O/network_module/network_configuration.o \
-    $O/network_module/assignment/assignmentphase.o \
-    $O/network_module/assignment/dynamicassignmentphase.o \
-    $O/network_module/assignment/lasthopassignmentphase.o \
-    $O/network_module/assignment/masterassignmentphase.o \
-    $O/network_module/flooding/floodingphase.o \
-    $O/network_module/flooding/hookingfloodingphase.o \
-    $O/network_module/flooding/masterfloodingphase.o \
-    $O/network_module/flooding/periodiccheckfloodingphase.o \
-    $O/network_module/flooding/time_synchronizers/flopsync1.o \
-    $O/network_module/flooding/time_synchronizers/flopsync2.o \
-    $O/network_module/flooding/time_synchronizers/synchronizer.o \
-    $O/network_module/macround/dynamicmacround.o \
-    $O/network_module/macround/macround.o \
-    $O/network_module/macround/mastermacround.o \
-    $O/network_module/reservation/dynamicreservationphase.o \
-    $O/network_module/reservation/lasthopreservationphase.o \
-    $O/network_module/reservation/masterreservationphase.o \
-    $O/network_module/reservation/reservationphase.o \
-    $O/network_module/roundtrip/askingroundtripphase.o \
-    $O/network_module/roundtrip/listeningroundtripphase.o \
-    $O/network_module/roundtrip/roundtripphase.o \
-    $O/network_module/schedule/dynamicscheduledownlink.o \
-    $O/network_module/schedule/masterscheduledownlink.o \
+    $O/network_module/data/dataphase.o \
+    $O/network_module/schedule/dynamic_schedule_downlink.o \
+    $O/network_module/schedule/dynamic_schedule_information.o \
+    $O/network_module/schedule/master_schedule_downlink.o \
+    $O/network_module/schedule/master_schedule_information.o \
     $O/network_module/schedule/schedule_context.o \
-    $O/network_module/schedule/scheduledownlink.o \
-    $O/network_module/topology_discovery/dynamic_topology_discovery_phase.o \
-    $O/network_module/topology_discovery/master_topology_discovery_phase.o \
-    $O/network_module/topology_discovery/topology_context.o \
-    $O/network_module/topology_discovery/topology_map.o \
-    $O/network_module/topology_discovery/topology_message.o \
-    $O/network_module/topology_discovery/topologydiscoveryphase.o \
-    $O/network_module/topology_discovery/slots_management/dynamicslotsnegotiator.o \
-    $O/network_module/topology_discovery/slots_management/masterslotsnegotiator.o \
-    $O/network_module/topology_discovery/slots_management/slotsnegotiator.o
+    $O/network_module/schedule/schedule_downlink.o \
+    $O/network_module/schedule/schedule_information.o \
+    $O/network_module/timesync/dynamic_timesync_downlink.o \
+    $O/network_module/timesync/master_timesync_downlink.o \
+    $O/network_module/timesync/sync_status.o \
+    $O/network_module/timesync/timesync_downlink.o \
+    $O/network_module/timesync/controller/flopsync1.o \
+    $O/network_module/timesync/controller/flopsync2.o \
+    $O/network_module/timesync/controller/synchronizer.o \
+    $O/network_module/timesync/roundtrip/asking_roundtrip.o \
+    $O/network_module/timesync/roundtrip/listening_roundtrip.o \
+    $O/network_module/timesync/roundtrip/roundtrip_subphase.o \
+    $O/network_module/uplink/dynamic_uplink_phase.o \
+    $O/network_module/uplink/master_uplink_phase.o \
+    $O/network_module/uplink/uplink_message.o \
+    $O/network_module/uplink/uplink_phase.o \
+    $O/network_module/uplink/stream_management/stream_management_context.o \
+    $O/network_module/uplink/stream_management/stream_management_element.o \
+    $O/network_module/uplink/topology/mesh_topology_context.o \
+    $O/network_module/uplink/topology/neighbor.o \
+    $O/network_module/uplink/topology/runtime_bitset.o \
+    $O/network_module/uplink/topology/topology_context.o \
+    $O/network_module/uplink/topology/topology_map.o \
+    $O/network_module/uplink/topology/topology_message.o \
+    $O/network_module/uplink/topology/tree_topology_context.o
 
 # Message files
 MSGFILES =

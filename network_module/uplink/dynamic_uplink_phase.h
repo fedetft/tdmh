@@ -33,12 +33,12 @@
 
 namespace mxnet {
 
-class DynamicTopologyDiscoveryPhase : public UplinkPhase {
+class DynamicUplinkPhase : public UplinkPhase {
 public:
-    DynamicTopologyDiscoveryPhase(MACContext& ctx) :
+    DynamicUplinkPhase(MACContext& ctx) :
         UplinkPhase(ctx) {}
-    DynamicTopologyDiscoveryPhase();
-    virtual ~DynamicTopologyDiscoveryPhase() {};
+    DynamicUplinkPhase();
+    virtual ~DynamicUplinkPhase() {};
     virtual void execute(long long slotStart) override;
     void receiveByNode(long long slotStart);
     void sendMyTopology(long long slotStart);

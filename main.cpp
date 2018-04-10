@@ -31,6 +31,8 @@
 #include "network_module/macround/dynamicmacround.h"
 #include "network_module/mediumaccesscontroller.h"
 #include "network_module/network_configuration.h"
+#include "network_module/dynamic_medium_access_controller.h"
+#include "network_module/master_medium_access_controller.h"
 
 using namespace std;
 using namespace miosix;
