@@ -39,7 +39,7 @@ public:
     NetworkConfiguration(const unsigned char maxHops, const unsigned short maxNodes, unsigned short networkId,
             const unsigned short panId, const short txPower, const unsigned int baseFrequency,
             const unsigned long long slotframeDuration, const unsigned char maxForwardedTopologies,
-            const unsigned long long maxAdmittedRcvWindow,
+            const unsigned short scheduleDownlinkPerSlotframeCount, const unsigned long long maxAdmittedRcvWindow,
             const unsigned short maxRoundsUnavailableBecomesDead, const unsigned short maxRoundsUnreliableParent,
             const unsigned char maxMissedTimesyncs, const unsigned short minRoundBecomeNeighbor,
             const TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION);
@@ -112,11 +112,10 @@ public:
         return txPower;
     }
 
-    const unsigned short calculateDataSlots() const {
-        //TODO
-        return slotframeDuration;
-    }
 
+    const unsigned short getScheduleDownlinkPerSlotframeCount() const {
+        return scheduleDownlinkPerSlotframeCount;
+    }
 private:
     const unsigned char maxHops;
     unsigned char hopBits;
@@ -135,6 +134,7 @@ private:
     const unsigned short maxRoundsUnavailableBecomesDead;
     const unsigned short maxRoundsUnreliableParent;
     const unsigned short minRoundBecomeNeighbor;
+    const unsigned short scheduleDownlinkPerSlotframeCount;
 };
 }
 

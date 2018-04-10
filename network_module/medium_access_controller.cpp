@@ -27,11 +27,18 @@
 
 #include "medium_access_controller.h"
 #include "mac_context.h"
+#include "schedule/schedule_downlink.h"
+#include "timesync/timesync_downlink.h"
+#include "uplink/uplink_phase.h"
+#include "data/dataphase.h"
 
 namespace mxnet {
 
 void MediumAccessController::run() {
 
+}
+unsigned short MediumAccessController::getDataslotCount() {
+    return (ctx->getNetworkConfig()->getSlotframeDuration() - (uplink->getDuration() + timesync->getDuration() + schedule->getDuration())) / data->getDuration();
 }
 }
 

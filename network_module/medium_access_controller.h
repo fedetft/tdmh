@@ -35,6 +35,7 @@ class MACContext;
 class UplinkPhase;
 class ScheduleDownlinkPhase;
 class DataPhase;
+class TimesyncDownlink;
 class MediumAccessController {
 public:
     MediumAccessController() = delete;
@@ -54,7 +55,10 @@ public:
     static const unsigned char maxPktSizeNoCRC = 127;
 protected:
     MediumAccessController(MACContext* const ctx) : ctx(ctx) {};
+
+    unsigned short getDataslotCount();
     MACContext* const ctx;
+    TimesyncDownlink* timesync;
     UplinkPhase* uplink;
     ScheduleDownlinkPhase* schedule;
     DataPhase* data;

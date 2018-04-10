@@ -36,6 +36,9 @@ public:
     RoundtripSubphase(MACContext& ctx) : MACPhase(ctx) {};
     RoundtripSubphase() = delete;
     RoundtripSubphase(const RoundtripSubphase& orig) = delete;
+    unsigned long long getDuration() override {
+        return phaseDuration;
+    }
     virtual ~RoundtripSubphase() {};
     
     static const unsigned int receiverWindow = 200000; //200us

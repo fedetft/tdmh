@@ -34,12 +34,15 @@
 namespace mxnet {
 class DataPhase : public MACPhase {
 public:
-    DataPhase(MACContext& ctx) :
-            MACPhase(ctx), slotsInFrame(ctx.getNetworkConfig()->calculateDataSlots()), sCtx(ctx.getScheduleContext()) {};
+    DataPhase(MACContext& ctx, unsigned short slotsInFrame) :
+            MACPhase(ctx), slotsInFrame(slotsInFrame), sCtx(ctx.getScheduleContext()) {};
     DataPhase(const DataPhase& orig) = delete;
     virtual ~DataPhase() {};
 
     virtual void execute(long long slotStart) override;
+    unsigned long long getDuration() override {
+        return packetArrivalAndProcessingTime + transmissionInterval;
+    }
 
     static const int transmissionInterval = 1000000; //1ms
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms

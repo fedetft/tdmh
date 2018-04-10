@@ -34,7 +34,7 @@ namespace mxnet {
 NetworkConfiguration::NetworkConfiguration(const unsigned char maxHops, const unsigned short maxNodes, unsigned short networkId,
         const unsigned short panId, const short txPower, const unsigned int baseFrequency,
         const unsigned long long slotframeDuration, const unsigned char maxForwardedTopologies,
-        const unsigned long long maxAdmittedRcvWindow,
+        const unsigned short scheduleDownlinkPerSlotframeCount, const unsigned long long maxAdmittedRcvWindow,
         const unsigned short maxRoundsUnavailableBecomesDead, const unsigned short maxRoundsUnreliableParent,
         const unsigned char maxMissedTimesyncs, const unsigned short minRoundBecomeNeighbor,
         const TopologyMode topologyMode) :
@@ -43,7 +43,8 @@ NetworkConfiguration::NetworkConfiguration(const unsigned char maxHops, const un
         baseFrequency(baseFrequency), topologyMode(topologyMode), slotframeDuration(slotframeDuration),
         maxMissedTimesyncs(maxMissedTimesyncs), maxAdmittedRcvWindow(maxAdmittedRcvWindow), maxForwardedTopologies(maxForwardedTopologies),
         maxRoundsUnavailableBecomesDead(maxRoundsUnavailableBecomesDead),
-        maxRoundsUnreliableParent(maxRoundsUnreliableParent), minRoundBecomeNeighbor(minRoundBecomeNeighbor) {
+        maxRoundsUnreliableParent(maxRoundsUnreliableParent), minRoundBecomeNeighbor(minRoundBecomeNeighbor),
+        scheduleDownlinkPerSlotframeCount(scheduleDownlinkPerSlotframeCount) {
     switch (topologyMode) {
     case TopologyMode::NEIGHBOR_COLLECTION:
         break;

@@ -40,6 +40,9 @@ public:
     ScheduleDownlinkPhase() = delete;
     ScheduleDownlinkPhase(const ScheduleDownlinkPhase& orig) = delete;
     virtual ~ScheduleDownlinkPhase() {};
+    unsigned long long getDuration() override {
+        return networkConfig->getScheduleDownlinkPerSlotframeCount() * (phaseStartupTime + networkConfig->getMaxHops() * rebroadcastInterval);
+    }
     static const int phaseStartupTime = 450000;
     static const int rebroadcastInterval = 5000000; //32us per-byte + 600us total delta
     

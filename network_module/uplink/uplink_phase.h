@@ -39,9 +39,11 @@ public:
     UplinkPhase() = delete;
     UplinkPhase(const UplinkPhase& orig) = delete;
     virtual ~UplinkPhase() {};
+    unsigned long long getDuration() override {
+        return nodesCount * (packetArrivalAndProcessingTime + transmissionInterval);
+    }
     
     static const int transmissionInterval = 1000000; //1ms
-    static const int firstSenderDelay = 1000000; //TODO tune it, guessed based on the need to RCV -> SND if was asking before
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
     static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
 protected:

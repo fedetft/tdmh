@@ -50,6 +50,7 @@ public:
      * @param slotStart timestamp identifying the first action computed in the network.
      */
     virtual void execute(long long slotStart) = 0;
+    virtual unsigned long long getDuration() = 0;
 protected:
     MACContext& ctx;
     SyncStatus* const syncStatus;
