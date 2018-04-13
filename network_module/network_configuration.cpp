@@ -36,14 +36,14 @@ NetworkConfiguration::NetworkConfiguration(const unsigned char maxHops, const un
         const unsigned long long slotframeDuration, const unsigned char maxForwardedTopologies,
         const unsigned short scheduleDownlinkPerSlotframeCount, const unsigned long long maxAdmittedRcvWindow,
         const unsigned short maxRoundsUnavailableBecomesDead, const unsigned short maxRoundsUnreliableParent,
-        const unsigned char maxMissedTimesyncs, const unsigned short minRoundBecomeNeighbor,
+        const unsigned char maxMissedTimesyncs,
         const TopologyMode topologyMode) :
     maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)), staticNetworkId(networkId), maxNodes(maxNodes),
         networkIdBits(BitwiseOps::bitsForRepresentingCount(maxNodes)), panId(panId), txPower(txPower),
         baseFrequency(baseFrequency), topologyMode(topologyMode), slotframeDuration(slotframeDuration),
         maxMissedTimesyncs(maxMissedTimesyncs), maxAdmittedRcvWindow(maxAdmittedRcvWindow), maxForwardedTopologies(maxForwardedTopologies),
         maxRoundsUnavailableBecomesDead(maxRoundsUnavailableBecomesDead),
-        maxRoundsUnreliableParent(maxRoundsUnreliableParent), minRoundBecomeNeighbor(minRoundBecomeNeighbor),
+        maxRoundsUnreliableParent(maxRoundsUnreliableParent),
         scheduleDownlinkPerSlotframeCount(scheduleDownlinkPerSlotframeCount) {
     switch (topologyMode) {
     case TopologyMode::NEIGHBOR_COLLECTION:

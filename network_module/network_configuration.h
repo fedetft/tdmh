@@ -41,7 +41,7 @@ public:
             const unsigned long long slotframeDuration, const unsigned char maxForwardedTopologies,
             const unsigned short scheduleDownlinkPerSlotframeCount, const unsigned long long maxAdmittedRcvWindow,
             const unsigned short maxRoundsUnavailableBecomesDead, const unsigned short maxRoundsUnreliableParent,
-            const unsigned char maxMissedTimesyncs, const unsigned short minRoundBecomeNeighbor,
+            const unsigned char maxMissedTimesyncs,
             const TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION);
 
     const unsigned int getBaseFrequency() const {
@@ -88,10 +88,6 @@ public:
         return maxRoundsUnreliableParent;
     }
 
-    const unsigned short getMinRoundBecomeNeighbor() const {
-        return minRoundBecomeNeighbor;
-    }
-
     unsigned short getNetworkIdBits() const {
         return networkIdBits;
     }
@@ -133,7 +129,6 @@ private:
     const unsigned char maxForwardedTopologies;
     const unsigned short maxRoundsUnavailableBecomesDead;
     const unsigned short maxRoundsUnreliableParent;
-    const unsigned short minRoundBecomeNeighbor;
     const unsigned short scheduleDownlinkPerSlotframeCount;
 };
 }

@@ -38,7 +38,7 @@ namespace mxnet {
 std::pair<std::vector<ScheduleAddition*>, std::vector<unsigned char>> MasterScheduleContext::getScheduleToDistribute(unsigned short bytes) {
     static int i = 0;
     if(i++ == 15) {
-        vector<std::tuple<unsigned short, unsigned short, unsigned short, unsigned short>>* vec;
+        //vector<std::tuple<unsigned short, unsigned short, unsigned short, unsigned short>>* vec;
 
         //pass from master
         //                                    TS                              SCHEDNUM                SRC                 DST
@@ -111,7 +111,7 @@ std::pair<std::vector<ScheduleAddition*>, std::vector<unsigned char>> MasterSche
     }
     std::vector<ScheduleAddition*> retval1;
     std::vector<unsigned char> retval2;
-    auto bitsLimit = bytes * std::numeric_limits<unsigned char>::digits;
+    unsigned bitsLimit = bytes * std::numeric_limits<unsigned char>::digits;
     //insert until i encounter the first one exceeding
     for (bool exceeds = false; bitsLimit > 0 && !exceeds;) {
         auto* val = deltaToDistribute.front();

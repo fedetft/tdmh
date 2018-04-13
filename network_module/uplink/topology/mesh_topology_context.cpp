@@ -34,7 +34,7 @@ using namespace miosix;
 namespace mxnet {
 
 DynamicMeshTopologyContext::DynamicMeshTopologyContext(MACContext& ctx)  :
-    DynamicTopologyContext(ctx), //TODO al flooding aggiungere neighbor 0 se la topology è mesh
+    DynamicTopologyContext(ctx),
     neighbors(ctx.getNetworkConfig()->getMaxNodes(), std::vector<unsigned char>()) {};
 
 void DynamicMeshTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {

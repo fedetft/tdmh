@@ -26,7 +26,7 @@ using namespace mxnet;
 void Node::activity()
 {
     using namespace miosix;
-    const NetworkConfiguration config(16, 256, address, 6, 1, 2450, 10000000000, 2, 1, 150000, 3, 3, 1, 0);
+    const NetworkConfiguration config(16, 256, address, 6, 1, 2450, 10000000000, 2, 1, 150000, 3, 3, 1);
     //MediumAccessController controller(new DynamicMACRound::DynamicMACRoundFactory(), &config);
     //controller.run();
 }
