@@ -37,6 +37,8 @@ public:
     DynamicScheduleDownlinkPhase(const DynamicScheduleDownlinkPhase& orig) = delete;
     void execute(long long slotStart) override;
     virtual ~DynamicScheduleDownlinkPhase() {};
+protected:
+    void rebroadcast(long long slotStart);
 };
 }
 

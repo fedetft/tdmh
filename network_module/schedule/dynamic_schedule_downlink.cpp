@@ -84,5 +84,15 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     dSctx->parseSchedule(data);
 }
 
+void DynamicScheduleDownlinkPhase::rebroadcast(long long rcvTime) {
+    if(ctx.getHop() >= networkConfig->getMaxHops()) return;
+    try {
+        transceiver.sendAt(packet.data(), packet.size(), rcvTime + rebroadcastInterval);
+    } catch(std::exception& e) {
+        if (ENABLE_RADIO_EXCEPTION_DBG)
+            print_dbg("%s\n", e.what());
+    }
+}
+
 }
 

@@ -55,6 +55,7 @@ public:
                 && packet[5] == 0xff && packet[6] == 0xff;
     }
 protected:
+    void rebroadcast(long long arrivalTs);
     AskingRoundtripPhase askingRTP;
 };
 }

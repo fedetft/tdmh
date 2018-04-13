@@ -158,5 +158,15 @@ inline void DynamicTimesyncDownlink::execute(long long slotStart)
         askingRTP.execute(slotStart + RoundtripSubphase::senderDelay);
     transceiver.turnOff();
 }
+
+void DynamicTimesyncDownlink::rebroadcast(long long arrivalTs){
+    if(packet[2] == networkConfig->getMaxHops()) return;
+    try {
+        transceiver.sendAt(packet.data(), syncPacketSize, arrivalTs + rebroadcastInterval);
+    } catch(std::exception& e) {
+        if (ENABLE_RADIO_EXCEPTION_DBG)
+            print_dbg("%s\n", e.what());
+    }
+}
 }
 

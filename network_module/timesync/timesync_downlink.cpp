@@ -35,15 +35,5 @@ namespace mxnet {
 
 TimesyncDownlink::~TimesyncDownlink() {
 }
-
-void TimesyncDownlink::rebroadcast(long long arrivalTs){
-    if(packet[2] == networkConfig->getMaxHops()) return;
-    try {
-        transceiver.sendAt(packet.data(), syncPacketSize, arrivalTs + rebroadcastInterval);
-    } catch(std::exception& e) {
-        if (ENABLE_RADIO_EXCEPTION_DBG)
-            print_dbg("%s\n", e.what());
-    }
-}
 }
 

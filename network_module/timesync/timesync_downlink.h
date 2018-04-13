@@ -53,7 +53,6 @@ protected:
             MACPhase(ctx),
             networkConfig(ctx.getNetworkConfig()),
             listeningRTP(ctx) {};
-    void rebroadcast(long long arrivalTs);
     
     const NetworkConfiguration* const networkConfig;
     ListeningRoundtripPhase listeningRTP;

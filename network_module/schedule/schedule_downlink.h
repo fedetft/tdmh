@@ -51,7 +51,6 @@ protected:
         MACPhase(ctx),
         networkConfig(ctx.getNetworkConfig()),
         scheduleContext(ctx.getScheduleContext()) {};
-    void rebroadcast(long long slotStart);
     
     const NetworkConfiguration* const networkConfig;
     ScheduleContext* const scheduleContext;
