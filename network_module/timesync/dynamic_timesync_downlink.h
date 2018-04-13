@@ -43,8 +43,8 @@ public:
     inline void execute(long long slotStart) override;
     void periodicSync(long long slotStart);
     void resync();
-
-    /*virtual long long getPhaseEnd() const { return measuredGlobalFirstActivityTime + phaseDuration; }*/
+protected:
+    void rebroadcast(long long arrivalTs);
     virtual bool isSyncPacket() {
         auto panId = networkConfig->getPanId();
         return rcvResult.error == miosix::RecvResult::OK
@@ -54,8 +54,6 @@ public:
                 && packet[4] == static_cast<unsigned char>(panId & 0xff)
                 && packet[5] == 0xff && packet[6] == 0xff;
     }
-protected:
-    void rebroadcast(long long arrivalTs);
     AskingRoundtripPhase askingRTP;
 };
 }
