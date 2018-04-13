@@ -46,7 +46,7 @@ namespace mxnet {
             pm.deepSleepUntil(deepsleepDeadline);
         //Sending synchronization start packet
         try {
-            transceiver.sendAt(getSyncPkt(networkConfig->getPanId()).data(), syncPacketSize, slotStart);
+            transceiver.sendAt(packet.data(), syncPacketSize, slotStart);
         } catch(std::exception& e) {
             if (ENABLE_RADIO_EXCEPTION_DBG)
                 print_dbg("%s\n", e.what());

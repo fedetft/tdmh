@@ -35,23 +35,23 @@ namespace mxnet {
 class MasterTimesyncDownlink : public TimesyncDownlink {
 public:
     explicit MasterTimesyncDownlink(MACContext& ctx) :
-            TimesyncDownlink(ctx) {};
+            TimesyncDownlink(ctx) {
+        auto panId = networkConfig->getPanId();
+        packet = {{
+                0x46, //frame type 0b110 (reserved), intra pan
+                0x08, //no source addressing, short destination addressing
+                0x00, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
+                static_cast<unsigned char>(panId>>8),
+                static_cast<unsigned char>(panId & 0xff), //destination pan ID
+                0xff, 0xff                                //destination addr (broadcast)
+            }};
+    };
     MasterTimesyncDownlink() = delete;
     MasterTimesyncDownlink(const MasterTimesyncDownlink& orig) = delete;
     virtual ~MasterTimesyncDownlink();
     void execute(long long slotStart) override;
     
 protected:
-    inline std::array<unsigned char, syncPacketSize> getSyncPkt(int panId) {
-        return {{
-            0x46, //frame type 0b110 (reserved), intra pan
-            0x08, //no source addressing, short destination addressing
-            0x00, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
-            static_cast<unsigned char>(panId>>8),
-            static_cast<unsigned char>(panId & 0xff), //destination pan ID
-            0xff, 0xff                                //destination addr (broadcast)
-        }};
-    }
 private:
 };
 }
