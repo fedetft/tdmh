@@ -64,6 +64,7 @@ public:
     NeighborTable(NeighborTable&& other) = default;
     NeighborTable& operator=(const NeighborTable& other) {
         new (&neighbors) RuntimeBitset(other.neighbors);
+        return *this;
     }
     NeighborTable& operator=(NeighborTable&& other) = default;
     std::vector<unsigned char> getNeighbors();
@@ -80,7 +81,7 @@ public:
 
     std::string getNeighborsString() const {
         std::string str;
-        for (int i = 0; i < neighbors.size(); i++)
+        for (unsigned i = 0; i < neighbors.size(); i++)
             if (neighbors[i])
                 str += std::to_string(i) + ", ";
         return str.size()? str.substr(0, str.size() - 2) : str;

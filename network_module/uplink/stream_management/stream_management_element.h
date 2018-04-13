@@ -41,7 +41,7 @@ public:
         unsigned char getSrc() { return src; }
         unsigned char getDst() { return dst; }
         bool operator <(const SMEId& other) const {
-            return src < other.src || src == other.src && dst < other.dst;
+            return src < other.src || (src == other.src && dst < other.dst);
         }
         bool operator >(const SMEId& other) const {
             return !(*this < other);

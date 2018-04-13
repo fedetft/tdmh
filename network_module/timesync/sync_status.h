@@ -43,7 +43,7 @@ public:
     virtual ~SyncStatus() {};
     SyncStatus(const SyncStatus&) = delete;
     SyncStatus(const NetworkConfiguration* const config) : SyncStatus(config, DESYNCHRONIZED) {};
-    SyncStatus(const NetworkConfiguration* const config, MacroStatus status) : config(config), internalStatus(status) {};
+    SyncStatus(const NetworkConfiguration* const config, MacroStatus status) : internalStatus(status), config(config) {};
     virtual void initialize(long long hookPktTime)=0;
     virtual void next()=0;
     virtual long long getSenderWakeup(long long tExpected) {

@@ -49,7 +49,7 @@ public:
     virtual DynamicRole getRole() { return role; }
     virtual void run(DynamicScheduleContext& ctx) = 0;
     bool operator>(const DynamicScheduleElement& other) {
-        dataslot > other.dataslot;
+        return dataslot > other.dataslot;
     }
     bool operator<(const DynamicScheduleElement& other) {
         return !(*this > other);

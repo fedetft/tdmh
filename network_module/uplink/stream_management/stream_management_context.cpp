@@ -74,7 +74,7 @@ void DynamicStreamManagementContext::opened(StreamManagementElement* sme) {
 std::vector<StreamManagementElement*> DynamicStreamManagementContext::dequeue(std::size_t count) {
     count = std::min(count, queue.size());
     std::vector<StreamManagementElement*> retval(count);
-    for (int i = 0; i < count; i++) {
+    for (unsigned i = 0; i < count; i++) {
         auto&& val = queue.dequeue();
         retval[i] = val;
         auto it = std::find(pending.begin(), pending.end(), val);

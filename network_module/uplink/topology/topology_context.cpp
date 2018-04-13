@@ -45,7 +45,7 @@ void DynamicTopologyContext::unreceivedMessage(unsigned char sender) {
 
 std::vector<TopologyElement*> DynamicTopologyContext::dequeueMessages(std::size_t count) {
     std::vector<TopologyElement*> retval(std::min(enqueuedTopologyMessages.size(), count));
-    for (int i = 0; i < retval.size(); i++)
+    for (unsigned i = 0; i < retval.size(); i++)
         retval[i] = enqueuedTopologyMessages.dequeue();
     return retval;
 }

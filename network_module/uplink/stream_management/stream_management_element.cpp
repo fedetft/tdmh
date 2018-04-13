@@ -41,7 +41,7 @@ std::vector<StreamManagementElement*> StreamManagementElement::deserialize(std::
 std::vector<StreamManagementElement*> StreamManagementElement::deserialize(unsigned char* pkt, std::size_t size) {
     auto count = size / getMaxSize();
     std::vector<StreamManagementElement*> retval(count);
-    for (int i = 0, bytes = 0; i < count; i++, bytes += getMaxSize()) {
+    for (unsigned i = 0, bytes = 0; i < count; i++, bytes += getMaxSize()) {
         auto* val = new StreamManagementElement();
         memcpy(reinterpret_cast<unsigned char*>(&val->content), pkt + bytes, getMaxSize());
         val->id.src = val->getSrc();

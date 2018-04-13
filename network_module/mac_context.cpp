@@ -37,11 +37,11 @@ namespace mxnet {
     
     MACContext::MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config, SyncStatus* const syncStatus) :
             mac(mac),
+            syncStatus(syncStatus),
             transceiverConfig(config->getBaseFrequency(), config->getTxPower(), true, false),
             networkConfig(config),
             networkId(config->getStaticNetworkId()),
-            transceiver(transceiver),
-            syncStatus(syncStatus) {}
+            transceiver(transceiver) {}
 
     MACContext::~MACContext() {
         delete networkConfig;

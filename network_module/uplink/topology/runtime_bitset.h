@@ -79,7 +79,7 @@ public:
 
         operator bool() const { return value; } // For use on RHS of assignment
 
-        bool& operator=(const bool& rhs) {
+        Bit& operator=(const bool& rhs) {
             if (rhs)
 #ifndef _ARCH_CORTEXM3_EFM32GG
                 content[wordIdx] |= b0 >> bitPow;
@@ -90,6 +90,8 @@ public:
             else
                 content[wordIdx] = 0;
 #endif
+            value = rhs;
+            return *this;
         }
     private:
         word_t* const content;
@@ -100,7 +102,7 @@ public:
 #endif
     };
 
-    const Bit operator[](int i) const {
+    const Bit operator[](unsigned i) const {
 #ifdef _ARCH_CORTEXM3_EFM32GG
         if (i < size)
             return Bit(bbData, bbData[i], i);
@@ -109,13 +111,13 @@ public:
         if (i < bitCount) {
             unsigned char bitPow = i & indexSplitterMask;
             auto index = i >> shiftDivisor;
-            return Bit(content, content[index] & (b0 >> bitPow) > 0, index, bitPow);
+            return Bit(content, (content[index] & (b0 >> bitPow)) > 0, index, bitPow);
         }
         return Bit(content, false, 0, 0);
 #endif
     }
 
-    Bit operator[](int i) {
+    Bit operator[](unsigned i) {
 #ifdef _ARCH_CORTEXM3_EFM32GG
         if (i < size)
             return Bit(bbData, bbData[i], i);
@@ -124,7 +126,7 @@ public:
         if (i < bitCount) {
             unsigned char bitPow = i & indexSplitterMask;
             auto index = i >> shiftDivisor;
-            return Bit(content, content[index] & (b0 >> bitPow) > 0, index, bitPow);
+            return Bit(content, (content[index] & (b0 >> bitPow)) > 0, index, bitPow);
         }
         return Bit(content, false, 0, 0);
 #endif

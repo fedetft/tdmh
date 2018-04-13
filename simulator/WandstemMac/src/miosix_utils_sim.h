@@ -31,8 +31,6 @@
 #include <omnetpp.h>
 #include "MiosixStaticInterface.h"
 
-#define EFM32_HFXO_FREQ 48000000LL
-
 namespace miosix {
 
 void ledOn();

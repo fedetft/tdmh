@@ -45,7 +45,7 @@ NeighborTable::NeighborTable(const NeighborTable& other) : neighbors(other.neigh
 
 std::vector<unsigned char> NeighborTable::getNeighbors() {
     std::vector<unsigned char> retval;
-    for (int i = 0; i < neighbors.size(); i++)
+    for (unsigned i = 0; i < neighbors.size(); i++)
         if(neighbors[i]) retval.push_back(i);
     return retval;
 }
@@ -59,7 +59,7 @@ void NeighborTable::setNeighbors(std::vector<unsigned char>& neighbors) {
 
 void NeighborTable::setNeighbors(std::vector<bool>& neighbors) {
     assert(neighbors.size() <= this->neighbors.size());
-    for(int i = 0; i < neighbors.size(); i++)
+    for(unsigned i = 0; i < neighbors.size(); i++)
         this->neighbors[i] = neighbors[i];
 }
 
@@ -92,22 +92,22 @@ ForwardedNeighborMessage::ForwardedNeighborMessage(
         const NetworkConfiguration* const config,
         unsigned char nodeId,
         std::vector<unsigned char>& neighbors) :
-        TopologyElement(), neighbors(config->getMaxNodes(), neighbors), nodeId(nodeId) {
+        TopologyElement(), nodeId(nodeId), neighbors(config->getMaxNodes(), neighbors) {
 }
 
 ForwardedNeighborMessage::ForwardedNeighborMessage(
         const NetworkConfiguration* const config,
         unsigned char nodeId,
         std::vector<bool>& neighbors) :
-        TopologyElement(), neighbors(config->getMaxNodes(), neighbors), nodeId(nodeId) {
+        TopologyElement(), nodeId(nodeId), neighbors(config->getMaxNodes(), neighbors) {
 }
 
 ForwardedNeighborMessage::ForwardedNeighborMessage(unsigned char nodeId, NeighborTable&& neighbors) :
-        TopologyElement(), neighbors(neighbors), nodeId(nodeId){
+        TopologyElement(), nodeId(nodeId), neighbors(neighbors) {
 }
 
 bool ForwardedNeighborMessage::operator ==(const ForwardedNeighborMessage& b) const {
-    return this->nodeId == nodeId && neighbors == b.neighbors;
+    return nodeId == b.nodeId && neighbors == b.neighbors;
 }
 
 std::size_t ForwardedNeighborMessage::getSize() {
@@ -120,7 +120,7 @@ void ForwardedNeighborMessage::serialize(unsigned char* pkt) {
 }
 
 ForwardedNeighborMessage* ForwardedNeighborMessage::deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config) {
-    assert(config->getMaxNodes() + 1 < pkt.size());
+    assert(static_cast<unsigned>(config->getMaxNodes() + 1) < pkt.size());
     return deserialize(pkt.data(), config);
 }
 
@@ -166,7 +166,7 @@ NeighborMessage* NeighborMessage::deserialize(unsigned char* pkt, const NetworkC
     auto neighbors = NeighborTable::deserialize(pkt, config->getMaxNodes());
     auto idx = neighbors.getSize();
     std::vector<ForwardedNeighborMessage*> forwarded(pkt[idx++]);
-    for (int i = 0; i < forwarded.size(); i++) {
+    for (unsigned i = 0; i < forwarded.size(); i++) {
         forwarded[i] = ForwardedNeighborMessage::deserialize(pkt + idx, config);
         idx += forwarded[i]->getSize();
     }

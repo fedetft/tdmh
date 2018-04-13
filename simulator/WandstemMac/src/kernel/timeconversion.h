@@ -30,6 +30,8 @@
 
 #include "../MiosixInterface.h"
 
+const unsigned int EFM32_HFXO_FREQ = 48000000LL;
+
 namespace miosix {
 
 class TimeConversion : MiosixInterface {
