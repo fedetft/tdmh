@@ -70,7 +70,6 @@ protected:
             networkConfig(ctx.getNetworkConfig()),
             listeningRTP(ctx), internalStatus(initStatus),
             receiverWindow(networkConfig->getMaxAdmittedRcvWindow()), error(0) {};
-    virtual void reset(long long hookPktTime)=0;
     virtual void next()=0;
     virtual long long correct(long long int uncorrected)=0;
     unsigned char missedPacket();

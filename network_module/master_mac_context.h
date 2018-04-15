@@ -35,9 +35,11 @@ namespace mxnet {
 class MasterMACContext : public MACContext {
 public:
     MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config) :
-        MACContext(mac, transceiver, config, new MasterTimesyncDownlink(*this)) {};
+        MACContext(mac, transceiver, config, new MasterTimesyncDownlink(*this, miosix::getTime() + initializationDelay)) {};
     MasterMACContext() = delete;
     virtual ~MasterMACContext() {};
+protected:
+    long long initializationDelay = 1000000;
 };
 
 } /* namespace mxnet */

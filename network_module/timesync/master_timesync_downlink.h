@@ -34,8 +34,8 @@
 namespace mxnet {
 class MasterTimesyncDownlink : public TimesyncDownlink {
 public:
-    explicit MasterTimesyncDownlink(MACContext& ctx) :
-            TimesyncDownlink(ctx, MacroStatus::IN_SYNC) {
+    explicit MasterTimesyncDownlink(MACContext& ctx, long long firstTimesyncTime) :
+            TimesyncDownlink(ctx, MacroStatus::IN_SYNC), slotframeTime(firstTimesyncTime) {
         auto panId = networkConfig->getPanId();
         packet = {{
                 0x46, //frame type 0b110 (reserved), intra pan
@@ -54,7 +54,6 @@ public:
 
 protected:
     
-    void reset(long long hookPktTime) override;
     void next() override;
     long long correct(long long int uncorrected) override;
 private:

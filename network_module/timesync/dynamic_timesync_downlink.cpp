@@ -33,16 +33,17 @@ using namespace miosix;
 
 namespace mxnet {
 
-void DynamicTimesyncDownlink::periodicSync(long long slotStart) {
-    slotStart = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
+void DynamicTimesyncDownlink::periodicSync() {
+    //slotStart = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
     //This is fully corrected
-    auto wakeupTimeout = getWakeupAndTimeout(correct(slotStart));
+    auto correctedStart = correct(theoreticalFrameStart);
+    auto wakeupTimeout = getWakeupAndTimeout(correctedStart);
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[T] WU=%lld TO=%lld\n", wakeupTimeout.first, wakeupTimeout.second);
     bool success = false;
     auto now = getTime();
     //check if we missed the deadline for the synchronization time
-    if (now + receiverWindow >= slotStart) {
+    if (now + receiverWindow >= correctedStart) {
         if (ENABLE_FLOODING_ERROR_DBG)
             print_dbg("[T] 2 l8\n");
         missedPacket();
@@ -152,6 +153,7 @@ void DynamicTimesyncDownlink::resync() {
 
 inline void DynamicTimesyncDownlink::execute(long long slotStart)
 {
+    //the argument is ignored, since this is the time source class.
     next();
     transceiver.configure(ctx.getTransceiverConfig());
     transceiver.turnOn();
@@ -159,7 +161,7 @@ inline void DynamicTimesyncDownlink::execute(long long slotStart)
         resync();
         return;
     }
-    periodicSync(slotStart);
+    periodicSync();
     //TODO implement roundtrip nodes list
     if (false && static_cast<DynamicTopologyContext*>(ctx.getTopologyContext())->hasSuccessor(0))
         //a successor of the current node needs to perform RTT estimation

@@ -33,28 +33,29 @@ using namespace miosix;
 
 namespace mxnet {
 
-    void MasterTimesyncDownlink::execute(long long slotStart)
-    {
-        transceiver.configure(ctx.getTransceiverConfig());
-        transceiver.turnOn();
-        //Thread::nanoSleepUntil(startTime);
-        auto deepsleepDeadline = getSenderWakeup(slotStart);
-        if(getTime() < deepsleepDeadline)
-            pm.deepSleepUntil(deepsleepDeadline);
-        //Sending synchronization start packet
-        try {
-            transceiver.sendAt(packet.data(), syncPacketSize, slotStart);
-        } catch(std::exception& e) {
-            if (ENABLE_RADIO_EXCEPTION_DBG)
-                print_dbg("%s\n", e.what());
-        }
-        transceiver.idle();
-        if (ENABLE_TIMESYNC_DL_INFO_DBG)
-            print_dbg("[T] st=%lld\n", slotStart);
-        if (false)
-            listeningRTP.execute(slotStart + RoundtripSubphase::senderDelay);
-        transceiver.turnOff();
+void MasterTimesyncDownlink::execute(long long slotStart)
+{
+    next();
+    transceiver.configure(ctx.getTransceiverConfig());
+    transceiver.turnOn();
+    //Thread::nanoSleepUntil(startTime);
+    auto deepsleepDeadline = getSenderWakeup(slotframeTime);
+    if(getTime() < deepsleepDeadline)
+        pm.deepSleepUntil(deepsleepDeadline);
+    //Sending synchronization start packet
+    try {
+        transceiver.sendAt(packet.data(), syncPacketSize, slotframeTime);
+    } catch(std::exception& e) {
+        if (ENABLE_RADIO_EXCEPTION_DBG)
+            print_dbg("%s\n", e.what());
     }
+    transceiver.idle();
+    if (ENABLE_TIMESYNC_DL_INFO_DBG)
+        print_dbg("[T] st=%lld\n", slotframeTime);
+    if (false)
+        listeningRTP.execute(slotframeTime + RoundtripSubphase::senderDelay);
+    transceiver.turnOff();
+}
 
 std::pair<long long, long long> MasterTimesyncDownlink::getWakeupAndTimeout(long long tExpected) {
     return std::make_pair(
@@ -62,10 +63,6 @@ std::pair<long long, long long> MasterTimesyncDownlink::getWakeupAndTimeout(long
         tExpected + networkConfig->getMaxAdmittedRcvWindow() + MediumAccessController::packetPreambleTime +
         MediumAccessController::maxPropagationDelay
     );
-}
-
-void MasterTimesyncDownlink::reset(long long hookPktTime) {
-    slotframeTime = hookPktTime;
 }
 
 void MasterTimesyncDownlink::next() {

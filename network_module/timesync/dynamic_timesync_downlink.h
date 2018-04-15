@@ -69,9 +69,9 @@ protected:
     }
     AskingRoundtripPhase askingRTP;
 
-    void periodicSync(long long slotStart);
+    void periodicSync();
     void resync();
-    void reset(long long hookPktTime) override;
+    void reset(long long hookPktTime);
     void next() override;
     long long correct(long long int uncorrected) override;
 
