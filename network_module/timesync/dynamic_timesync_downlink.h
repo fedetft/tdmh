@@ -30,19 +30,32 @@
 #include "timesync_downlink.h"
 #include "controller/flopsync2.h"
 #include "controller/synchronizer.h"
-#include "sync_status.h"
 #include "roundtrip/asking_roundtrip.h"
+#include "interfaces-impl/virtual_clock.h"
+#include "kernel/timeconversion.h"
 
 namespace mxnet {
 class DynamicTimesyncDownlink : public TimesyncDownlink {
 public:
     DynamicTimesyncDownlink() = delete;
-    explicit DynamicTimesyncDownlink(MACContext& ctx) : TimesyncDownlink(ctx), askingRTP(ctx) {};
+    explicit DynamicTimesyncDownlink(MACContext& ctx) :
+            TimesyncDownlink(ctx, DESYNCHRONIZED, 0),
+            askingRTP(ctx),
+            tc(new miosix::TimeConversion(EFM32_HFXO_FREQ)),
+            vt(miosix::VirtualClock::instance()),
+            synchronizer(new Flopsync2()),
+            measuredFrameStart(0),
+            computedFrameStart(0),
+            theoreticalFrameStart(0),
+            clockCorrection(0),
+            receiverWindow(0),
+            missedPackets(0) {
+                vt.setSyncPeriod(networkConfig->getSlotframeDuration());
+        };
     DynamicTimesyncDownlink(const DynamicTimesyncDownlink& orig) = delete;
     virtual ~DynamicTimesyncDownlink() {};
     inline void execute(long long slotStart) override;
-    void periodicSync(long long slotStart);
-    void resync();
+    std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
 protected:
     void rebroadcast(long long arrivalTs);
     virtual bool isSyncPacket() {
@@ -55,6 +68,33 @@ protected:
                 && packet[5] == 0xff && packet[6] == 0xff;
     }
     AskingRoundtripPhase askingRTP;
+
+    void periodicSync(long long slotStart);
+    void resync();
+    void reset(long long hookPktTime) override;
+    void next() override;
+    long long correct(long long int uncorrected) override;
+
+    unsigned char missedPacket();
+
+    void updateVt() {
+        vt.update(
+                tc->ns2tick(theoreticalFrameStart),
+                tc->ns2tick(computedFrameStart), clockCorrection
+        );
+    }
+
+    miosix::TimeConversion* const tc;
+    miosix::VirtualClock& vt;
+    Synchronizer* const synchronizer;
+
+    long long measuredFrameStart;
+    long long computedFrameStart;
+    long long theoreticalFrameStart;
+
+    int clockCorrection;
+    unsigned int receiverWindow;
+    unsigned char missedPackets;
 };
 }
 

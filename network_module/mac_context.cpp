@@ -31,17 +31,15 @@
 
 #include "mac_context.h"
 
-#include "timesync/sync_status.h"
-
 namespace mxnet {
     
-    MACContext::MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config, SyncStatus* const syncStatus) :
+    MACContext::MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config, TimesyncDownlink* const timesync) :
             mac(mac),
-            syncStatus(syncStatus),
             transceiverConfig(config->getBaseFrequency(), config->getTxPower(), true, false),
             networkConfig(config),
             networkId(config->getStaticNetworkId()),
-            transceiver(transceiver) {}
+            transceiver(transceiver),
+            timesync(timesync) {}
 
     MACContext::~MACContext() {
         delete networkConfig;

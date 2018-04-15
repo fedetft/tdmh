@@ -32,8 +32,5 @@
 using namespace miosix;
 
 namespace mxnet {
-
-TimesyncDownlink::~TimesyncDownlink() {
-}
 }
 

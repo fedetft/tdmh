@@ -29,7 +29,6 @@
 
 #include "../network_configuration.h"
 #include "uplink_phase.h"
-#include "../timesync/sync_status.h"
 
 namespace mxnet {
 

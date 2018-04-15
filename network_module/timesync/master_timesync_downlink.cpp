@@ -33,15 +33,12 @@ using namespace miosix;
 
 namespace mxnet {
 
-    MasterTimesyncDownlink::~MasterTimesyncDownlink() {
-    }
-
     void MasterTimesyncDownlink::execute(long long slotStart)
     {
         transceiver.configure(ctx.getTransceiverConfig());
         transceiver.turnOn();
         //Thread::nanoSleepUntil(startTime);
-        auto deepsleepDeadline = syncStatus->getSenderWakeup(slotStart);
+        auto deepsleepDeadline = getSenderWakeup(slotStart);
         if(getTime() < deepsleepDeadline)
             pm.deepSleepUntil(deepsleepDeadline);
         //Sending synchronization start packet
@@ -58,5 +55,25 @@ namespace mxnet {
             listeningRTP.execute(slotStart + RoundtripSubphase::senderDelay);
         transceiver.turnOff();
     }
+
+std::pair<long long, long long> MasterTimesyncDownlink::getWakeupAndTimeout(long long tExpected) {
+    return std::make_pair(
+        tExpected - (MediumAccessController::receivingNodeWakeupAdvance + networkConfig->getMaxAdmittedRcvWindow()),
+        tExpected + networkConfig->getMaxAdmittedRcvWindow() + MediumAccessController::packetPreambleTime +
+        MediumAccessController::maxPropagationDelay
+    );
+}
+
+void MasterTimesyncDownlink::reset(long long hookPktTime) {
+    slotframeTime = hookPktTime;
+}
+
+void MasterTimesyncDownlink::next() {
+    slotframeTime += networkConfig->getSlotframeDuration();
+}
+
+long long MasterTimesyncDownlink::correct(long long int uncorrected) {
+    return uncorrected;
+}
 
 }

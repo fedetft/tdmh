@@ -27,6 +27,7 @@
 
 #include "../debug_settings.h"
 #include "dynamic_uplink_phase.h"
+#include "../timesync/timesync_downlink.h"
 #include <limits>
 
 using namespace miosix;
@@ -34,9 +35,9 @@ using namespace miosix;
 namespace mxnet {
 
 void DynamicUplinkPhase::receiveByNode(long long slotStart) {
-    auto wakeUpTimeout = syncStatus->getWakeupAndTimeout(slotStart);
+    auto wakeUpTimeout = timesync->getWakeupAndTimeout(slotStart);
     auto now = getTime();
-    if (dynamic_cast<DynamicSyncStatus*>(syncStatus)->checkExpired(now, slotStart))
+    if (now + timesync->getReceiverWindow() >= slotStart)
         print_dbg("[U] start late\n");
     if (now < wakeUpTimeout.first)
         pm.deepSleepUntil(wakeUpTimeout.first);

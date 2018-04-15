@@ -27,35 +27,59 @@
 
 #pragma once
 
+#include "../mac_phase.h"
+#include "roundtrip/listening_roundtrip.h"
+#include "../mac_context.h"
 #include "interfaces-impl/transceiver.h"
 #include "interfaces-impl/power_manager.h"
 #include <utility>
-#include "../mac_phase.h"
-#include "sync_status.h"
-#include "roundtrip/listening_roundtrip.h"
-#include "../mac_context.h"
 
 namespace mxnet {
 class TimesyncDownlink : public MACPhase {
 public:
+    enum MacroStatus {
+        IN_SYNC,
+        DESYNCHRONIZED
+    };
     TimesyncDownlink() = delete;
     TimesyncDownlink(const TimesyncDownlink& orig) = delete;
-    virtual ~TimesyncDownlink();
+    virtual ~TimesyncDownlink() {};
     unsigned long long getDuration() override {
         return phaseStartupTime + networkConfig->getMaxHops() * rebroadcastInterval + listeningRTP.getDuration();
     }
     static const int phaseStartupTime = 450000;
     static const int syncPacketSize = 7;
     static const int rebroadcastInterval = 1016000; //32us per-byte + 600us total delta
+    MacroStatus getSyncStatus() { return internalStatus; };
+    long long getSenderWakeup(long long tExpected) {
+        return tExpected - MediumAccessController::sendingNodeWakeupAdvance;
+    }
+    virtual std::pair<long long, long long> getWakeupAndTimeout(long long tExpected)=0;
+    long long getError() const { return error; }
+    unsigned getReceiverWindow() const { return receiverWindow; }
     
 protected:
-    TimesyncDownlink(MACContext& ctx) :
+    TimesyncDownlink(MACContext& ctx, MacroStatus initStatus, unsigned receivingWindow) :
             MACPhase(ctx),
             networkConfig(ctx.getNetworkConfig()),
-            listeningRTP(ctx) {};
+            listeningRTP(ctx), internalStatus(initStatus),
+            receiverWindow(receivingWindow), error(0) {};
     
+    TimesyncDownlink(MACContext& ctx, MacroStatus initStatus) :
+            MACPhase(ctx),
+            networkConfig(ctx.getNetworkConfig()),
+            listeningRTP(ctx), internalStatus(initStatus),
+            receiverWindow(networkConfig->getMaxAdmittedRcvWindow()), error(0) {};
+    virtual void reset(long long hookPktTime)=0;
+    virtual void next()=0;
+    virtual long long correct(long long int uncorrected)=0;
+    unsigned char missedPacket();
+
     const NetworkConfiguration* const networkConfig;
     ListeningRoundtripPhase listeningRTP;
+    MacroStatus internalStatus;
+    unsigned receiverWindow;
+    long long error;
 };
 }
 

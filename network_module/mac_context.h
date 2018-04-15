@@ -27,15 +27,15 @@
 
 #pragma once
 
-//#include "timesync/syncstatus.h"
 //#include "uplink/topology/topology_context.h"
 //#include "uplink/stream_management/stream_management_context.h"
+//#include "timesync/timesync_downlink.h"
 #include "network_configuration.h"
 #include "interfaces-impl/transceiver.h"
 
 namespace mxnet {
 class MediumAccessController;
-class SyncStatus;
+class TimesyncDownlink;
 class TopologyContext;
 class StreamManagementContext;
 class ScheduleContext;
@@ -47,7 +47,6 @@ public:
     inline const MediumAccessController& getMediumAccessController() { return mac; }
     void setHop(unsigned char num) { hop = num; }
     unsigned char getHop() { return hop; }
-    SyncStatus* const getSyncStatus() { return syncStatus; }
     /**
      * Gets the default TransceiverConfiguration, which has the correct frequency and txPower,
      * crc enabled and non-strict timeout
@@ -71,12 +70,13 @@ public:
 
     unsigned long long getDelayToMaster() { return delayToMaster; }
     void setDelayToMaster(unsigned long long value) { delayToMaster = value; }
+
+    TimesyncDownlink* const getTimesync() { return timesync; }
 protected:
-    MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config, SyncStatus* const syncStatus);
+    MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config, TimesyncDownlink* const timesync);
 private:
     unsigned char hop;
     const MediumAccessController& mac;
-    SyncStatus* const syncStatus;
     const miosix::TransceiverConfiguration transceiverConfig;
     const NetworkConfiguration* const networkConfig;
     TopologyContext* topologyContext;
@@ -85,6 +85,8 @@ private:
     unsigned short networkId;
     miosix::Transceiver& transceiver;
     unsigned long long delayToMaster;
+
+    TimesyncDownlink* const timesync;
 };
 }
 

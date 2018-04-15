@@ -53,7 +53,7 @@ public:
     virtual unsigned long long getDuration() = 0;
 protected:
     MACContext& ctx;
-    SyncStatus* const syncStatus;
+    TimesyncDownlink* const timesync;
     miosix::PowerManager& pm;
     miosix::Transceiver& transceiver;
     std::array<unsigned char, MediumAccessController::maxPktSize> packet;

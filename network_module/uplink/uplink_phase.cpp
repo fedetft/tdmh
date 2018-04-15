@@ -25,9 +25,7 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "../debug_settings.h"
 #include "uplink_phase.h"
-#include "../timesync/sync_status.h"
 
 namespace mxnet {
 }

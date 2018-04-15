@@ -28,14 +28,14 @@
 #pragma once
 
 #include "mac_context.h"
-#include "timesync/sync_status.h"
+#include "timesync/master_timesync_downlink.h"
 
 namespace mxnet {
 
 class MasterMACContext : public MACContext {
 public:
     MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config) :
-        MACContext(mac, transceiver, config, new MasterSyncStatus(config)) {};
+        MACContext(mac, transceiver, config, new MasterTimesyncDownlink(*this)) {};
     MasterMACContext() = delete;
     virtual ~MasterMACContext() {};
 };

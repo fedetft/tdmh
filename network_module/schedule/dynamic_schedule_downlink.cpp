@@ -26,9 +26,9 @@
  ***************************************************************************/
 
 #include "../debug_settings.h"
-#include "../timesync/sync_status.h"
 #include "dynamic_schedule_downlink.h"
 #include "schedule_context.h"
+#include "../timesync/timesync_downlink.h"
 
 using namespace miosix;
 
@@ -36,7 +36,7 @@ namespace mxnet {
 
 void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     auto arrivalTime = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
-    auto wakeupTimeout = syncStatus->getWakeupAndTimeout(arrivalTime);
+    auto wakeupTimeout = timesync->getWakeupAndTimeout(arrivalTime);
     if (ENABLE_SCHEDULE_DL_INFO_DBG)
         print_dbg("[S] WU=%lld TO=%lld\n", wakeupTimeout.first, wakeupTimeout.second);
     //Transceiver configured with non strict timeout
@@ -45,7 +45,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     bool success = false;
     auto now = getTime();
     //check if we skipped the synchronization time
-    if (dynamic_cast<DynamicSyncStatus*>(syncStatus)->checkExpired(now, arrivalTime)) {
+    if (now + timesync->getReceiverWindow() >= arrivalTime) {
         if (ENABLE_FLOODING_ERROR_DBG)
             print_dbg("[S] started too late\n");
         return;
