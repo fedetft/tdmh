@@ -34,8 +34,8 @@ namespace mxnet {
 
     void DataPhase::execute(long long slotStart) {
         print_dbg("[D] GFAT=%llu\n", slotStart);
-        transceiver.configure(ctx.getTransceiverConfig());
-        transceiver.turnOn();
+        ctx.configureTransceiver(ctx.getTransceiverConfig());
+        ctx.transceiverTurnOn();
         if ((*nextSched)->getDataslot() != dataSlot) return;
         /*
         std::tuple<bool, ScheduleContext::Role, std::queue<std::vector<unsigned char>>*> slotJob = s->executeTimeslot(i);
@@ -85,7 +85,7 @@ namespace mxnet {
             print_dbg("[D] Forwarded packet with size %d at %llu\n", pkt.size(), expectedTs);
             break;
         }*/
-        transceiver.turnOff();
+        ctx.transceiverTurnOff();
     }
 
 

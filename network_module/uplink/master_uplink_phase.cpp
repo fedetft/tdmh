@@ -37,16 +37,11 @@ namespace mxnet {
 void MasterUplinkPhase::execute(long long slotStart) {
     if (ENABLE_UPLINK_INFO_DBG)
         print_dbg("[U] rcv %d @%llu\n", currentNode, slotStart);
-    transceiver.configure(ctx.getTransceiverConfig());
-    transceiver.turnOn();
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    ctx.transceiverTurnOn();
     while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK) {
-        try {
-            rcvResult = transceiver.recv(packet.data(), MediumAccessController::maxPktSize,
+        rcvResult = ctx.recv(packet.data(), MediumAccessController::maxPktSize,
                     slotStart + MediumAccessController::maxPropagationDelay + MediumAccessController::maxAdmittableResyncReceivingWindow);
-        } catch(std::exception& e) {
-            if (ENABLE_RADIO_EXCEPTION_DBG)
-                print_dbg("%s\n", e.what());
-        }
         if (ENABLE_PKT_INFO_DBG) {
             if(rcvResult.size) {
                 print_dbg("Received packet, error %d, size %d, timestampValid %d: ",
@@ -56,7 +51,7 @@ void MasterUplinkPhase::execute(long long slotStart) {
             } else print_dbg("No packet received, timeout reached\n");
         }
     }
-    transceiver.turnOff();
+    ctx.transceiverTurnOff();
     if (rcvResult.error == RecvResult::ErrorCode::OK) {
         //TODO parse message and send it to topology and stream management contexts
         auto data = std::vector<unsigned char>(packet.begin(), packet.begin() + rcvResult.size);

@@ -54,13 +54,7 @@ void DynamicTimesyncDownlink::periodicSync() {
         pm.deepSleepUntil(wakeupTimeout.first);
     for (; !(success || rcvResult.error == RecvResult::ErrorCode::TIMEOUT);
             success = isSyncPacket()) {
-        try {
-            //uncorrected TS needed for computing the correction with flopsync
-            rcvResult = transceiver.recv(packet.data(), syncPacketSize, wakeupTimeout.second, Transceiver::Unit::NS, Transceiver::Correct::UNCORR);
-        } catch(std::exception& e) {
-            if (ENABLE_RADIO_EXCEPTION_DBG)
-                print_dbg("%s\n", e.what());
-        }
+        rcvResult = ctx.recv(packet.data(), syncPacketSize, wakeupTimeout.second, Transceiver::Correct::UNCORR);
         if (ENABLE_PKT_INFO_DBG) {
             if(rcvResult.size){
                 print_dbg("[T] err=%d D=%d", rcvResult.error, rcvResult.size);
@@ -70,7 +64,7 @@ void DynamicTimesyncDownlink::periodicSync() {
         }
     }
 
-    transceiver.idle(); //Save power waiting for rebroadcast time
+    ctx.transceiverIdle(); //Save power waiting for rebroadcast time
 
     if (success) {
         //This conversion is really necessary to get the corrected time in NS, to pass to transceiver
@@ -79,7 +73,7 @@ void DynamicTimesyncDownlink::periodicSync() {
         measuredFrameStart = rcvResult.timestamp;
         auto correctedMeasuredTimestamp = correct(measuredFrameStart);
         rebroadcast(correctedMeasuredTimestamp);
-        transceiver.turnOff();
+        ctx.transceiverTurnOff();
         error = computedFrameStart - measuredFrameStart;
         std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->computeCorrection(error);
         missedPackets = 0;
@@ -118,12 +112,7 @@ void DynamicTimesyncDownlink::resync() {
         print_dbg("[T] Resync\n");
     //TODO: attach to strongest signal, not just to the first received packet
     for (bool success = false; !success; success = isSyncPacket()) {
-        try {
-            rcvResult = transceiver.recv(packet.data(), syncPacketSize, infiniteTimeout);
-        } catch(std::exception& e) {
-            if (ENABLE_RADIO_EXCEPTION_DBG)
-                print_dbg("%s\n", e.what());
-        }
+        rcvResult = ctx.recv(packet.data(), syncPacketSize, infiniteTimeout);
         if (ENABLE_PKT_INFO_DBG) {
             if(rcvResult.size){
                 print_dbg("Received packet, error %d, size %d, timestampValid %d: ",
@@ -141,7 +130,7 @@ void DynamicTimesyncDownlink::resync() {
     rebroadcast(correct(rcvResult.timestamp));
 
     ledOff();
-    transceiver.turnOff();
+    ctx.transceiverTurnOff();
 
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[F] hop=%d ats=%lld w=%d mts=%lld rssi=%d\n",
@@ -155,8 +144,8 @@ inline void DynamicTimesyncDownlink::execute(long long slotStart)
 {
     //the argument is ignored, since this is the time source class.
     next();
-    transceiver.configure(ctx.getTransceiverConfig());
-    transceiver.turnOn();
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    ctx.transceiverTurnOn();
     if (internalStatus == DESYNCHRONIZED) {
         resync();
         return;
@@ -169,17 +158,12 @@ inline void DynamicTimesyncDownlink::execute(long long slotStart)
     else if (false)
         //i can perform RTT estimation
         askingRTP.execute(slotStart + RoundtripSubphase::senderDelay);
-    transceiver.turnOff();
+    ctx.transceiverTurnOff();
 }
 
 void DynamicTimesyncDownlink::rebroadcast(long long arrivalTs){
     if(packet[2] == networkConfig.getMaxHops()) return;
-    try {
-        transceiver.sendAt(packet.data(), syncPacketSize, arrivalTs + rebroadcastInterval);
-    } catch(std::exception& e) {
-        if (ENABLE_RADIO_EXCEPTION_DBG)
-            print_dbg("%s\n", e.what());
-    }
+    ctx.sendAt(packet.data(), syncPacketSize, arrivalTs + rebroadcastInterval);
 }
 
 void DynamicTimesyncDownlink::reset(long long hookPktTime) {

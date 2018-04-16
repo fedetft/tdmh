@@ -41,8 +41,8 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     if (ENABLE_SCHEDULE_DL_INFO_DBG)
         print_dbg("[S] WU=%lld TO=%lld\n", wakeupTimeout.first, wakeupTimeout.second);
     //Transceiver configured with non strict timeout
-    transceiver.configure(ctx.getTransceiverConfig());
-    transceiver.turnOn();
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    ctx.transceiverTurnOn();
     bool success = false;
     auto now = getTime();
     //check if we skipped the synchronization time
@@ -56,13 +56,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     ledOn();
     for (; !(success || rcvResult.error == miosix::RecvResult::TIMEOUT);
             success = rcvResult.error == miosix::RecvResult::OK) {
-        try {
-            //uncorrected TS needed for computing the correction with flopsync
-            rcvResult = transceiver.recv(packet.data(), MediumAccessController::maxPktSize, wakeupTimeout.second);
-        } catch(std::exception& e) {
-            if (ENABLE_RADIO_EXCEPTION_DBG)
-                print_dbg("%s\n", e.what());
-        }
+            rcvResult = ctx.recv(packet.data(), MediumAccessController::maxPktSize, wakeupTimeout.second);
         if (ENABLE_PKT_INFO_DBG) {
             if(rcvResult.size) {
                 print_dbg("Received packet, error %d, size %d, timestampValid %d: ", rcvResult.error, rcvResult.size, rcvResult.timestampValid);
@@ -72,26 +66,21 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
         }
     }
     
-    transceiver.idle(); //Save power waiting for rebroadcast time
+    ctx.transceiverIdle(); //Save power waiting for rebroadcast time
     
     if (!success) return;
 
     //This conversion is really necessary to get the corrected time in NS, to pass to transceiver
     //Rebroadcast the sync packet
     rebroadcast(rcvResult.timestamp);
-    transceiver.turnOff();
+    ctx.transceiverTurnOff();
     auto data = std::vector<unsigned char>(packet.begin(), packet.begin() + rcvResult.size);
     parseSchedule(data);
 }
 
 void DynamicScheduleDownlinkPhase::rebroadcast(long long rcvTime) {
     if(ctx.getHop() >= networkConfig.getMaxHops()) return;
-    try {
-        transceiver.sendAt(packet.data(), packet.size(), rcvTime + rebroadcastInterval);
-    } catch(std::exception& e) {
-        if (ENABLE_RADIO_EXCEPTION_DBG)
-            print_dbg("%s\n", e.what());
-    }
+    ctx.sendAt(packet.data(), packet.size(), rcvTime + rebroadcastInterval);
 }
 
 void DynamicScheduleDownlinkPhase::addSchedule(DynamicScheduleElement* element) {

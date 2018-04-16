@@ -57,21 +57,16 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
             packet[++idx] = d << msbShift;
         }
     }
-    transceiver.configure(ctx.getTransceiverConfig());
-    transceiver.turnOn();
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    ctx.transceiverTurnOn();
     //Thread::nanoSleepUntil(startTime);
     auto wakeUp = slotStart - MediumAccessController::sendingNodeWakeupAdvance;
     if(getTime() < wakeUp)
         pm.deepSleepUntil(wakeUp);
-    try {
-        transceiver.sendAt(packet.data(), (bitSize - 1) / numeric_limits<unsigned char>::digits + 1, slotStart);
-    } catch(exception& e) {
-        if (ENABLE_RADIO_EXCEPTION_DBG)
-            print_dbg("%s\n", e.what());
-    }
+    ctx.sendAt(packet.data(), (bitSize - 1) / numeric_limits<unsigned char>::digits + 1, slotStart);
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[SC] ST=%lld\n", slotStart);
-    transceiver.turnOff();
+    ctx.transceiverTurnOff();
 }
 
 std::pair<std::vector<ScheduleAddition*>, std::vector<unsigned char>> MasterScheduleDownlinkPhase::getScheduleToDistribute(unsigned short bytes) {

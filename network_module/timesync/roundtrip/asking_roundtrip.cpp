@@ -41,28 +41,18 @@ namespace mxnet {
         //Transceiver configured with non strict timeout
         //TODO deepsleep missing
         getRoundtripAskPacket();
-        try {
-            transceiver.sendAt(packet.data(), askPacketSize, slotStart);
-        } catch(std::exception& e) {
-            if (ENABLE_RADIO_EXCEPTION_DBG)
-                print_dbg("%s\n", e.what());
-        }
+        ctx.sendAt(packet.data(), askPacketSize, slotStart);
         if (ENABLE_ROUNDTRIP_INFO_DBG)
             print_dbg("[T/R] Asked Roundtrip\n");
 
         //Expecting a ledbar reply from any node of the previous hop, crc disabled
-        transceiver.configure(ctx.getTransceiverConfig(false));
+        ctx.configureTransceiver(ctx.getTransceiverConfig(false));
         bool success = false;
         for (; !(success || rcvResult.error == miosix::RecvResult::TIMEOUT); success = isRoundtripPacket()) {
-            try {
-                rcvResult = transceiver.recv(packet.data(), packet.size(), slotStart + replyDelay +
-                        (MediumAccessController::maxPropagationDelay << 1) + tAskPkt +
-                        MediumAccessController::packetPreambleTime + receiverWindow
-                );
-            } catch(std::exception& e) {
-                if (ENABLE_RADIO_EXCEPTION_DBG)
-                    print_dbg("%s\n", e.what());
-            }
+            rcvResult = ctx.recv(packet.data(), packet.size(), slotStart + replyDelay +
+                    (MediumAccessController::maxPropagationDelay << 1) + tAskPkt +
+                    MediumAccessController::packetPreambleTime + receiverWindow
+            );
             if (ENABLE_PKT_INFO_DBG) {
                 if(rcvResult.error != RecvResult::UNINITIALIZED){
                     print_dbg("Received packet, error %d, size %d, timestampValid %d: ", rcvResult.error, rcvResult.size, rcvResult.timestampValid);
@@ -71,7 +61,7 @@ namespace mxnet {
                 } else print_dbg("No packet received, timeout reached\n");
             }
         }
-        transceiver.turnOff();
+        ctx.transceiverTurnOff();
 
         LedBar<replyPacketSize> p(packet.data());
         if(rcvResult.size == p.getPacketSize() && rcvResult.error == miosix::RecvResult::OK && rcvResult.timestampValid) {

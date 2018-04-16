@@ -55,7 +55,6 @@ protected:
     MACContext& ctx;
     TimesyncDownlink* const timesync;
     miosix::PowerManager& pm;
-    miosix::Transceiver& transceiver;
     std::array<unsigned char, MediumAccessController::maxPktSize> packet;
     miosix::RecvResult rcvResult;
 };

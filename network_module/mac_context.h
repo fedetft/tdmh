@@ -32,6 +32,7 @@
 //#include "timesync/timesync_downlink.h"
 #include "network_configuration.h"
 #include "interfaces-impl/transceiver.h"
+#include <functional>
 
 namespace mxnet {
 class MediumAccessController;
@@ -65,7 +66,14 @@ public:
             throw std::runtime_error("Cannot dynamically set network id if not explicitly configured");
         this->networkId = networkId;
     }
-    miosix::Transceiver& getTransceiver() { return transceiver; }
+    void configureTransceiver(miosix::TransceiverConfiguration cfg) { transceiver.configure(cfg); }
+    void sendAt(const void *pkt, int size, long long ns);
+    void sendAt(const void *pkt, int size, long long ns, std::function<void(std::exception&)> cbk);
+    miosix::RecvResult recv(void *pkt, int size, long long timeout, miosix::Transceiver::Correct c=miosix::Transceiver::Correct::CORR);
+    miosix::RecvResult recv(void *pkt, int size, long long timeout, std::function<void(std::exception&)> cbk, miosix::Transceiver::Correct c=miosix::Transceiver::Correct::CORR);
+    inline void transceiverTurnOn() { transceiver.turnOn(); }
+    inline void transceiverTurnOff() { transceiver.turnOff(); }
+    inline void transceiverIdle() { transceiver.idle(); }
 
     TimesyncDownlink* const getTimesync() { return timesync; }
     UplinkPhase* const getUplink() { return uplink; }
@@ -90,6 +98,12 @@ private:
     StreamManagementContext* streamManagement;
     ScheduleDownlinkPhase* schedule;
     DataPhase* data;
+
+    //TODO write getters for the statistics
+    unsigned sendTotal;
+    unsigned sendErrors;
+    unsigned rcvTotal;
+    unsigned rcvErrors;
 };
 }
 

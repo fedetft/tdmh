@@ -36,25 +36,20 @@ namespace mxnet {
 void MasterTimesyncDownlink::execute(long long slotStart)
 {
     next();
-    transceiver.configure(ctx.getTransceiverConfig());
-    transceiver.turnOn();
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    ctx.transceiverTurnOn();
     //Thread::nanoSleepUntil(startTime);
     auto deepsleepDeadline = getSenderWakeup(slotframeTime);
     if(getTime() < deepsleepDeadline)
         pm.deepSleepUntil(deepsleepDeadline);
     //Sending synchronization start packet
-    try {
-        transceiver.sendAt(packet.data(), syncPacketSize, slotframeTime);
-    } catch(std::exception& e) {
-        if (ENABLE_RADIO_EXCEPTION_DBG)
-            print_dbg("%s\n", e.what());
-    }
-    transceiver.idle();
+    ctx.sendAt(packet.data(), syncPacketSize, slotframeTime);
+    ctx.transceiverIdle();
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[T] st=%lld\n", slotframeTime);
     if (false)
         listeningRTP.execute(slotframeTime + RoundtripSubphase::senderDelay);
-    transceiver.turnOff();
+    ctx.transceiverTurnOff();
 }
 
 std::pair<long long, long long> MasterTimesyncDownlink::getWakeupAndTimeout(long long tExpected) {

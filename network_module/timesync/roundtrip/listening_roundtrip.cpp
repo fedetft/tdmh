@@ -44,12 +44,7 @@ void ListeningRoundtripPhase::execute(long long slotStart) {
     
     bool success = false;
     for(; !(success || rcvResult.error == miosix::RecvResult::TIMEOUT); success = isRoundtripAskPacket()) {
-        try {
-            rcvResult = transceiver.recv(packet.data(), replyPacketSize, timeoutTime);
-        } catch(std::exception& e) {
-            if (ENABLE_RADIO_EXCEPTION_DBG)
-                print_dbg("%s\n", e.what());
-        }
+        rcvResult = ctx.recv(packet.data(), replyPacketSize, timeoutTime);
         if (ENABLE_PKT_INFO_DBG) {
             if(rcvResult.size){
                 print_dbg("[RTT] Received packet, error %d, size %d, timestampValid %d: ", rcvResult.error, rcvResult.size, rcvResult.timestampValid);
@@ -63,19 +58,14 @@ void ListeningRoundtripPhase::execute(long long slotStart) {
         auto replyTime = rcvResult.timestamp + replyDelay;
         if (ENABLE_ROUNDTRIP_INFO_DBG)
             print_dbg("[T/R] ta=%lld, tr=%lld\n", rcvResult.timestamp, replyTime);
-        transceiver.configure(ctx.getTransceiverConfig(false));
+        ctx.configureTransceiver(ctx.getTransceiverConfig(false));
         LedBar<replyPacketSize> p(timesync->getDelayToMaster() / accuracy);
-        try {
-            transceiver.sendAt(p.getPacket(), p.getPacketSize(), replyTime);
-        } catch(std::exception& e) {
-            if (ENABLE_RADIO_EXCEPTION_DBG)
-                print_dbg("%s\n", e.what());
-        }
+        ctx.sendAt(p.getPacket(), p.getPacketSize(), replyTime);
     } else if (ENABLE_ROUNDTRIP_INFO_DBG) {
         print_dbg("[T/R] tr=null\n");
     }
     
-    transceiver.turnOff();
+    ctx.transceiverTurnOff();
 }
 }
 

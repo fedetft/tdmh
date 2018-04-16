@@ -42,12 +42,7 @@ void DynamicUplinkPhase::receiveByNode(long long slotStart) {
     if (now < wakeUpTimeout.first)
         pm.deepSleepUntil(wakeUpTimeout.first);
     while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK) {
-        try {
-            rcvResult = transceiver.recv(packet.data(), packet.size(), wakeUpTimeout.second);
-        } catch(std::exception& e) {
-            if (ENABLE_RADIO_EXCEPTION_DBG)
-                print_dbg("%s\n", e.what());
-        }
+        rcvResult = ctx.recv(packet.data(), packet.size(), wakeUpTimeout.second);
         if (ENABLE_PKT_INFO_DBG) {
             if(rcvResult.size) {
                 print_dbg("Received packet, error %d, size %d, timestampValid %d: ", rcvResult.error, rcvResult.size, rcvResult.timestampValid);
@@ -85,7 +80,7 @@ void DynamicUplinkPhase::sendMyTopology(long long slotStart) {
         print_dbg("[U] start late\n");
     if (now < wuTime)
         pm.deepSleepUntil(wuTime);
-    transceiver.sendAt(packet.data(), packet.size(), slotStart);
+    ctx.sendAt(packet.data(), packet.size(), slotStart);
     tMsg->deleteForwarded();
     delete tMsg;
     smes.clear();
@@ -93,11 +88,11 @@ void DynamicUplinkPhase::sendMyTopology(long long slotStart) {
 
 void DynamicUplinkPhase::execute(long long slotStart) {
     print_dbg("[T] T=%lld\n", slotStart);
-    transceiver.configure(ctx.getTransceiverConfig());
-    transceiver.turnOn();
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    ctx.transceiverTurnOn();
     if (currentNode == ctx.getNetworkId()) sendMyTopology(slotStart);
     else receiveByNode(slotStart);
-    transceiver.turnOff();
+    ctx.transceiverTurnOff();
 }
 
 } /* namespace mxnet */
