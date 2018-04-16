@@ -57,6 +57,7 @@ public:
     virtual std::pair<long long, long long> getWakeupAndTimeout(long long tExpected)=0;
     long long getError() const { return error; }
     unsigned getReceiverWindow() const { return receiverWindow; }
+    virtual long long getDelayToMaster() const = 0;
     
 protected:
     TimesyncDownlink(MACContext& ctx, MacroStatus initStatus, unsigned receivingWindow) :

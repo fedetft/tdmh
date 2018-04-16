@@ -77,7 +77,7 @@ namespace mxnet {
         if(rcvResult.size == p.getPacketSize() && rcvResult.error == miosix::RecvResult::OK && rcvResult.timestampValid) {
             auto prevDelay = p.decode().first * accuracy;
             auto hopDelay = (rcvResult.timestamp - (slotStart + replyDelay)) >> 1; //time at which is received - time at which is sent / 2
-            ctx.setDelayToMaster(prevDelay + hopDelay);
+            delayToMaster = prevDelay + hopDelay;
             if (ENABLE_ROUNDTRIP_INFO_DBG)
                 print_dbg("[T/R] d=%lld d_h=%lld\n", prevDelay, hopDelay);
         } else if (ENABLE_ROUNDTRIP_INFO_DBG) {

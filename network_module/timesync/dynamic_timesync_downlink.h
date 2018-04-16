@@ -56,6 +56,7 @@ public:
     virtual ~DynamicTimesyncDownlink() {};
     inline void execute(long long slotStart) override;
     std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
+    long long getDelayToMaster() const override { return askingRTP.getDelayToMaster(); }
 protected:
     void rebroadcast(long long arrivalTs);
     virtual bool isSyncPacket() {
@@ -67,7 +68,6 @@ protected:
                 && packet[4] == static_cast<unsigned char>(panId & 0xff)
                 && packet[5] == 0xff && packet[6] == 0xff;
     }
-    AskingRoundtripPhase askingRTP;
 
     void periodicSync();
     void resync();
@@ -84,6 +84,7 @@ protected:
         );
     }
 
+    AskingRoundtripPhase askingRTP;
     miosix::TimeConversion* const tc;
     miosix::VirtualClock& vt;
     Synchronizer* const synchronizer;

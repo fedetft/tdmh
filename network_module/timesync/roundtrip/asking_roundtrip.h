@@ -40,6 +40,7 @@ public:
     AskingRoundtripPhase(const AskingRoundtripPhase& orig) = delete;
     virtual ~AskingRoundtripPhase() {};
     void execute(long long slotStart) override;
+    long long getDelayToMaster() const { return delayToMaster; }
 protected:
     void getRoundtripAskPacket() {
         auto panId = ctx.getNetworkConfig()->getPanId();
@@ -71,6 +72,7 @@ private:
         }
         return legit;
     }
+    long long delayToMaster;
 };
 }
 

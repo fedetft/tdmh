@@ -67,9 +67,6 @@ public:
     }
     miosix::Transceiver& getTransceiver() { return transceiver; }
 
-    unsigned long long getDelayToMaster() { return delayToMaster; }
-    void setDelayToMaster(unsigned long long value) { delayToMaster = value; }
-
     TimesyncDownlink* const getTimesync() { return timesync; }
     UplinkPhase* const getUplink() { return uplink; }
     TopologyContext* getTopologyContext() const;
@@ -86,7 +83,6 @@ private:
     ScheduleContext* sched;
     unsigned short networkId;
     miosix::Transceiver& transceiver;
-    unsigned long long delayToMaster;
 
     TimesyncDownlink* const timesync;
     UplinkPhase* const uplink;

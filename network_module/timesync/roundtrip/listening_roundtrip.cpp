@@ -29,8 +29,9 @@
 #include <stdio.h>
 
 #include "led_bar.h"
-#include "../../debug_settings.h"
 #include "listening_roundtrip.h"
+#include "../timesync_downlink.h"
+#include "../../debug_settings.h"
 
 using namespace miosix;
 
@@ -63,7 +64,7 @@ void ListeningRoundtripPhase::execute(long long slotStart) {
         if (ENABLE_ROUNDTRIP_INFO_DBG)
             print_dbg("[T/R] ta=%lld, tr=%lld\n", rcvResult.timestamp, replyTime);
         transceiver.configure(ctx.getTransceiverConfig(false));
-        LedBar<replyPacketSize> p(ctx.getDelayToMaster() / accuracy);
+        LedBar<replyPacketSize> p(timesync->getDelayToMaster() / accuracy);
         try {
             transceiver.sendAt(p.getPacket(), p.getPacketSize(), replyTime);
         } catch(std::exception& e) {
