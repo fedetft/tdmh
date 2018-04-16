@@ -34,8 +34,8 @@ namespace mxnet {
 
 class DynamicUplinkPhase : public UplinkPhase {
 public:
-    DynamicUplinkPhase(MACContext& ctx) :
-        UplinkPhase(ctx) {}
+    DynamicUplinkPhase(MACContext& ctx, DynamicTopologyContext* const topology) :
+        UplinkPhase(ctx, topology, new DynamicStreamManagementContext()) {}
     DynamicUplinkPhase();
     virtual ~DynamicUplinkPhase() {};
     virtual void execute(long long slotStart) override;

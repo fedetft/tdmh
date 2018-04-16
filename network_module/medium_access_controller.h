@@ -58,10 +58,6 @@ protected:
 
     unsigned short getDataslotCount();
     MACContext* const ctx;
-    TimesyncDownlink* timesync;
-    UplinkPhase* uplink;
-    ScheduleDownlinkPhase* schedule;
-    DataPhase* data;
 };
 }
 

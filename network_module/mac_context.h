@@ -36,6 +36,7 @@
 namespace mxnet {
 class MediumAccessController;
 class TimesyncDownlink;
+class UplinkPhase;
 class TopologyContext;
 class StreamManagementContext;
 class ScheduleContext;
@@ -56,8 +57,6 @@ public:
         return miosix::TransceiverConfiguration(transceiverConfig.frequency, transceiverConfig.txPower, crc, strictTimeout);
     }
     const NetworkConfiguration* getNetworkConfig() const { return networkConfig; }
-    TopologyContext* getTopologyContext() { return topologyContext; }
-    StreamManagementContext* getStreamManagementContext() { return streamManagement; }
     ScheduleContext* getScheduleContext() { return sched; }
     unsigned short getNetworkId() const { return networkId; }
 
@@ -72,8 +71,11 @@ public:
     void setDelayToMaster(unsigned long long value) { delayToMaster = value; }
 
     TimesyncDownlink* const getTimesync() { return timesync; }
+    UplinkPhase* const getUplink() { return uplink; }
+    TopologyContext* getTopologyContext() const;
+    StreamManagementContext* getStreamManagementContext() const;
 protected:
-    MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config, TimesyncDownlink* const timesync);
+    MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config, TimesyncDownlink* const timesync, UplinkPhase* const uplink);
 private:
     unsigned char hop;
     const MediumAccessController& mac;
@@ -87,6 +89,7 @@ private:
     unsigned long long delayToMaster;
 
     TimesyncDownlink* const timesync;
+    UplinkPhase* const uplink;
 };
 }
 

@@ -33,8 +33,8 @@ namespace mxnet {
 
 class MasterUplinkPhase : public UplinkPhase {
 public:
-    MasterUplinkPhase(MACContext& ctx) :
-        UplinkPhase(ctx) {}
+    MasterUplinkPhase(MACContext& ctx, MasterTopologyContext* const topology) :
+        UplinkPhase(ctx, topology, new MasterStreamManagementContext()) {}
     virtual ~MasterUplinkPhase() {};
     virtual void execute(long long slotStart) override;
 };

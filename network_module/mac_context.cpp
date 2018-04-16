@@ -25,25 +25,28 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
+#include "mac_context.h"
+#include "uplink/uplink_phase.h"
 #include "interfaces-impl/transceiver.h"
 #include "schedule/schedule_context.h"
 #include <type_traits>
 
-#include "mac_context.h"
-
 namespace mxnet {
     
-    MACContext::MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config, TimesyncDownlink* const timesync) :
+    MACContext::MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config, TimesyncDownlink* const timesync, UplinkPhase* const uplink) :
             mac(mac),
             transceiverConfig(config->getBaseFrequency(), config->getTxPower(), true, false),
             networkConfig(config),
             networkId(config->getStaticNetworkId()),
             transceiver(transceiver),
-            timesync(timesync) {}
+            timesync(timesync),
+            uplink(uplink) {}
 
     MACContext::~MACContext() {
         delete networkConfig;
     }
 
+    TopologyContext* MACContext::getTopologyContext() const { return uplink->getTopologyContext(); }
+    StreamManagementContext* MACContext::getStreamManagementContext() const { return uplink->getStreamManagementContext(); }
 
 }

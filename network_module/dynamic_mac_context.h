@@ -29,13 +29,20 @@
 
 #include "mac_context.h"
 #include "timesync/dynamic_timesync_downlink.h"
+#include "uplink/topology/mesh_topology_context.h"
+#include "uplink/topology/tree_topology_context.h"
+#include "uplink/dynamic_uplink_phase.h"
 
 namespace mxnet {
 
 class DynamicMACContext : public MACContext {
 public:
     DynamicMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config) :
-        MACContext(mac, transceiver, config, new DynamicTimesyncDownlink(*this)) {};
+        MACContext(mac, transceiver, config,
+                new DynamicTimesyncDownlink(*this),
+                new DynamicUplinkPhase(*this, (config->getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION?
+                        static_cast<DynamicTopologyContext*>(new DynamicMeshTopologyContext(*this)) :
+                        static_cast<DynamicTopologyContext*>(new DynamicTreeTopologyContext(*this))))) {};
     DynamicMACContext() = delete;
     virtual ~DynamicMACContext() {};
 };

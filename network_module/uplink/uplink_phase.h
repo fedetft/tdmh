@@ -43,14 +43,16 @@ public:
         return nodesCount * (packetArrivalAndProcessingTime + transmissionInterval);
     }
     
+    TopologyContext* const getTopologyContext() const { return topology; }
+    StreamManagementContext* const getStreamManagementContext() const { return streamManagement; }
     static const int transmissionInterval = 1000000; //1ms
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
     static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
 protected:
-    UplinkPhase(MACContext& ctx) :
+    UplinkPhase(MACContext& ctx, TopologyContext* const topology, StreamManagementContext* const streamManagement) :
             MACPhase(ctx),
-            topology(ctx.getTopologyContext()),
-            streamManagement(ctx.getStreamManagementContext()),
+            topology(topology),
+            streamManagement(streamManagement),
             nodesCount(ctx.getNetworkConfig()->getMaxNodes()) {};
     
     void nextNode() {

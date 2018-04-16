@@ -29,13 +29,20 @@
 
 #include "mac_context.h"
 #include "timesync/master_timesync_downlink.h"
+#include "uplink/topology/mesh_topology_context.h"
+#include "uplink/topology/tree_topology_context.h"
+#include "uplink/master_uplink_phase.h"
 
 namespace mxnet {
 
 class MasterMACContext : public MACContext {
 public:
     MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config) :
-        MACContext(mac, transceiver, config, new MasterTimesyncDownlink(*this, miosix::getTime() + initializationDelay)) {};
+        MACContext(mac, transceiver, config,
+                new MasterTimesyncDownlink(*this, miosix::getTime() + initializationDelay),
+                new MasterUplinkPhase(*this, config->getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION?
+                        static_cast<MasterTopologyContext*>(new MasterMeshTopologyContext(*this)) :
+                        static_cast<MasterTopologyContext*>(new MasterTreeTopologyContext(*this)))) {};
     MasterMACContext() = delete;
     virtual ~MasterMACContext() {};
 protected:
