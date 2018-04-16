@@ -56,12 +56,12 @@ public:
     const miosix::TransceiverConfiguration getTransceiverConfig(bool crc, bool strictTimeout = false) {
         return miosix::TransceiverConfiguration(transceiverConfig.frequency, transceiverConfig.txPower, crc, strictTimeout);
     }
-    const NetworkConfiguration* getNetworkConfig() const { return networkConfig; }
+    const NetworkConfiguration& getNetworkConfig() const { return networkConfig; }
     ScheduleContext* getScheduleContext() { return sched; }
     unsigned short getNetworkId() const { return networkId; }
 
     void setNetworkId(unsigned short networkId) {
-        if (!networkConfig->isDynamicNetworkId())
+        if (!networkConfig.isDynamicNetworkId())
             throw std::runtime_error("Cannot dynamically set network id if not explicitly configured");
         this->networkId = networkId;
     }
@@ -72,12 +72,12 @@ public:
     TopologyContext* getTopologyContext() const;
     StreamManagementContext* getStreamManagementContext() const;
 protected:
-    MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config, TimesyncDownlink* const timesync, UplinkPhase* const uplink);
+    MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config, TimesyncDownlink* const timesync, UplinkPhase* const uplink);
 private:
     unsigned char hop;
     const MediumAccessController& mac;
     const miosix::TransceiverConfiguration transceiverConfig;
-    const NetworkConfiguration* const networkConfig;
+    const NetworkConfiguration& networkConfig;
     TopologyContext* topologyContext;
     StreamManagementContext* streamManagement;
     ScheduleContext* sched;

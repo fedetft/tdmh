@@ -45,7 +45,7 @@ public:
     TimesyncDownlink(const TimesyncDownlink& orig) = delete;
     virtual ~TimesyncDownlink() {};
     unsigned long long getDuration() override {
-        return phaseStartupTime + networkConfig->getMaxHops() * rebroadcastInterval + listeningRTP.getDuration();
+        return phaseStartupTime + networkConfig.getMaxHops() * rebroadcastInterval + listeningRTP.getDuration();
     }
     static const int phaseStartupTime = 450000;
     static const int syncPacketSize = 7;
@@ -70,12 +70,12 @@ protected:
             MACPhase(ctx),
             networkConfig(ctx.getNetworkConfig()),
             listeningRTP(ctx), internalStatus(initStatus),
-            receiverWindow(networkConfig->getMaxAdmittedRcvWindow()), error(0) {};
+            receiverWindow(networkConfig.getMaxAdmittedRcvWindow()), error(0) {};
     virtual void next()=0;
     virtual long long correct(long long int uncorrected)=0;
     unsigned char missedPacket();
 
-    const NetworkConfiguration* const networkConfig;
+    const NetworkConfiguration& networkConfig;
     ListeningRoundtripPhase listeningRTP;
     MacroStatus internalStatus;
     unsigned receiverWindow;

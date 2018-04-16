@@ -36,7 +36,7 @@ class MasterTimesyncDownlink : public TimesyncDownlink {
 public:
     explicit MasterTimesyncDownlink(MACContext& ctx, long long firstTimesyncTime) :
             TimesyncDownlink(ctx, MacroStatus::IN_SYNC), slotframeTime(firstTimesyncTime) {
-        auto panId = networkConfig->getPanId();
+        auto panId = networkConfig.getPanId();
         packet = {{
                 0x46, //frame type 0b110 (reserved), intra pan
                 0x08, //no source addressing, short destination addressing

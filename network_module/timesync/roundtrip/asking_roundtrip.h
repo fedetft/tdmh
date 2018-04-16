@@ -43,7 +43,7 @@ public:
     long long getDelayToMaster() const { return delayToMaster; }
 protected:
     void getRoundtripAskPacket() {
-        auto panId = ctx.getNetworkConfig()->getPanId();
+        auto panId = ctx.getNetworkConfig().getPanId();
         packet = {{
             0x46, //frame type 0b110 (reserved), intra pan
             0x08, //no source addressing, short destination addressing
@@ -55,7 +55,7 @@ protected:
     }
 private:
     bool isRoundtripPacket() {
-        auto panId = ctx.getNetworkConfig()->getPanId();
+        auto panId = ctx.getNetworkConfig().getPanId();
         //TODO fix this, actually the packet doesn't have this format
         if (!(rcvResult.error == miosix::RecvResult::OK && rcvResult.timestampValid
                 && rcvResult.size == replyPacketSize

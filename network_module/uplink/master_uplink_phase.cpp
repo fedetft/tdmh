@@ -69,7 +69,7 @@ void MasterUplinkPhase::execute(long long slotStart) {
     } else {
         topology->unreceivedMessage(currentNode);
     }
-    if (ENABLE_UPLINK_INFO_DBG && ctx.getNetworkConfig()->getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION && currentNode == 1) {
+    if (ENABLE_UPLINK_INFO_DBG && ctx.getNetworkConfig().getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION && currentNode == 1) {
         dynamic_cast<MasterMeshTopologyContext*>(topology)->print();
     }
 }

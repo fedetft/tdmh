@@ -53,7 +53,7 @@ protected:
             MACPhase(ctx),
             topology(topology),
             streamManagement(streamManagement),
-            nodesCount(ctx.getNetworkConfig()->getMaxNodes()) {};
+            nodesCount(ctx.getNetworkConfig().getMaxNodes()) {};
     
     void nextNode() {
         if (--currentNode < 0)

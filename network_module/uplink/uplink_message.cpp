@@ -41,13 +41,13 @@ void UplinkMessage::serialize(unsigned char* pkt) {
     }
 }
 
-UplinkMessage UplinkMessage::deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config) {
+UplinkMessage UplinkMessage::deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration& config) {
     return deserialize(pkt.data(), pkt.size(), config);
 }
 
-UplinkMessage UplinkMessage::deserialize(unsigned char* pkt, std::size_t size, const NetworkConfiguration* const config) {
+UplinkMessage UplinkMessage::deserialize(unsigned char* pkt, std::size_t size, const NetworkConfiguration& config) {
     TopologyMessage* topology;
-    switch (config->getTopologyMode()) {
+    switch (config.getTopologyMode()) {
     case NetworkConfiguration::NEIGHBOR_COLLECTION:
         topology = NeighborMessage::deserialize(pkt + sizeof(UplinkMessagePkt), config);
         break;

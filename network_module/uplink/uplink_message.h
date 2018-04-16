@@ -43,8 +43,8 @@ public:
         content({hop, assignee}), topology(topology), smes(smes) {};
     virtual ~UplinkMessage() {};
     void serialize(unsigned char* pkt) override;
-    static UplinkMessage deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration* const config);
-    static UplinkMessage deserialize(unsigned char*, std::size_t size, const NetworkConfiguration* const config);
+    static UplinkMessage deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration& config);
+    static UplinkMessage deserialize(unsigned char*, std::size_t size, const NetworkConfiguration& config);
     static std::size_t getSizeWithoutSMEs(TopologyMessage* const tMsg) {
         return sizeof(UplinkMessagePkt) + tMsg->getSize();
     }

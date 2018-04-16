@@ -35,7 +35,7 @@ namespace mxnet {
 
 DynamicMeshTopologyContext::DynamicMeshTopologyContext(MACContext& ctx)  :
     DynamicTopologyContext(ctx),
-    neighbors(ctx.getNetworkConfig()->getMaxNodes(), std::vector<unsigned char>()) {};
+    neighbors(ctx.getNetworkConfig().getMaxNodes(), std::vector<unsigned char>()) {};
 
 void DynamicMeshTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
     DynamicTopologyContext::receivedMessage(msg, sender, rssi);
@@ -59,9 +59,9 @@ void DynamicMeshTopologyContext::unreceivedMessage(unsigned char nodeIdByTopolog
 }
 
 TopologyMessage* DynamicMeshTopologyContext::getMyTopologyMessage() {
-    auto* config = ctx.getNetworkConfig();
-    std::vector<ForwardedNeighborMessage*> forwarded(config->getMaxForwardedTopologies());
-    auto forward = dequeueMessages(config->getMaxForwardedTopologies());
+    auto config = ctx.getNetworkConfig();
+    std::vector<ForwardedNeighborMessage*> forwarded(config.getMaxForwardedTopologies());
+    auto forward = dequeueMessages(config.getMaxForwardedTopologies());
     std::transform(forward.begin(), forward.end(), std::back_inserter(forwarded), [](TopologyElement* elem){
         return dynamic_cast<ForwardedNeighborMessage*>(elem);
     });

@@ -85,7 +85,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
 }
 
 void DynamicScheduleDownlinkPhase::rebroadcast(long long rcvTime) {
-    if(ctx.getHop() >= networkConfig->getMaxHops()) return;
+    if(ctx.getHop() >= networkConfig.getMaxHops()) return;
     try {
         transceiver.sendAt(packet.data(), packet.size(), rcvTime + rebroadcastInterval);
     } catch(std::exception& e) {

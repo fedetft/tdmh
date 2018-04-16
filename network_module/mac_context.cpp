@@ -33,17 +33,16 @@
 
 namespace mxnet {
     
-    MACContext::MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config, TimesyncDownlink* const timesync, UplinkPhase* const uplink) :
+    MACContext::MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config, TimesyncDownlink* const timesync, UplinkPhase* const uplink) :
             mac(mac),
-            transceiverConfig(config->getBaseFrequency(), config->getTxPower(), true, false),
+            transceiverConfig(config.getBaseFrequency(), config.getTxPower(), true, false),
             networkConfig(config),
-            networkId(config->getStaticNetworkId()),
+            networkId(config.getStaticNetworkId()),
             transceiver(transceiver),
             timesync(timesync),
             uplink(uplink) {}
 
     MACContext::~MACContext() {
-        delete networkConfig;
     }
 
     TopologyContext* MACContext::getTopologyContext() const { return uplink->getTopologyContext(); }

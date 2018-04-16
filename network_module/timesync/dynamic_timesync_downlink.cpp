@@ -99,7 +99,7 @@ void DynamicTimesyncDownlink::periodicSync() {
     } else {
         if (ENABLE_TIMESYNC_DL_INFO_DBG) {
             print_dbg("[T] miss u=%d w=%d\n", clockCorrection, receiverWindow);
-            if (missedPacket() >= networkConfig->getMaxMissedTimesyncs())
+            if (missedPacket() >= networkConfig.getMaxMissedTimesyncs())
                 print_dbg("[T] lost sync\n");
         }
     }
@@ -173,7 +173,7 @@ inline void DynamicTimesyncDownlink::execute(long long slotStart)
 }
 
 void DynamicTimesyncDownlink::rebroadcast(long long arrivalTs){
-    if(packet[2] == networkConfig->getMaxHops()) return;
+    if(packet[2] == networkConfig.getMaxHops()) return;
     try {
         transceiver.sendAt(packet.data(), syncPacketSize, arrivalTs + rebroadcastInterval);
     } catch(std::exception& e) {
@@ -196,10 +196,10 @@ void DynamicTimesyncDownlink::next() {
     //This an uncorrected clock! Good for Rtc, that doesn't correct by itself
     //needed because we ALWAYS need to consider the reference to be the first hook time,
     //otherwise we would build a second integrator without actually managing it.
-    theoreticalFrameStart += networkConfig->getSlotframeDuration();
+    theoreticalFrameStart += networkConfig.getSlotframeDuration();
     //This is the estimate of the next packet in our clock
     //using the FLOPSYNC-2 clock correction
-    computedFrameStart += networkConfig->getSlotframeDuration() + clockCorrection;
+    computedFrameStart += networkConfig.getSlotframeDuration() + clockCorrection;
 }
 
 long long DynamicTimesyncDownlink::correct(long long int uncorrected) {
@@ -209,7 +209,7 @@ long long DynamicTimesyncDownlink::correct(long long int uncorrected) {
 }
 
 unsigned char DynamicTimesyncDownlink::missedPacket() {
-    if(++missedPackets >= networkConfig->getMaxMissedTimesyncs()) {
+    if(++missedPackets >= networkConfig.getMaxMissedTimesyncs()) {
         internalStatus = DESYNCHRONIZED;
         synchronizer->reset();
     } else {

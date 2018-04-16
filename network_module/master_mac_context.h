@@ -37,10 +37,10 @@ namespace mxnet {
 
 class MasterMACContext : public MACContext {
 public:
-    MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config) :
+    MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
         MACContext(mac, transceiver, config,
                 new MasterTimesyncDownlink(*this, miosix::getTime() + initializationDelay),
-                new MasterUplinkPhase(*this, config->getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION?
+                new MasterUplinkPhase(*this, config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION?
                         static_cast<MasterTopologyContext*>(new MasterMeshTopologyContext(*this)) :
                         static_cast<MasterTopologyContext*>(new MasterTreeTopologyContext(*this)))) {};
     MasterMACContext() = delete;

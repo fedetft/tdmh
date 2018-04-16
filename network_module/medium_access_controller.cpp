@@ -38,7 +38,7 @@ void MediumAccessController::run() {
 
 }
 unsigned short MediumAccessController::getDataslotCount() {
-    return (ctx->getNetworkConfig()->getSlotframeDuration() - (ctx->getTimesync()->getDuration() + ctx->getUplink()->getDuration() /*+ schedule->getDuration()*/)) / /*data->getDuration()*/1;
+    return (ctx->getNetworkConfig().getSlotframeDuration() - (ctx->getTimesync()->getDuration() + ctx->getUplink()->getDuration() /*+ schedule->getDuration()*/)) / /*data->getDuration()*/1;
 }
 }
 

@@ -34,7 +34,7 @@ namespace mxnet {
 
 class DynamicMediumAccessController : public MediumAccessController {
 public:
-    DynamicMediumAccessController(miosix::Transceiver& transceiver, const NetworkConfiguration* const config) :
+    DynamicMediumAccessController(miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
         MediumAccessController(new DynamicMACContext(*this, transceiver, config)) {};
     virtual ~DynamicMediumAccessController() {};
 };

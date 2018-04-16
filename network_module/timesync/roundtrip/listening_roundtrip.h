@@ -41,7 +41,7 @@ public:
     void execute(long long slotStart) override;
 private:
     bool isRoundtripAskPacket() {
-        auto panId = ctx.getNetworkConfig()->getPanId();
+        auto panId = ctx.getNetworkConfig().getPanId();
         return rcvResult.error == miosix::RecvResult::OK && rcvResult.timestampValid
                 && rcvResult.size == askPacketSize
                 && packet[0] == 0x46 && packet[1] == 0x08

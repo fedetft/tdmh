@@ -50,7 +50,7 @@ public:
             clockCorrection(0),
             receiverWindow(0),
             missedPackets(0) {
-                vt.setSyncPeriod(networkConfig->getSlotframeDuration());
+                vt.setSyncPeriod(networkConfig.getSlotframeDuration());
         };
     DynamicTimesyncDownlink(const DynamicTimesyncDownlink& orig) = delete;
     virtual ~DynamicTimesyncDownlink() {};
@@ -60,7 +60,7 @@ public:
 protected:
     void rebroadcast(long long arrivalTs);
     virtual bool isSyncPacket() {
-        auto panId = networkConfig->getPanId();
+        auto panId = networkConfig.getPanId();
         return rcvResult.error == miosix::RecvResult::OK
                 && rcvResult.timestampValid && rcvResult.size == syncPacketSize
                 && packet[0] == 0x46 && packet[1] == 0x08

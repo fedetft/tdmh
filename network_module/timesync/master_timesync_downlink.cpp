@@ -59,14 +59,14 @@ void MasterTimesyncDownlink::execute(long long slotStart)
 
 std::pair<long long, long long> MasterTimesyncDownlink::getWakeupAndTimeout(long long tExpected) {
     return std::make_pair(
-        tExpected - (MediumAccessController::receivingNodeWakeupAdvance + networkConfig->getMaxAdmittedRcvWindow()),
-        tExpected + networkConfig->getMaxAdmittedRcvWindow() + MediumAccessController::packetPreambleTime +
+        tExpected - (MediumAccessController::receivingNodeWakeupAdvance + networkConfig.getMaxAdmittedRcvWindow()),
+        tExpected + networkConfig.getMaxAdmittedRcvWindow() + MediumAccessController::packetPreambleTime +
         MediumAccessController::maxPropagationDelay
     );
 }
 
 void MasterTimesyncDownlink::next() {
-    slotframeTime += networkConfig->getSlotframeDuration();
+    slotframeTime += networkConfig.getSlotframeDuration();
 }
 
 long long MasterTimesyncDownlink::correct(long long int uncorrected) {

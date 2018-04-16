@@ -28,7 +28,6 @@
 #pragma once
 
 namespace mxnet {
-class MACContext;
 class NetworkConfiguration {
 public:
     enum TopologyMode {

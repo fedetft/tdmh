@@ -37,10 +37,10 @@ namespace mxnet {
 
 class DynamicMACContext : public MACContext {
 public:
-    DynamicMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration* const config) :
+    DynamicMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
         MACContext(mac, transceiver, config,
                 new DynamicTimesyncDownlink(*this),
-                new DynamicUplinkPhase(*this, (config->getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION?
+                new DynamicUplinkPhase(*this, (config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION?
                         static_cast<DynamicTopologyContext*>(new DynamicMeshTopologyContext(*this)) :
                         static_cast<DynamicTopologyContext*>(new DynamicTreeTopologyContext(*this))))) {};
     DynamicMACContext() = delete;

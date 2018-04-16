@@ -85,7 +85,7 @@ void MasterTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sen
 
 void MasterTopologyContext::unreceivedMessage(unsigned char sender) {
     if (neighborsUnseenFor.find(sender) == neighborsUnseenFor.end()) return;
-    if (++neighborsUnseenFor[sender] > ctx.getNetworkConfig()->getMaxRoundsUnavailableBecomesDead())
+    if (++neighborsUnseenFor[sender] > ctx.getNetworkConfig().getMaxRoundsUnavailableBecomesDead())
         topology.removeEdge(sender, 0);
 }
 
