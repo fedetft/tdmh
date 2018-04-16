@@ -28,6 +28,7 @@
 #pragma once
 
 #include "schedule_downlink.h"
+#include "master_schedule_information.h"
 
 namespace mxnet {
 
@@ -37,8 +38,12 @@ public:
             ScheduleDownlinkPhase(ctx) {};
     MasterScheduleDownlinkPhase() = delete;
     MasterScheduleDownlinkPhase(const MasterScheduleDownlinkPhase& orig) = delete;
-    void execute(long long slotStart) override;
     virtual ~MasterScheduleDownlinkPhase() {};
+    void execute(long long slotStart) override;
+    std::pair<std::vector<ScheduleAddition*>, std::vector<unsigned char>> getScheduleToDistribute(unsigned short bytes);
+protected:
+    std::set<MasterScheduleElement> currentSchedule;
+    std::deque<ScheduleDeltaElement*> deltaToDistribute;
 };
 }
 

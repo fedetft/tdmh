@@ -26,7 +26,6 @@
  ***************************************************************************/
 
 #include "dynamic_schedule_information.h"
-#include "schedule_context.h"
 
 namespace mxnet {
 

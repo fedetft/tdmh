@@ -26,9 +26,10 @@
  ***************************************************************************/
 
 #include "mac_context.h"
+#include "timesync/timesync_downlink.h"
 #include "uplink/uplink_phase.h"
+#include "data/dataphase.h"
 #include "interfaces-impl/transceiver.h"
-#include "schedule/schedule_context.h"
 #include <type_traits>
 
 namespace mxnet {
@@ -40,12 +41,16 @@ namespace mxnet {
             networkId(config.getStaticNetworkId()),
             transceiver(transceiver),
             timesync(timesync),
-            uplink(uplink) {}
-
-    MACContext::~MACContext() {
-    }
+            uplink(uplink) ,
+            data(new DataPhase(*this, getDataslotCount())) {}
 
     TopologyContext* MACContext::getTopologyContext() const { return uplink->getTopologyContext(); }
     StreamManagementContext* MACContext::getStreamManagementContext() const { return uplink->getStreamManagementContext(); }
+
+    unsigned short MACContext::getDataslotCount() {
+        return (networkConfig.getSlotframeDuration() -
+                (timesync->getDuration() + uplink->getDuration() + schedule->getDuration())) /
+                DataPhase::getDurationStatic();
+    }
 
 }

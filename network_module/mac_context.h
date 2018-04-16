@@ -39,12 +39,13 @@ class TimesyncDownlink;
 class UplinkPhase;
 class TopologyContext;
 class StreamManagementContext;
-class ScheduleContext;
+class ScheduleDownlinkPhase;
+class DataPhase;
 class MACContext {
 public:
     MACContext() = delete;
     MACContext(const MACContext& orig) = delete;
-    virtual ~MACContext();
+    virtual ~MACContext() {};
     inline const MediumAccessController& getMediumAccessController() { return mac; }
     void setHop(unsigned char num) { hop = num; }
     unsigned char getHop() { return hop; }
@@ -57,7 +58,6 @@ public:
         return miosix::TransceiverConfiguration(transceiverConfig.frequency, transceiverConfig.txPower, crc, strictTimeout);
     }
     const NetworkConfiguration& getNetworkConfig() const { return networkConfig; }
-    ScheduleContext* getScheduleContext() { return sched; }
     unsigned short getNetworkId() const { return networkId; }
 
     void setNetworkId(unsigned short networkId) {
@@ -71,21 +71,25 @@ public:
     UplinkPhase* const getUplink() { return uplink; }
     TopologyContext* getTopologyContext() const;
     StreamManagementContext* getStreamManagementContext() const;
+    ScheduleDownlinkPhase* const getScheduleDownlink() { return schedule; }
+    DataPhase* const getDataPhase() { return data; }
 protected:
     MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config, TimesyncDownlink* const timesync, UplinkPhase* const uplink);
 private:
+    unsigned short getDataslotCount();
     unsigned char hop;
     const MediumAccessController& mac;
     const miosix::TransceiverConfiguration transceiverConfig;
     const NetworkConfiguration& networkConfig;
-    TopologyContext* topologyContext;
-    StreamManagementContext* streamManagement;
-    ScheduleContext* sched;
     unsigned short networkId;
     miosix::Transceiver& transceiver;
 
     TimesyncDownlink* const timesync;
     UplinkPhase* const uplink;
+    TopologyContext* topologyContext;
+    StreamManagementContext* streamManagement;
+    ScheduleDownlinkPhase* schedule;
+    DataPhase* data;
 };
 }
 

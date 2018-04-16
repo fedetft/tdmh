@@ -27,12 +27,12 @@
 
 #pragma once
 
+#include "dynamic_schedule_information.h"
+#include "../mac_phase.h"
+#include "../mac_context.h"
 #include "interfaces-impl/transceiver.h"
 #include "interfaces-impl/power_manager.h"
 #include <utility>
-#include "../mac_phase.h"
-#include "schedule_context.h"
-#include "../mac_context.h"
 
 namespace mxnet {
 class ScheduleDownlinkPhase : public MACPhase {
@@ -43,17 +43,23 @@ public:
     unsigned long long getDuration() override {
         return networkConfig.getScheduleDownlinkPerSlotframeCount() * (phaseStartupTime + networkConfig.getMaxHops() * rebroadcastInterval);
     }
+    std::set<DynamicScheduleElement*>::iterator getFirstSchedule() { return nodeSchedule.begin(); };
+    std::queue<std::vector<unsigned char>>* getQueueForId(unsigned short id) {
+        std::map<unsigned short, std::queue<std::vector<unsigned char>>>::iterator retval = forwardQueues.find(id);
+        if (retval == forwardQueues.end()) return nullptr;
+        return &(retval->second);
+    }
     static const int phaseStartupTime = 450000;
     static const int rebroadcastInterval = 5000000; //32us per-byte + 600us total delta
     
 protected:
     ScheduleDownlinkPhase(MACContext& ctx) :
         MACPhase(ctx),
-        networkConfig(ctx.getNetworkConfig()),
-        scheduleContext(ctx.getScheduleContext()) {};
+        networkConfig(ctx.getNetworkConfig()) {};
     
     const NetworkConfiguration& networkConfig;
-    ScheduleContext* const scheduleContext;
+    std::set<DynamicScheduleElement*> nodeSchedule;
+    std::map<unsigned short, std::queue<std::vector<unsigned char>>> forwardQueues;
 };
 }
 

@@ -27,7 +27,8 @@
 
 #include "../debug_settings.h"
 #include "dynamic_schedule_downlink.h"
-#include "schedule_context.h"
+#include "schedule_downlink.h"
+#include "schedule_information.h"
 #include "../timesync/timesync_downlink.h"
 
 using namespace miosix;
@@ -79,9 +80,8 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     //Rebroadcast the sync packet
     rebroadcast(rcvResult.timestamp);
     transceiver.turnOff();
-    auto dSctx = dynamic_cast<DynamicScheduleContext*>(scheduleContext);
     auto data = std::vector<unsigned char>(packet.begin(), packet.begin() + rcvResult.size);
-    dSctx->parseSchedule(data);
+    parseSchedule(data);
 }
 
 void DynamicScheduleDownlinkPhase::rebroadcast(long long rcvTime) {
@@ -91,6 +91,55 @@ void DynamicScheduleDownlinkPhase::rebroadcast(long long rcvTime) {
     } catch(std::exception& e) {
         if (ENABLE_RADIO_EXCEPTION_DBG)
             print_dbg("%s\n", e.what());
+    }
+}
+
+void DynamicScheduleDownlinkPhase::addSchedule(DynamicScheduleElement* element) {
+    nodeSchedule.insert(element);
+    scheduleById[element->getId()] = element;
+    if (element->getRole() == DynamicScheduleElement::FORWARDEE) {
+        forwardQueues[element->getId()] = std::queue<std::vector<unsigned char>>();
+    }
+    //TODO notify of opened stream in reception/sending, if needed.
+}
+
+void DynamicScheduleDownlinkPhase::deleteSchedule(unsigned char id) {
+    auto elem = scheduleById.find(id);
+    if (elem == scheduleById.end()) return;
+    if (elem->second->getRole() == DynamicScheduleElement::FORWARDEE) {
+        nodeSchedule.erase(dynamic_cast<ForwardeeScheduleElement*>(elem->second)->getNext());
+        forwardQueues.erase(elem->second->getId());
+    }
+    nodeSchedule.erase(elem->second);
+    scheduleById.erase(id);
+    //TODO notify successful stream close, if needed
+}
+
+void DynamicScheduleDownlinkPhase::parseSchedule(std::vector<unsigned char>& pkt) {
+    assert(pkt.size() > 0);
+    auto addCount = pkt[0];
+    auto myId = ctx.getNetworkId();
+    auto bitsRead = std::numeric_limits<unsigned char>::digits;
+    for (int i = 0; i < addCount; i++) {
+        auto sa = ScheduleAddition::deserialize(pkt.data(), bitsRead);
+        bitsRead += sa->getBitSize();
+        auto transitions = sa->getTransitions();
+        auto t = sa->getTransitionForNode(myId);
+        if (t.first == nullptr)
+            addSchedule(new SenderScheduleElement(sa->getScheduleId(), t.second->getDataslot(), transitions.rbegin()->getNodeId()));
+        else if (t.second == nullptr)
+            addSchedule(new ReceiverScheduleElement(sa->getScheduleId(), t.second->getDataslot(), sa->getNodeId()));
+        else {
+            auto* fwd = new ForwarderScheduleElement(sa->getScheduleId(), t.second->getDataslot());
+            addSchedule(fwd);
+            addSchedule(new ForwardeeScheduleElement(sa->getScheduleId(), t.first->getDataslot(), fwd));
+        }
+    }
+    for (int i = (pkt.size() * std::numeric_limits<unsigned char>::digits - bitsRead) / pkt.size() * std::numeric_limits<unsigned char>::digits; i >= 0; i--) {
+        auto* sd = ScheduleDeletion::deserialize(pkt.data(), bitsRead);
+        deleteSchedule(sd->getScheduleId());
+        bitsRead += std::numeric_limits<unsigned char>::digits;
+        delete sd;
     }
 }
 

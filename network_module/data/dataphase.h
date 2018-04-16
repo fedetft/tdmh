@@ -28,19 +28,23 @@
 #pragma once
 
 #include "../mac_phase.h"
-#include "../schedule/schedule_context.h"
+#include "../schedule/schedule_downlink.h"
 #include "../mac_context.h"
 
 namespace mxnet {
 class DataPhase : public MACPhase {
 public:
     DataPhase(MACContext& ctx, unsigned short slotsInFrame) :
-            MACPhase(ctx), slotsInFrame(slotsInFrame), sCtx(ctx.getScheduleContext()) {};
+            MACPhase(ctx), slotsInFrame(slotsInFrame), scheduleDownlink(ctx.getScheduleDownlink()) {};
     DataPhase(const DataPhase& orig) = delete;
     virtual ~DataPhase() {};
 
     virtual void execute(long long slotStart) override;
     unsigned long long getDuration() override {
+        return packetArrivalAndProcessingTime + transmissionInterval;
+    }
+
+    static unsigned long long getDurationStatic() {
         return packetArrivalAndProcessingTime + transmissionInterval;
     }
 
@@ -51,12 +55,12 @@ private:
     void nextSlot() {
         if (++dataSlot > slotsInFrame) {
             dataSlot = 0;
-            nextSched = sCtx->getFirstSchedule();
+            nextSched = scheduleDownlink->getFirstSchedule();
         }
     }
     const unsigned short slotsInFrame;
     unsigned short dataSlot;
-    ScheduleContext* const sCtx;
+    ScheduleDownlinkPhase* const scheduleDownlink;
     std::set<DynamicScheduleElement*>::iterator nextSched;
 };
 }

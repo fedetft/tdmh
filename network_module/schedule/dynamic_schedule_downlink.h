@@ -39,6 +39,15 @@ public:
     virtual ~DynamicScheduleDownlinkPhase() {};
 protected:
     void rebroadcast(long long slotStart);
+    void addSchedule(DynamicScheduleElement* element);
+    void deleteSchedule(unsigned char id);
+    void parseSchedule(std::vector<unsigned char>& pkt);
+    /**
+     * Not containing forwarder elements, only sender, receiver and forwardee.
+     * Forwarder will be accessible as `forwardee.next`.
+     * Useful for deleting a schedule, being able to obtain timestamps and access the nodeSchedule for their removal.
+     */
+    std::map<unsigned short, DynamicScheduleElement*> scheduleById;
 };
 }
 

@@ -56,7 +56,6 @@ public:
 protected:
     MediumAccessController(MACContext* const ctx) : ctx(ctx) {};
 
-    unsigned short getDataslotCount();
     MACContext* const ctx;
 };
 }
