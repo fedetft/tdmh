@@ -39,9 +39,10 @@ public:
     UplinkPhase() = delete;
     UplinkPhase(const UplinkPhase& orig) = delete;
     virtual ~UplinkPhase() {};
-    unsigned long long getDuration() override {
-        return nodesCount * (packetArrivalAndProcessingTime + transmissionInterval);
+    unsigned long long getDuration() const override {
+        return packetArrivalAndProcessingTime + transmissionInterval;
     }
+    unsigned long long getSlotsCount() const override { return nodesCount; }
     
     TopologyContext* const getTopologyContext() const { return topology; }
     StreamManagementContext* const getStreamManagementContext() const { return streamManagement; }

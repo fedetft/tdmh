@@ -40,9 +40,11 @@ public:
     ScheduleDownlinkPhase() = delete;
     ScheduleDownlinkPhase(const ScheduleDownlinkPhase& orig) = delete;
     virtual ~ScheduleDownlinkPhase() {};
-    unsigned long long getDuration() override {
-        return networkConfig.getScheduleDownlinkPerSlotframeCount() * (phaseStartupTime + networkConfig.getMaxHops() * rebroadcastInterval);
+    unsigned long long getDuration() const override {
+        return phaseStartupTime + networkConfig.getMaxHops() * rebroadcastInterval;
     }
+
+    unsigned long long getSlotsCount() const override { return networkConfig.getScheduleDownlinkPerSlotframeCount(); }
     std::set<DynamicScheduleElement*>::iterator getFirstSchedule() { return nodeSchedule.begin(); };
     std::queue<std::vector<unsigned char>>* getQueueForId(unsigned short id) {
         std::map<unsigned short, std::queue<std::vector<unsigned char>>>::iterator retval = forwardQueues.find(id);

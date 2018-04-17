@@ -28,7 +28,6 @@
 #pragma once
 
 #include "medium_access_controller.h"
-//#include "timesync/sync_status.h"
 #include "interfaces-impl/transceiver.h"
 #include "interfaces-impl/power_manager.h"
 #include <array>
@@ -50,7 +49,9 @@ public:
      * @param slotStart timestamp identifying the first action computed in the network.
      */
     virtual void execute(long long slotStart) = 0;
-    virtual unsigned long long getDuration() = 0;
+    virtual unsigned long long getDuration() const = 0;
+    virtual unsigned long long getSlotsCount() const = 0;
+    virtual unsigned long long getTotalDuration() const { return getSlotsCount() * getDuration(); }
 protected:
     MACContext& ctx;
     TimesyncDownlink* const timesync;

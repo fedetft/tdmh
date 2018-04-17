@@ -44,9 +44,10 @@ public:
     TimesyncDownlink() = delete;
     TimesyncDownlink(const TimesyncDownlink& orig) = delete;
     virtual ~TimesyncDownlink() {};
-    unsigned long long getDuration() override {
+    unsigned long long getDuration() const override {
         return phaseStartupTime + networkConfig.getMaxHops() * rebroadcastInterval + listeningRTP.getDuration();
     }
+    unsigned long long getSlotsCount() const override { return 1; }
     static const int phaseStartupTime = 450000;
     static const int syncPacketSize = 7;
     static const int rebroadcastInterval = 1016000; //32us per-byte + 600us total delta
