@@ -42,7 +42,7 @@ void DynamicMeshTopologyContext::receivedMessage(UplinkMessage msg, unsigned cha
     neighbors.addNeighbor(sender);
     neighborsUnseenFor[sender] = 0;
     if (msg.getAssignee() != ctx.getNetworkId()) return;
-    auto* tMsg = dynamic_cast<NeighborMessage*>(msg.getTopologyMessage());
+    auto* tMsg = static_cast<NeighborMessage*>(msg.getTopologyMessage());
     checkEnqueueOrUpdate(new ForwardedNeighborMessage(sender, tMsg->getNeighbors()));
     for (auto elem : tMsg->getForwardedTopologies())
         checkEnqueueOrUpdate(elem);
@@ -63,7 +63,7 @@ TopologyMessage* DynamicMeshTopologyContext::getMyTopologyMessage() {
     std::vector<ForwardedNeighborMessage*> forwarded(config.getMaxForwardedTopologies());
     auto forward = dequeueMessages(config.getMaxForwardedTopologies());
     std::transform(forward.begin(), forward.end(), std::back_inserter(forwarded), [](TopologyElement* elem){
-        return dynamic_cast<ForwardedNeighborMessage*>(elem);
+        return static_cast<ForwardedNeighborMessage*>(elem);
     });
     return new NeighborMessage(neighbors, std::move(forwarded), config);
 }
@@ -82,7 +82,7 @@ void DynamicMeshTopologyContext::checkEnqueueOrUpdate(ForwardedNeighborMessage* 
 
 void MasterMeshTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
     MasterTopologyContext::receivedMessage(msg, sender, rssi);
-    auto tMsg = dynamic_cast<NeighborMessage*>(msg.getTopologyMessage());
+    auto tMsg = static_cast<NeighborMessage*>(msg.getTopologyMessage());
     std::vector<ForwardedNeighborMessage*> fwds = tMsg->getForwardedTopologies();
     for (auto* fwd : fwds) {
         auto newNeighbors = fwd->getNeighbors().getNeighbors();

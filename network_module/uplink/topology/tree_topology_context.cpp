@@ -41,7 +41,7 @@ void DynamicTreeTopologyContext::receivedMessage(UplinkMessage msg, unsigned cha
         enqueuedTopologyMessages.update(sender, new RoutingLink(sender, ctx.getNetworkId()));
     } else enqueuedTopologyMessages.enqueue(sender, new RoutingLink(sender, ctx.getNetworkId()));
     //store all the links it forwards
-    auto* tMsg = dynamic_cast<RoutingVector*>(msg.getTopologyMessage());
+    auto* tMsg = static_cast<RoutingVector*>(msg.getTopologyMessage());
     auto links = tMsg->getLinks();
     for (auto link : links) {
         auto sender = link->getNodeId();
@@ -59,14 +59,14 @@ TopologyMessage* DynamicTreeTopologyContext::getMyTopologyMessage() {
     std::vector<RoutingLink*> links(count);
     auto forward = dequeueMessages(count);
     std::transform(forward.begin(), forward.end(), std::back_inserter(links), [](TopologyElement* elem){
-        return dynamic_cast<RoutingLink*>(elem);
+        return static_cast<RoutingLink*>(elem);
     });
     return new RoutingVector(std::move(links), config);
 }
 
 void MasterTreeTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
     MasterTopologyContext::receivedMessage(msg, sender, rssi);
-    auto* tMsg = dynamic_cast<RoutingVector*>(msg.getTopologyMessage());
+    auto* tMsg = static_cast<RoutingVector*>(msg.getTopologyMessage());
     std::vector<RoutingLink*> links = tMsg->getLinks();
     for (auto* link : links) {//TODO manage removals, defining the use cases and how to deal with them
         if (!topology.hasEdge(link->getNodeId(), link->getPredecessor()))
