@@ -67,6 +67,8 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[SC] ST=%lld\n", slotStart);
     ctx.transceiverTurnOff();
+    for (auto el : data.first)
+        delete el;
 }
 
 std::pair<std::vector<ScheduleAddition*>, std::vector<unsigned char>> MasterScheduleDownlinkPhase::getScheduleToDistribute(unsigned short bytes) {
@@ -156,8 +158,10 @@ std::pair<std::vector<ScheduleAddition*>, std::vector<unsigned char>> MasterSche
             deltaToDistribute.pop_front();
             if (val->getDeltaType() == ScheduleDeltaElement::ADDITION)
                 retval1.push_back(static_cast<ScheduleAddition*>(val));
-            else
+            else {
                 retval2.push_back(val->getScheduleId());
+                delete val;
+            }
             bitsLimit -= nextSize;
         }
     }
@@ -167,8 +171,10 @@ std::pair<std::vector<ScheduleAddition*>, std::vector<unsigned char>> MasterSche
         else {
             if ((*it)->getDeltaType() == ScheduleDeltaElement::ADDITION)
                 retval1.push_back(static_cast<ScheduleAddition*>(*it));
-            else
+            else {
                 retval2.push_back((*it)->getScheduleId());
+                delete *it;
+            }
             it = deltaToDistribute.erase(it);
         }
     }

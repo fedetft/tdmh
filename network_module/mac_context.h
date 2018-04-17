@@ -46,7 +46,7 @@ class MACContext {
 public:
     MACContext() = delete;
     MACContext(const MACContext& orig) = delete;
-    virtual ~MACContext() {};
+    virtual ~MACContext();
     inline const MediumAccessController& getMediumAccessController() { return mac; }
     void setHop(unsigned char num) { hop = num; }
     unsigned char getHop() { return hop; }
@@ -82,7 +82,9 @@ public:
     ScheduleDownlinkPhase* const getScheduleDownlink() { return schedule; }
     DataPhase* const getDataPhase() { return data; }
 protected:
-    MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config, TimesyncDownlink* const timesync, UplinkPhase* const uplink);
+    MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config,
+            TimesyncDownlink* const timesync, UplinkPhase* const uplink, StreamManagementContext* const smc,
+            TopologyContext* const topology, ScheduleDownlinkPhase* const schedule);
 private:
     unsigned short getDataslotCount();
     unsigned char hop;
@@ -94,10 +96,10 @@ private:
 
     TimesyncDownlink* const timesync;
     UplinkPhase* const uplink;
-    TopologyContext* topologyContext;
-    StreamManagementContext* streamManagement;
-    ScheduleDownlinkPhase* schedule;
-    DataPhase* data;
+    TopologyContext* const topologyContext;
+    StreamManagementContext* const streamManagement;
+    ScheduleDownlinkPhase* const schedule;
+    DataPhase* const data;
 
     //TODO write getters for the statistics
     unsigned sendTotal;

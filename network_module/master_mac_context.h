@@ -32,21 +32,27 @@
 #include "uplink/topology/mesh_topology_context.h"
 #include "uplink/topology/tree_topology_context.h"
 #include "uplink/master_uplink_phase.h"
+#include "uplink/stream_management/stream_management_context.h"
+#include "schedule/master_schedule_downlink.h"
 
 namespace mxnet {
 
 class MasterMACContext : public MACContext {
 public:
     MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
-        MACContext(mac, transceiver, config,
-                new MasterTimesyncDownlink(*this, miosix::getTime() + initializationDelay),
-                new MasterUplinkPhase(*this, config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION?
+        MasterMACContext(mac, transceiver, config, config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION?
                         static_cast<MasterTopologyContext*>(new MasterMeshTopologyContext(*this)) :
-                        static_cast<MasterTopologyContext*>(new MasterTreeTopologyContext(*this)))) {};
+                        static_cast<MasterTopologyContext*>(new MasterTreeTopologyContext(*this))) {};
     MasterMACContext() = delete;
     virtual ~MasterMACContext() {};
 protected:
     long long initializationDelay = 1000000;
+private:
+    MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config, MasterTopologyContext* const topology) :
+        MACContext(mac, transceiver, config,
+            new MasterTimesyncDownlink(*this, miosix::getTime() + initializationDelay),
+            new MasterUplinkPhase(*this, topology),
+                    new MasterStreamManagementContext(), topology, new MasterScheduleDownlinkPhase(*this)) {};
 };
 
 } /* namespace mxnet */

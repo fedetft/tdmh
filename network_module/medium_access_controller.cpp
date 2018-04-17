@@ -27,12 +27,12 @@
 
 #include "medium_access_controller.h"
 #include "mac_context.h"
-#include "schedule/schedule_downlink.h"
-#include "timesync/timesync_downlink.h"
-#include "uplink/uplink_phase.h"
-#include "data/dataphase.h"
 
 namespace mxnet {
+
+MediumAccessController::~MediumAccessController() {
+    delete ctx;
+}
 
 void MediumAccessController::run() {
 

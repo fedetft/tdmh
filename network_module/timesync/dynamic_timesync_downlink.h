@@ -53,7 +53,10 @@ public:
                 vt.setSyncPeriod(networkConfig.getSlotframeDuration());
         };
     DynamicTimesyncDownlink(const DynamicTimesyncDownlink& orig) = delete;
-    virtual ~DynamicTimesyncDownlink() {};
+    virtual ~DynamicTimesyncDownlink() {
+        delete tc;
+        delete synchronizer;
+    };
     inline void execute(long long slotStart) override;
     std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
     long long getDelayToMaster() const override { return askingRTP.getDelayToMaster(); }

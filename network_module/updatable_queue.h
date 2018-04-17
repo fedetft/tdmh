@@ -147,7 +147,7 @@ bool UpdatableQueue<keyType, valType>::update(keyType key, const valType& val) {
 
 template<class keyType, class valType>
 inline valType& UpdatableQueue<keyType, valType>::getByKey(keyType key) {
-    if (!hasKey(key)) throw new std::runtime_error("empty");
+    if (!hasKey(key)) throw std::runtime_error("empty");
     return data[key];
 }
 

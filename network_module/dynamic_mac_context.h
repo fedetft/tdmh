@@ -32,19 +32,25 @@
 #include "uplink/topology/mesh_topology_context.h"
 #include "uplink/topology/tree_topology_context.h"
 #include "uplink/dynamic_uplink_phase.h"
+#include "uplink/stream_management/stream_management_context.h"
+#include "schedule/dynamic_schedule_downlink.h"
 
 namespace mxnet {
 
 class DynamicMACContext : public MACContext {
 public:
     DynamicMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
-        MACContext(mac, transceiver, config,
-                new DynamicTimesyncDownlink(*this),
-                new DynamicUplinkPhase(*this, (config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION?
+        DynamicMACContext(mac, transceiver, config, config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION?
                         static_cast<DynamicTopologyContext*>(new DynamicMeshTopologyContext(*this)) :
-                        static_cast<DynamicTopologyContext*>(new DynamicTreeTopologyContext(*this))))) {};
+                        static_cast<DynamicTopologyContext*>(new DynamicTreeTopologyContext(*this))) {};
     DynamicMACContext() = delete;
     virtual ~DynamicMACContext() {};
+private:
+    DynamicMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config, DynamicTopologyContext* const topology) :
+        MACContext(mac, transceiver, config,
+                new DynamicTimesyncDownlink(*this),
+                new DynamicUplinkPhase(*this, topology),
+                new DynamicStreamManagementContext(), topology, new DynamicScheduleDownlinkPhase(*this)) {};
 };
 
 } /* namespace mxnet */

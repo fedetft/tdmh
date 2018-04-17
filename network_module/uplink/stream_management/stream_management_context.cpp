@@ -31,8 +31,10 @@
 namespace mxnet {
 
 void MasterStreamManagementContext::receive(std::vector<StreamManagementElement*>& smes) {
-    for (auto sme: smes)
+    for (auto* sme: smes) {
         open(sme);
+        delete sme;
+    }
 }
 
 void MasterStreamManagementContext::open(StreamManagementElement* sme) {
@@ -47,13 +49,14 @@ void MasterStreamManagementContext::open(StreamManagementElement* sme) {
 }
 
 void DynamicStreamManagementContext::receive(std::vector<StreamManagementElement*>& smes) {
-    for (auto sme : smes) {
+    for (auto* sme : smes) {
         auto id = sme->getId();
         if (queue.hasKey(id)) {
             delete queue.getByKey(id);
             queue.update(id, sme);
         } else
             queue.enqueue(id, sme);
+        delete sme;
     }
 }
 

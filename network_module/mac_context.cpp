@@ -36,15 +36,29 @@
 using namespace miosix;
 
 namespace mxnet {
+
+MACContext::~MACContext() {
+    delete timesync;
+    delete uplink;
+    delete topologyContext;
+    delete streamManagement;
+    delete schedule;
+    delete data;
+}
     
-MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiver, const NetworkConfiguration& config, TimesyncDownlink* const timesync, UplinkPhase* const uplink) :
+MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiver, const NetworkConfiguration& config,
+        TimesyncDownlink* const timesync, UplinkPhase* const uplink, StreamManagementContext* const smc,
+        TopologyContext* const topology, ScheduleDownlinkPhase* const schedule) :
         mac(mac),
         transceiverConfig(config.getBaseFrequency(), config.getTxPower(), true, false),
         networkConfig(config),
         networkId(config.getStaticNetworkId()),
         transceiver(transceiver),
         timesync(timesync),
-        uplink(uplink) ,
+        uplink(uplink),
+        topologyContext(topology),
+        streamManagement(smc),
+        schedule(schedule),
         data(new DataPhase(*this, getDataslotCount())),
         sendTotal(0), sendErrors(0), rcvTotal(0), rcvErrors(0) {}
 

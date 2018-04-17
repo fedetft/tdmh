@@ -83,6 +83,9 @@ void DynamicUplinkPhase::sendMyTopology(long long slotStart) {
     ctx.sendAt(packet.data(), packet.size(), slotStart);
     tMsg->deleteForwarded();
     delete tMsg;
+    for (auto it = smes.begin() ; it != smes.end(); ++it) {
+        delete (*it);
+    }
     smes.clear();
 }
 

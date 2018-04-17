@@ -55,7 +55,6 @@ public:
     static const unsigned char maxPktSizeNoCRC = 127;
 protected:
     MediumAccessController(MACContext* const ctx) : ctx(ctx) {};
-
     MACContext* const ctx;
 };
 }
