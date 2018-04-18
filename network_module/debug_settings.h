@@ -27,6 +27,7 @@
 
 #pragma once
 
+namespace mxnet {
 //prints info if receiving a packet
 const bool ENABLE_PKT_INFO_DBG = false;
 
@@ -62,7 +63,6 @@ const bool ENABLE_SCHEDULE_DL_INFO_DBG = true;
  * and define the function myfun.
  * Do this anywhere before including any network_module file.
  */
-namespace miosix {
 void print_dbg(const char *fmt, ...);
 }
 

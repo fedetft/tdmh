@@ -31,15 +31,17 @@
 #include <omnetpp.h>
 #include "MiosixStaticInterface.h"
 
+namespace mxnet {
+void print_dbg_(const char *fmt, ...);
+#define print_dbg print_dbg_
+}
+
 namespace miosix {
 
 void ledOn();
 void ledOff();
 long long getTime();
 void memDump(const void *start, int len);
-
-void print_dbg_(const char *fmt, ...);
-#define print_dbg print_dbg_
 
 class Thread : public MiosixStaticInterface {
 public:
