@@ -36,12 +36,28 @@ unsigned char DynamicTopologyContext::getBestPredecessor() {
             Predecessor::CompareRSSI())->getNodeId(): 0;
 }
 
-void DynamicTopologyContext::receivedMessage(UplinkMessage msg,
-        unsigned char sender, short rssi) {//TODO manage predecessor
+void DynamicTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
+    if (ctx.getHop() != msg.getHop() + 1) return;
+    auto exist = std::find(predecessors.begin(), predecessors.end(), [sender](Predecessor el){
+        el.getNodeId() == sender;
+    });
+    if (exist == predecessors.end()) {
+        predecessors.push_back(Predecessor(sender, rssi));
+    } else {
+        exist->seen();
+        exist->setRssi(rssi);
+    }
 }
 
 void DynamicTopologyContext::unreceivedMessage(unsigned char sender) {
-}//TODO manage predecessor
+    auto exist = std::find(predecessors.begin(), predecessors.end(), [sender](Predecessor el){
+        el.getNodeId() == sender;
+    });
+    if (exist == predecessors.end()) return;
+    exist->unseen();
+    if (exist->getUnseen() >= ctx.getNetworkConfig().getMaxRoundsUnreliableParent())
+        predecessors.erase(exist);
+}
 
 std::vector<TopologyElement*> DynamicTopologyContext::dequeueMessages(std::size_t count) {
     std::vector<TopologyElement*> retval(std::min(enqueuedTopologyMessages.size(), count));
@@ -72,8 +88,10 @@ void TopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, s
 
 void TopologyContext::unreceivedMessage(unsigned char sender) {
     auto it = std::lower_bound(successors.begin(), successors.end(), sender);
-    if(it->getNodeId() != sender) return;
+    if(it == successors.end() || it->getNodeId() != sender) return;
     it->unseen();
+    if (it->getUnseen() >= ctx.getNetworkConfig().getMaxRoundsUnavailableBecomesDead())
+        successors.erase(it);
 }
 
 void MasterTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
