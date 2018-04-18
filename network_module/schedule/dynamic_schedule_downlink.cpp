@@ -114,7 +114,7 @@ void DynamicScheduleDownlinkPhase::parseSchedule(std::vector<unsigned char>& pkt
     auto bitsRead = std::numeric_limits<unsigned char>::digits;
     for (int i = 0; i < addCount; i++) {
         auto* sa = ScheduleAddition::deserialize(pkt.data(), bitsRead);
-        bitsRead += sa->getBitSize();
+        bitsRead += sa->bitSize();
         auto transitions = sa->getTransitions();
         auto t = sa->getTransitionForNode(myId);
         if (t.first == nullptr)

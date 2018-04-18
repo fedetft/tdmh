@@ -136,9 +136,9 @@ public:
         memset(content, value? ~0 : 0, wordCount);
     }
 
-    word_t* data() { return content; }
+    word_t* data() const { return content; }
     std::size_t size() const { return bitCount; }
-    std::size_t wordSize() { return wordCount; }
+    std::size_t wordSize() const { return wordCount; }
 
     bool operator ==(const RuntimeBitset& other) const {
         return other.bitCount == bitCount && memcmp(content, other.content, wordCount);

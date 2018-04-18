@@ -38,8 +38,8 @@ public:
     public:
         friend class StreamManagementElement;
         SMEId(unsigned char src, unsigned char dst) : src(src), dst(dst) {};
-        unsigned char getSrc() { return src; }
-        unsigned char getDst() { return dst; }
+        unsigned char getSrc() const { return src; }
+        unsigned char getDst() const { return dst; }
         bool operator <(const SMEId& other) const {
             return src < other.src || (src == other.src && dst < other.dst);
         }
@@ -61,11 +61,11 @@ public:
     StreamManagementElement(unsigned char src, unsigned char dst, unsigned char dataRate) :
         content({src, dst, dataRate}), id(src, dst) {};
     virtual ~StreamManagementElement() {};
-    static unsigned short getMaxSize() { return sizeof(StreamManagementElementPkt); }
-    unsigned char getSrc() { return content.src; }
-    unsigned char getDst() { return content.dst; }
-    unsigned char getDataRate() { return content.dataRate; }
-    SMEId getId() { return id; }
+    static unsigned short maxSize() { return sizeof(StreamManagementElementPkt); }
+    unsigned char getSrc() const { return content.src; }
+    unsigned char getDst() const { return content.dst; }
+    unsigned char getDataRate() const { return content.dataRate; }
+    SMEId getId() const { return id; }
     bool operator ==(const StreamManagementElement& other) const {
         return content.src == other.content.src && content.dst == other.content.dst && content.dataRate == other.content.dataRate;
     }
@@ -73,10 +73,10 @@ public:
         return !(*this == other);
     }
 
-    void serialize(unsigned char* pkt) override;
+    void serialize(unsigned char* pkt) const override;
     static std::vector<StreamManagementElement*> deserialize(std::vector<unsigned char>& pkt);
     static std::vector<StreamManagementElement*> deserialize(unsigned char* pkt, std::size_t size);
-    std::size_t getSize() override { return getMaxSize(); }
+    std::size_t size() const override { return maxSize(); }
 protected:
     StreamManagementElement() {};
     struct StreamManagementElementPkt {

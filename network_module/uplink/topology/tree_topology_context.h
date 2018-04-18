@@ -35,7 +35,7 @@ class DynamicTreeTopologyContext : public DynamicTopologyContext {
 public:
     DynamicTreeTopologyContext(MACContext& ctx) : DynamicTopologyContext(ctx) {};
     virtual ~DynamicTreeTopologyContext() {};
-    NetworkConfiguration::TopologyMode getTopologyType() override {
+    NetworkConfiguration::TopologyMode getTopologyType() const override {
         return NetworkConfiguration::TopologyMode::ROUTING_VECTOR;
     }
     void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
@@ -47,7 +47,7 @@ class MasterTreeTopologyContext : public MasterTopologyContext {
 public:
     MasterTreeTopologyContext(MACContext& ctx) : MasterTopologyContext(ctx) {};
     virtual ~MasterTreeTopologyContext() {};
-    NetworkConfiguration::TopologyMode getTopologyType() override {
+    NetworkConfiguration::TopologyMode getTopologyType() const override {
         return NetworkConfiguration::TopologyMode::ROUTING_VECTOR;
     }
     void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;

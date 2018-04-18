@@ -35,19 +35,19 @@ namespace mxnet {
 class SerializableMessage {
 public:
     virtual ~SerializableMessage() {};
-    virtual std::vector<unsigned char> serialize() {
-        std::vector<unsigned char> retval(getSize());
+    virtual std::vector<unsigned char> serialize() const {
+        std::vector<unsigned char> retval(size());
         serialize(retval);
         return retval;
     }
-    virtual void serialize(std::vector<unsigned char>& pkt) {
-        assert(pkt.size() >= getSize());
+    virtual void serialize(std::vector<unsigned char>& pkt) const {
+        assert(pkt.size() >= size());
         serialize(pkt.data());
     }
-    virtual void serialize(unsigned char* pkt) = 0;
+    virtual void serialize(unsigned char* pkt) const = 0;
     //static SerializableMessage deserialize(std::vector<unsigned char>& pkt);
     //static SerializableMessage deserialize(unsigned char* pkt);
-    virtual std::size_t getSize() = 0;
+    virtual std::size_t size() const = 0;
 protected:
     SerializableMessage() {};
 };
@@ -55,19 +55,19 @@ protected:
 class BitSerializableMessage {
 public:
     virtual ~BitSerializableMessage() {};
-    virtual std::vector<unsigned char> serialize() {
-        std::vector<unsigned char> retval(getSize());
+    virtual std::vector<unsigned char> serialize() const {
+        std::vector<unsigned char> retval(size());
         serialize(retval.data(), 0);
         return retval;
     }
-    virtual void serialize(std::vector<unsigned char>& pkt, unsigned short startBit) {
+    virtual void serialize(std::vector<unsigned char>& pkt, unsigned short startBit) const {
         serialize(pkt.data(), startBit);
     }
-    virtual void serialize(unsigned char* pkt, unsigned short startBit) = 0;
+    virtual void serialize(unsigned char* pkt, unsigned short startBit) const = 0;
     //static SerializableMessage deserialize(std::vector<unsigned char>& pkt, const unsigned char startBit);
     //static SerializableMessage deserialize(unsigned char* pkt, const unsigned char startBit);
-    virtual std::size_t getSize() = 0;
-    virtual std::size_t getBitSize() = 0;
+    virtual std::size_t size() const = 0;
+    virtual std::size_t bitSize() const = 0;
 protected:
     BitSerializableMessage() {};
 };

@@ -41,7 +41,7 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     for (auto* d : data.first) {
         std::vector<unsigned char> v(packet.begin(), packet.end());
         d->serialize(v, bitSize);
-        bitSize += d->getBitSize();
+        bitSize += d->bitSize();
     }
     auto lsbShift = bitSize % numeric_limits<unsigned char>::digits;
     auto msbShift = numeric_limits<unsigned char>::digits - lsbShift;
@@ -151,7 +151,7 @@ std::pair<std::vector<ScheduleAddition*>, std::vector<unsigned char>> MasterSche
     //insert until i encounter the first one exceeding
     for (bool exceeds = false; bitsLimit > 0 && !exceeds;) {
         auto* val = deltaToDistribute.front();
-        auto nextSize = val->getBitSize();
+        auto nextSize = val->bitSize();
         if (nextSize > bitsLimit)
             exceeds = true;
         else {
@@ -167,7 +167,7 @@ std::pair<std::vector<ScheduleAddition*>, std::vector<unsigned char>> MasterSche
     }
     //then start browsing the queue for trying to fill all the available space greedily
     for (auto it = deltaToDistribute.begin(); it != deltaToDistribute.end() && bitsLimit >= std::numeric_limits<unsigned char>::digits;) {
-        if ((*it)->getBitSize() > bitsLimit) it++;
+        if ((*it)->bitSize() > bitsLimit) it++;
         else {
             if ((*it)->getDeltaType() == ScheduleDeltaElement::ADDITION)
                 retval1.push_back(static_cast<ScheduleAddition*>(*it));

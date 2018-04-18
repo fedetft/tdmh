@@ -70,14 +70,14 @@ public:
     std::vector<unsigned char> getNeighbors();
     void addNeighbor(unsigned char neighbor) { neighbors[neighbor] = true; }
     void removeNeighbor(unsigned char neighbor) { neighbors[neighbor] = false; }
-    bool hasNeighbor(unsigned char id) { return neighbors[id]; }
+    bool hasNeighbor(unsigned char id) const { return neighbors[id]; }
     void setNeighbors(std::vector<unsigned char>& neighbors);
     void setNeighbors(std::vector<bool>& neighbors);
 
-    void serialize(unsigned char* pkt) override;
+    void serialize(unsigned char* pkt) const override;
     static NeighborTable deserialize(std::vector<unsigned char>& pkt, unsigned char nodeCount);
     static NeighborTable deserialize(unsigned char* pkt, unsigned char nodeCount);
-    std::size_t getSize() override { return neighbors.wordSize(); }
+    std::size_t size() const override { return neighbors.wordSize(); }
 
     std::string getNeighborsString() const {
         std::string str;
@@ -108,13 +108,13 @@ public:
     bool operator !=(const ForwardedNeighborMessage &b) const {
         return !(*this == b);
     }
-    unsigned char getNodeId() { return nodeId; }
-    NeighborTable getNeighbors() { return neighbors; }
+    unsigned char getNodeId() const { return nodeId; }
+    NeighborTable getNeighbors() const { return neighbors; }
 
-    void serialize(unsigned char* pkt) override;
+    void serialize(unsigned char* pkt) const override;
     static ForwardedNeighborMessage* deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration& config);
     static ForwardedNeighborMessage* deserialize(unsigned char* pkt, const NetworkConfiguration& config);
-    std::size_t getSize() override;
+    std::size_t size() const override;
 protected:
     ForwardedNeighborMessage(NeighborTable&& table) : neighbors(table) {};
     unsigned char nodeId;
@@ -135,20 +135,20 @@ public:
     bool operator !=(const NeighborMessage &b) const {
         return !(*this == b);
     }
-    NeighborTable getNeighbors() { return neighbors; }
-    std::vector<ForwardedNeighborMessage*> getForwardedTopologies() { return forwardedTopologies; }
+    NeighborTable getNeighbors() const { return neighbors; }
+    std::vector<ForwardedNeighborMessage*> getForwardedTopologies() const { return forwardedTopologies; }
 
-    void serialize(unsigned char* pkt) override;
+    void serialize(unsigned char* pkt) const override;
     static NeighborMessage* deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration& config);
     static NeighborMessage* deserialize(unsigned char* pkt, const NetworkConfiguration& config);
-    std::size_t getSize() override {
-        return getSize(config, forwardedTopologies.size());
+    std::size_t size() const override {
+        return size(config, forwardedTopologies.size());
     }
 
-    static std::size_t getMaxSize(const NetworkConfiguration& config) {
-        return getSize(config, config.getMaxForwardedTopologies());
+    static std::size_t maxSize(const NetworkConfiguration& config) {
+        return size(config, config.getMaxForwardedTopologies());
     }
-    static std::size_t getSize(const NetworkConfiguration& config, unsigned char forwardedTopologies) {
+    static std::size_t size(const NetworkConfiguration& config, unsigned char forwardedTopologies) {
         return ((config.getMaxNodes() - 1) >> 3) + 1 + forwardedTopologies * (8 + ((config.getMaxNodes() - 1) >> 3) + 1);
     }
 
@@ -166,15 +166,15 @@ public:
     bool operator !=(const RoutingLink &b) const {
         return !(*this == b);
     }
-    unsigned char getNodeId() { return content.nodeId; }
-    unsigned char getPredecessor() { return content.predecessorId; }
-    static unsigned short getMaxSize() { return sizeof(RoutingLinkPkt); }
+    unsigned char getNodeId() const { return content.nodeId; }
+    unsigned char getPredecessor() const { return content.predecessorId; }
+    static unsigned short maxSize() { return sizeof(RoutingLinkPkt); }
 
     using TopologyElement::serialize;
-    void serialize(unsigned char* pkt) override;
+    void serialize(unsigned char* pkt) const override;
     static RoutingLink* deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration& config);
     static RoutingLink* deserialize(unsigned char* pkt, const NetworkConfiguration& config);
-    std::size_t getSize() override { return getMaxSize(); }
+    std::size_t size() const override { return maxSize(); }
 protected:
     struct RoutingLinkPkt {
         unsigned char nodeId;
@@ -194,17 +194,17 @@ public:
     void deleteForwarded() override {
         links.clear();
     };
-    static unsigned short getMaxSize(const NetworkConfiguration& config) {
-        return config.getMaxForwardedTopologies() * RoutingLink::getMaxSize();
+    static unsigned short maxSize(const NetworkConfiguration& config) {
+        return config.getMaxForwardedTopologies() * RoutingLink::maxSize();
     }
-    static std::size_t getSize(unsigned char forwardedTopologies) {
-        return forwardedTopologies * RoutingLink::getMaxSize();
+    static std::size_t size(unsigned char forwardedTopologies) {
+        return forwardedTopologies * RoutingLink::maxSize();
     }
     using TopologyMessage::serialize;
-    void serialize(unsigned char* pkt) override;
+    void serialize(unsigned char* pkt) const override;
     static RoutingVector* deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration& config);
     static RoutingVector* deserialize(unsigned char* pkt, const NetworkConfiguration& config);
-    std::size_t getSize() override { return getSize(links.size()); }
+    std::size_t size() const override { return size(links.size()); }
 private:
     std::vector<RoutingLink*> links;
 };

@@ -37,7 +37,7 @@ class DynamicMeshTopologyContext : public DynamicTopologyContext {
 public:
     DynamicMeshTopologyContext(MACContext& ctx);
     virtual ~DynamicMeshTopologyContext() {}
-    virtual NetworkConfiguration::TopologyMode getTopologyType() {
+    NetworkConfiguration::TopologyMode getTopologyType() const override {
         return NetworkConfiguration::TopologyMode::NEIGHBOR_COLLECTION;
     }
     void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
@@ -60,11 +60,11 @@ public:
     MasterMeshTopologyContext(MACContext& ctx) : MasterTopologyContext(ctx) {};
     virtual ~MasterMeshTopologyContext() {}
 
-    virtual NetworkConfiguration::TopologyMode getTopologyType() {
+    NetworkConfiguration::TopologyMode getTopologyType() const override {
         return NetworkConfiguration::TopologyMode::NEIGHBOR_COLLECTION;
     }
     void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
-    void print();
+    void print() const;
 protected:
 };
 

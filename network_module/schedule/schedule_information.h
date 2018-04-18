@@ -41,12 +41,12 @@ public:
     unsigned char getNodeId() { return content.nodeId; }
     using BitSerializableMessage::serialize;
     using BitSerializableMessage::serialize;
-    void serialize(unsigned char* pkt, unsigned short startBit) override;
+    void serialize(unsigned char* pkt, unsigned short startBit) const override;
     static ScheduleTransition deserialize(std::vector<unsigned char>& pkt, unsigned short startBit);
     static ScheduleTransition deserialize(unsigned char* pkt, unsigned short startBit);
     static std::vector<ScheduleTransition> deserializeMultiple(unsigned char* pkt, unsigned short startBit, unsigned short count);
-    std::size_t getSize() override { return sizeof(ScheduleTransitionPkt); }
-    std::size_t getBitSize() override { return getMaxBitSize(); };
+    std::size_t size() const override { return sizeof(ScheduleTransitionPkt); }
+    std::size_t bitSize() const override { return getMaxBitSize(); };
     static std::size_t getMaxSize() { return sizeof(ScheduleTransitionPkt); }
     static std::size_t getMaxBitSize() { return 22; }
 private:
@@ -85,13 +85,13 @@ public:
     unsigned char getNodeId() { return content.nodeId; }
     std::vector<ScheduleTransition>& getTransitions() { return transitions; }
     using ScheduleDeltaElement::serialize;
-    void serialize(unsigned char* pkt, unsigned short startBit) override;
+    void serialize(unsigned char* pkt, unsigned short startBit) const override;
     static ScheduleAddition* deserialize(std::vector<unsigned char>& pkt, unsigned short startBit);
     static ScheduleAddition* deserialize(unsigned char* pkt, unsigned short startBit);
-    std::size_t getSize() override {
+    std::size_t size() const override {
         return sizeof(ScheduleAdditionPkt) + transitions.size() * ScheduleTransition::getMaxSize();
     }
-    std::size_t getBitSize() override { return 33 + transitions.size() * ScheduleTransition::getMaxBitSize(); };
+    std::size_t bitSize() const override { return 33 + transitions.size() * ScheduleTransition::getMaxBitSize(); };
     std::pair<ScheduleTransition*, ScheduleTransition*> getTransitionForNode(unsigned char nodeId);
 protected:
     struct ScheduleAdditionPkt {
@@ -113,11 +113,11 @@ public:
     virtual ~ScheduleDeletion() {};
     unsigned short getScheduleId() override { return scheduleId; }
     using ScheduleDeltaElement::serialize;
-    void serialize(unsigned char* pkt, unsigned short startBit) override;
+    void serialize(unsigned char* pkt, unsigned short startBit) const override;
     static ScheduleDeletion* deserialize(std::vector<unsigned char>& pkt, unsigned short startBit);
     static ScheduleDeletion* deserialize(unsigned char* pkt, unsigned short startBit);
-    std::size_t getSize() override { return 1; }
-    std::size_t getBitSize() override { return std::numeric_limits<unsigned char>::digits; };
+    std::size_t size() const override { return 1; }
+    std::size_t bitSize() const override { return std::numeric_limits<unsigned char>::digits; };
     operator unsigned char() const {return scheduleId; }
 protected:
     unsigned short scheduleId;
@@ -132,10 +132,10 @@ public:
     std::vector<ScheduleAddition*>& getAdditions() { return additions; }
     std::vector<ScheduleDeletion*>& getDeletions() { return deletions; }
     using BitSerializableMessage::serialize;
-    void serialize(unsigned char* pkt, unsigned short startBit) override;
+    void serialize(unsigned char* pkt, unsigned short startBit) const override;
     static ScheduleDelta deserialize(std::vector<unsigned char>& pkt);
-    std::size_t getSize() override;
-    std::size_t getBitSize() override;
+    std::size_t size() const override;
+    std::size_t bitSize() const override;
 private:
     std::vector<ScheduleAddition*> additions;
     std::vector<ScheduleDeletion*> deletions;

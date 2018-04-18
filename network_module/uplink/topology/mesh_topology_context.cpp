@@ -100,7 +100,7 @@ void MasterMeshTopologyContext::receivedMessage(UplinkMessage msg, unsigned char
     delete tMsg;
 }
 
-void MasterMeshTopologyContext::print() {
+void MasterMeshTopologyContext::print() const {
     print_dbg("[T] Current topology:\n");
     for (auto it : topology.getEdges())
         print_dbg("[%d - %d]\n", it.first, it.second);

@@ -50,7 +50,7 @@ public:
         }) != successors.end();
     }
 
-    virtual NetworkConfiguration::TopologyMode getTopologyType()=0;
+    virtual NetworkConfiguration::TopologyMode getTopologyType() const = 0;
     virtual void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi);
     virtual void unreceivedMessage(unsigned char sender);
 
@@ -79,7 +79,7 @@ public:
     void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
     void unreceivedMessage(unsigned char sender) override;
     std::vector<TopologyElement*> dequeueMessages(std::size_t count);
-    virtual TopologyMessage* getMyTopologyMessage()=0;
+    virtual TopologyMessage* getMyTopologyMessage() = 0;
     virtual unsigned char getBestPredecessor();
     virtual bool hasPredecessor();
     virtual void setMasterAsNeighbor(bool yes);

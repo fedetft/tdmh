@@ -68,7 +68,7 @@ void DynamicUplinkPhase::sendMyTopology(long long slotStart) {
     auto* dSMContext = static_cast<DynamicStreamManagementContext*>(streamManagement);
     if (!dTopology->hasPredecessor()) return;
     auto* tMsg = dTopology->getMyTopologyMessage();
-    unsigned char maxSMEs = (MediumAccessController::maxPktSize - UplinkMessage::getSizeWithoutSMEs(tMsg)) / StreamManagementElement::getMaxSize();
+    unsigned char maxSMEs = (MediumAccessController::maxPktSize - UplinkMessage::getSizeWithoutSMEs(tMsg)) / StreamManagementElement::maxSize();
     auto smes = dSMContext->dequeue(maxSMEs);
     UplinkMessage msg(ctx.getHop(), dTopology->getBestPredecessor(), tMsg, smes);
     msg.serialize(packet.begin());

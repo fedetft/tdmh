@@ -127,7 +127,7 @@ RecvResult MACContext::recv(void *pkt, int size, long long timeout, std::functio
     return rcvResult;
 }
 
-unsigned short MACContext::getDataslotCount() {
+unsigned short MACContext::getDataslotCount() const {
     return (networkConfig.getSlotframeDuration() -
             (timesync->getTotalDuration() + uplink->getTotalDuration() + schedule->getTotalDuration())) /
             DataPhase::getDurationStatic();

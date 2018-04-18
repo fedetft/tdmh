@@ -49,7 +49,7 @@ public:
     virtual ~MACContext();
     inline const MediumAccessController& getMediumAccessController() { return mac; }
     void setHop(unsigned char num) { hop = num; }
-    unsigned char getHop() { return hop; }
+    unsigned char getHop() const { return hop; }
     /**
      * Gets the default TransceiverConfiguration, which has the correct frequency and txPower,
      * crc enabled and non-strict timeout
@@ -75,18 +75,18 @@ public:
     inline void transceiverTurnOff() { transceiver.turnOff(); }
     inline void transceiverIdle() { transceiver.idle(); }
 
-    TimesyncDownlink* const getTimesync() { return timesync; }
-    UplinkPhase* const getUplink() { return uplink; }
+    TimesyncDownlink* const getTimesync() const { return timesync; }
+    UplinkPhase* const getUplink() const { return uplink; }
     TopologyContext* getTopologyContext() const;
     StreamManagementContext* getStreamManagementContext() const;
-    ScheduleDownlinkPhase* const getScheduleDownlink() { return schedule; }
-    DataPhase* const getDataPhase() { return data; }
+    ScheduleDownlinkPhase* const getScheduleDownlink() const { return schedule; }
+    DataPhase* const getDataPhase() const { return data; }
 protected:
     MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config,
             TimesyncDownlink* const timesync, UplinkPhase* const uplink, StreamManagementContext* const smc,
             TopologyContext* const topology, ScheduleDownlinkPhase* const schedule);
 private:
-    unsigned short getDataslotCount();
+    unsigned short getDataslotCount() const;
     unsigned char hop;
     const MediumAccessController& mac;
     const miosix::TransceiverConfiguration transceiverConfig;

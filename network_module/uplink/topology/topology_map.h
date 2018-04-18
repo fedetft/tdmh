@@ -39,9 +39,9 @@ public:
     TopologyMap();
     virtual ~TopologyMap();
     void addEdge(T a, T b);
-    std::vector<std::pair<T, T>> getEdges();
-    std::vector<T> getEdges(T a);
-    bool hasEdge(T a, T b);
+    std::vector<std::pair<T, T>> getEdges() const;
+    std::vector<T> getEdges(T a) const;
+    bool hasEdge(T a, T b) const;
     bool removeEdge(T a, T b);
     bool removeNode(T a);
 
@@ -67,7 +67,7 @@ inline void mxnet::TopologyMap<T>::addEdge(T a, T b) {
 }
 
 template<typename T>
-inline std::vector<std::pair<T, T>> mxnet::TopologyMap<T>::getEdges() {
+inline std::vector<std::pair<T, T>> mxnet::TopologyMap<T>::getEdges() const {
     std::vector<std::pair<T, T>> v;
     for(auto it : edges)
         if (it.first < it.second)
@@ -76,7 +76,7 @@ inline std::vector<std::pair<T, T>> mxnet::TopologyMap<T>::getEdges() {
 }
 
 template<typename T>
-inline std::vector<T> mxnet::TopologyMap<T>::getEdges(T a) {
+inline std::vector<T> mxnet::TopologyMap<T>::getEdges(T a) const {
     auto it = edges.equal_range(a);
     std::vector<T> v;
     std::transform(it.first, it.second, std::back_inserter(v), [](std::pair<T, T> const& el) { return el.second; });
@@ -84,7 +84,7 @@ inline std::vector<T> mxnet::TopologyMap<T>::getEdges(T a) {
 }
 
 template<typename T>
-inline bool mxnet::TopologyMap<T>::hasEdge(T a, T b) {
+inline bool mxnet::TopologyMap<T>::hasEdge(T a, T b) const {
     auto it = edges.equal_range(a);
     return std::count_if(it.first, it.second, [b](std::pair<T, T> const& el) { return el.second == b; }) > 0;
 }

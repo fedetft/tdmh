@@ -60,7 +60,7 @@ public:
      * Returns the next element in the queue without removing it.
      * @return the next element in the queue.
      */
-    valType& top();
+    valType& top() const;
     /**
      * Adds an element to the queue.
      * @param key unique reference for the value.
@@ -88,11 +88,17 @@ public:
      */
     valType& getByKey(keyType key);
     /**
+     * Returns an element by its key. An exception is thrown is no value is associated with such key
+     * @param key the key identifying the value.
+     * @return the value associated with the key.
+     */
+    const valType& getByKey(keyType key) const;
+    /**
      * Checks whether an element related to the provided key is present.
      * @param key the key for which the value presence is checked.
      * @return if the value is present.
      */
-    bool hasKey(keyType key);
+    bool hasKey(keyType key) const;
     /**
      * Checks if any element is present in the queue.
      * @return if any element is present.
@@ -100,7 +106,7 @@ public:
     bool isEmpty();
 
     /** Returns the size of the %UpdatableQueue.  */
-    std::size_t size() { return data.size(); }
+    std::size_t size() const { return data.size(); }
 private:
     std::map<keyType, valType> data;
     std::deque<keyType> queue;
@@ -117,7 +123,7 @@ valType&& UpdatableQueue<keyType, valType>::dequeue() {
 }
 
 template<class keyType, class valType>
-valType& UpdatableQueue<keyType, valType>::top() {
+valType& UpdatableQueue<keyType, valType>::top() const {
     if (queue.empty()) throw std::runtime_error("no element in queue");
     return data[queue.back()];
 }
@@ -146,13 +152,19 @@ bool UpdatableQueue<keyType, valType>::update(keyType key, const valType& val) {
 }
 
 template<class keyType, class valType>
-inline valType& UpdatableQueue<keyType, valType>::getByKey(keyType key) {
+inline const valType& UpdatableQueue<keyType, valType>::getByKey(keyType key) const {
     if (!hasKey(key)) throw std::runtime_error("empty");
-    return data[key];
+    return data.at(key);
 }
 
 template<class keyType, class valType>
-inline bool UpdatableQueue<keyType, valType>::hasKey(keyType key) {
+inline valType& UpdatableQueue<keyType, valType>::getByKey(keyType key) {
+    if (!hasKey(key)) throw std::runtime_error("empty");
+    return data.at(key);
+}
+
+template<class keyType, class valType>
+inline bool UpdatableQueue<keyType, valType>::hasKey(keyType key) const {
     return data.count(key);
 }
 

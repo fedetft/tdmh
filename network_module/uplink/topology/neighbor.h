@@ -32,11 +32,9 @@ namespace mxnet {
 class Neighbor {
 public:
     Neighbor()  = delete;
-    Neighbor(unsigned char nodeId, unsigned char unseenSince = 0) : nodeId(nodeId), unseenSince(unseenSince) {
-
-    }
+    Neighbor(unsigned char nodeId, unsigned char unseenSince = 0) : nodeId(nodeId), unseenSince(unseenSince) {}
     virtual ~Neighbor() {};
-    unsigned char getNodeId() { return nodeId; }
+    unsigned char getNodeId() const { return nodeId; }
     void seen() { unseenSince = 0; }
     void unseen() { unseenSince++; }
     unsigned char getUnseen() const { return unseenSince; }
@@ -58,7 +56,7 @@ public:
     Predecessor(unsigned char nodeId, short rssi, unsigned char unseenSince = 0) :
         Neighbor(nodeId, unseenSince), rssi(rssi) {};
     Predecessor() = delete;
-    short getRssi() { return rssi; }
+    short getRssi() const { return rssi; }
     void setRssi(short rssi) { this->rssi = rssi; }
 
     struct CompareRSSI {
