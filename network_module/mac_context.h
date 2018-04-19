@@ -47,45 +47,152 @@ public:
     MACContext() = delete;
     MACContext(const MACContext& orig) = delete;
     virtual ~MACContext();
-    inline const MediumAccessController& getMediumAccessController() { return mac; }
-    void setHop(unsigned char num) { hop = num; }
-    unsigned char getHop() const { return hop; }
     /**
-     * Gets the default TransceiverConfiguration, which has the correct frequency and txPower,
-     * crc enabled and non-strict timeout
+     * @return a reference to the interface class.
+     */
+    const MediumAccessController& getMediumAccessController() { return mac; }
+
+    /**
+     * Sets the hop at which the node is. Used in the timesync phase.
+     * @param num the hop count
+     */
+    void setHop(unsigned char num) { hop = num; }
+
+    /**
+     * @return the hop at which the node is.
+     */
+    unsigned char getHop() const { return hop; }
+
+    /**
+     * @return the default TransceiverConfiguration, which has the correct frequency and txPower,
+     * crc enabled and non-strict timeout.
      */
     const miosix::TransceiverConfiguration& getTransceiverConfig() { return transceiverConfig; }
+
+    /**
+     * Returns a TransceiverConfiguration which uses the protocol channel and txPower.
+     * @param crc if the CRC needs to be enabled.
+     * @param strictTimeout if the function should return just after not having received the SFD
+     * or for the whole packet duration.
+     * @return a TransceiverConfiguration, which has the correct frequency and txPower.
+     */
     const miosix::TransceiverConfiguration getTransceiverConfig(bool crc, bool strictTimeout = false) {
         return miosix::TransceiverConfiguration(transceiverConfig.frequency, transceiverConfig.txPower, crc, strictTimeout);
     }
+
+    /**
+     * @return the reference to the current configuration of the protocol.
+     */
     const NetworkConfiguration& getNetworkConfig() const { return networkConfig; }
+
+    /**
+     * The network id, either statically configured or dynamically assigned.
+     */
     unsigned short getNetworkId() const { return networkId; }
 
+    /**
+     * Sets the network id, if configured to be dynamic.
+     */
     void setNetworkId(unsigned short networkId) {
         if (!networkConfig.isDynamicNetworkId())
             throw std::runtime_error("Cannot dynamically set network id if not explicitly configured");
         this->networkId = networkId;
     }
+
+    /**
+     * Configures the transceived with the given configuration
+     */
     void configureTransceiver(miosix::TransceiverConfiguration cfg) { transceiver.configure(cfg); }
+
+    /**
+     * Sends a packet at a given time.
+     * @param pkt the data to be sent.
+     * @param size the size of the data, in bytes.
+     * @param ns the time at which the data needs to be sent out, in nanoseconds.
+     */
     void sendAt(const void *pkt, int size, long long ns);
+
+    /**
+     * Sends a packet at a given time.
+     * @param pkt the data to be sent.
+     * @param size the size of the data, in bytes.
+     * @param ns the time at which the data needs to be sent out, in nanoseconds.
+     * @param cbk the callback to be called in case of unhandled transceiver exceptions.
+     */
     void sendAt(const void *pkt, int size, long long ns, std::function<void(std::exception&)> cbk);
+
+    /**
+     * Receives a packet until a given timeout
+     * @param pkt the buffer in which the received data is put
+     * @param size the dimension of such buffer, or the desired data size limit
+     * @param timeout the timeout after which the function returns
+     * @param c if the packet arrival timestamp needs to be corrected by FLOPSYNC-2 or not
+     */
     miosix::RecvResult recv(void *pkt, int size, long long timeout, miosix::Transceiver::Correct c=miosix::Transceiver::Correct::CORR);
+
+    /**
+     * Receives a packet until a given timeout
+     * @param pkt the buffer in which the received data is put
+     * @param size the dimension of such buffer, or the desired data size limit
+     * @param timeout the timeout after which the function returns
+     * @param cbk the callback to be called in case of unhandled transceiver exceptions.
+     * @param c if the packet arrival timestamp needs to be corrected by FLOPSYNC-2 or not
+     */
     miosix::RecvResult recv(void *pkt, int size, long long timeout, std::function<void(std::exception&)> cbk, miosix::Transceiver::Correct c=miosix::Transceiver::Correct::CORR);
+
+    /**
+     * Turns on the transceiver
+     */
     inline void transceiverTurnOn() { transceiver.turnOn(); }
+
+    /**
+     * Turns off the transceiver
+     */
     inline void transceiverTurnOff() { transceiver.turnOff(); }
+
+    /**
+     * Puts the transceiver in idle state
+     */
     inline void transceiverIdle() { transceiver.idle(); }
 
+
+    /**
+     * @return the TimesyncDownlink phase
+     */
     TimesyncDownlink* const getTimesync() const { return timesync; }
+
+    /**
+     * @return the UplinkPhase
+     */
     UplinkPhase* const getUplink() const { return uplink; }
+
+    /**
+     * @return the TopologyContext
+     */
     TopologyContext* getTopologyContext() const;
+
+    /**
+     * @return the StreamManagementContext
+     */
     StreamManagementContext* getStreamManagementContext() const;
+
+    /**
+     * @return the UplinkPhase
+     */
     ScheduleDownlinkPhase* const getScheduleDownlink() const { return schedule; }
+
+    /**
+     * @return the DataPhase
+     */
     DataPhase* const getDataPhase() const { return data; }
 protected:
     MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config,
             TimesyncDownlink* const timesync, UplinkPhase* const uplink, StreamManagementContext* const smc,
             TopologyContext* const topology, ScheduleDownlinkPhase* const schedule);
 private:
+    /**
+     * @return the number of dataslot, calculated using the given configuration
+     */
     unsigned short getDataslotCount() const;
     unsigned char hop;
     const MediumAccessController& mac;

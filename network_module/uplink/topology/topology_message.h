@@ -38,6 +38,9 @@
 
 namespace mxnet {
 
+/**
+ * Represents a generic topology message that is included in the uplink message.
+ */
 class TopologyMessage : public SerializableMessage {
 public:
     TopologyMessage() = delete;
@@ -48,12 +51,19 @@ protected:
     const NetworkConfiguration& config;
 };
 
+/**
+ * Represents a generic forwarded topology information
+ */
 class TopologyElement : public SerializableMessage {
 public:
     TopologyElement() {};
     virtual ~TopologyElement() {};
 };
 
+/**
+ * Represents a bit array having the length of the number of nodes the network can contain
+ * with the neighbors marked with 1s and the non-neighbors or non-connected nodes with 0s.
+ */
 class NeighborTable : public SerializableMessage {
 public:
     NeighborTable(unsigned char nodeCount, std::vector<unsigned char> neighbors);
@@ -67,18 +77,48 @@ public:
         return *this;
     }
     NeighborTable& operator=(NeighborTable&& other) = default;
+
+    /**
+     * @return the neighbor address list
+     */
     std::vector<unsigned char> getNeighbors();
+
+    /**
+     * marks a node as neighbor
+     */
     void addNeighbor(unsigned char neighbor) { neighbors[neighbor] = true; }
+
+    /**
+     * removes a node from the neighbor list, if present
+     */
     void removeNeighbor(unsigned char neighbor) { neighbors[neighbor] = false; }
+
+    /**
+     * checks whether a node is present in the neighbor list
+     */
     bool hasNeighbor(unsigned char id) const { return neighbors[id]; }
+
+    /**
+     * sets the given addresses as neighbors, reinitializing the structure
+     */
     void setNeighbors(std::vector<unsigned char>& neighbors);
+
+    /**
+     * reinitializes the internal structure with the given one, respecting the binary convention stated for the class
+     */
     void setNeighbors(std::vector<bool>& neighbors);
 
     void serialize(unsigned char* pkt) const override;
+
     static NeighborTable deserialize(std::vector<unsigned char>& pkt, unsigned char nodeCount);
+
     static NeighborTable deserialize(unsigned char* pkt, unsigned char nodeCount);
+
     std::size_t size() const override { return neighbors.wordSize(); }
 
+    /**
+     * Returns a list of neighbors as a comma separated string, useful for printing
+     */
     std::string getNeighborsString() const {
         std::string str;
         for (unsigned i = 0; i < neighbors.size(); i++)
@@ -93,6 +133,10 @@ public:
 protected:
     NeighborTable(unsigned char nodeCount) : neighbors(nodeCount) {};
     NeighborTable(unsigned char nodeCount, bool initVal) : neighbors(nodeCount, initVal) {};
+
+    /**
+     * sets the data as byte values
+     */
     void setRaw(std::vector<unsigned char>& data);
     RuntimeBitset neighbors;
 };
@@ -108,7 +152,15 @@ public:
     bool operator !=(const ForwardedNeighborMessage &b) const {
         return !(*this == b);
     }
+
+    /**
+     * @return the node to which the forwarded data belong
+     */
     unsigned char getNodeId() const { return nodeId; }
+
+    /**
+     * @return the neighbor list forwarded
+     */
     NeighborTable getNeighbors() const { return neighbors; }
 
     void serialize(unsigned char* pkt) const override;
@@ -128,14 +180,28 @@ public:
     NeighborMessage(NeighborTable neighbors, std::vector<ForwardedNeighborMessage*>&& forwarded, const NetworkConfiguration& config);
     NeighborMessage() = delete;
     virtual ~NeighborMessage() {};
+
+    /**
+     * frees the memory used to store the forwarded data
+     */
     void deleteForwarded() override {
+        for (auto it = forwardedTopologies.begin() ; it != forwardedTopologies.end(); ++it)
+            delete (*it);
         forwardedTopologies.clear();
     }
     bool operator ==(const NeighborMessage &b) const;
     bool operator !=(const NeighborMessage &b) const {
         return !(*this == b);
     }
+
+    /**
+     * @return the neighbor table of the sender
+     */
     NeighborTable getNeighbors() const { return neighbors; }
+
+    /**
+     * @return the neighbor tables the sender forwarded
+     */
     std::vector<ForwardedNeighborMessage*> getForwardedTopologies() const { return forwardedTopologies; }
 
     void serialize(unsigned char* pkt) const override;
@@ -145,9 +211,16 @@ public:
         return size(config, forwardedTopologies.size());
     }
 
+    /**
+     * @return the maximum size such message can have, based on the network configuration
+     */
     static std::size_t maxSize(const NetworkConfiguration& config) {
         return size(config, config.getMaxForwardedTopologies());
     }
+
+    /**
+     * @return the size such message can have, based on the network configuration and the actually forwarded topologies
+     */
     static std::size_t size(const NetworkConfiguration& config, unsigned char forwardedTopologies) {
         return ((config.getMaxNodes() - 1) >> 3) + 1 + forwardedTopologies * (8 + ((config.getMaxNodes() - 1) >> 3) + 1);
     }
@@ -166,8 +239,20 @@ public:
     bool operator !=(const RoutingLink &b) const {
         return !(*this == b);
     }
+
+    /**
+     * @return the sender id
+     */
     unsigned char getNodeId() const { return content.nodeId; }
+
+    /**
+     * @return the predecessor that the sender chose.
+     */
     unsigned char getPredecessor() const { return content.predecessorId; }
+
+    /**
+     * @return the size of any message
+     */
     static unsigned short maxSize() { return sizeof(RoutingLinkPkt); }
 
     using TopologyElement::serialize;
@@ -191,12 +276,26 @@ public:
     RoutingVector() = delete;
     virtual ~RoutingVector() {};
     std::vector<RoutingLink*>& getLinks() { return links; }
+
+    /**
+     * Frees the memory used by the list of forwarded elements
+     */
     void deleteForwarded() override {
+        for (auto it = links.begin() ; it != links.end(); ++it)
+            delete (*it);
         links.clear();
     };
+
+    /**
+     * @return the maximum size a topology message can have, based on the current configuration.
+     */
     static unsigned short maxSize(const NetworkConfiguration& config) {
         return config.getMaxForwardedTopologies() * RoutingLink::maxSize();
     }
+
+    /**
+     * @return the maximum size a topology message can have, based on the forwarded elements count.
+     */
     static std::size_t size(unsigned char forwardedTopologies) {
         return forwardedTopologies * RoutingLink::maxSize();
     }

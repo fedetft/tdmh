@@ -51,13 +51,42 @@ public:
     static const int phaseStartupTime = 450000;
     static const int syncPacketSize = 7;
     static const int rebroadcastInterval = 1016000; //32us per-byte + 600us total delta
+
+    /**
+     * @return the status of the synchronization state machine
+     */
     MacroStatus getSyncStatus() { return internalStatus; };
+
+    /**
+     * Calculates the deepsleep deadline for speculatively sleep before sending.
+     * @param tExpected the time at which the node must send the packet
+     * @return the deepsleep deadline
+     */
     long long getSenderWakeup(long long tExpected) {
         return tExpected - MediumAccessController::sendingNodeWakeupAdvance;
     }
+
+    /**
+     * @param tExpected the time at which the packet should be sent in the network
+     * @return the deepsleep deadline and receiving timeout, calculated wrt the receiving
+     * window managed by the controller
+     */
     virtual std::pair<long long, long long> getWakeupAndTimeout(long long tExpected)=0;
+
+    /**
+     * @return the synchronization error
+     */
     long long getError() const { return error; }
+
+    /**
+     * @return the receiving window as calculated by the controller
+     */
     unsigned getReceiverWindow() const { return receiverWindow; }
+
+    /**
+     * @return the delay to the master node as calculated with the roundtrip time estimation and
+     * ReverseFlooding calculation
+     */
     virtual long long getDelayToMaster() const = 0;
     
 protected:

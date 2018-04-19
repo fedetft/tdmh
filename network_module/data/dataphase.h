@@ -32,6 +32,10 @@
 #include "../mac_context.h"
 
 namespace mxnet {
+/**
+ * Represents the data phase, which, divided by slots, is used to move the upper layer data among the nodes,
+ * as a previously received schedule devises.
+ */
 class DataPhase : public MACPhase {
 public:
     DataPhase(MACContext& ctx, unsigned short slotsInFrame) :

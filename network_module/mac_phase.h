@@ -33,24 +33,44 @@
 #include <array>
 
 namespace mxnet {
-class SyncStatus;
+/**
+ * Represents the "Phase" concept in the protocol
+ *  It contains all the behaviors common to all the different phases of the protocol.
+ */
 class MACPhase {
 public:
     MACPhase() = delete;
+
     /**
      * Constructor to be used if the node is the first one sending in this phase.
      * @param ctx the MACContext containing the status of the whole protocol in its phases.
      */
     MACPhase(MACContext& ctx);
+
     MACPhase(const MACPhase& orig) = delete;
+
     virtual ~MACPhase() {};
+
     /**
      * Executes the phase for the slot starting when specified.
-     * @param slotStart timestamp identifying the first action computed in the network.
+     * @param slotStart timestamp identifying the first action executed in the network.
      */
     virtual void execute(long long slotStart) = 0;
+
+    /**
+     * @return the duration of the execution of an elementary, non-sliceable part of the phase, called slot.
+     */
     virtual unsigned long long getDuration() const = 0;
+
+    /**
+     * @return he number of slots the phase contains, which is the number of elementary,
+     * non-sliceable parts it is composed of.
+     */
     virtual unsigned long long getSlotsCount() const = 0;
+
+    /**
+     * @return the whole duration of the phase in the entire slotframe.
+     */
     virtual unsigned long long getTotalDuration() const { return getSlotsCount() * getDuration(); }
 protected:
     MACContext& ctx;

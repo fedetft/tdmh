@@ -41,19 +41,54 @@ public:
             TopologyMessage* const topology,
             std::vector<StreamManagementElement*> smes) :
         content({hop, assignee}), topology(topology), smes(smes) {};
+
     virtual ~UplinkMessage() {};
+
     void serialize(unsigned char* pkt) const override;
+
     static UplinkMessage deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration& config);
+
     static UplinkMessage deserialize(unsigned char*, std::size_t size, const NetworkConfiguration& config);
+
+    /**
+     * @return the size of the message, if no SME needs to be sent.
+     * This corresponds to size of the size of the uplink + the size of the topology part,
+     * devisable from the number of forwarded topologies.
+     */
     static std::size_t getSizeWithoutSMEs(TopologyMessage* const tMsg) {
         return sizeof(UplinkMessagePkt) + tMsg->size();
     }
+
+    /**
+     * @return the hop of the message sender
+     */
     unsigned char getHop() const { return content.hop; }
+
+    /**
+     * @param hop the hop of the message sender
+     */
     void setHop(unsigned char hop) { content.hop = hop; }
+
+    /**
+     * @return the node to which the message content is assigned, in order to pass it to the hop closer to the master.
+     */
     unsigned short getAssignee() const { return content.assignee; }
+
+    /**
+     * @param assignee the node to which the message content is assigned, in order to pass it to the hop closer to the master.
+     */
     void setAssignee(unsigned short assignee) { content.assignee = assignee; }
+
+    /**
+     * @return the TopologyMessage contained
+     */
     TopologyMessage* getTopologyMessage() const { return topology; }
+
+    /**
+     * @return the StreamManagementElements contained
+     */
     std::vector<StreamManagementElement*> getSMEs() const { return smes; }
+
     std::size_t size() const override {
         return getSizeWithoutSMEs(topology) + smes.size() * StreamManagementElement::maxSize();
     }

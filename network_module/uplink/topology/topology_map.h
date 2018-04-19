@@ -33,16 +33,56 @@
 
 namespace mxnet {
 
+/**
+ * Class representing a topology as collected by the master.
+ * In internally contains an unbalanced undirected acyclic graph,
+ * with logarithmic access time.
+ * @tparam T the data type used to represent a network id
+ */
 template<typename T>
 class TopologyMap {
 public:
     TopologyMap();
     virtual ~TopologyMap();
+
+    /**
+     * Adds an edge between two nodes
+     * @param a network id of a node
+     * @param b network if of the other node
+     */
     void addEdge(T a, T b);
+
+    /**
+     * Returns the list of edges the composing the network graph,
+     * one per link. Therefore if the pair (a, b) is present, the pair (b, a) will not.
+     * @return the list of pairs of network addresses
+     */
     std::vector<std::pair<T, T>> getEdges() const;
+
+    /**
+     * Returns a list of edges connecting a nodes to others,
+     * in form of list of connected addresses.
+     * @return the list of connected nodes.
+     */
     std::vector<T> getEdges(T a) const;
+
+    /**
+     * Checks wether a connection between two nodes is present in the graph.
+     * @return if the link is present
+     */
     bool hasEdge(T a, T b) const;
+
+    /**
+     * Removes a connection between two nodes.
+     * @param a the node of an edge
+     * @param b the node of the other edge
+     */
     bool removeEdge(T a, T b);
+
+    /**
+     * Removes a node from the graph.
+     * @param a the address of the node to be removed
+     */
     bool removeNode(T a);
 
 
@@ -50,24 +90,22 @@ protected:
     std::multimap<T, T> edges;
 };
 
-} /* namespace mxnet */
-
 template<typename T>
-inline mxnet::TopologyMap<T>::TopologyMap() {
+inline TopologyMap<T>::TopologyMap() {
 }
 
 template<typename T>
-inline mxnet::TopologyMap<T>::~TopologyMap() {
+inline TopologyMap<T>::~TopologyMap() {
 }
 
 template<typename T>
-inline void mxnet::TopologyMap<T>::addEdge(T a, T b) {
+inline void TopologyMap<T>::addEdge(T a, T b) {
     edges.insert(std::make_pair(a, b));
     edges.insert(std::make_pair(b, a));
 }
 
 template<typename T>
-inline std::vector<std::pair<T, T>> mxnet::TopologyMap<T>::getEdges() const {
+inline std::vector<std::pair<T, T>> TopologyMap<T>::getEdges() const {
     std::vector<std::pair<T, T>> v;
     for(auto it : edges)
         if (it.first < it.second)
@@ -76,7 +114,7 @@ inline std::vector<std::pair<T, T>> mxnet::TopologyMap<T>::getEdges() const {
 }
 
 template<typename T>
-inline std::vector<T> mxnet::TopologyMap<T>::getEdges(T a) const {
+inline std::vector<T> TopologyMap<T>::getEdges(T a) const {
     auto it = edges.equal_range(a);
     std::vector<T> v;
     std::transform(it.first, it.second, std::back_inserter(v), [](std::pair<T, T> const& el) { return el.second; });
@@ -84,13 +122,13 @@ inline std::vector<T> mxnet::TopologyMap<T>::getEdges(T a) const {
 }
 
 template<typename T>
-inline bool mxnet::TopologyMap<T>::hasEdge(T a, T b) const {
+inline bool TopologyMap<T>::hasEdge(T a, T b) const {
     auto it = edges.equal_range(a);
     return std::count_if(it.first, it.second, [b](std::pair<T, T> const& el) { return el.second == b; }) > 0;
 }
 
 template<typename T>
-inline bool mxnet::TopologyMap<T>::removeEdge(T a, T b) {
+inline bool TopologyMap<T>::removeEdge(T a, T b) {
     bool retval = false;
     auto range = edges.equal_range(a);
     for (auto it = range.first; it != range.second && !retval;)
@@ -109,7 +147,7 @@ inline bool mxnet::TopologyMap<T>::removeEdge(T a, T b) {
 }
 
 template<typename T>
-inline bool mxnet::TopologyMap<T>::removeNode(T a) {
+inline bool TopologyMap<T>::removeNode(T a) {
     auto range = edges.equal_range(a);
     for (auto it = range.first; it != range.second;) {
         auto range2 = edges.equal_range(it->second);
@@ -123,3 +161,5 @@ inline bool mxnet::TopologyMap<T>::removeNode(T a) {
     }
     return edges.erase(a) > 0;
 }
+
+} /* namespace mxnet */

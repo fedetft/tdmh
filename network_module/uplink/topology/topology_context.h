@@ -38,20 +38,46 @@
 namespace mxnet {
 
 class MACContext;
+
+/**
+ * Class storing the status of thr topology information received and collected by the other nodes
+ */
 class TopologyContext {
 public:
     TopologyContext() = delete;
     TopologyContext(MACContext& ctx) : ctx(ctx) {};
     virtual ~TopologyContext() {}
 
+    /**
+     * Checks wether a node is a successor of another node
+     * @param nodeId the id of the successor
+     * @return if such node is a successor for the current one
+     */
     bool hasSuccessor(unsigned char nodeId) {
         return std::find_if(successors.begin(), successors.end(), [nodeId](Successor s){
             return s.getNodeId() == nodeId;
         }) != successors.end();
     }
 
+    /**
+     * @return the TopologyMode in use by the network
+     */
     virtual NetworkConfiguration::TopologyMode getTopologyType() const = 0;
+
+    /**
+     * Updates the context with the content of the uplink message,
+     * managing the list of successors.
+     * @param msg the received message
+     * @param sender the network id of the node to which the uplink slot is assigned to
+     * @param rssi the rssi measured while receiving the message
+     */
     virtual void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi);
+
+    /**
+     * Updates the context by marking a message not received during the slot assigned to a given node,
+     * managing the list of successors.
+     * @param sender the network id of the node to which the uplink slot is assigned to
+     */
     virtual void unreceivedMessage(unsigned char sender);
 
 protected:
@@ -64,7 +90,23 @@ public:
     MasterTopologyContext() = delete;
     MasterTopologyContext(MACContext& ctx) : TopologyContext(ctx) {};
     virtual ~MasterTopologyContext() {}
+
+    /**
+     * Updates the context with the content of the uplink message,
+     * adding it to the list of neighbors or refreshing its state.
+     * The base class method is also called, see TopologyContext::receivedMessage
+     * @param msg the received message
+     * @param sender the network id of the node to which the uplink slot is assigned to
+     * @param rssi the rssi measured while receiving the message
+     */
     void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
+
+    /**
+     * Updates the context by marking a message not received during the slot assigned to a given node,
+     * managing its presence in the list of directly connectedneighbors.
+     * The base class method is also called, see TopologyContext::unreceivedMessage
+     * @param sender the network id of the node to which the uplink slot is assigned to
+     */
     void unreceivedMessage(unsigned char sender) override;
 protected:
     std::map<unsigned char, unsigned char> neighborsUnseenFor;
@@ -76,12 +118,50 @@ public:
     DynamicTopologyContext() = delete;
     DynamicTopologyContext(MACContext& ctx) : TopologyContext(ctx) {};
     virtual ~DynamicTopologyContext() {}
+
+    /**
+     * Updates the context with the content of the uplink message,
+     * adding it to the list of predecessor or managing its state if belonging to the previous hop.
+     * The base class method is also called, see TopologyContext::receivedMessage
+     * @param msg the received message
+     * @param sender the network id of the node to which the uplink slot is assigned to
+     * @param rssi the rssi measured while receiving the message
+     */
     void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
+
+    /**
+     * Updates the context by marking a message not received during the slot assigned to a given node,
+     * managing its presence in the list of predecessor, if the message comes from the previous hop.
+     * The base class method is also called, see TopologyContext::unreceivedMessage
+     * @param sender the network id of the node to which the uplink slot is assigned to
+     */
     void unreceivedMessage(unsigned char sender) override;
+
+    /**
+     * Removes from the queue a given amount of TopologyElement, in order to be forwarded
+     * @param count the number of elements to pull
+     * @return the list of removed elements
+     */
     std::vector<TopologyElement*> dequeueMessages(std::size_t count);
+
+    /**
+     * Returns the topology information to send in the uplink message
+     */
     virtual TopologyMessage* getMyTopologyMessage() = 0;
+
+    /**
+     * @return the network id of the predecessor, chosen using the rssi as metric
+     */
     virtual unsigned char getBestPredecessor();
+
+    /**
+     * @return if the node has a predecessor
+     */
     virtual bool hasPredecessor();
+
+    /**
+     * Sets the master node as neighbor, meaning that the node has hop count = 1
+     */
     virtual void setMasterAsNeighbor(bool yes);
 
 protected:

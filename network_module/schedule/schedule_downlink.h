@@ -34,6 +34,10 @@
 #include "interfaces-impl/power_manager.h"
 #include <utility>
 
+/**
+ * Represents the phase in which the schedule is flooded, in order to reach all the nodes and make it available for
+ * all of them, so they start operating it when configured.
+ */
 namespace mxnet {
 class ScheduleDownlinkPhase : public MACPhase {
 public:

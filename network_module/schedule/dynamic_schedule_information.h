@@ -34,6 +34,11 @@
 namespace mxnet {
 
 class DynamicScheduleContext;
+
+/**
+ * Represents a schedule element in the schedule of a dynamic node, characterized by a role,
+ * a schedule id (to manage its deletion if needed) and the data slot at which it will operate.
+ */
 class DynamicScheduleElement {
 public:
     enum DynamicRole {
@@ -60,6 +65,11 @@ protected:
     unsigned short dataslot;
     DynamicRole role;
 };
+
+/**
+ * Represents a data slot in which the node is a sender for the given schedule,
+ * i.e. the node will need to send a packet provided by the upper layers
+ */
 class SenderScheduleElement : public DynamicScheduleElement {
 public:
     SenderScheduleElement(unsigned short id, unsigned short dataslot, unsigned char destination) :
@@ -71,6 +81,11 @@ public:
 protected:
     unsigned short destination;
 };
+
+/**
+ * Represents a data slot in which the node is a receiver in the provided schedule,
+ * i.e. it will receive a packet that will be forwarded to the upper layers.
+ */
 class ReceiverScheduleElement : public DynamicScheduleElement {
 public:
     ReceiverScheduleElement(unsigned short id, unsigned short dataslot, unsigned short source) :
@@ -82,6 +97,11 @@ public:
 protected:
     unsigned short source;
 };
+
+/**
+ * Represents a data slot in which the node is a sender, but it just needs to forward a packet
+ * received in a previous data slot and temporarily stored in a buffer.
+ */
 class ForwarderScheduleElement : public DynamicScheduleElement {
 public:
     ForwarderScheduleElement(unsigned short id, unsigned short dataslot) : DynamicScheduleElement(id, dataslot, DynamicRole::FORWARDER) {};
@@ -89,6 +109,12 @@ public:
     ForwarderScheduleElement() = delete;
     virtual void run(DynamicScheduleContext& ctx);
 };
+
+/**
+ * Represents a data slot in which the node is a receiver, but it will not pass the packet to the upper layers,
+ * but will instead store it in a buffer in order to send in it a data slot to follow, in order to travel to its
+ * final receiver.
+ */
 class ForwardeeScheduleElement : public DynamicScheduleElement {
 public:
     ForwardeeScheduleElement(unsigned short id, unsigned short dataslot, ForwarderScheduleElement* const next) :

@@ -36,19 +36,43 @@ namespace mxnet {
 class DynamicMeshTopologyContext : public DynamicTopologyContext {
 public:
     DynamicMeshTopologyContext(MACContext& ctx);
-    virtual ~DynamicMeshTopologyContext() {}
+    virtual ~DynamicMeshTopologyContext() {};
     NetworkConfiguration::TopologyMode getTopologyType() const override {
         return NetworkConfiguration::TopologyMode::NEIGHBOR_COLLECTION;
     }
+
+    /**
+     * Sets the node as neighbor and, if the current node is the assignee, its data is stored.
+     * Also calls DynamicTopologyContext::receivedMessage
+     */
     void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
+
+    /**
+     * If the node is a neighbor, it is marked as unseen.
+     * Also calls DynamicTopologyContext::unreceivedMessage
+     */
     void unreceivedMessage(unsigned char sender) override;
+
+    /**
+     * Builds the topology message to send, including the neighbor table and the forwarded topologies
+     */
     TopologyMessage* getMyTopologyMessage() override;
+
+    /**
+     * Used by the timesync phase to set/remove the master node as neighbor in case the node belongs/does not belong to hop 1,
+     * since in such case it won't receive any uplink from the master, it will just need the timesync with
+     * hop count = 0.
+     */
     void setMasterAsNeighbor(bool yes) override {
         DynamicTopologyContext::setMasterAsNeighbor(yes);
         if (yes) neighbors.addNeighbor(0);
         else neighbors.removeNeighbor(0);
     }
 protected:
+    /**
+     * Checks whether a received message needs to be stored or an old copy
+     * is already stored and needs to be updated
+     */
     void checkEnqueueOrUpdate(ForwardedNeighborMessage* msg);
     UpdatableQueue<unsigned short, ForwardedNeighborMessage*> enqueuedTopologyMessages;
     NeighborTable neighbors;
@@ -63,6 +87,11 @@ public:
     NetworkConfiguration::TopologyMode getTopologyType() const override {
         return NetworkConfiguration::TopologyMode::NEIGHBOR_COLLECTION;
     }
+
+    /**
+     * Adds the edges for the received topology to the network graph.
+     * Also calls DynamicTopologyContext::receivedMessage
+     */
     void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
     void print() const;
 protected:

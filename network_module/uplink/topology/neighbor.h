@@ -34,9 +34,27 @@ public:
     Neighbor()  = delete;
     Neighbor(unsigned char nodeId, unsigned char unseenSince = 0) : nodeId(nodeId), unseenSince(unseenSince) {}
     virtual ~Neighbor() {};
+
+    /**
+     * @return the network id of the neighbor node
+     */
     unsigned char getNodeId() const { return nodeId; }
+
+    /**
+     * Signal that the current node received a neighbor's packet
+     * during the uplink phase.
+     */
     void seen() { unseenSince = 0; }
+
+    /**
+     * Signal that the current node didn't receive a neighbor's packet
+     * during the uplink phase.
+     */
     void unseen() { unseenSince++; }
+
+    /**
+     * @return the amount of uplink phases from which the node's packet is not heard
+     */
     unsigned char getUnseen() const { return unseenSince; }
     bool operator <(const Neighbor &b) const { return nodeId < b.nodeId; };
     bool operator >(const Neighbor &b) const { return b < *this; }
@@ -56,7 +74,15 @@ public:
     Predecessor(unsigned char nodeId, short rssi, unsigned char unseenSince = 0) :
         Neighbor(nodeId, unseenSince), rssi(rssi) {};
     Predecessor() = delete;
+
+    /**
+     * @return the RSSI of the last uplink phase
+     */
     short getRssi() const { return rssi; }
+
+    /**
+     * Sets the RSSI of the node during the last uplink phase
+     */
     void setRssi(short rssi) { this->rssi = rssi; }
 
     struct CompareRSSI {

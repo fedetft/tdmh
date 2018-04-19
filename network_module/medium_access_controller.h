@@ -41,6 +41,9 @@ public:
     MediumAccessController() = delete;
     MediumAccessController(const MediumAccessController& orig) = delete;
     virtual ~MediumAccessController();
+    /**
+     * The method for making the MAC protocol run and start being operative.
+     */
     void run();
     //5 byte (4 preamble, 1 SFD) * 32us/byte
     static const unsigned int packetPreambleTime = 160000;

@@ -33,6 +33,10 @@
 
 namespace mxnet {
 
+/**
+ * Represents a transition in the schedule as an couple of source and destination
+ * addresses and a data slot number.
+ */
 class MasterScheduleTransition {
 public:
     MasterScheduleTransition() = delete;
@@ -49,6 +53,9 @@ private:
     unsigned short dataslot;
 };
 
+/**
+ * Represents a schedule as a set of transitions, characterized by an id
+ */
 class MasterScheduleElement {
 public:
     MasterScheduleElement() = delete;

@@ -42,10 +42,20 @@ namespace mxnet {
  * In ARM the same memory, accesses by-word uses b0 as the MSB and b31 as the LSB.
  * Thus this order is respected, in order to grant cross-compatibility.
  */
+/**
+ * Class representing a bit array of an arbitrary dimension.
+ * It is designed to achieve space efficiency.
+ * IN ARM architectures, in which the bit banding area is available, it uses such area.
+ */
 class RuntimeBitset {
 public:
     typedef unsigned long word_t;
     RuntimeBitset() = delete;
+
+    /**
+     * Creates an uninitialized array of size bits
+     * @param size the array dimension
+     */
     explicit RuntimeBitset(std::size_t size) :
         bitCount(size),
         wordCount(((size - 1) >> shiftDivisor) + 1),
@@ -55,6 +65,11 @@ public:
 #endif
     {}
 
+    /**
+     * Creates an array of size bits, initializing it with a given value.
+     * @param size the array dimension
+     * @param init the value with which it is initialized
+     */
     RuntimeBitset(std::size_t size, bool init) : RuntimeBitset(size) {
         memset(content, init? ~0 : 0, wordCount);
     }
@@ -102,6 +117,10 @@ public:
 #endif
     };
 
+    /**
+     * Accesses the i-th bit of the array
+     * @param i the index to access
+     */
     const Bit operator[](unsigned i) const {
 #ifdef _ARCH_CORTEXM3_EFM32GG
         if (i < size)
@@ -117,6 +136,10 @@ public:
 #endif
     }
 
+    /**
+     * Accesses the i-th bit of the array
+     * @param i the index to access
+     */
     Bit operator[](unsigned i) {
 #ifdef _ARCH_CORTEXM3_EFM32GG
         if (i < size)
@@ -132,12 +155,30 @@ public:
 #endif
     }
 
+    /**
+     * Reinitializes the whole vector with zeros or ones.
+     * @param value the value to set
+     */
     void setAll(bool value) {
         memset(content, value? ~0 : 0, wordCount);
     }
 
+    /**
+     * Accesses the memory area behind the array directly
+     * @return a pointer to the memory area
+     */
     word_t* data() const { return content; }
+
+    /**
+     * The quantity of bits stored in the array
+     * @return the number of bits in the array
+     */
     std::size_t size() const { return bitCount; }
+
+    /**
+     * The number of words used to store the array
+     * @return the size of the array, in words
+     */
     std::size_t wordSize() const { return wordCount; }
 
     bool operator ==(const RuntimeBitset& other) const {

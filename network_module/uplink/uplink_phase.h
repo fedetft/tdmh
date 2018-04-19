@@ -37,15 +37,27 @@ namespace mxnet {
 class UplinkPhase : public MACPhase {
 public:
     UplinkPhase() = delete;
+
     UplinkPhase(const UplinkPhase& orig) = delete;
+
     virtual ~UplinkPhase() {};
+
     unsigned long long getDuration() const override {
         return packetArrivalAndProcessingTime + transmissionInterval;
     }
+
     unsigned long long getSlotsCount() const override { return nodesCount; }
     
+    /**
+     * @return the TopologyContext
+     */
     TopologyContext* const getTopologyContext() const { return topology; }
+
+    /**
+     * @return the StreamManagementContext
+     */
     StreamManagementContext* const getStreamManagementContext() const { return streamManagement; }
+
     static const int transmissionInterval = 1000000; //1ms
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
     static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
@@ -56,8 +68,11 @@ protected:
             streamManagement(streamManagement),
             nodesCount(ctx.getNetworkConfig().getMaxNodes()) {};
     
+    /**
+     * makes the internal status of the class progress, so the next phase will be bound to the following address
+     */
     void nextNode() {
-        if (--currentNode < 0)
+        if (--currentNode <= 0)
             currentNode = nodesCount - 1;
     }
 

@@ -39,8 +39,18 @@ public:
     DynamicUplinkPhase();
     virtual ~DynamicUplinkPhase() {};
     virtual void execute(long long slotStart) override;
+
+    /**
+     * Starts expecting a message from the node to which the slot is assigned
+     * and modifies the TopologyContext as needed.
+     */
     void receiveByNode(long long slotStart);
-    void sendMyTopology(long long slotStart);
+
+    /**
+     * Called when it's the node's turn, sends the node's uplink message,
+     * after assembling it.
+     */
+    void sendMyUplink(long long slotStart);
 };
 
 } /* namespace mxnet */

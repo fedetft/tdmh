@@ -72,14 +72,32 @@ protected:
                 && packet[5] == 0xff && packet[6] == 0xff;
     }
 
+    /**
+     * Since the node is synchronized, it performs the step in the FLOPSYNC-2 controller
+     */
     void periodicSync();
+
+    /**
+     * Since the node is not synchronizes, it listens to the channel for an undefined time
+     * to reinitialize the FLOPSYNC-2 controller
+     */
     void resync();
+
+    /**
+     * Resets the data calculated by and useful for the controller
+     */
     void reset(long long hookPktTime);
     void next() override;
     long long correct(long long int uncorrected) override;
 
+    /**
+     * Marks the packet as missed, altering the internal state of the synchronization automaton
+     */
     unsigned char missedPacket();
 
+    /**
+     * Updates the VirtualClock data to perform corrections based on the freshly calculated FLOPSYNC-2 data
+     */
     void updateVt() {
         vt.update(
                 tc->ns2tick(theoreticalFrameStart),

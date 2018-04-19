@@ -38,7 +38,6 @@ using namespace miosix;
 namespace mxnet {
 
 void ListeningRoundtripPhase::execute(long long slotStart) {
-    //TODO add a way to use the syncStatus also with the master for having an optimized receiving window
     //maybe with a different class for the master node?
     long long timeoutTime = slotStart + receiverWindow + MediumAccessController::maxPropagationDelay + MediumAccessController::packetPreambleTime;
     

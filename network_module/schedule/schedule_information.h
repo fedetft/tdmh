@@ -33,17 +33,31 @@
 
 namespace mxnet {
 
+/**
+ * Represents a single arc in the schedule, as a data slot number and a destination node.
+ */
 class ScheduleTransition : public BitSerializableMessage {
 public:
     ScheduleTransition(unsigned short dataslot, unsigned char nodeId) : content({dataslot, nodeId}) {};
     virtual ~ScheduleTransition() {};
+
+    /**
+     * @return the dataslot in which the packet transits the network
+     */
     unsigned short getDataslot() { return content.dataslot; }
+
+    /**
+     * @return the network id of the receiver node
+     */
     unsigned char getNodeId() { return content.nodeId; }
-    using BitSerializableMessage::serialize;
     using BitSerializableMessage::serialize;
     void serialize(unsigned char* pkt, unsigned short startBit) const override;
     static ScheduleTransition deserialize(std::vector<unsigned char>& pkt, unsigned short startBit);
     static ScheduleTransition deserialize(unsigned char* pkt, unsigned short startBit);
+
+    /**
+     * Deserializes multiple ScheduleTransition from serialized data
+     */
     static std::vector<ScheduleTransition> deserializeMultiple(unsigned char* pkt, unsigned short startBit, unsigned short count);
     std::size_t size() const override { return sizeof(ScheduleTransitionPkt); }
     std::size_t bitSize() const override { return getMaxBitSize(); };
@@ -60,6 +74,10 @@ private:
     ScheduleTransitionPkt content;
 };
 
+/**
+ * Represents an element in the schedule downlink delta message,
+ * representing such message as a list of these
+ */
 class ScheduleDeltaElement : public BitSerializableMessage {
 public:
     enum DeltaType {
@@ -74,15 +92,34 @@ protected:
     DeltaType type;
 };
 
+/**
+ * Represents a schedule that has been added to the list of schedules
+ */
 class ScheduleAddition : public ScheduleDeltaElement {
 public:
     ScheduleAddition() = delete;
     ScheduleAddition(unsigned short scheduleId, unsigned short hops, unsigned char nodeId, std::vector<ScheduleTransition>&& transitions) :
         ScheduleDeltaElement(ADDITION), content({scheduleId, hops, nodeId}), transitions(transitions) {};
     virtual ~ScheduleAddition() {};
+
+    /**
+     * @return the id of the schedule
+     */
     unsigned short getScheduleId() override { return content.scheduleId; }
+
+    /**
+     * @return the number of hops the schedule travels
+     */
     unsigned short getHops() { return content.hops; }
+
+    /**
+     * @return the address of the sender
+     */
     unsigned char getNodeId() { return content.nodeId; }
+
+    /**
+     * @return the transitions included in the schedule
+     */
     std::vector<ScheduleTransition>& getTransitions() { return transitions; }
     using ScheduleDeltaElement::serialize;
     void serialize(unsigned char* pkt, unsigned short startBit) const override;
@@ -92,6 +129,10 @@ public:
         return sizeof(ScheduleAdditionPkt) + transitions.size() * ScheduleTransition::getMaxSize();
     }
     std::size_t bitSize() const override { return 33 + transitions.size() * ScheduleTransition::getMaxBitSize(); };
+
+    /**
+     * @return the transitions involving the node. The first is if the node
+     */
     std::pair<ScheduleTransition*, ScheduleTransition*> getTransitionForNode(unsigned char nodeId);
 protected:
     struct ScheduleAdditionPkt {
@@ -106,6 +147,9 @@ protected:
     std::vector<ScheduleTransition> transitions;
 };
 
+/**
+ * Represents a schedule that has been deleted to the list of schedules
+ */
 class ScheduleDeletion : public ScheduleDeltaElement {
 public:
     ScheduleDeletion() = delete;
@@ -123,6 +167,10 @@ protected:
     unsigned short scheduleId;
 };
 
+
+/**
+ * Represents a schedule delta as a a list of additions followed by a list of deletions
+ */
 class ScheduleDelta : public BitSerializableMessage {
 public:
     ScheduleDelta() = delete;

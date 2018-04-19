@@ -63,7 +63,7 @@ void DynamicUplinkPhase::receiveByNode(long long slotStart) {
     }
 }
 
-void DynamicUplinkPhase::sendMyTopology(long long slotStart) {
+void DynamicUplinkPhase::sendMyUplink(long long slotStart) {
     auto* dTopology = static_cast<DynamicTopologyContext*>(topology);
     auto* dSMContext = static_cast<DynamicStreamManagementContext*>(streamManagement);
     if (!dTopology->hasPredecessor()) return;
@@ -93,7 +93,7 @@ void DynamicUplinkPhase::execute(long long slotStart) {
     print_dbg("[T] T=%lld\n", slotStart);
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     ctx.transceiverTurnOn();
-    if (currentNode == ctx.getNetworkId()) sendMyTopology(slotStart);
+    if (currentNode == ctx.getNetworkId()) sendMyUplink(slotStart);
     else receiveByNode(slotStart);
     ctx.transceiverTurnOff();
 }

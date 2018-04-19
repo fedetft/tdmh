@@ -43,71 +43,123 @@ public:
             const unsigned char maxMissedTimesyncs,
             const TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION);
 
+    /**
+     * @return the reference frequency for the protocol.
+     */
     const unsigned int getBaseFrequency() const {
         return baseFrequency;
     }
 
+    /**
+     * @return if the network id is statically or dinamically configured.
+     */
     const bool isDynamicNetworkId() const {
         return dynamicNetworkId;
     }
 
+    /**
+     * @return the number of bits needed to represent the hop count
+     */
     unsigned char getHopBits() const {
         return hopBits;
     }
 
+    /**
+     * @return number of time synchronization missed, based on the local clock progress
+     */
     const unsigned char getMaxMissedTimesyncs() const {
         return maxMissedTimesyncs;
     }
 
+    /**
+     * @return the maximum time width that the mac protocol should support.
+     * Id est, the threshold of synchronization beyond which the protocol can't work,
+     * since it would have a too few accurate timing precision.
+     */
     const unsigned char getMaxAdmittedRcvWindow() const {
         return maxAdmittedRcvWindow;
     }
 
+    /**
+     * @return the duration of the slotframe, which corresponds to the interval separating two timesync downlink phases.
+     */
     const unsigned long long getSlotframeDuration() const {
         return slotframeDuration;
     }
 
+    /**
+     * @return the maximum number of topology messages that can be forwarded in an uplink.
+     */
     const unsigned char getMaxForwardedTopologies() const {
         return maxForwardedTopologies;
     }
 
+    /**
+     * @return the maximum number of hops the networks supports.
+     */
     const unsigned char getMaxHops() const {
         return maxHops;
     }
 
+    /**
+     * @return the maximum number of nodes the network supports.
+     */
     const unsigned short getMaxNodes() const {
         return maxNodes;
     }
 
+    /**
+     * @return the number of uplinks (for which it would be his turn) after which a neighbor not sending a packet is considered disconnected.
+     */
     const unsigned short getMaxRoundsUnavailableBecomesDead() const {
         return maxRoundsUnavailableBecomesDead;
     }
 
+    /**
+     * @return the number of uplinks (for which it would be his turn) after which a parent non sending a packet is considered disconnected.
+     */
     const unsigned short getMaxRoundsUnreliableParent() const {
         return maxRoundsUnreliableParent;
     }
 
+    /**
+     * @return the number of bits needed to represent a network id.
+     */
     unsigned short getNetworkIdBits() const {
         return networkIdBits;
     }
 
+    /**
+     * @return the pan id used in the timesync packets' header.
+     */
     const unsigned short getPanId() const {
         return panId;
     }
 
+    /**
+     * @return the statically configured network id.
+     */
     const unsigned short getStaticNetworkId() const {
         return staticNetworkId;
     }
 
+    /**
+     * @return the topology mode used in the network to perform topology collection.
+     */
     const TopologyMode getTopologyMode() const {
         return topologyMode;
     }
 
+    /**
+     * @return the power, in dBm, at which the radio operates.
+     */
     const short getTxPower() const {
         return txPower;
     }
 
-
+    /**
+     * @return the number of schedule downlinks each slotframe contains.
+     */
     const unsigned short getScheduleDownlinkPerSlotframeCount() const {
         return scheduleDownlinkPerSlotframeCount;
     }
