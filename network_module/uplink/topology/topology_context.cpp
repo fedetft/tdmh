@@ -38,8 +38,8 @@ unsigned char DynamicTopologyContext::getBestPredecessor() {
 
 void DynamicTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
     if (ctx.getHop() != msg.getHop() + 1) return;
-    auto exist = std::find(predecessors.begin(), predecessors.end(), [sender](Predecessor el){
-        el.getNodeId() == sender;
+    auto exist = std::find_if(predecessors.begin(), predecessors.end(), [sender](Predecessor el){
+        return el.getNodeId() == sender;
     });
     if (exist == predecessors.end()) {
         predecessors.push_back(Predecessor(sender, rssi));
@@ -50,8 +50,8 @@ void DynamicTopologyContext::receivedMessage(UplinkMessage msg, unsigned char se
 }
 
 void DynamicTopologyContext::unreceivedMessage(unsigned char sender) {
-    auto exist = std::find(predecessors.begin(), predecessors.end(), [sender](Predecessor el){
-        el.getNodeId() == sender;
+    auto exist = std::find_if(predecessors.begin(), predecessors.end(), [sender](Predecessor el){
+        return el.getNodeId() == sender;
     });
     if (exist == predecessors.end()) return;
     exist->unseen();
