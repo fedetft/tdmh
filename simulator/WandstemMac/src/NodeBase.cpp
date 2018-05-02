@@ -31,5 +31,5 @@ NodeBase::~NodeBase() {
 }
 
 void NodeBase::initialize() {
-    address = static_cast<unsigned char>(par("address").longValue());
+    address = static_cast<unsigned char>(par("address").intValue());
 }
