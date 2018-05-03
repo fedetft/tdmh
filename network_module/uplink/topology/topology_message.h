@@ -66,8 +66,8 @@ public:
  */
 class NeighborTable : public SerializableMessage {
 public:
-    NeighborTable(unsigned char nodeCount, std::vector<unsigned char> neighbors);
-    NeighborTable(unsigned char nodeCount, std::vector<bool>& neighbors);
+    NeighborTable(unsigned short nodeCount, std::vector<unsigned char> neighbors);
+    NeighborTable(unsigned short nodeCount, std::vector<bool>& neighbors);
     NeighborTable() = delete;
     ~NeighborTable() {};
     NeighborTable(const NeighborTable& other);
@@ -110,9 +110,9 @@ public:
 
     void serialize(unsigned char* pkt) const override;
 
-    static NeighborTable deserialize(std::vector<unsigned char>& pkt, unsigned char nodeCount);
+    static NeighborTable deserialize(std::vector<unsigned char>& pkt, unsigned short nodeCount);
 
-    static NeighborTable deserialize(unsigned char* pkt, unsigned char nodeCount);
+    static NeighborTable deserialize(unsigned char* pkt, unsigned short nodeCount);
 
     std::size_t size() const override { return neighbors.wordSize(); }
 
@@ -131,8 +131,8 @@ public:
         return !(*this == b);
     }
 protected:
-    NeighborTable(unsigned char nodeCount) : neighbors(nodeCount) {};
-    NeighborTable(unsigned char nodeCount, bool initVal) : neighbors(nodeCount, initVal) {};
+    NeighborTable(unsigned short nodeCount) : neighbors(nodeCount) {};
+    NeighborTable(unsigned short nodeCount, bool initVal) : neighbors(nodeCount, initVal) {};
 
     /**
      * sets the data as byte values

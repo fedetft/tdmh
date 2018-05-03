@@ -36,7 +36,7 @@ namespace mxnet {
         print_dbg("[D] GFAT=%llu\n", slotStart);
         ctx.configureTransceiver(ctx.getTransceiverConfig());
         ctx.transceiverTurnOn();
-        if ((*nextSched)->getDataslot() != dataSlot) return;
+        if (scheduleDownlink->isScheduleEnd(nextSched) || (*nextSched)->getDataslot() != dataSlot) return;
         /*
         std::tuple<bool, ScheduleContext::Role, std::queue<std::vector<unsigned char>>*> slotJob = s->executeTimeslot(i);
         std::queue<std::vector<unsigned char>>* q;

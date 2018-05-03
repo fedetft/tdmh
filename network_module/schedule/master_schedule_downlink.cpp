@@ -149,7 +149,7 @@ std::pair<std::vector<ScheduleAddition*>, std::vector<unsigned char>> MasterSche
     std::vector<unsigned char> retval2;
     unsigned bitsLimit = bytes * std::numeric_limits<unsigned char>::digits;
     //insert until i encounter the first one exceeding
-    for (bool exceeds = false; bitsLimit > 0 && !exceeds;) {
+    for (bool exceeds = false; bitsLimit > 0 && !exceeds && !deltaToDistribute.empty();) {
         auto* val = deltaToDistribute.front();
         auto nextSize = val->bitSize();
         if (nextSize > bitsLimit)

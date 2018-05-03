@@ -27,6 +27,9 @@
 
 #pragma once
 
+#ifndef _MIOSIX
+#include <thread>
+#endif
 #include "interfaces-impl/transceiver.h"
 #include "network_configuration.h"
 
@@ -45,6 +48,8 @@ public:
      * The method for making the MAC protocol run and start being operative.
      */
     void run();
+    void runAsync();
+    void stop();
     //5 byte (4 preamble, 1 SFD) * 32us/byte
     static const unsigned int packetPreambleTime = 160000;
     //350us and forced receiverWindow=1 fails, keeping this at minimum
@@ -57,8 +62,19 @@ public:
     static const unsigned char maxPktSize = 125;
     static const unsigned char maxPktSizeNoCRC = 127;
 protected:
-    MediumAccessController(MACContext* const ctx) : ctx(ctx) {};
+    MediumAccessController(MACContext* const ctx) : ctx(ctx), async(false) {};
     MACContext* const ctx;
+#ifdef _MIOSIX
+    miosix::Thread* thread;
+private:
+    static void runLaunched(void* obj) {
+        reinterpret_cast<MediumAccessController*>(obj)->run();
+    }
+#else
+    std::thread* thread;
+#endif
+private:
+    bool async;
 };
 }
 

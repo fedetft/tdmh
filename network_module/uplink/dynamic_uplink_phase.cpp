@@ -74,7 +74,7 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart) {
     msg.serialize(packet.begin());
     if (ENABLE_UPLINK_INFO_DBG)
         print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), slotStart);
-    auto wuTime = slotStart - MediumAccessController::receivingNodeWakeupAdvance;
+    auto wuTime = timesync->getSenderWakeup(slotStart);
     auto now = getTime();
     if (now >= slotStart)
         print_dbg("[U] start late\n");

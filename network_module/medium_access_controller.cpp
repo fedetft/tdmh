@@ -35,7 +35,22 @@ MediumAccessController::~MediumAccessController() {
 }
 
 void MediumAccessController::run() {
+    async = false;
+    ctx->run();
+}
 
+void MediumAccessController::runAsync() {
+    async = true;
+#ifdef _MIOSIX
+    thread = miosix::Thread::create(MediumAccessController::runLauncher, 2048, PRIORITY_MAX-1, nullptr, miosix::Thread::JOINABLE);
+#else
+    thread = new std::thread(&MediumAccessController::run, this);
+#endif
+}
+
+void MediumAccessController::stop() {
+    ctx->stop();
+    if (async) thread->join();
 }
 }
 

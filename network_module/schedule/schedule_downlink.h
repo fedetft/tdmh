@@ -49,6 +49,7 @@ public:
     }
 
     unsigned long long getSlotsCount() const override { return networkConfig.getScheduleDownlinkPerSlotframeCount(); }
+    bool isScheduleEnd(std::set<DynamicScheduleElement*>::iterator it) const { return nodeSchedule.empty() || nodeSchedule.end() == it; }
     std::set<DynamicScheduleElement*>::iterator getFirstSchedule() { return nodeSchedule.begin(); };
     std::queue<std::vector<unsigned char>>* getQueueForId(unsigned short id) {
         std::map<unsigned short, std::queue<std::vector<unsigned char>>>::iterator retval = forwardQueues.find(id);

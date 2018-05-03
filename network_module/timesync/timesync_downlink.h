@@ -88,6 +88,11 @@ public:
      * ReverseFlooding calculation
      */
     virtual long long getDelayToMaster() const = 0;
+
+    /**
+     * Returns the slotframe start time as calculated by the FLOPSYNC-2 controller after the synchronization
+     */
+    virtual long long getSlotframeStart() const = 0;
     
 protected:
     TimesyncDownlink(MACContext& ctx, MacroStatus initStatus, unsigned receivingWindow) :

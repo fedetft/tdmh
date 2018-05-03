@@ -39,20 +39,11 @@ namespace mxnet {
 
 class MasterMACContext : public MACContext {
 public:
-    MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
-        MasterMACContext(mac, transceiver, config, config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION?
-                        static_cast<MasterTopologyContext*>(new MasterMeshTopologyContext(*this)) :
-                        static_cast<MasterTopologyContext*>(new MasterTreeTopologyContext(*this))) {};
+    MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config);
     MasterMACContext() = delete;
     virtual ~MasterMACContext() {};
 protected:
     long long initializationDelay = 1000000;
-private:
-    MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config, MasterTopologyContext* const topology) :
-        MACContext(mac, transceiver, config,
-            new MasterTimesyncDownlink(*this, miosix::getTime() + initializationDelay),
-            new MasterUplinkPhase(*this, topology),
-                    new MasterStreamManagementContext(), topology, new MasterScheduleDownlinkPhase(*this)) {};
 };
 
 } /* namespace mxnet */

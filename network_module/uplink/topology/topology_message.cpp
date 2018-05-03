@@ -32,12 +32,12 @@
 
 namespace mxnet {
 
-NeighborTable::NeighborTable(unsigned char nodeCount, std::vector<unsigned char> neighbors) : neighbors(nodeCount, false) {
+NeighborTable::NeighborTable(unsigned short nodeCount, std::vector<unsigned char> neighbors) : neighbors(nodeCount, false) {
     for(auto n : neighbors)
         this->neighbors[n] = true;
 }
 
-NeighborTable::NeighborTable(unsigned char nodeCount, std::vector<bool>& neighbors) : neighbors(nodeCount) {
+NeighborTable::NeighborTable(unsigned short nodeCount, std::vector<bool>& neighbors) : neighbors(nodeCount) {
     setNeighbors(neighbors);
 }
 
@@ -67,14 +67,14 @@ void NeighborTable::serialize(unsigned char* pkt) const {
     memcpy(pkt, neighbors.data(), neighbors.size());
 }
 
-NeighborTable NeighborTable::deserialize(std::vector<unsigned char>& pkt, unsigned char nodeCount) {
+NeighborTable NeighborTable::deserialize(std::vector<unsigned char>& pkt, unsigned short nodeCount) {
     assert(nodeCount <= pkt.size());
     NeighborTable retval(nodeCount);
     memcpy(retval.neighbors.data(), pkt.data(), nodeCount);
     return retval;
 }
 
-NeighborTable NeighborTable::deserialize(unsigned char* pkt, unsigned char nodeCount) {
+NeighborTable NeighborTable::deserialize(unsigned char* pkt, unsigned short nodeCount) {
     NeighborTable retval(nodeCount);
     memcpy(retval.neighbors.data(), pkt, nodeCount);
     return retval;

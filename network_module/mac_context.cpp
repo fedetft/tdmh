@@ -46,21 +46,10 @@ MACContext::~MACContext() {
     delete data;
 }
     
-MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiver, const NetworkConfiguration& config,
-        TimesyncDownlink* const timesync, UplinkPhase* const uplink, StreamManagementContext* const smc,
-        TopologyContext* const topology, ScheduleDownlinkPhase* const schedule) :
-        mac(mac),
-        transceiverConfig(config.getBaseFrequency(), config.getTxPower(), true, false),
-        networkConfig(config),
-        networkId(config.getStaticNetworkId()),
-        transceiver(transceiver),
-        timesync(timesync),
-        uplink(uplink),
-        topologyContext(topology),
-        streamManagement(smc),
-        schedule(schedule),
-        data(new DataPhase(*this, getDataslotCount())),
-        sendTotal(0), sendErrors(0), rcvTotal(0), rcvErrors(0) {}
+MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiver, const NetworkConfiguration& config) :
+                mac(mac), transceiverConfig(config.getBaseFrequency(), config.getTxPower(), true, false),
+                networkConfig(config), networkId(config.getStaticNetworkId()), transceiver(transceiver),
+                sendTotal(0), sendErrors(0), rcvTotal(0), rcvErrors(0), running(false) {}
 
 TopologyContext* MACContext::getTopologyContext() const { return uplink->getTopologyContext(); }
 StreamManagementContext* MACContext::getStreamManagementContext() const { return uplink->getStreamManagementContext(); }
@@ -131,6 +120,28 @@ unsigned short MACContext::getDataslotCount() const {
     return (networkConfig.getSlotframeDuration() -
             (timesync->getTotalDuration() + uplink->getTotalDuration() + schedule->getTotalDuration())) /
             DataPhase::getDurationStatic();
+}
+
+void MACContext::run() {
+    long long currentNextDeadline = 0;
+    for (running = true; running; ) {
+        timesync->execute(currentNextDeadline);
+        currentNextDeadline = timesync->getSlotframeStart() + timesync->getDuration();
+        for (int i = 0; i < networkConfig.getMaxNodes() - 1; i++) {
+            uplink->execute(currentNextDeadline);
+            currentNextDeadline += uplink->getDuration();
+        }
+        schedule->execute(currentNextDeadline);
+        currentNextDeadline += schedule->getDuration();
+        for (unsigned i = 0; i < data->getSlotsCount(); i++) {
+            data->execute(currentNextDeadline);
+            currentNextDeadline += data->getDuration();
+        }
+    }
+}
+
+void MACContext::stop() {
+    running = false;
 }
 
 }

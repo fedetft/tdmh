@@ -60,6 +60,7 @@ public:
     inline void execute(long long slotStart) override;
     std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
     long long getDelayToMaster() const override { return askingRTP.getDelayToMaster(); }
+    virtual long long getSlotframeStart() const { return measuredFrameStart - (ctx.getHop() - 1) * rebroadcastInterval - phaseStartupTime; }
 protected:
     void rebroadcast(long long arrivalTs);
     virtual bool isSyncPacket() {

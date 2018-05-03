@@ -36,7 +36,7 @@ class MasterMediumAccessController : public MediumAccessController {
 public:
     MasterMediumAccessController(miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
         MediumAccessController(new MasterMACContext(*this, transceiver, config)) {};
-    virtual ~MasterMediumAccessController();
+    virtual ~MasterMediumAccessController() {};
 };
 
 } /* namespace mxnet */

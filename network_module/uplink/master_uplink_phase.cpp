@@ -39,6 +39,12 @@ void MasterUplinkPhase::execute(long long slotStart) {
         print_dbg("[U] rcv %d @%llu\n", currentNode, slotStart);
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     ctx.transceiverTurnOn();
+    auto wuTime = slotStart - MediumAccessController::receivingNodeWakeupAdvance;
+    auto now = getTime();
+    if (now >= slotStart)
+        print_dbg("[U] start late\n");
+    if (now < wuTime)
+        pm.deepSleepUntil(wuTime);
     while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK) {
         rcvResult = ctx.recv(packet.data(), MediumAccessController::maxPktSize,
                     slotStart + MediumAccessController::maxPropagationDelay + MediumAccessController::maxAdmittableResyncReceivingWindow);

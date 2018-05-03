@@ -39,18 +39,9 @@ namespace mxnet {
 
 class DynamicMACContext : public MACContext {
 public:
-    DynamicMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
-        DynamicMACContext(mac, transceiver, config, config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION?
-                        static_cast<DynamicTopologyContext*>(new DynamicMeshTopologyContext(*this)) :
-                        static_cast<DynamicTopologyContext*>(new DynamicTreeTopologyContext(*this))) {};
+    DynamicMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config);
     DynamicMACContext() = delete;
     virtual ~DynamicMACContext() {};
-private:
-    DynamicMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config, DynamicTopologyContext* const topology) :
-        MACContext(mac, transceiver, config,
-                new DynamicTimesyncDownlink(*this),
-                new DynamicUplinkPhase(*this, topology),
-                new DynamicStreamManagementContext(), topology, new DynamicScheduleDownlinkPhase(*this)) {};
 };
 
 } /* namespace mxnet */

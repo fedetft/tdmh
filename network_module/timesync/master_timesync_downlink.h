@@ -52,6 +52,7 @@ public:
     void execute(long long slotStart) override;
     std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
     long long getDelayToMaster() const override { return 0; }
+    virtual long long getSlotframeStart() const { return slotframeTime; }
 
 protected:
     

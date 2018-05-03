@@ -185,15 +185,25 @@ public:
      * @return the DataPhase
      */
     DataPhase* const getDataPhase() const { return data; }
+
+    void run();
+
+    void stop();
 protected:
-    MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config,
-            TimesyncDownlink* const timesync, UplinkPhase* const uplink, StreamManagementContext* const smc,
-            TopologyContext* const topology, ScheduleDownlinkPhase* const schedule);
-private:
+    MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config);
     /**
      * @return the number of dataslot, calculated using the given configuration
      */
     unsigned short getDataslotCount() const;
+
+    TimesyncDownlink* timesync = nullptr;
+    UplinkPhase* uplink = nullptr;
+    ScheduleDownlinkPhase* schedule = nullptr;
+    DataPhase* data = nullptr;
+
+    TopologyContext* topologyContext = nullptr;
+    StreamManagementContext* streamManagement = nullptr;
+private:
     unsigned char hop;
     const MediumAccessController& mac;
     const miosix::TransceiverConfiguration transceiverConfig;
@@ -201,18 +211,13 @@ private:
     unsigned short networkId;
     miosix::Transceiver& transceiver;
 
-    TimesyncDownlink* const timesync;
-    UplinkPhase* const uplink;
-    TopologyContext* const topologyContext;
-    StreamManagementContext* const streamManagement;
-    ScheduleDownlinkPhase* const schedule;
-    DataPhase* const data;
-
     //TODO write getters for the statistics
     unsigned sendTotal;
     unsigned sendErrors;
     unsigned rcvTotal;
     unsigned rcvErrors;
+
+    bool running;
 };
 }
 
