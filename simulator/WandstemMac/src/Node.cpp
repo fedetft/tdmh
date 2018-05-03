@@ -14,10 +14,9 @@
 // 
 
 #include "Node.h"
+#include "network_module/dynamic_medium_access_controller.h"
 #include "network_module/network_configuration.h"
 #include <iostream>
-
-#include "network_module/medium_access_controller.h"
 
 Define_Module(Node);
 
@@ -27,6 +26,6 @@ void Node::activity()
 {
     using namespace miosix;
     const NetworkConfiguration config(16, 256, address, 6, 1, 2450, 10000000000, 2, 1, 150000, 3, 3, 1);
-    //MediumAccessController controller(new DynamicMACRound::DynamicMACRoundFactory(), &config);
-    //controller.run();
+    DynamicMediumAccessController controller(Transceiver::instance(), config);
+    controller.run();
 }

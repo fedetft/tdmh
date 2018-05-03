@@ -15,7 +15,7 @@
 
 #include "RootNode.h"
 
-#include "network_module/medium_access_controller.h"
+#include "network_module/master_medium_access_controller.h"
 #include "network_module/network_configuration.h"
 
 Define_Module(RootNode);
@@ -27,6 +27,6 @@ void RootNode::activity()
     using namespace miosix;
     print_dbg("Master node\n");
     const NetworkConfiguration config(16, 256, address, 6, 1, 2450, 10000000000, 2, 1, 150000, 3, 3, 1);
-    //MediumAccessController controller(new MasterMACRound::MasterMACRoundFactory(), &config);
-    //controller.run();
+    MasterMediumAccessController controller(Transceiver::instance(), config);
+    controller.run();
 }

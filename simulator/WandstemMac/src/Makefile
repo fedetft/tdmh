@@ -2,7 +2,7 @@
 # OMNeT++/OMNEST Makefile for WandstemMac
 #
 # This file was generated with the command:
-#  opp_makemake -f --deep -I.
+#  opp_makemake -f --deep -I. -lpthread
 #
 
 # Name of target to be created (-o option)
@@ -22,7 +22,7 @@ INCLUDE_PATH = -I.
 EXTRA_OBJS =
 
 # Additional libraries (-L, -l options)
-LIBS =
+LIBS =  -lpthread
 
 # Output directory
 PROJECT_OUTPUT_DIR = ../out
@@ -55,12 +55,10 @@ OBJS = \
     $O/network_module/schedule/dynamic_schedule_information.o \
     $O/network_module/schedule/master_schedule_downlink.o \
     $O/network_module/schedule/master_schedule_information.o \
-    $O/network_module/schedule/schedule_context.o \
     $O/network_module/schedule/schedule_downlink.o \
     $O/network_module/schedule/schedule_information.o \
     $O/network_module/timesync/dynamic_timesync_downlink.o \
     $O/network_module/timesync/master_timesync_downlink.o \
-    $O/network_module/timesync/sync_status.o \
     $O/network_module/timesync/timesync_downlink.o \
     $O/network_module/timesync/controller/flopsync1.o \
     $O/network_module/timesync/controller/flopsync2.o \
@@ -155,7 +153,7 @@ $O/%.o: %.cpp $(COPTS_FILE) | msgheaders smheaders
 
 %_m.cpp %_m.h: %.msg
 	$(qecho) MSGC: $<
-	$(Q)$(MSGC) -s _m.cpp $(MSGCOPTS) $?
+	$(Q)$(MSGC) -s _m.cpp -MD -MP -MF $O/$(basename $@).d $(MSGCOPTS) $?
 
 %_sm.cpp %_sm.h: %.sm
 	$(qecho) SMC: $<
