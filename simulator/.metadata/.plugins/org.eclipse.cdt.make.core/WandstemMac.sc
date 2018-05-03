@@ -12,6 +12,7 @@
 <includePath path="/usr/include"/>
 <includePath path="/home/fede/Documents/omnetpp-5.2.1/include"/>
 <includePath path="/usr/local/omnetpp-5.2.1/include"/>
+<includePath path="/home/paolo/Downloads/omnetpp-5.3/include"/>
 <definedSymbol symbol="__STDC__=1"/>
 <definedSymbol symbol="__cplusplus=201402L"/>
 <definedSymbol symbol="__STDC_UTF_16__=1"/>
