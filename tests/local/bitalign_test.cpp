@@ -34,7 +34,7 @@
 
 #include "catch.hpp"
 
-using namespace miosix;
+using namespace mxnet;
 using namespace std;
 
 SCENARIO("bitwise populate memory areas containing 0101.. bits", "[bitalign]") {
