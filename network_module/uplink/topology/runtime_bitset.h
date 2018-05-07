@@ -30,6 +30,9 @@
 #include "../../bitwise_ops.h"
 #include <limits>
 #include <cstring>
+#include <cstdint>
+#include <string>
+#include <sstream>
 
 namespace mxnet {
 /**
@@ -49,7 +52,6 @@ namespace mxnet {
  */
 class RuntimeBitset {
 public:
-    typedef unsigned long word_t;
     RuntimeBitset() = delete;
 
     /**
@@ -58,8 +60,8 @@ public:
      */
     explicit RuntimeBitset(std::size_t size) :
         bitCount(size),
-        wordCount(((size - 1) >> shiftDivisor) + 1),
-        content(new word_t[wordCount])
+        byteSize(((size - 1) >> shiftDivisor) + 1),
+        content(new uint8_t[byteSize])
 #ifdef _ARCH_CORTEXM3_EFM32GG
     , bbData((content - sramBase) << 5 + bitBandBase)
 #endif
@@ -71,7 +73,7 @@ public:
      * @param init the value with which it is initialized
      */
     RuntimeBitset(std::size_t size, bool init) : RuntimeBitset(size) {
-        memset(content, init? ~0 : 0, wordCount);
+        memset(content, init? ~0 : 0, this->size());
     }
 
     virtual ~RuntimeBitset() {
@@ -82,9 +84,9 @@ public:
     public:
 
 #ifndef _ARCH_CORTEXM3_EFM32GG
-        Bit(word_t* content, bool el, std::size_t wordIdx, unsigned char bitPow) : content(content), value(el), wordIdx(wordIdx), bitPow(bitPow)
+        Bit(uint8_t* content, bool el, std::size_t byteIdx, unsigned char bitPow) : content(content), value(el), byteIdx(byteIdx), bitPow(bitPow)
 #else
-        Bit(word_t* content, bool el, std::size_t wordIdx) : content(content), value(el), wordIdx(wordIdx)
+        Bit(uint8_t* content, bool el, std::size_t byteIdx) : content(content), value(el), byteIdx(byteIdx)
 #endif
     {}
 
@@ -97,21 +99,21 @@ public:
         Bit& operator=(const bool& rhs) {
             if (rhs)
 #ifndef _ARCH_CORTEXM3_EFM32GG
-                content[wordIdx] |= b0 >> bitPow;
+                content[byteIdx] |= b0 >> bitPow;
             else
-                content[wordIdx] &= ~(b0 >> bitPow);
+                content[byteIdx] &= ~(b0 >> bitPow);
 #else
-                content[wordIdx] = 1;
+                content[byteIdx] = 1;
             else
-                content[wordIdx] = 0;
+                content[byteIdx] = 0;
 #endif
             value = rhs;
             return *this;
         }
     private:
-        word_t* const content;
+        uint8_t* const content;
         bool value;
-        std::size_t wordIdx;
+        std::size_t byteIdx;
 #ifndef _ARCH_CORTEXM3_EFM32GG
         unsigned char bitPow;
 #endif
@@ -160,57 +162,80 @@ public:
      * @param value the value to set
      */
     void setAll(bool value) {
-        memset(content, value? ~0 : 0, wordCount);
+        memset(content, value? ~0 : 0, size());
     }
 
     /**
      * Accesses the memory area behind the array directly
      * @return a pointer to the memory area
      */
-    word_t* data() const { return content; }
+    uint8_t* data() const { return content; }
+
+    /**
+     * The size of the array in bytes
+     * @return the dimension of the bitset in bytes
+     */
+    std::size_t size() const {
+        return bitCount >> shiftDivisor;
+    }
 
     /**
      * The quantity of bits stored in the array
      * @return the number of bits in the array
      */
-    std::size_t size() const { return bitCount; }
-
-    /**
-     * The number of words used to store the array
-     * @return the size of the array, in words
-     */
-    std::size_t wordSize() const { return wordCount; }
+    std::size_t bitSize() const { return bitCount; }
 
     bool operator ==(const RuntimeBitset& other) const {
-        return other.bitCount == bitCount && memcmp(content, other.content, wordCount);
+        return other.bitCount == bitCount && memcmp(content, other.content, size());
     }
     bool operator !=(const RuntimeBitset& other) const {
         return !(*this == other);
     }
     RuntimeBitset(const RuntimeBitset& other) :
         bitCount(other.bitCount),
-        wordCount(other.wordCount),
-        content(new word_t[wordCount])
+        byteSize(other.byteSize),
+        content(new uint8_t[byteSize])
 #ifdef _ARCH_CORTEXM3_EFM32GG
         , bbData((content - sramBase) << 5 + bitBandBase)
 #endif
     {
-        memcpy(content, other.content, wordCount);
+        memcpy(content, other.content, size());
     }
     RuntimeBitset(RuntimeBitset&& other) = delete;
     RuntimeBitset& operator=(const RuntimeBitset& other) = delete;
     RuntimeBitset& operator=(RuntimeBitset&& other) = delete;
+
+    /**
+     * Debug method used to print the bitmap content as a string of 0s and 1s
+     */
+    operator std::string() const {
+        std::ostringstream oss;
+        for (unsigned i = 0; i < byteSize; i++)
+            for (int j = 0; j < std::numeric_limits<uint8_t>::digits; j++)
+                oss << (((content[i] & b0) >> j)? '1': '0');
+        return oss.str();
+    }
 private:
     std::size_t bitCount;
-    std::size_t wordCount;
-    word_t* const content;
+    std::size_t byteSize;
+    uint8_t* const content;
 #ifdef _ARCH_CORTEXM3_EFM32GG
-    word_t* const bbData;
+    uint8_t* const bbData;
 #endif
-    static const unsigned char shiftDivisor = BitwiseOps::bitsForRepresentingCountConstexpr(std::numeric_limits<word_t>::digits);
+    /**
+     * Number of LSBs used to address the bit within the array element
+     */
+    static const uint8_t shiftDivisor = BitwiseOps::bitsForRepresentingCountConstexpr(std::numeric_limits<uint8_t>::digits);
 #ifndef _ARCH_CORTEXM3_EFM32GG
-    static const word_t b0 = ((word_t) 1) << (std::numeric_limits<word_t>::digits - 1);
-    static const unsigned char indexSplitterMask = static_cast<unsigned char>(static_cast<unsigned char>(~0) << shiftDivisor);
+    /**
+     * Most significant bit in an array element, used as index 0
+     */
+    static const uint8_t b0 = ((uint8_t) 1) << (std::numeric_limits<uint8_t>::digits - 1);
+    /**
+     * Bitwise mask for spllitting an index between array index (MSBs)
+     * and index within the array (shiftDivisor MSBs).
+     */
+    static const uint8_t indexSplitterMask = static_cast<uint8_t>((1 << shiftDivisor) - 1);
 #else
     static const unsigned long sramBase = 0x20000000;
     static const unsigned long bitBandBase = 0x22000000;
