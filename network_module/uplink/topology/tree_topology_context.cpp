@@ -44,11 +44,11 @@ void DynamicTreeTopologyContext::receivedMessage(UplinkMessage msg, unsigned cha
     auto* tMsg = static_cast<RoutingVector*>(msg.getTopologyMessage());
     auto links = tMsg->getLinks();
     for (auto link : links) {
-        auto sender = link->getNodeId();
-        if (enqueuedTopologyMessages.hasKey(sender)) {
-            delete enqueuedTopologyMessages.getByKey(sender);
-            enqueuedTopologyMessages.update(sender, new RoutingLink(sender, link->getPredecessor()));
-        } else enqueuedTopologyMessages.enqueue(sender, new RoutingLink(sender, link->getPredecessor()));
+        auto from = link->getNodeId();
+        if (enqueuedTopologyMessages.hasKey(from)) {
+            delete enqueuedTopologyMessages.getByKey(from);
+            enqueuedTopologyMessages.update(from, new RoutingLink(from, link->getPredecessor()));
+        } else enqueuedTopologyMessages.enqueue(from, new RoutingLink(from, link->getPredecessor()));
     }
     delete tMsg;
 }
