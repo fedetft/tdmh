@@ -57,11 +57,11 @@ std::string vformat (const char *fmt, va_list ap)
         // than we allotted.  So do a malloc of the right size and try again.
         // This doesn't happen very often if we chose our initial size
         // well.
-        std::vector <char> buf;
+        std::vector <char> vlbuf;
         size = needed;
-        buf.resize (size);
-        needed = vsnprintf (&buf[0], size, fmt, apcopy);
-        return std::string (&buf[0]);
+        vlbuf.resize (size);
+        needed = vsnprintf (&vlbuf[0], size, fmt, apcopy);
+        return std::string (&vlbuf[0]);
     }
 }
 
