@@ -76,7 +76,7 @@ public:
      * Id est, the threshold of synchronization beyond which the protocol can't work,
      * since it would have a too few accurate timing precision.
      */
-    const unsigned char getMaxAdmittedRcvWindow() const {
+    const unsigned getMaxAdmittedRcvWindow() const {
         return maxAdmittedRcvWindow;
     }
 
