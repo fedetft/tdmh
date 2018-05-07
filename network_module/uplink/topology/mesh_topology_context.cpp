@@ -100,7 +100,7 @@ void MasterMeshTopologyContext::manageTopologyUpdate(unsigned char sender, Neigh
     for (auto id : toRemove)
         topology.removeEdge(sender, id);
     std::vector<unsigned char> toAdd;
-    std::set_difference(newNeighbors.begin(), newNeighbors.end(), newNeighbors.begin(), newNeighbors.end(), toAdd.begin());
+    std::set_difference(newNeighbors.begin(), newNeighbors.end(), oldNeighbors.begin(), oldNeighbors.end(), toAdd.begin());
     for (auto id : toAdd)
         topology.addEdge(sender, id);
 }
