@@ -52,11 +52,10 @@ void DynamicStreamManagementContext::receive(std::vector<StreamManagementElement
     for (auto* sme : smes) {
         auto id = sme->getId();
         if (queue.hasKey(id)) {
-            delete queue.getByKey(id);
-            queue.update(id, sme);
+            queue.getByKey(id)->setDataRate(sme->getDataRate());
+            delete sme;
         } else
             queue.enqueue(id, sme);
-        delete sme;
     }
 }
 

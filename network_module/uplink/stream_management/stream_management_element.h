@@ -65,6 +65,7 @@ public:
     unsigned char getSrc() const { return content.src; }
     unsigned char getDst() const { return content.dst; }
     unsigned char getDataRate() const { return content.dataRate; }
+    void setDataRate(unsigned char dataRate) { content.dataRate = dataRate; }
     SMEId getId() const { return id; }
     bool operator ==(const StreamManagementElement& other) const {
         return content.src == other.content.src && content.dst == other.content.dst && content.dataRate == other.content.dataRate;
