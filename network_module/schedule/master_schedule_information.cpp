@@ -35,7 +35,7 @@ ScheduleTransition MasterScheduleTransition::toDeltaTransition() {
 }
 
 MasterScheduleTransition MasterScheduleElement::getActionForDs(unsigned short dataslot) {
-    return *std::lower_bound(transitions.begin(), transitions.end(), dataslot, [](MasterScheduleTransition t, unsigned short dataslot) {
+    return *std::find_if(transitions.begin(), transitions.end(), [dataslot](MasterScheduleTransition t) {
         return t.getDataslot() == dataslot;
     });
 }
