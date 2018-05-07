@@ -221,7 +221,7 @@ RecvResult Transceiver::recv(void* pkt, int size, long long timeout, Unit unit, 
         result.error = RecvResult::TOO_LONG;
     }
     memcpy(pkt, correlated, std::min<int>(size, result.size));
-    delete correlated;
+    delete[] correlated;
     if (size > result.size) memset(((unsigned char*) pkt) + result.size, 0, size - result.size);
     return result;
 }

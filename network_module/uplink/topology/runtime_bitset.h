@@ -77,7 +77,7 @@ public:
     }
 
     virtual ~RuntimeBitset() {
-        delete content;
+        delete[] content;
     }
 
     class Bit {
