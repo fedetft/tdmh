@@ -95,6 +95,10 @@ public:
     void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
     void print() const;
 protected:
+    /**
+     * Adds or removes edges from the topology maps, based on the message content
+     */
+    void manageTopologyUpdate(unsigned char sender, NeighborTable neighbors);
 };
 
 } /* namespace mxnet */

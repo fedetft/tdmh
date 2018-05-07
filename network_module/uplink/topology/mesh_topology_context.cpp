@@ -59,9 +59,9 @@ void DynamicMeshTopologyContext::unreceivedMessage(unsigned char nodeIdByTopolog
 }
 
 TopologyMessage* DynamicMeshTopologyContext::getMyTopologyMessage() {
-    auto config = ctx.getNetworkConfig();
-    std::vector<ForwardedNeighborMessage*> forwarded(config.getMaxForwardedTopologies());
+    auto& config = ctx.getNetworkConfig();
     auto forward = dequeueMessages(config.getMaxForwardedTopologies());
+    std::vector<ForwardedNeighborMessage*> forwarded(forward.size());
     std::transform(forward.begin(), forward.end(), std::back_inserter(forwarded), [](TopologyElement* elem){
         return static_cast<ForwardedNeighborMessage*>(elem);
     });
@@ -83,21 +83,26 @@ void DynamicMeshTopologyContext::checkEnqueueOrUpdate(ForwardedNeighborMessage* 
 void MasterMeshTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
     MasterTopologyContext::receivedMessage(msg, sender, rssi);
     auto tMsg = static_cast<NeighborMessage*>(msg.getTopologyMessage());
+    manageTopologyUpdate(sender, tMsg->getNeighbors());
     std::vector<ForwardedNeighborMessage*> fwds = tMsg->getForwardedTopologies();
     for (auto* fwd : fwds) {
-        auto newNeighbors = fwd->getNeighbors().getNeighbors();
-        auto oldNieghbors = topology.getEdges(sender);
-        std::vector<unsigned char> toRemove;
-        std::set_difference(oldNieghbors.begin(), oldNieghbors.end(), newNeighbors.begin(), newNeighbors.end(), toRemove.begin());
-        for (auto id : toRemove)
-            topology.removeEdge(sender, id);
-        std::vector<unsigned char> toAdd;
-        std::set_difference(newNeighbors.begin(), newNeighbors.end(), oldNieghbors.begin(), oldNieghbors.end(), toAdd.begin());
-        for (auto id : toAdd)
-            topology.addEdge(sender, id);
+        manageTopologyUpdate(fwd->getNodeId(), fwd->getNeighbors());
         delete fwd;
     }
     delete tMsg;
+}
+
+void MasterMeshTopologyContext::manageTopologyUpdate(unsigned char sender, NeighborTable neighbors) {
+    auto newNeighbors = neighbors.getNeighbors();
+    auto oldNeighbors = topology.getEdges(sender);
+    std::vector<unsigned char> toRemove;
+    std::set_difference(oldNeighbors.begin(), oldNeighbors.end(), newNeighbors.begin(), newNeighbors.end(), toRemove.begin());
+    for (auto id : toRemove)
+        topology.removeEdge(sender, id);
+    std::vector<unsigned char> toAdd;
+    std::set_difference(newNeighbors.begin(), newNeighbors.end(), newNeighbors.begin(), newNeighbors.end(), toAdd.begin());
+    for (auto id : toAdd)
+        topology.addEdge(sender, id);
 }
 
 void MasterMeshTopologyContext::print() const {
