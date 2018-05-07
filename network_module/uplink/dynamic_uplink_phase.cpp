@@ -28,20 +28,21 @@
 #include "../debug_settings.h"
 #include "dynamic_uplink_phase.h"
 #include "../timesync/timesync_downlink.h"
+#include "topology/topology_context.h"
 #include <limits>
 
 using namespace miosix;
 
 namespace mxnet {
 
-void DynamicUplinkPhase::receiveByNode(long long slotStart) {
+void DynamicUplinkPhase::receiveByNode(long long slotStart, unsigned char currentNode) {
     auto wakeUpTimeout = timesync->getWakeupAndTimeout(slotStart);
     auto now = getTime();
     if (now + timesync->getReceiverWindow() >= slotStart)
         print_dbg("[U] start late\n");
     if (now < wakeUpTimeout.first)
         pm.deepSleepUntil(wakeUpTimeout.first);
-    while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK) {
+    do {
         rcvResult = ctx.recv(packet.data(), packet.size(), wakeUpTimeout.second);
         if (ENABLE_PKT_INFO_DBG) {
             if(rcvResult.size) {
@@ -50,9 +51,9 @@ void DynamicUplinkPhase::receiveByNode(long long slotStart) {
                     memDump(packet.data(), rcvResult.size);
             } else print_dbg("No packet received, timeout reached\n");
         }
-    }
+    } while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK);
     if (rcvResult.error == RecvResult::ErrorCode::OK) {
-        auto msg = UplinkMessage::deserialize(packet.data(), packet.size(), ctx.getNetworkConfig());
+        auto msg = UplinkMessage::deserialize(packet.data(), rcvResult.size, ctx.getNetworkConfig());
         topology->receivedMessage(msg, currentNode, rcvResult.rssi);
         auto smes = msg.getSMEs();
         streamManagement->receive(smes);
@@ -80,7 +81,7 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart) {
         print_dbg("[U] start late\n");
     if (now < wuTime)
         pm.deepSleepUntil(wuTime);
-    ctx.sendAt(packet.data(), packet.size(), slotStart);
+    ctx.sendAt(packet.data(), msg.size(), slotStart);
     tMsg->deleteForwarded();
     delete tMsg;
     for (auto it = smes.begin() ; it != smes.end(); ++it) {
@@ -90,11 +91,12 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart) {
 }
 
 void DynamicUplinkPhase::execute(long long slotStart) {
-    print_dbg("[T] T=%lld\n", slotStart);
+    auto address = currentNode();
+    print_dbg("[U] N=%u T=%lld\n", address, slotStart);
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     ctx.transceiverTurnOn();
-    if (currentNode == ctx.getNetworkId()) sendMyUplink(slotStart);
-    else receiveByNode(slotStart);
+    if (address == ctx.getNetworkId()) sendMyUplink(slotStart);
+    else receiveByNode(slotStart, address);
     ctx.transceiverTurnOff();
 }
 

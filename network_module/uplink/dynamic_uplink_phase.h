@@ -44,7 +44,7 @@ public:
      * Starts expecting a message from the node to which the slot is assigned
      * and modifies the TopologyContext as needed.
      */
-    void receiveByNode(long long slotStart);
+    void receiveByNode(long long slotStart, unsigned char currentNode);
 
     /**
      * Called when it's the node's turn, sends the node's uplink message,

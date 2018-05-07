@@ -33,13 +33,14 @@
 #include "roundtrip/asking_roundtrip.h"
 #include "interfaces-impl/virtual_clock.h"
 #include "kernel/timeconversion.h"
+#include <limits>
 
 namespace mxnet {
 class DynamicTimesyncDownlink : public TimesyncDownlink {
 public:
     DynamicTimesyncDownlink() = delete;
     explicit DynamicTimesyncDownlink(MACContext& ctx) :
-            TimesyncDownlink(ctx, DESYNCHRONIZED, 0),
+            TimesyncDownlink(ctx, DESYNCHRONIZED, std::numeric_limits<unsigned>::max()),
             askingRTP(ctx),
             tc(new miosix::TimeConversion(EFM32_HFXO_FREQ)),
             vt(miosix::VirtualClock::instance()),
@@ -48,7 +49,6 @@ public:
             computedFrameStart(0),
             theoreticalFrameStart(0),
             clockCorrection(0),
-            receiverWindow(0),
             missedPackets(0) {
                 vt.setSyncPeriod(networkConfig.getSlotframeDuration());
         };
@@ -60,7 +60,7 @@ public:
     inline void execute(long long slotStart) override;
     std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
     long long getDelayToMaster() const override { return askingRTP.getDelayToMaster(); }
-    virtual long long getSlotframeStart() const { return measuredFrameStart - (ctx.getHop() - 1) * rebroadcastInterval - phaseStartupTime; }
+    virtual long long getSlotframeStart() const { return measuredFrameStart - (ctx.getHop() - 1) * rebroadcastInterval; }
 protected:
     void rebroadcast(long long arrivalTs);
     virtual bool isSyncPacket() {
@@ -116,7 +116,6 @@ protected:
     long long theoreticalFrameStart;
 
     int clockCorrection;
-    unsigned int receiverWindow;
     unsigned char missedPackets;
 };
 }

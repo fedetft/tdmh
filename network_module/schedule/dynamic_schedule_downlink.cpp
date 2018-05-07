@@ -43,7 +43,6 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     //Transceiver configured with non strict timeout
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     ctx.transceiverTurnOn();
-    bool success = false;
     auto now = getTime();
     //check if we skipped the synchronization time
     if (now + timesync->getReceiverWindow() >= arrivalTime) {
@@ -54,8 +53,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     if(now < wakeupTimeout.first)
         pm.deepSleepUntil(wakeupTimeout.first);
     ledOn();
-    for (; !(success || rcvResult.error == miosix::RecvResult::TIMEOUT);
-            success = rcvResult.error == miosix::RecvResult::OK) {
+    do {
             rcvResult = ctx.recv(packet.data(), MediumAccessController::maxPktSize, wakeupTimeout.second);
         if (ENABLE_PKT_INFO_DBG) {
             if(rcvResult.size) {
@@ -64,11 +62,11 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
                     memDump(packet.data(), rcvResult.size);
             } else print_dbg("No packet received, timeout reached\n");
         }
-    }
+    } while (rcvResult.error != miosix::RecvResult::OK && rcvResult.error != miosix::RecvResult::TIMEOUT);
     
     ctx.transceiverIdle(); //Save power waiting for rebroadcast time
     
-    if (!success) return;
+    if (rcvResult.error == miosix::RecvResult::TIMEOUT) return;
 
     //This conversion is really necessary to get the corrected time in NS, to pass to transceiver
     //Rebroadcast the sync packet
@@ -80,7 +78,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
 
 void DynamicScheduleDownlinkPhase::rebroadcast(long long rcvTime) {
     if(ctx.getHop() >= networkConfig.getMaxHops()) return;
-    ctx.sendAt(packet.data(), packet.size(), rcvTime + rebroadcastInterval);
+    ctx.sendAt(packet.data(), rcvResult.size, rcvTime + rebroadcastInterval);
 }
 
 void DynamicScheduleDownlinkPhase::addSchedule(DynamicScheduleElement* element) {

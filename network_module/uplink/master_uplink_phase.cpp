@@ -35,19 +35,21 @@ using namespace miosix;
 namespace mxnet {
 
 void MasterUplinkPhase::execute(long long slotStart) {
+    auto address = currentNode();
     if (ENABLE_UPLINK_INFO_DBG)
-        print_dbg("[U] rcv %d @%llu\n", currentNode, slotStart);
+        print_dbg("[U] N=%u T=%lld\n", address, slotStart);
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     ctx.transceiverTurnOn();
     auto wuTime = slotStart - MediumAccessController::receivingNodeWakeupAdvance;
+    auto timeout = slotStart + MediumAccessController::maxPropagationDelay +
+            MediumAccessController::maxAdmittableResyncReceivingWindow + MediumAccessController::packetPreambleTime;
     auto now = getTime();
     if (now >= slotStart)
         print_dbg("[U] start late\n");
     if (now < wuTime)
         pm.deepSleepUntil(wuTime);
-    while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK) {
-        rcvResult = ctx.recv(packet.data(), MediumAccessController::maxPktSize,
-                    slotStart + MediumAccessController::maxPropagationDelay + MediumAccessController::maxAdmittableResyncReceivingWindow);
+    do {
+        rcvResult = ctx.recv(packet.data(), MediumAccessController::maxPktSize, timeout);
         if (ENABLE_PKT_INFO_DBG) {
             if(rcvResult.size) {
                 print_dbg("Received packet, error %d, size %d, timestampValid %d: ",
@@ -56,21 +58,21 @@ void MasterUplinkPhase::execute(long long slotStart) {
                     memDump(packet.data(), rcvResult.size);
             } else print_dbg("No packet received, timeout reached\n");
         }
-    }
+    } while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK);
     ctx.transceiverTurnOff();
     if (rcvResult.error == RecvResult::ErrorCode::OK) {
         //TODO parse message and send it to topology and stream management contexts
         auto data = std::vector<unsigned char>(packet.begin(), packet.begin() + rcvResult.size);
         auto msg = UplinkMessage::deserialize(data, ctx.getNetworkConfig());
-        topology->receivedMessage(msg, currentNode, rcvResult.rssi);
+        topology->receivedMessage(msg, address, rcvResult.rssi);
         auto smes = msg.getSMEs();
         streamManagement->receive(smes);
         if (ENABLE_UPLINK_INFO_DBG)
-            print_dbg("[U] <- N=%u @%llu\n", currentNode, rcvResult.timestamp);
+            print_dbg("[U] <- N=%u @%llu\n", address, rcvResult.timestamp);
     } else {
-        topology->unreceivedMessage(currentNode);
+        topology->unreceivedMessage(address);
     }
-    if (ENABLE_UPLINK_INFO_DBG && ctx.getNetworkConfig().getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION && currentNode == 1) {
+    if (ENABLE_UPLINK_INFO_DBG && ctx.getNetworkConfig().getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION && address == 1) {
         static_cast<MasterMeshTopologyContext*>(topology)->print();
     }
 }

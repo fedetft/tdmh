@@ -66,20 +66,24 @@ protected:
             MACPhase(ctx),
             topology(topology),
             streamManagement(streamManagement),
-            nodesCount(ctx.getNetworkConfig().getMaxNodes()) {};
+            nodesCount(ctx.getNetworkConfig().getMaxNodes()),
+            nextNode(nodesCount - 1) {};
     
     /**
      * makes the internal status of the class progress, so the next phase will be bound to the following address
      */
-    void nextNode() {
-        if (--currentNode <= 0)
-            currentNode = nodesCount - 1;
+    unsigned char currentNode() {
+        auto currentNode = nextNode;
+        if (--nextNode <= 0)
+            nextNode = nodesCount - 1;
+        return currentNode;
     }
 
     TopologyContext* const topology;
     StreamManagementContext* const streamManagement;
-    unsigned char nodesCount;
-    unsigned char currentNode;
+private:
+    unsigned short nodesCount;
+    unsigned char nextNode;
 };
 }
 

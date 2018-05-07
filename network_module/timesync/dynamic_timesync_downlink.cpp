@@ -40,7 +40,6 @@ void DynamicTimesyncDownlink::periodicSync() {
     auto wakeupTimeout = getWakeupAndTimeout(correctedStart);
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[T] WU=%lld TO=%lld\n", wakeupTimeout.first, wakeupTimeout.second);
-    bool success = false;
     auto now = getTime();
     //check if we missed the deadline for the synchronization time
     if (now + receiverWindow >= correctedStart) {
@@ -52,8 +51,7 @@ void DynamicTimesyncDownlink::periodicSync() {
     //sleep, if we have time
     if(now < wakeupTimeout.first)
         pm.deepSleepUntil(wakeupTimeout.first);
-    for (; !(success || rcvResult.error == RecvResult::ErrorCode::TIMEOUT);
-            success = isSyncPacket()) {
+    do {
         rcvResult = ctx.recv(packet.data(), syncPacketSize, wakeupTimeout.second, Transceiver::Correct::UNCORR);
         if (ENABLE_PKT_INFO_DBG) {
             if(rcvResult.size){
@@ -62,32 +60,30 @@ void DynamicTimesyncDownlink::periodicSync() {
                     memDump(packet.data(), rcvResult.size);
             } else print_dbg("[T] TO!\n");
         }
-    }
+    } while(!isSyncPacket() && rcvResult.error != RecvResult::ErrorCode::TIMEOUT);
 
     ctx.transceiverIdle(); //Save power waiting for rebroadcast time
 
-    if (success) {
+    if (rcvResult.error != RecvResult::ErrorCode::TIMEOUT) {
         //This conversion is really necessary to get the corrected time in NS, to pass to transceiver
         packet[2]++;
         //Rebroadcast the sync packet
-        measuredFrameStart = rcvResult.timestamp;
-        auto correctedMeasuredTimestamp = correct(measuredFrameStart);
-        rebroadcast(correctedMeasuredTimestamp);
+        measuredFrameStart = correct(rcvResult.timestamp);
+        rebroadcast(measuredFrameStart);
         ctx.transceiverTurnOff();
-        error = computedFrameStart - measuredFrameStart;
+        error = computedFrameStart - rcvResult.timestamp;
         std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->computeCorrection(error);
         missedPackets = 0;
         clockCorrection = clockCorrectionReceiverWindow.first;
         receiverWindow = clockCorrectionReceiverWindow.second;
         updateVt();
-        long long measuredGlobalFirstActivityTime = correctedMeasuredTimestamp - packet[2] * rebroadcastInterval;
         if (ENABLE_TIMESYNC_DL_INFO_DBG) {
             print_dbg("[T] ats=%lld e=%lld u=%d w=%d mts=%lld rssi=%d\n",
                     rcvResult.timestamp,
                     error,
                     clockCorrection,
                     receiverWindow,
-                    measuredGlobalFirstActivityTime,
+                    measuredFrameStart - packet[2] * rebroadcastInterval,
                    rcvResult.rssi);
         }
     } else {

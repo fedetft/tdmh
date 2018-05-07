@@ -94,6 +94,10 @@ public:
      */
     virtual long long getSlotframeStart() const = 0;
     
+    bool macCanOperate() {
+        return internalStatus == IN_SYNC && receiverWindow <= networkConfig.getMaxAdmittedRcvWindow();
+    }
+
 protected:
     TimesyncDownlink(MACContext& ctx, MacroStatus initStatus, unsigned receivingWindow) :
             MACPhase(ctx),
