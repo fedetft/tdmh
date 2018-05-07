@@ -117,6 +117,7 @@ public:
      * \return an instance to the transceiver
      */
     static Transceiver& instance();
+    static void deinstance(NodeBase* ref);
 
     /**
      * Turn the transceiver ON (i.e: bring it out of deep sleep)
@@ -221,8 +222,6 @@ private:
     Transceiver& operator= (const Transceiver&)=delete;
     bool isOn = false;
     TransceiverConfiguration cfg;
-    //cMessage timeoutMsg;
-    static const std::string timeoutPktName;
     boost::crc_ccitt_type crc;
     std::mutex crcMutex;
 

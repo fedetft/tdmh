@@ -41,7 +41,6 @@ PowerManager::PowerManager() : MiosixInterface() {
 }
 
 PowerManager::~PowerManager() {
-    PowerManager::instances.erase(MiosixStaticInterface::getNode());
 }
 
 PowerManager& PowerManager::instance() {
@@ -57,6 +56,14 @@ PowerManager& PowerManager::instance() {
         }
     } else retval = it->second;
     return *retval;
+}
+
+void PowerManager::deinstance(NodeBase* ref) {
+    std::map<NodeBase*, PowerManager*>::iterator it = PowerManager::instances.find(ref);
+    if (it != PowerManager::instances.end()) {
+        delete it->second;
+        PowerManager::instances.erase(it);
+    }
 }
 
 void PowerManager::deepSleep(long long delta) {

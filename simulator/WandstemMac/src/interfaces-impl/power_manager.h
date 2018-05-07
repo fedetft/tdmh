@@ -41,6 +41,7 @@ public:
      * \return an instance to the power manager
      */
     static PowerManager& instance();
+    static void deinstance(NodeBase* ref);
     virtual ~PowerManager();
     void deepSleep(long long delta);
     void deepSleepUntil(long long when);

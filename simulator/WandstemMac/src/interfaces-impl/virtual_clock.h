@@ -44,6 +44,7 @@ public:
      * \return an instance to the virtual clock
      */
     static VirtualClock& instance();
+    static void deinstance(NodeBase* ref);
 
     long long corrected2uncorrected(long long tick){
         return tick;

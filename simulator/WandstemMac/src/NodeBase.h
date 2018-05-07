@@ -40,6 +40,8 @@ public:
      */
     void waitAndDeletePackets(simtime_t timeDelta);
 
+    unsigned char getAddress() const { return address; }
+
 protected:
     unsigned char address;
     virtual void initialize();

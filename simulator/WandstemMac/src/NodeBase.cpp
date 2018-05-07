@@ -14,6 +14,9 @@
 //
 
 #include "NodeBase.h"
+#include "interfaces-impl/power_manager.h"
+#include "interfaces-impl/transceiver.h"
+#include "interfaces-impl/virtual_clock.h"
 
 using namespace std;
 
@@ -28,6 +31,10 @@ void NodeBase::waitAndDeletePackets(simtime_t timeDelta)
 }
 
 NodeBase::~NodeBase() {
+    using namespace miosix;
+    PowerManager::deinstance(this);
+    VirtualClock::deinstance(this);
+    Transceiver::deinstance(this);
 }
 
 void NodeBase::initialize() {

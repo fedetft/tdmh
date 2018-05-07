@@ -38,7 +38,6 @@ VirtualClock::VirtualClock() : MiosixInterface() {
 }
 
 VirtualClock::~VirtualClock() {
-    VirtualClock::instances.erase(MiosixStaticInterface::getNode());
 }
 
 VirtualClock& VirtualClock::instance() {
@@ -54,6 +53,14 @@ VirtualClock& VirtualClock::instance() {
         }
     } else retval = it->second;
     return *retval;
+}
+
+void VirtualClock::deinstance(NodeBase* ref) {
+    std::map<NodeBase*, VirtualClock*>::iterator it = VirtualClock::instances.find(ref);
+    if (it != VirtualClock::instances.end()) {
+        delete it->second;
+        VirtualClock::instances.erase(it);
+    }
 }
 
 } /* namespace miosix */

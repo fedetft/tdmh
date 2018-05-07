@@ -36,12 +36,10 @@
 using namespace std;
 
 namespace miosix {
-const std::string Transceiver::timeoutPktName = "TIMEOUT";
-
 std::mutex Transceiver::instanceMutex;
 std::map<NodeBase*, Transceiver*> Transceiver::instances;
 
-const bool Transceiver::SIM_DBG = true;
+const bool Transceiver::SIM_DBG = false;
 
 Transceiver::Transceiver() : MiosixInterface() {
 }
@@ -61,8 +59,15 @@ Transceiver& Transceiver::instance() {
     return *retval;
 }
 
+void Transceiver::deinstance(NodeBase* ref) {
+    std::map<NodeBase*, Transceiver*>::iterator it = Transceiver::instances.find(ref);
+    if (it != Transceiver::instances.end()) {
+        delete it->second;
+        Transceiver::instances.erase(it);
+    }
+}
+
 Transceiver::~Transceiver() {
-    Transceiver::instances.erase(MiosixStaticInterface::getNode());
 }
 
 void Transceiver::configure(const TransceiverConfiguration& config) {
@@ -99,11 +104,11 @@ void Transceiver::sendAt(const void* pkt, int size, long long when, string pktNa
     auto actualSize = size + (cfg.crc? 2 : 0);
     if (SIM_DBG)
         EV_INFO << "Sent packet of length " << actualSize << " at " << simTime().inUnit(SIMTIME_NS) <<
-        " finishing at " << simTime().inUnit(SIMTIME_NS) + RadioMessage::getPPDUDuration(size) << endl;
+        " finishing at " << simTime().inUnit(SIMTIME_NS) + RadioMessage::getPPDUDuration(actualSize) << endl;
     for(int i=0; i<parentNode->gateSize("wireless"); i++)
         parentNode->send(new RadioMessage(finalPkt, actualSize, pktName), "wireless$o", i);
 
-    parentNode->waitAndDeletePackets(SimTime(RadioMessage::getPPDUDuration(size), SIMTIME_NS));
+    parentNode->waitAndDeletePackets(SimTime(RadioMessage::getPPDUDuration(actualSize), SIMTIME_NS));
 }
 
 RecvResult Transceiver::recv(void* pkt, int size, long long timeout, Unit unit, Correct c) {
