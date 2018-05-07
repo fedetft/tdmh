@@ -45,20 +45,20 @@ NeighborTable::NeighborTable(const NeighborTable& other) : neighbors(other.neigh
 
 std::vector<unsigned char> NeighborTable::getNeighbors() {
     std::vector<unsigned char> retval;
-    for (unsigned i = 0; i < neighbors.size(); i++)
+    for (unsigned i = 0; i < neighbors.bitSize(); i++)
         if(neighbors[i]) retval.push_back(i);
     return retval;
 }
 
 void NeighborTable::setNeighbors(std::vector<unsigned char>& neighbors) {
-    assert(neighbors.size() <= this->neighbors.size());
+    assert(neighbors.size() <= this->neighbors.bitSize());
     this->neighbors.setAll(false);
     for(auto n : neighbors)
         this->neighbors[n] = true;
 }
 
 void NeighborTable::setNeighbors(std::vector<bool>& neighbors) {
-    assert(neighbors.size() <= this->neighbors.size());
+    assert(neighbors.size() <= this->neighbors.bitSize());
     for(unsigned i = 0; i < neighbors.size(); i++)
         this->neighbors[i] = neighbors[i];
 }
@@ -68,15 +68,17 @@ void NeighborTable::serialize(unsigned char* pkt) const {
 }
 
 NeighborTable NeighborTable::deserialize(std::vector<unsigned char>& pkt, unsigned short nodeCount) {
-    assert(nodeCount <= pkt.size());
+    unsigned short nodeBytes = nodeCount / std::numeric_limits<unsigned char>::digits;
+    assert(nodeBytes <= pkt.size());
     NeighborTable retval(nodeCount);
-    memcpy(retval.neighbors.data(), pkt.data(), nodeCount);
+    memcpy(retval.neighbors.data(), pkt.data(), nodeBytes);
     return retval;
 }
 
 NeighborTable NeighborTable::deserialize(unsigned char* pkt, unsigned short nodeCount) {
+    auto nodeBytes = nodeCount / std::numeric_limits<unsigned char>::digits;
     NeighborTable retval(nodeCount);
-    memcpy(retval.neighbors.data(), pkt, nodeCount);
+    memcpy(retval.neighbors.data(), pkt, nodeBytes);
     return retval;
 }
 
@@ -85,7 +87,7 @@ bool NeighborTable::operator ==(const NeighborTable& b) const {
 }
 
 void NeighborTable::setRaw(std::vector<unsigned char>& data) {
-    memcpy(neighbors.data(), data.data(), neighbors.wordSize());
+    memcpy(neighbors.data(), data.data(), neighbors.size());
 }
 
 ForwardedNeighborMessage::ForwardedNeighborMessage(

@@ -114,14 +114,14 @@ public:
 
     static NeighborTable deserialize(unsigned char* pkt, unsigned short nodeCount);
 
-    std::size_t size() const override { return neighbors.wordSize(); }
+    std::size_t size() const override { return neighbors.size(); }
 
     /**
      * Returns a list of neighbors as a comma separated string, useful for printing
      */
     std::string getNeighborsString() const {
         std::string str;
-        for (unsigned i = 0; i < neighbors.size(); i++)
+        for (unsigned i = 0; i < neighbors.bitSize(); i++)
             if (neighbors[i])
                 str += std::to_string(i) + ", ";
         return str.size()? str.substr(0, str.size() - 2) : str;
@@ -222,7 +222,8 @@ public:
      * @return the size such message can have, based on the network configuration and the actually forwarded topologies
      */
     static std::size_t size(const NetworkConfiguration& config, unsigned char forwardedTopologies) {
-        return ((config.getMaxNodes() - 1) >> 3) + 1 + forwardedTopologies * (8 + ((config.getMaxNodes() - 1) >> 3) + 1);
+        unsigned char nodeBytes = ((config.getMaxNodes() - 1) >> 3) + 1;
+        return nodeBytes + forwardedTopologies * (1 /* topology source addr */ + nodeBytes) + 1 /* topologies count */;
     }
 
 protected:
