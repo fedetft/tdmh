@@ -55,7 +55,9 @@ const bool ENABLE_UPLINK_INFO_DBG = true;
 //prints the flooding phase errors
 const bool ENABLE_UPLINK_ERROR_DBG = true;
 
-const bool ENABLE_SCHEDULE_DL_INFO_DBG = true;
+const bool ENABLE_SCHEDULE_DL_INFO_DBG = false;
+
+const bool ENABLE_DATA_INFO_DBG = false;
 
 /**
  * If you want to override this function's behavior, define the macro

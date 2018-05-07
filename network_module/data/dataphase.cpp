@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "dataphase.h"
+#include "../debug_settings.h"
 
 using namespace std;
 using namespace miosix;
@@ -33,7 +34,8 @@ using namespace miosix;
 namespace mxnet {
 
     void DataPhase::execute(long long slotStart) {
-        print_dbg("[D] GFAT=%llu\n", slotStart);
+        if (ENABLE_DATA_INFO_DBG)
+            print_dbg("[D] GFAT=%llu\n", slotStart);
         ctx.configureTransceiver(ctx.getTransceiverConfig());
         ctx.transceiverTurnOn();
         if (scheduleDownlink->isScheduleEnd(nextSched) || (*nextSched)->getDataslot() != dataSlot) return;
