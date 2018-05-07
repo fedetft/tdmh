@@ -126,7 +126,7 @@ void DynamicScheduleDownlinkPhase::parseSchedule(std::vector<unsigned char>& pkt
         }
         delete sa;
     }
-    for (int i = (pkt.size() * std::numeric_limits<unsigned char>::digits - bitsRead) / pkt.size() * std::numeric_limits<unsigned char>::digits; i >= 0; i--) {
+    for (int i = pkt.size() * std::numeric_limits<unsigned char>::digits - bitsRead; i > 0; i-= std::numeric_limits<unsigned char>::digits) {
         auto* sd = ScheduleDeletion::deserialize(pkt.data(), bitsRead);
         deleteSchedule(sd->getScheduleId());
         bitsRead += std::numeric_limits<unsigned char>::digits;
