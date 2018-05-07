@@ -126,6 +126,8 @@ void MACContext::run() {
     long long currentNextDeadline = 0;
     for (running = true; running; ) {
         timesync->execute(currentNextDeadline);
+        if (!timesync->macCanOperate())
+            continue;
         currentNextDeadline = timesync->getSlotframeStart() + timesync->getDuration();
         for (int i = 0; i < networkConfig.getMaxNodes() - 1; i++) {
             uplink->execute(currentNextDeadline);
@@ -139,6 +141,7 @@ void MACContext::run() {
         }
     }
 }
+
 
 void MACContext::stop() {
     running = false;
