@@ -97,10 +97,10 @@ void MasterMeshTopologyContext::receivedMessage(UplinkMessage msg, unsigned char
 void MasterMeshTopologyContext::manageTopologyUpdate(unsigned char sender, NeighborTable neighbors) {
     auto newNeighbors = neighbors.getNeighbors();
     auto oldNeighbors = topology.getEdges(sender);
-    setDifferenceDo(oldNeighbors.begin(), oldNeighbors.end(), newNeighbors.begin(), newNeighbors.end(), [this, sender](unsigned char id) {
+    setDifferenceDo<std::vector<unsigned char>::iterator, std::vector<unsigned char>::iterator>(oldNeighbors.begin(), oldNeighbors.end(), newNeighbors.begin(), newNeighbors.end(), [this, sender](unsigned char id) {
         topology.removeEdge(sender, id);
     });
-    setDifferenceDo(newNeighbors.begin(), newNeighbors.end(), oldNeighbors.begin(), oldNeighbors.end(), [this, sender](unsigned char id) {
+    setDifferenceDo<std::vector<unsigned char>::iterator, std::vector<unsigned char>::iterator>(newNeighbors.begin(), newNeighbors.end(), oldNeighbors.begin(), oldNeighbors.end(), [this, sender](unsigned char id) {
         topology.addEdge(sender, id);
     });
 }
