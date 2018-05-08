@@ -67,7 +67,6 @@ private:
     struct ScheduleTransitionPkt {
         unsigned short dataslot : 14;
         unsigned char nodeId : 8;
-        unsigned char : 2;
     } __attribute__((packed));
     ScheduleTransition() {};
     ScheduleTransition(ScheduleTransitionPkt content) : content(content) {};
@@ -99,7 +98,9 @@ class ScheduleAddition : public ScheduleDeltaElement {
 public:
     ScheduleAddition() = delete;
     ScheduleAddition(unsigned short scheduleId, unsigned short hops, unsigned char nodeId, std::vector<ScheduleTransition>&& transitions) :
-        ScheduleDeltaElement(ADDITION), content({scheduleId, hops, nodeId}), transitions(transitions) {};
+        ScheduleDeltaElement(ADDITION),
+        content({scheduleId, hops, nodeId}),
+        transitions(transitions) {};
     virtual ~ScheduleAddition() {};
 
     /**
@@ -139,7 +140,6 @@ protected:
         unsigned short scheduleId : 16;
         unsigned short hops : 9;
         unsigned char nodeId : 8;
-        unsigned char : 7;
     } __attribute__((packed));
     ScheduleAddition(ScheduleAdditionPkt content, std::vector<ScheduleTransition>&& transitions) :
         ScheduleDeltaElement(ADDITION), content(content), transitions(transitions) {};

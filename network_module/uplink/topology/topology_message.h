@@ -71,12 +71,9 @@ public:
     NeighborTable() = delete;
     ~NeighborTable() {};
     NeighborTable(const NeighborTable& other);
-    NeighborTable(NeighborTable&& other) = default;
-    NeighborTable& operator=(const NeighborTable& other) {
-        new (&neighbors) RuntimeBitset(other.neighbors);
-        return *this;
-    }
-    NeighborTable& operator=(NeighborTable&& other) = default;
+    NeighborTable(NeighborTable&& other);
+    NeighborTable& operator=(const NeighborTable& other);
+    NeighborTable& operator=(NeighborTable&& other);
 
     /**
      * @return the neighbor address list
@@ -120,10 +117,11 @@ public:
      * Returns a list of neighbors as a comma separated string, useful for printing
      */
     std::string getNeighborsString() const {
-        std::string str;
+        std::ostringstream oss;
         for (unsigned i = 0; i < neighbors.bitSize(); i++)
             if (neighbors[i])
-                str += std::to_string(i) + ", ";
+                oss << i << ", ";
+        auto str = oss.str();
         return str.size()? str.substr(0, str.size() - 2) : str;
     }
     bool operator ==(const NeighborTable &b) const;

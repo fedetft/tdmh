@@ -18,7 +18,7 @@ SUBDIRS := $(KPATH)
 ##
 SRC :=\
 main.cpp\
-$(wildcard network_module/*.cpp) $(wildcard network_module/**/*.cpp)
+$(wildcard network_module/*.cpp) $(wildcard network_module/*/*.cpp) $(wildcard network_module/*/*/*.cpp)
 
 ##
 ## List here additional static libraries with relative path

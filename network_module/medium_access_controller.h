@@ -67,7 +67,7 @@ protected:
 #ifdef _MIOSIX
     miosix::Thread* thread;
 private:
-    static void runLaunched(void* obj) {
+    static void runLauncher(void* obj) {
         reinterpret_cast<MediumAccessController*>(obj)->run();
     }
 #else

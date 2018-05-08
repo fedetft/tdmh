@@ -33,6 +33,7 @@
 #include "network_configuration.h"
 #include "interfaces-impl/transceiver.h"
 #include <functional>
+#include <stdexcept>
 
 namespace mxnet {
 class MediumAccessController;

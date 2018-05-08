@@ -43,6 +43,18 @@ NeighborTable::NeighborTable(unsigned short nodeCount, std::vector<bool>& neighb
 
 NeighborTable::NeighborTable(const NeighborTable& other) : neighbors(other.neighbors) {}
 
+NeighborTable::NeighborTable(NeighborTable&& other) : neighbors(std::move(other.neighbors)) {}
+
+NeighborTable& NeighborTable::operator =(const NeighborTable& other) {
+    neighbors = other.neighbors;
+    return *this;
+}
+
+NeighborTable& NeighborTable::operator =(NeighborTable&& other) {
+    neighbors = std::move(other.neighbors);
+    return *this;
+}
+
 std::vector<unsigned char> NeighborTable::getNeighbors() {
     std::vector<unsigned char> retval;
     for (unsigned i = 0; i < neighbors.bitSize(); i++)

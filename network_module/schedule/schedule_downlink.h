@@ -33,6 +33,8 @@
 #include "interfaces-impl/transceiver.h"
 #include "interfaces-impl/power_manager.h"
 #include <utility>
+#include <set>
+#include <map>
 
 /**
  * Represents the phase in which the schedule is flooded, in order to reach all the nodes and make it available for

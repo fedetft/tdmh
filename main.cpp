@@ -27,41 +27,39 @@
 
 #include <cstdio>
 #include <miosix.h>
-#include "network_module/macround/mastermacround.h"
-#include "network_module/macround/dynamicmacround.h"
-#include "network_module/mediumaccesscontroller.h"
 #include "network_module/network_configuration.h"
 #include "network_module/dynamic_medium_access_controller.h"
 #include "network_module/master_medium_access_controller.h"
 
 using namespace std;
+using namespace mxnet;
 using namespace miosix;
 
 void masterNode(void*){    
     printf("Master node\n");
-    const NetworkConfiguration config(3, 256, 0, 6, 1, 2450, 2, 3, 3);
-    MediumAccessController controller(new MasterMACRound::MasterMACRoundFactory(), &config);
+    const NetworkConfiguration config(16, 256, 0, 6, 1, 2450, 10000000000, 2, 1, 150000, 3, 3, 1);
+    MasterMediumAccessController controller(Transceiver::instance(), config);
     controller.run();
 }
 
 void node1Hop1(void*){    
     printf("Dynamic node 1 hop 1\n");
-    const NetworkConfiguration config(3, 256, 1, 6, 1, 2450, 2, 3, 3);
-    MediumAccessController controller(new DynamicMACRound::DynamicMACRoundFactory(), &config);
+    const NetworkConfiguration config(16, 256, 1, 6, 1, 2450, 10000000000, 2, 1, 150000, 3, 3, 1);
+    DynamicMediumAccessController controller(Transceiver::instance(), config);
     controller.run();
 }
 
 void node2Hop1(void*){    
     printf("Dynamic node 2 hop 1\n");
-    const NetworkConfiguration config(3, 256, 2, 6, 1, 2450, 2, 3, 3);
-    MediumAccessController controller(new DynamicMACRound::DynamicMACRoundFactory(), &config);
+    const NetworkConfiguration config(16, 256, 2, 6, 1, 2450, 10000000000, 2, 1, 150000, 3, 3, 1);
+    DynamicMediumAccessController controller(Transceiver::instance(), config);
     controller.run();
 }
 
 void node3Hop2(void*){    
     printf("Dynamic node 3 hop 2\n");
-    const NetworkConfiguration config(3, 256, 3, 6, 1, 2450, 2, 3, 3);
-    MediumAccessController controller(new DynamicMACRound::DynamicMACRoundFactory(), &config);
+    const NetworkConfiguration config(16, 256, 3, 6, 1, 2450, 10000000000, 2, 1, 150000, 3, 3, 1);
+    DynamicMediumAccessController controller(Transceiver::instance(), config);
     controller.run();
 }
 
