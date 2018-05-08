@@ -76,7 +76,6 @@ protected:
      * is already stored and needs to be updated
      */
     void checkEnqueueOrUpdate(ForwardedNeighborMessage* msg);
-    UpdatableQueue<unsigned short, ForwardedNeighborMessage*> enqueuedTopologyMessages;
     NeighborTable neighbors;
     std::map<unsigned char, unsigned char> neighborsUnseenFor;
 };
