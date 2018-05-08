@@ -30,6 +30,8 @@
 #include "topology_context.h"
 #include "topology_message.h"
 #include <map>
+#include <functional>
+#include <type_traits>
 
 namespace mxnet {
 
@@ -94,6 +96,24 @@ public:
      */
     void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
     void print() const;
+
+    template<class InputIt1, class InputIt2>
+    static void setDifferenceDo(InputIt1 first1, InputIt1 last1,
+            InputIt2 first2, InputIt2 last2, std::function<void(typename std::iterator_traits<InputIt1>::value_type)> fun) {
+        while (first1 != last1) {
+            if (first2 == last2) {
+                while (first1 != last1)
+                    fun(*first1++);
+            } else if (*first1 < *first2) {
+                fun(*first1++);
+            } else {
+                if (*first2 >= *first1) {
+                    ++first1;
+                }
+                ++first2;
+            }
+        }
+    }
 protected:
     /**
      * Adds or removes edges from the topology maps, based on the message content
