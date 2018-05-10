@@ -37,26 +37,34 @@ const bool ENABLE_PKT_DUMP_DBG = false;
 //prints the exception if any while using the radio
 const bool ENABLE_RADIO_EXCEPTION_DBG = true;
 
-//prints the flooding phase debug info
+//prints the topology downlink phase debug info
 const bool ENABLE_TIMESYNC_DL_INFO_DBG = true;
 
-//prints the flooding phase errors
-const bool ENABLE_FLOODING_ERROR_DBG = true;
+//prints the topology downlink phase errors
+const bool ENABLE_TIMESYNC_ERROR_DBG = true;
 
-//prints the flooding phase debug info
+//prints the roundtrip subphase debug info
 const bool ENABLE_ROUNDTRIP_INFO_DBG = true;
 
-//prints the flooding phase errors
+//prints the roundtrip subphase errors
 const bool ENABLE_ROUNDTRIP_ERROR_DBG = true;
 
-//prints the flooding phase debug info
-const bool ENABLE_UPLINK_INFO_DBG = true;
+//prints the uplink phase debug info
+const bool ENABLE_UPLINK_INFO_DBG = false;
 
-//prints the flooding phase errors
+//prints the uplink phase errors
 const bool ENABLE_UPLINK_ERROR_DBG = true;
 
+//prints the topology context debug info
+const bool ENABLE_TOPOLOGY_INFO_DBG = true;
+
+//prints the stream context debug info
+const bool ENABLE_STREAM_INFO_DBG = true;
+
+//prints the schedule downlink phase debug info
 const bool ENABLE_SCHEDULE_DL_INFO_DBG = false;
 
+//prints the data phase debug info
 const bool ENABLE_DATA_INFO_DBG = false;
 
 /**

@@ -43,7 +43,7 @@ void DynamicTimesyncDownlink::periodicSync() {
     auto now = getTime();
     //check if we missed the deadline for the synchronization time
     if (now + receiverWindow >= correctedStart) {
-        if (ENABLE_FLOODING_ERROR_DBG)
+        if (ENABLE_TIMESYNC_ERROR_DBG)
             print_dbg("[T] 2 l8\n");
         missedPacket();
         return;

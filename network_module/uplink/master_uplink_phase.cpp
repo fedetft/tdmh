@@ -67,7 +67,7 @@ void MasterUplinkPhase::execute(long long slotStart) {
         topology->receivedMessage(msg, address, rcvResult.rssi);
         auto smes = msg.getSMEs();
         streamManagement->receive(smes);
-        if (ENABLE_UPLINK_INFO_DBG)
+        if (ENABLE_TOPOLOGY_INFO_DBG)
             print_dbg("[U] <- N=%u @%llu\n", address, rcvResult.timestamp);
     } else {
         topology->unreceivedMessage(address);

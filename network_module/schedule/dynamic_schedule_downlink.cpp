@@ -46,7 +46,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     auto now = getTime();
     //check if we skipped the synchronization time
     if (now + timesync->getReceiverWindow() >= arrivalTime) {
-        if (ENABLE_FLOODING_ERROR_DBG)
+        if (ENABLE_TIMESYNC_ERROR_DBG)
             print_dbg("[S] started too late\n");
         return;
     }
