@@ -92,7 +92,7 @@ RecvResult MACContext::recv(void* pkt, int size, long long timeout, Transceiver:
         if (ENABLE_RADIO_EXCEPTION_DBG)
             print_dbg("%s\n", e.what());
     }
-    if (++rcvTotal & 1 << 31) {
+    if (++rcvTotal & (1 << 31)) {
         rcvTotal >>= 1;
         rcvErrors >>= 1;
     }
@@ -109,7 +109,7 @@ RecvResult MACContext::recv(void *pkt, int size, long long timeout, std::functio
             print_dbg("%s\n", e.what());
         cbk(e);
     }
-    if (++rcvTotal & 1 << 31) {
+    if (++rcvTotal & (1 << 31)) {
         rcvTotal >>= 1;
         rcvErrors >>= 1;
     }
