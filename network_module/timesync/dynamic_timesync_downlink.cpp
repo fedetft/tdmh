@@ -166,6 +166,7 @@ void DynamicTimesyncDownlink::rebroadcast(long long arrivalTs){
 void DynamicTimesyncDownlink::reset(long long hookPktTime) {
     //All the timestamps start from here, since i take this points as a ground reference
     //so no need to correct anything.
+    synchronizer->reset();
     measuredFrameStart = computedFrameStart = theoreticalFrameStart = hookPktTime;
     receiverWindow = synchronizer->getReceiverWindow();
     clockCorrection = 0;

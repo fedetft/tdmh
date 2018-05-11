@@ -72,7 +72,7 @@ void MasterUplinkPhase::execute(long long slotStart) {
     } else {
         topology->unreceivedMessage(address);
     }
-    if (ENABLE_UPLINK_INFO_DBG && ctx.getNetworkConfig().getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION && address == 1) {
+    if (ENABLE_TOPOLOGY_INFO_DBG && ctx.getNetworkConfig().getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION && address == 1) {
         static_cast<MasterMeshTopologyContext*>(topology)->print();
     }
 }
