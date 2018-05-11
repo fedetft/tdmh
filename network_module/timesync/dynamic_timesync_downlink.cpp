@@ -93,6 +93,8 @@ void DynamicTimesyncDownlink::periodicSync() {
                 print_dbg("[T] lost sync\n");
         }
     }
+    memDump(packet.data(),syncPacketSize);
+    printf("[CTR] %u\n",getTimesyncPacketCounter());
 }
 
 std::pair<long long, long long> DynamicTimesyncDownlink::getWakeupAndTimeout(long long tExpected) {

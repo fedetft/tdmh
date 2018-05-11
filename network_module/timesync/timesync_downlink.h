@@ -49,7 +49,7 @@ public:
     }
     unsigned long long getSlotsCount() const override { return 1; }
     static const int phaseStartupTime = 450000;
-    static const int syncPacketSize = 7;
+    static const int syncPacketSize = 11;
     static const int rebroadcastInterval = 1016000; //32us per-byte + 600us total delta
 
     /**
@@ -93,6 +93,15 @@ public:
      * Returns the slotframe start time as calculated by the FLOPSYNC-2 controller after the synchronization
      */
     virtual long long getSlotframeStart() const = 0;
+    
+    /**
+     * \return the timesync packet counter used for slave nodes to know the
+     * absolute network time
+     */
+    unsigned int getTimesyncPacketCounter() const
+    {
+        return *reinterpret_cast<const unsigned int*>(packet.data()+7);
+    }
     
     bool macCanOperate() {
         return internalStatus == IN_SYNC && receiverWindow <= networkConfig.getMaxAdmittedRcvWindow();

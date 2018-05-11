@@ -43,9 +43,21 @@ public:
                 0x00, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
                 static_cast<unsigned char>(panId>>8),
                 static_cast<unsigned char>(panId & 0xff), //destination pan ID
-                0xff, 0xff                                //destination addr (broadcast)
+                0xff, 0xff,                               //destination addr (broadcast)
+                0,0,0,0                                   //32bit timesync packet counter for absolute network time
             }};
     };
+    
+   /**
+    * Used to increment the timesync packet counter used for slave nodes to
+    * know the absolute network time
+    */
+    void incrementTimesyncPacketCounter()
+    {
+        auto ptr=reinterpret_cast<unsigned int*>(packet.data()+7);
+        *ptr++;
+    }
+    
     MasterTimesyncDownlink() = delete;
     MasterTimesyncDownlink(const MasterTimesyncDownlink& orig) = delete;
     virtual ~MasterTimesyncDownlink() {};
