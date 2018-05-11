@@ -1,3 +1,4 @@
 [submodule "miosix-kernel-unofficial"]
 	path = miosix-kernel-unofficial
 	url = https://github.com/fedetft/miosix-kernel-unofficial
+    branch = unstable-wandstem-rebase
