@@ -55,7 +55,7 @@ public:
     void incrementTimesyncPacketCounter()
     {
         auto ptr=reinterpret_cast<unsigned int*>(packet.data()+7);
-        *ptr++;
+        (*ptr)++;
     }
     
     MasterTimesyncDownlink() = delete;
