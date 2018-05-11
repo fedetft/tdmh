@@ -26,7 +26,7 @@ void RootNode::activity()
 {
     using namespace miosix;
     print_dbg("Master node\n");
-    const NetworkConfiguration config(16, 256, address, 6, 1, 2450, 10000000000, 2, 1, 150000, 3, 3, 1);
+    const NetworkConfiguration config(16, 256, address, false, 6, 1, 2450, 10000000000, 2, 1, 150000, 3, 3, 1);
     MasterMediumAccessController controller(Transceiver::instance(), config);
     controller.run();
 }

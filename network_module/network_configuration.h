@@ -36,11 +36,11 @@ public:
     };
 
     NetworkConfiguration(const unsigned char maxHops, const unsigned short maxNodes, unsigned short networkId,
-            const unsigned short panId, const short txPower, const unsigned int baseFrequency,
-            const unsigned long long slotframeDuration, const unsigned char maxForwardedTopologies,
-            const unsigned short scheduleDownlinkPerSlotframeCount, const unsigned long long maxAdmittedRcvWindow,
-            const unsigned short maxRoundsUnavailableBecomesDead, const unsigned short maxRoundsUnreliableParent,
-            const unsigned char maxMissedTimesyncs,
+            const unsigned char staticHop, const unsigned short panId, const short txPower,
+            const unsigned int baseFrequency, const unsigned long long slotframeDuration,
+            const unsigned char maxForwardedTopologies, const unsigned short scheduleDownlinkPerSlotframeCount,
+            const unsigned long long maxAdmittedRcvWindow, const unsigned short maxRoundsUnavailableBecomesDead,
+            const unsigned short maxRoundsUnreliableParent, const unsigned char maxMissedTimesyncs,
             const TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION);
 
     /**
@@ -144,6 +144,13 @@ public:
     }
 
     /**
+     * @return the statically configured hop.
+     */
+    const unsigned short getStaticHop() const {
+        return staticHop;
+    }
+
+    /**
      * @return the topology mode used in the network to perform topology collection.
      */
     const TopologyMode getTopologyMode() const {
@@ -168,6 +175,7 @@ private:
     unsigned char hopBits;
     const bool dynamicNetworkId = false;
     const unsigned short staticNetworkId;
+    const unsigned short staticHop;
     const unsigned short maxNodes;
     unsigned short networkIdBits;
     const unsigned short panId;

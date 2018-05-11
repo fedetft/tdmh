@@ -68,6 +68,7 @@ protected:
         return rcvResult.error == miosix::RecvResult::OK
                 && rcvResult.timestampValid && rcvResult.size == syncPacketSize
                 && packet[0] == 0x46 && packet[1] == 0x08
+                && (networkConfig.getStaticHop() == 0 || packet[2] + 1 == networkConfig.getStaticHop())
                 && packet[3] == static_cast<unsigned char>(panId >> 8)
                 && packet[4] == static_cast<unsigned char>(panId & 0xff)
                 && packet[5] == 0xff && packet[6] == 0xff;
