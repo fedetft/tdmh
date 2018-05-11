@@ -64,7 +64,7 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     if(getTime() < wakeUp)
         pm.deepSleepUntil(wakeUp);
     ctx.sendAt(packet.data(), (bitSize - 1) / numeric_limits<unsigned char>::digits + 1, slotStart);
-    if (ENABLE_TIMESYNC_DL_INFO_DBG)
+    if (ENABLE_SCHEDULE_DL_INFO_DBG)
         print_dbg("[SC] ST=%lld\n", slotStart);
     ctx.transceiverTurnOff();
     for (auto el : data.first)

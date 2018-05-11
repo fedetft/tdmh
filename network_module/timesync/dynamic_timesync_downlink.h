@@ -111,8 +111,22 @@ protected:
     miosix::VirtualClock& vt;
     Synchronizer* const synchronizer;
 
+    /**
+     * Contains the corrected timestamp of arrival of the synchronization packet.
+     * If no packet arrived, it is just incremented of a sync period.
+     */
     long long measuredFrameStart;
+
+    /**
+     * Contains the calculated timestamp of arrival of the synchronization packet
+     * including the clock correction.
+     */
     long long computedFrameStart;
+
+    /**
+     * Contains the calculated timestamp of arrival of the synchronization packet,
+     * by taking the first timesync as zero and incrementing it every sync period.
+     */
     long long theoreticalFrameStart;
 
     int clockCorrection;

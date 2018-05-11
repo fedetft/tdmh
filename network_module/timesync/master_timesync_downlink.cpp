@@ -46,7 +46,7 @@ void MasterTimesyncDownlink::execute(long long slotStart)
     ctx.sendAt(packet.data(), syncPacketSize, slotframeTime);
     ctx.transceiverIdle();
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
-        print_dbg("[T] st=%lld\n", slotframeTime);
+        print_dbg("[T] ST=%lld\n", slotframeTime);
     if (false)
         listeningRTP.execute(slotframeTime + RoundtripSubphase::senderDelay);
     ctx.transceiverTurnOff();

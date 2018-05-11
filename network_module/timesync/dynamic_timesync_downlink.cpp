@@ -35,14 +35,13 @@ namespace mxnet {
 
 void DynamicTimesyncDownlink::periodicSync() {
     //slotStart = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
-    //This is fully corrected
-    auto correctedStart = correct(theoreticalFrameStart);
+    auto correctedStart = correct(computedFrameStart);
     auto wakeupTimeout = getWakeupAndTimeout(correctedStart);
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[T] WU=%lld TO=%lld\n", wakeupTimeout.first, wakeupTimeout.second);
-    auto now = getTime();
+    auto now = getTime();//TODO look for uncorrected getTime to perform correct comparisons
     //check if we missed the deadline for the synchronization time
-    if (now + receiverWindow >= correctedStart) {
+    if (now + receiverWindow >= correctedStart){
         if (ENABLE_TIMESYNC_ERROR_DBG)
             print_dbg("[T] 2 l8\n");
         missedPacket();
@@ -65,20 +64,21 @@ void DynamicTimesyncDownlink::periodicSync() {
     ctx.transceiverIdle(); //Save power waiting for rebroadcast time
 
     if (rcvResult.error != RecvResult::ErrorCode::TIMEOUT) {
-        //This conversion is really necessary to get the corrected time in NS, to pass to transceiver
+        //corrected time in NS, to pass to transceiver
         packet[2]++;
         //Rebroadcast the sync packet
         measuredFrameStart = correct(rcvResult.timestamp);
         rebroadcast(measuredFrameStart);
         ctx.transceiverTurnOff();
-        error = computedFrameStart - rcvResult.timestamp;
+        error = rcvResult.timestamp - computedFrameStart;
         std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->computeCorrection(error);
         missedPackets = 0;
         clockCorrection = clockCorrectionReceiverWindow.first;
         receiverWindow = clockCorrectionReceiverWindow.second;
         updateVt();
         if (ENABLE_TIMESYNC_DL_INFO_DBG) {
-            print_dbg("[T] ats=%lld e=%lld u=%d w=%d mts=%lld rssi=%d\n",
+            print_dbg("[T] ets=%lld ats=%lld e=%lld u=%d w=%d Mts=%lld rssi=%d\n",
+                    correctedStart,
                     rcvResult.timestamp,
                     error,
                     clockCorrection,
@@ -105,6 +105,7 @@ std::pair<long long, long long> DynamicTimesyncDownlink::getWakeupAndTimeout(lon
 
 void DynamicTimesyncDownlink::resync() {
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
+    //Even the Theoretic is started at this time, so the absolute time is dependent of the board
         print_dbg("[T] Resync\n");
     //TODO: attach to strongest signal, not just to the first received packet
     for (bool success = false; !success; success = isSyncPacket()) {
@@ -129,7 +130,7 @@ void DynamicTimesyncDownlink::resync() {
     ctx.transceiverTurnOff();
 
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
-        print_dbg("[F] hop=%d ats=%lld w=%d mts=%lld rssi=%d\n",
+        print_dbg("[F] hop=%d ats=%lld w=%d mst=%lld rssi=%d\n",
                 packet[2], rcvResult.timestamp, receiverWindow, start, rcvResult.rssi
         );
 
@@ -163,7 +164,8 @@ void DynamicTimesyncDownlink::rebroadcast(long long arrivalTs){
 }
 
 void DynamicTimesyncDownlink::reset(long long hookPktTime) {
-    //Even the Theoretic is started at this time, so the absolute time is dependent of the board
+    //All the timestamps start from here, since i take this points as a ground reference
+    //so no need to correct anything.
     measuredFrameStart = computedFrameStart = theoreticalFrameStart = hookPktTime;
     receiverWindow = synchronizer->getReceiverWindow();
     clockCorrection = 0;
@@ -203,4 +205,3 @@ unsigned char DynamicTimesyncDownlink::missedPacket() {
 }
 
 }
-
