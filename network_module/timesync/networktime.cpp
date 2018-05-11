@@ -25,53 +25,20 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#pragma once
-
-#include <utility>
-#include <array>
+#include "networktime.h"
 #include "timesync_downlink.h"
+#include <miosix.h>
 
 namespace mxnet {
-class MasterTimesyncDownlink : public TimesyncDownlink {
-public:
-    explicit MasterTimesyncDownlink(MACContext& ctx, long long firstTimesyncTime) :
-            TimesyncDownlink(ctx, MacroStatus::IN_SYNC), slotframeTime(firstTimesyncTime) {
-        auto panId = networkConfig.getPanId();
-        packet = {{
-                0x46, //frame type 0b110 (reserved), intra pan
-                0x08, //no source addressing, short destination addressing
-                0x00, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
-                static_cast<unsigned char>(panId>>8),
-                static_cast<unsigned char>(panId & 0xff), //destination pan ID
-                0xff, 0xff,                               //destination addr (broadcast)
-                1,0,0,0                                   //32bit timesync packet counter for absolute network time
-            }};
-    };
-    
-   /**
-    * Used to increment the timesync packet counter used for slave nodes to
-    * know the absolute network time
-    */
-    void incrementTimesyncPacketCounter()
-    {
-        auto ptr=reinterpret_cast<unsigned int*>(packet.data()+7);
-        (*ptr)++;
-    }
-    
-    MasterTimesyncDownlink() = delete;
-    MasterTimesyncDownlink(const MasterTimesyncDownlink& orig) = delete;
-    virtual ~MasterTimesyncDownlink() {};
-    void execute(long long slotStart) override;
-    std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
-    long long getDelayToMaster() const override { return 0; }
-    virtual long long getSlotframeStart() const { return slotframeTime; }
 
-protected:
-    
-    void next() override;
-    long long correct(long long int uncorrected) override;
-private:
-    long long slotframeTime;
-};
+NetworkTime NetworkTime::getTime()
+{
+    auto timesync=tsdl;
+    auto result=miosix::getTime();
+    if(timesync!=nullptr) result+=timesync->networkOffset();
+    return NetworkTime(result);
 }
 
+TimesyncDownlink *NetworkTime::tsdl=nullptr;
+
+} // namespace mxnet

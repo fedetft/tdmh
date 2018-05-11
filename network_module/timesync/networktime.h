@@ -27,51 +27,45 @@
 
 #pragma once
 
-#include <utility>
-#include <array>
-#include "timesync_downlink.h"
-
 namespace mxnet {
-class MasterTimesyncDownlink : public TimesyncDownlink {
+
+class TimesyncDownlink;
+
+/**
+ * A time that is unique throughout the network.
+ * At least as long as clock synchronization is running and sync packets are
+ * regularly received
+ */
+class NetworkTime
+{
 public:
-    explicit MasterTimesyncDownlink(MACContext& ctx, long long firstTimesyncTime) :
-            TimesyncDownlink(ctx, MacroStatus::IN_SYNC), slotframeTime(firstTimesyncTime) {
-        auto panId = networkConfig.getPanId();
-        packet = {{
-                0x46, //frame type 0b110 (reserved), intra pan
-                0x08, //no source addressing, short destination addressing
-                0x00, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
-                static_cast<unsigned char>(panId>>8),
-                static_cast<unsigned char>(panId & 0xff), //destination pan ID
-                0xff, 0xff,                               //destination addr (broadcast)
-                1,0,0,0                                   //32bit timesync packet counter for absolute network time
-            }};
-    };
+    NetworkTime() : t(0) {}
+    explicit NetworkTime(long long time) : t(time) {}
     
-   /**
-    * Used to increment the timesync packet counter used for slave nodes to
-    * know the absolute network time
-    */
-    void incrementTimesyncPacketCounter()
+    inline long long get() const { return t; }
+    
+    static NetworkTime getTime();
+    
+    static void setTimesyncDownlink(TimesyncDownlink *timesync)
     {
-        auto ptr=reinterpret_cast<unsigned int*>(packet.data()+7);
-        (*ptr)++;
+        tsdl=timesync;
     }
     
-    MasterTimesyncDownlink() = delete;
-    MasterTimesyncDownlink(const MasterTimesyncDownlink& orig) = delete;
-    virtual ~MasterTimesyncDownlink() {};
-    void execute(long long slotStart) override;
-    std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
-    long long getDelayToMaster() const override { return 0; }
-    virtual long long getSlotframeStart() const { return slotframeTime; }
-
-protected:
-    
-    void next() override;
-    long long correct(long long int uncorrected) override;
 private:
-    long long slotframeTime;
+    long long t;
+    static TimesyncDownlink *tsdl;
 };
+
+inline NetworkTime operator+ (NetworkTime lhs, NetworkTime rhs)
+{
+    return NetworkTime(lhs.get() + rhs.get());
 }
 
+inline NetworkTime operator- (NetworkTime lhs, NetworkTime rhs)
+{
+    return NetworkTime(lhs.get() - rhs.get());
+}
+
+//NOTE: no operator * and / on purpose as 64x64 mult/div are slow ans should be avoided
+
+} // namespace mxnet

@@ -33,6 +33,7 @@
 #include "interfaces-impl/transceiver.h"
 #include "interfaces-impl/power_manager.h"
 #include <utility>
+#include "networktime.h"
 
 namespace mxnet {
 class TimesyncDownlink : public MACPhase {
@@ -103,6 +104,11 @@ public:
         return *reinterpret_cast<const unsigned int*>(packet.data()+7);
     }
     
+    long long networkOffset() const
+    {
+        return localNodeToNetworkTimeOffset;
+    }
+    
     bool macCanOperate() {
         return internalStatus == IN_SYNC && receiverWindow <= networkConfig.getMaxAdmittedRcvWindow();
     }
@@ -112,13 +118,20 @@ protected:
             MACPhase(ctx),
             networkConfig(ctx.getNetworkConfig()),
             listeningRTP(ctx), internalStatus(initStatus),
-            receiverWindow(receivingWindow), error(0) {};
+            receiverWindow(receivingWindow), error(0)
+    {
+        NetworkTime::setTimesyncDownlink(this);
+    }
     
     TimesyncDownlink(MACContext& ctx, MacroStatus initStatus) :
             MACPhase(ctx),
             networkConfig(ctx.getNetworkConfig()),
             listeningRTP(ctx), internalStatus(initStatus),
-            receiverWindow(networkConfig.getMaxAdmittedRcvWindow()), error(0) {};
+            receiverWindow(networkConfig.getMaxAdmittedRcvWindow()), error(0)
+    {
+        NetworkTime::setTimesyncDownlink(this);
+    }
+
     virtual void next()=0;
     virtual long long correct(long long int uncorrected)=0;
     unsigned char missedPacket();
@@ -128,6 +141,7 @@ protected:
     MacroStatus internalStatus;
     unsigned receiverWindow;
     long long error;
+    long long localNodeToNetworkTimeOffset;
 };
 }
 
