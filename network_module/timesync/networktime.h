@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2018 by Terraneo Federico, Polidori Paolo              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,33 +27,65 @@
 
 #pragma once
 
-namespace mxnet {
+#include <miosix.h>
 
-class TimesyncDownlink;
+namespace mxnet {
 
 /**
  * A time that is unique throughout the network.
  * At least as long as clock synchronization is running and sync packets are
- * regularly received
+ * regularly received, this time should match that of the master node +/- the
+ * clock synchronization error that is within one microsecond unless a
+ * temperature chenge is occurring
  */
 class NetworkTime
 {
 public:
-    NetworkTime() : t(0) {}
-    explicit NetworkTime(long long time) : t(time) {}
+    /**
+     * Default constructor, initializes time to zero
+     */
+    NetworkTime() : time(0) {}
     
-    inline long long get() const { return t; }
+    /**
+     * Constructor from long long, explicit to prevent unwanted casts between
+     * other times in the node and NetworkTime
+     */
+    explicit NetworkTime(long long time) : time(time) {}
     
-    static NetworkTime getTime();
+    /**
+     * Explicit way to cast a NetworkTime to a long long
+     * \return the network time as long long
+     */
+    inline long long get() const { return time; }
     
-    static void setTimesyncDownlink(TimesyncDownlink *timesync)
+    /**
+     * Equivalent of miosix::getTime() that returns the global network time.
+     * \return The current network time
+     */
+    static inline NetworkTime getTime()
     {
-        tsdl=timesync;
+        return NetworkTime(miosix::getTime()+localNodeToNetworkTimeOffset);
+    }
+    
+    /**
+     * \internal
+     * Set the offset between the local node time (miosix::getTime()) and
+     * the network time, which is the time of the master node in the network.
+     *
+     * Note that the local node time is already corrected in skew to match the
+     * master node rate as long as clock synchronization packets are received.
+     * This is done at the OS level, but the OS time cannot have clock jumps
+     * as it would break sleeping tasks, hence only the network time is
+     * corrected for offset when joining a network.
+     */
+    static void setLocalNodeToNetworkTimeOffset(long long offset)
+    {
+        localNodeToNetworkTimeOffset=offset;
     }
     
 private:
-    long long t;
-    static TimesyncDownlink *tsdl;
+    long long time; ///< Network time
+    static long long localNodeToNetworkTimeOffset; ///< Offset
 };
 
 inline NetworkTime operator+ (NetworkTime lhs, NetworkTime rhs)
@@ -64,6 +96,16 @@ inline NetworkTime operator+ (NetworkTime lhs, NetworkTime rhs)
 inline NetworkTime operator- (NetworkTime lhs, NetworkTime rhs)
 {
     return NetworkTime(lhs.get() - rhs.get());
+}
+
+inline void operator+= (NetworkTime& lhs, NetworkTime rhs)
+{
+    lhs += rhs;
+}
+
+inline void operator-= (NetworkTime& lhs, NetworkTime rhs)
+{
+    lhs -= rhs;
 }
 
 //NOTE: no operator * and / on purpose as 64x64 mult/div are slow ans should be avoided

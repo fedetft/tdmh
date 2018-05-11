@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2018 by Terraneo Federico, Polidori Paolo              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -26,19 +26,9 @@
  ***************************************************************************/
 
 #include "networktime.h"
-#include "timesync_downlink.h"
-#include <miosix.h>
 
 namespace mxnet {
 
-NetworkTime NetworkTime::getTime()
-{
-    auto timesync=tsdl;
-    auto result=miosix::getTime();
-    if(timesync!=nullptr) result+=timesync->networkOffset();
-    return NetworkTime(result);
-}
-
-TimesyncDownlink *NetworkTime::tsdl=nullptr;
+long long NetworkTime::localNodeToNetworkTimeOffset=0;
 
 } // namespace mxnet

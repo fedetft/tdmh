@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "dynamic_timesync_downlink.h"
+#include "networktime.h"
 #include "../uplink/topology/topology_context.h"
 #include "../debug_settings.h"
 
@@ -132,7 +133,7 @@ void DynamicTimesyncDownlink::resync() {
     
     //FIXME: is start in nanosecond corrected?
     //FIXME: what if the master nede reboots?
-    localNodeToNetworkTimeOffset = getTimesyncPacketCounter() * networkConfig.getSlotframeDuration() - start;
+    NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() * networkConfig.getSlotframeDuration() - start);
     printf("[GLOBAL] %lld\n",NetworkTime::getTime().get());
 
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
