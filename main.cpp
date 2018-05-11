@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include <cstdio>
+#include <unistd.h>
 #include <miosix.h>
 #include "network_module/network_configuration.h"
 #include "network_module/dynamic_medium_access_controller.h"
@@ -37,28 +38,28 @@ using namespace miosix;
 
 void masterNode(void*){    
     printf("Master node\n");
-    const NetworkConfiguration config(16, 256, 0, false, 6, 1, 2450, 10000000000, 2, 1, 150000, 3, 3, 1);
+    const NetworkConfiguration config(16, 256, 0, false, 6, 5, 2460, 10000000000, 2, 1, 150000, 2, 2, 3);
     MasterMediumAccessController controller(Transceiver::instance(), config);
     controller.run();
 }
 
 void node1Hop1(void*){    
     printf("Dynamic node 1 hop 1\n");
-    const NetworkConfiguration config(16, 256, 1, 1, 6, 1, 2450, 10000000000, 2, 1, 150000, 3, 3, 1);
+    const NetworkConfiguration config(16, 256, 1, 1, 6, 5, 2460, 10000000000, 2, 1, 150000, 2, 2, 3);
     DynamicMediumAccessController controller(Transceiver::instance(), config);
     controller.run();
 }
 
 void node2Hop1(void*){    
     printf("Dynamic node 2 hop 1\n");
-    const NetworkConfiguration config(16, 256, 2, 1, 6, 1, 2450, 10000000000, 2, 1, 150000, 3, 3, 1);
+    const NetworkConfiguration config(16, 256, 2, 1, 6, 5, 2460, 10000000000, 2, 1, 150000, 2, 2, 3);
     DynamicMediumAccessController controller(Transceiver::instance(), config);
     controller.run();
 }
 
 void node3Hop2(void*){    
     printf("Dynamic node 3 hop 2\n");
-    const NetworkConfiguration config(16, 256, 3, 2, 6, 1, 2450, 10000000000, 2, 1, 150000, 3, 3, 1);
+    const NetworkConfiguration config(16, 256, 3, 2, 6, 5, 2460, 10000000000, 2, 1, 150000, 2, 2, 3);
     DynamicMediumAccessController controller(Transceiver::instance(), config);
     controller.run();
 }
@@ -70,8 +71,11 @@ int main()
 //    auto t1 = Thread::create(node2Hop1, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
 //    auto t1 = Thread::create(node3Hop2, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
     
-    t1->join();
-    printf("Dying now...\n");
+    for(;;)
+    {
+        sleep(10);
+        MemoryProfiling::print();
+    }
     
     return 0;
 }
