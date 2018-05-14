@@ -41,7 +41,7 @@ void DynamicUplinkPhase::receiveByNode(long long slotStart, unsigned char curren
     if (now + timesync->getReceiverWindow() >= slotStart)
         print_dbg("[U] start late\n");
     if (now < wakeUpTimeout.first)
-        pm.deepSleepUntil(wakeUpTimeout.first);
+        ctx.sleepUntil(wakeUpTimeout.first);
     do {
         rcvResult = ctx.recv(packet.data(), packet.size(), wakeUpTimeout.second);
         if (ENABLE_PKT_INFO_DBG) {
@@ -80,7 +80,7 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart) {
     if (now >= slotStart)
         print_dbg("[U] start late\n");
     if (now < wuTime)
-        pm.deepSleepUntil(wuTime);
+        ctx.sleepUntil(wuTime);
     ctx.sendAt(packet.data(), msg.size(), slotStart);
     tMsg->deleteForwarded();
     delete tMsg;

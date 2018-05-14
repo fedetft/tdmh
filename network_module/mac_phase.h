@@ -29,7 +29,6 @@
 
 #include "medium_access_controller.h"
 #include "interfaces-impl/transceiver.h"
-#include "interfaces-impl/power_manager.h"
 #include <array>
 
 namespace mxnet {
@@ -75,7 +74,6 @@ public:
 protected:
     MACContext& ctx;
     TimesyncDownlink* const timesync;
-    miosix::PowerManager& pm;
     std::array<unsigned char, MediumAccessController::maxPktSize> packet;
     miosix::RecvResult rcvResult;
 };

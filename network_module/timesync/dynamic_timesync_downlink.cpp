@@ -50,7 +50,7 @@ void DynamicTimesyncDownlink::periodicSync() {
     }
     //sleep, if we have time
     if(now < wakeupTimeout.first)
-        pm.deepSleepUntil(wakeupTimeout.first);
+        ctx.sleepUntil(wakeupTimeout.first);
     do {
         rcvResult = ctx.recv(packet.data(), syncPacketSize, wakeupTimeout.second, Transceiver::Correct::UNCORR);
         if (ENABLE_PKT_INFO_DBG) {

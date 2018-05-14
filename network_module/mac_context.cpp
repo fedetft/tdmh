@@ -49,7 +49,8 @@ MACContext::~MACContext() {
 MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiver, const NetworkConfiguration& config) :
                 mac(mac), transceiverConfig(config.getBaseFrequency(), config.getTxPower(), true, false),
                 networkConfig(config), networkId(config.getStaticNetworkId()), transceiver(transceiver),
-                sendTotal(0), sendErrors(0), rcvTotal(0), rcvErrors(0), running(false) {}
+                pm(miosix::PowerManager::instance()), sendTotal(0), sendErrors(0), rcvTotal(0), rcvErrors(0),
+                running(false) {}
 
 TopologyContext* MACContext::getTopologyContext() const { return uplink->getTopologyContext(); }
 StreamManagementContext* MACContext::getStreamManagementContext() const { return uplink->getStreamManagementContext(); }

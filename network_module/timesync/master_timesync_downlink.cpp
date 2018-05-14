@@ -40,7 +40,7 @@ void MasterTimesyncDownlink::execute(long long slotStart)
     //Thread::nanoSleepUntil(startTime);
     auto deepsleepDeadline = getSenderWakeup(slotframeTime);
     if(getTime() < deepsleepDeadline)
-        pm.deepSleepUntil(deepsleepDeadline);
+        ctx.sleepUntil(deepsleepDeadline);
     //Sending synchronization start packet
     ctx.sendAt(packet.data(), syncPacketSize, slotframeTime);
     ctx.transceiverIdle();

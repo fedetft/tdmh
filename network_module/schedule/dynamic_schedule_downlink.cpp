@@ -50,7 +50,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
         return;
     }
     if(now < wakeupTimeout.first)
-        pm.deepSleepUntil(wakeupTimeout.first);
+        ctx.sleepUntil(wakeupTimeout.first);
     ledOn();
     do {
             rcvResult = ctx.recv(packet.data(), MediumAccessController::maxPktSize, wakeupTimeout.second);

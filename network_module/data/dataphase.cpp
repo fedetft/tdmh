@@ -59,7 +59,7 @@ namespace mxnet {
             if (now >= expectedTs - (status == nullptr? MediumAccessController::maxAdmittableResyncReceivingWindow : status->receiverWindow))
                 print_dbg("[D] start late\n");
             if (now < wuTo.first)
-                pm.deepSleepUntil(wuTo.first);
+                ctx.sleepUntil(wuTo.first);
             r = transceiver.recv(pkt.data(), 125, wuTo.second);
             print_dbg("[D] Received packet with size %d at %llu:\n%s\n", r.size, r.timestamp, std::string((char*) pkt.data(), r.size).c_str());
             break;
@@ -67,7 +67,7 @@ namespace mxnet {
             if (now >= expectedTs - (status == nullptr? MediumAccessController::maxAdmittableResyncReceivingWindow : status->receiverWindow))
                 print_dbg("[D] start late\n");
             if (now < wuTo.first)
-                pm.deepSleepUntil(wuTo.first);
+                ctx.sleepUntil(wuTo.first);
             r = transceiver.recv(pkt.data(), 125, wuTo.second);
             pkt.resize(r.size);
             q = std::get<2>(slotJob);

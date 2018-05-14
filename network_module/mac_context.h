@@ -32,6 +32,7 @@
 //#include "timesync/timesync_downlink.h"
 #include "network_configuration.h"
 #include "interfaces-impl/transceiver.h"
+#include "interfaces-impl/power_manager.h"
 #include <functional>
 #include <stdexcept>
 
@@ -146,6 +147,11 @@ public:
      */
     inline void transceiverIdle() { transceiver.idle(); }
 
+    inline void sleepUntil(long long wakeup) const
+    {
+        if(sleepDeep) pm.deepSleepUntil(wakeup);
+        else miosix::Thread::nanoSleepUntil(wakeup);
+    }
 
     /**
      * @return the TimesyncDownlink phase
@@ -201,6 +207,7 @@ private:
     const NetworkConfiguration& networkConfig;
     unsigned short networkId;
     miosix::Transceiver& transceiver;
+    miosix::PowerManager& pm;
 
     //TODO write getters for the statistics
     unsigned sendTotal;
@@ -209,6 +216,7 @@ private:
     unsigned rcvErrors;
 
     bool running;
+    const bool sleepDeep=false; //TODO: make it configurable
 };
 }
 

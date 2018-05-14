@@ -46,7 +46,7 @@ void MasterUplinkPhase::execute(long long slotStart) {
     if (now >= slotStart)
         print_dbg("[U] start late\n");
     if (now < wuTime)
-        pm.deepSleepUntil(wuTime);
+        ctx.sleepUntil(wuTime);
     do {
         rcvResult = ctx.recv(packet.data(), MediumAccessController::maxPktSize, timeout);
         if (ENABLE_PKT_INFO_DBG) {

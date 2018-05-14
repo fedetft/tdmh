@@ -31,6 +31,5 @@
 namespace mxnet {
 MACPhase::MACPhase(MACContext& ctx) :
         ctx(ctx),
-        timesync(ctx.getTimesync()),
-        pm(miosix::PowerManager::instance()) {};
+        timesync(ctx.getTimesync()) {}
 }

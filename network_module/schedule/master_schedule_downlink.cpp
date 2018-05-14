@@ -61,7 +61,7 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     //Thread::nanoSleepUntil(startTime);
     auto wakeUp = slotStart - MediumAccessController::sendingNodeWakeupAdvance;
     if(getTime() < wakeUp)
-        pm.deepSleepUntil(wakeUp);
+        ctx.sleepUntil(wakeUp);
     ctx.sendAt(packet.data(), (bitSize - 1) / numeric_limits<unsigned char>::digits + 1, slotStart);
     if (ENABLE_SCHEDULE_DL_INFO_DBG)
         print_dbg("[SC] ST=%lld\n", slotStart);
