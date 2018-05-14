@@ -109,7 +109,7 @@ void DynamicTimesyncDownlink::resync() {
         print_dbg("[T] Resync\n");
     //TODO: attach to strongest signal, not just to the first received packet
     for (bool success = false; !success; success = isSyncPacket()) {
-        rcvResult = ctx.recv(packet.data(), syncPacketSize, infiniteTimeout);
+        rcvResult = ctx.recv(packet.data(), syncPacketSize, infiniteTimeout, Transceiver::Correct::UNCORR);
         if (ENABLE_PKT_INFO_DBG) {
             if(rcvResult.size){
                 print_dbg("Received packet, error %d, size %d, timestampValid %d: ",
@@ -144,16 +144,16 @@ inline void DynamicTimesyncDownlink::execute(long long slotStart)
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     if (internalStatus == DESYNCHRONIZED) {
         resync();
-        return;
+    } else {
+        periodicSync();
+        //TODO implement roundtrip nodes list
+        if (false && static_cast<DynamicTopologyContext*>(ctx.getTopologyContext())->hasSuccessor(0))
+            //a successor of the current node needs to perform RTT estimation
+            listeningRTP.execute(slotStart + RoundtripSubphase::senderDelay);
+        else if (false)
+            //i can perform RTT estimation
+            askingRTP.execute(slotStart + RoundtripSubphase::senderDelay);
     }
-    periodicSync();
-    //TODO implement roundtrip nodes list
-    if (false && static_cast<DynamicTopologyContext*>(ctx.getTopologyContext())->hasSuccessor(0))
-        //a successor of the current node needs to perform RTT estimation
-        listeningRTP.execute(slotStart + RoundtripSubphase::senderDelay);
-    else if (false)
-        //i can perform RTT estimation
-        askingRTP.execute(slotStart + RoundtripSubphase::senderDelay);
     ctx.transceiverIdle();
 }
 
