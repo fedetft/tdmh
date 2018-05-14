@@ -47,10 +47,33 @@ public:
     NetworkTime() : time(0) {}
     
     /**
-     * Constructor from long long, explicit to prevent unwanted casts between
-     * other times in the node and NetworkTime
+     * Factory to create a NetworkTime from a local time
+     * \param time local node time
+     * \return the corresponding NetworkTime
      */
-    explicit NetworkTime(long long time) : time(time) {}
+    static inline NetworkTime fromLocalTime(long long time)
+    {
+        return NetworkTime(time+localNodeToNetworkTimeOffset);
+    }
+    
+    /**
+     * Factory to create a NetworkTime from a network time stored in a long long
+     * \param time network time as long long
+     * \return the corresponding NetworkTime
+     */
+    static inline NetworkTime fromNetworkTime(long long time)
+    {
+        return NetworkTime(time);
+    }
+    
+    /**
+     * Equivalent of miosix::getTime() that returns the global network time.
+     * \return The current network time
+     */
+    static inline NetworkTime now()
+    {
+        return NetworkTime::fromLocalTime(miosix::getTime());
+    }
     
     /**
      * Explicit way to cast a NetworkTime to a long long
@@ -59,13 +82,10 @@ public:
     inline long long get() const { return time; }
     
     /**
-     * Equivalent of miosix::getTime() that returns the global network time.
-     * \return The current network time
+     * Explicit way to convert a NetworkTime to a local time
+     * \return the local time
      */
-    static inline NetworkTime getTime()
-    {
-        return NetworkTime(miosix::getTime()+localNodeToNetworkTimeOffset);
-    }
+    inline long long toLocalTime() const { return time-localNodeToNetworkTimeOffset; }
     
     /**
      * \internal
@@ -84,18 +104,24 @@ public:
     }
     
 private:
+    /**
+     * Constructor from long long, explicit to prevent unwanted casts between
+     * other times in the node and NetworkTime
+     */
+    explicit NetworkTime(long long time) : time(time) {}
+    
     long long time; ///< Network time
     static long long localNodeToNetworkTimeOffset; ///< Offset
 };
 
 inline NetworkTime operator+ (NetworkTime lhs, NetworkTime rhs)
 {
-    return NetworkTime(lhs.get() + rhs.get());
+    return NetworkTime::fromNetworkTime(lhs.get() + rhs.get());
 }
 
 inline NetworkTime operator- (NetworkTime lhs, NetworkTime rhs)
 {
-    return NetworkTime(lhs.get() - rhs.get());
+    return NetworkTime::fromNetworkTime(lhs.get() - rhs.get());
 }
 
 inline void operator+= (NetworkTime& lhs, NetworkTime rhs)

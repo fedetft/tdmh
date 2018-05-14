@@ -94,7 +94,7 @@ void DynamicTimesyncDownlink::periodicSync() {
                 print_dbg("[T] lost sync\n");
         }
     }
-    printf("[GLOBAL] %lld\n",NetworkTime::getTime().get());
+    printf("[GLOBAL] %lld\n",NetworkTime::now().get());
 }
 
 std::pair<long long, long long> DynamicTimesyncDownlink::getWakeupAndTimeout(long long tExpected) {
@@ -134,7 +134,7 @@ void DynamicTimesyncDownlink::resync() {
     //FIXME: is start in nanosecond corrected?
     //FIXME: what if the master nede reboots?
     NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() * networkConfig.getSlotframeDuration() - start);
-    printf("[GLOBAL] %lld\n",NetworkTime::getTime().get());
+    printf("[GLOBAL] %lld\n",NetworkTime::now().get());
 
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[F] hop=%d ats=%lld w=%d mst=%lld rssi=%d\n",
