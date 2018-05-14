@@ -37,7 +37,6 @@ void MasterTimesyncDownlink::execute(long long slotStart)
 {
     next();
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    ctx.transceiverTurnOn();
     //Thread::nanoSleepUntil(startTime);
     auto deepsleepDeadline = getSenderWakeup(slotframeTime);
     if(getTime() < deepsleepDeadline)
@@ -49,7 +48,7 @@ void MasterTimesyncDownlink::execute(long long slotStart)
         print_dbg("[T] ST=%lld\n", slotframeTime);
     if (false)
         listeningRTP.execute(slotframeTime + RoundtripSubphase::senderDelay);
-    ctx.transceiverTurnOff();
+    ctx.transceiverIdle();
 }
 
 std::pair<long long, long long> MasterTimesyncDownlink::getWakeupAndTimeout(long long tExpected) {

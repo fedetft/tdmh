@@ -37,7 +37,6 @@ namespace mxnet {
         if (ENABLE_DATA_INFO_DBG)
             print_dbg("[D] GFAT=%llu\n", slotStart);
         ctx.configureTransceiver(ctx.getTransceiverConfig());
-        ctx.transceiverTurnOn();
         if (scheduleDownlink->isScheduleEnd(nextSched) || (*nextSched)->getDataslot() != dataSlot) return;
         /*
         std::tuple<bool, ScheduleContext::Role, std::queue<std::vector<unsigned char>>*> slotJob = s->executeTimeslot(i);
@@ -87,7 +86,7 @@ namespace mxnet {
             print_dbg("[D] Forwarded packet with size %d at %llu\n", pkt.size(), expectedTs);
             break;
         }*/
-        ctx.transceiverTurnOff();
+        ctx.transceiverIdle();
     }
 
 

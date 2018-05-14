@@ -69,7 +69,7 @@ void DynamicTimesyncDownlink::periodicSync() {
         //Rebroadcast the sync packet
         measuredFrameStart = correct(rcvResult.timestamp);
         rebroadcast(measuredFrameStart);
-        ctx.transceiverTurnOff();
+        ctx.transceiverIdle();
         error = rcvResult.timestamp - computedFrameStart;
         std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->computeCorrection(error);
         missedPackets = 0;
@@ -127,7 +127,7 @@ void DynamicTimesyncDownlink::resync() {
     rebroadcast(correct(rcvResult.timestamp));
 
     ledOff();
-    ctx.transceiverTurnOff();
+    ctx.transceiverIdle();
 
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[F] hop=%d ats=%lld w=%d mst=%lld rssi=%d\n",
@@ -142,7 +142,6 @@ inline void DynamicTimesyncDownlink::execute(long long slotStart)
     //the argument is ignored, since this is the time source class.
     next();
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    ctx.transceiverTurnOn();
     if (internalStatus == DESYNCHRONIZED) {
         resync();
         return;
@@ -155,7 +154,7 @@ inline void DynamicTimesyncDownlink::execute(long long slotStart)
     else if (false)
         //i can perform RTT estimation
         askingRTP.execute(slotStart + RoundtripSubphase::senderDelay);
-    ctx.transceiverTurnOff();
+    ctx.transceiverIdle();
 }
 
 void DynamicTimesyncDownlink::rebroadcast(long long arrivalTs){

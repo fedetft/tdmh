@@ -123,6 +123,7 @@ unsigned short MACContext::getDataslotCount() const {
 }
 
 void MACContext::run() {
+    transceiver.turnOn();
     long long currentNextDeadline = 0;
     for (running = true; running; ) {
         timesync->execute(currentNextDeadline);
@@ -140,6 +141,7 @@ void MACContext::run() {
             currentNextDeadline += data->getDuration();
         }
     }
+    transceiver.turnOff();
 }
 
 

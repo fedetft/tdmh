@@ -64,7 +64,7 @@ void ListeningRoundtripPhase::execute(long long slotStart) {
         print_dbg("[T/R] tr=null\n");
     }
     
-    ctx.transceiverTurnOff();
+    ctx.transceiverIdle();
 }
 }
 

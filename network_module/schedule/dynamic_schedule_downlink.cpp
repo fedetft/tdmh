@@ -42,7 +42,6 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
         print_dbg("[S] WU=%lld TO=%lld\n", wakeupTimeout.first, wakeupTimeout.second);
     //Transceiver configured with non strict timeout
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    ctx.transceiverTurnOn();
     auto now = getTime();
     //check if we skipped the synchronization time
     if (now + timesync->getReceiverWindow() >= arrivalTime) {
@@ -71,7 +70,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     //This conversion is really necessary to get the corrected time in NS, to pass to transceiver
     //Rebroadcast the sync packet
     rebroadcast(rcvResult.timestamp);
-    ctx.transceiverTurnOff();
+    ctx.transceiverIdle();
     auto data = std::vector<unsigned char>(packet.begin(), packet.begin() + rcvResult.size);
     parseSchedule(data);
 }

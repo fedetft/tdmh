@@ -58,7 +58,6 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
         }
     }
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    ctx.transceiverTurnOn();
     //Thread::nanoSleepUntil(startTime);
     auto wakeUp = slotStart - MediumAccessController::sendingNodeWakeupAdvance;
     if(getTime() < wakeUp)
@@ -66,7 +65,7 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     ctx.sendAt(packet.data(), (bitSize - 1) / numeric_limits<unsigned char>::digits + 1, slotStart);
     if (ENABLE_SCHEDULE_DL_INFO_DBG)
         print_dbg("[SC] ST=%lld\n", slotStart);
-    ctx.transceiverTurnOff();
+    ctx.transceiverIdle();
     for (auto el : data.first)
         delete el;
 }

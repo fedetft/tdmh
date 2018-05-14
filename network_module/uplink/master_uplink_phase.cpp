@@ -39,7 +39,6 @@ void MasterUplinkPhase::execute(long long slotStart) {
     if (ENABLE_UPLINK_INFO_DBG)
         print_dbg("[U] N=%u T=%lld\n", address, slotStart);
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    ctx.transceiverTurnOn();
     auto wuTime = slotStart - MediumAccessController::receivingNodeWakeupAdvance;
     auto timeout = slotStart + MediumAccessController::maxPropagationDelay +
             MediumAccessController::maxAdmittableResyncReceivingWindow + MediumAccessController::packetPreambleTime;
@@ -59,7 +58,7 @@ void MasterUplinkPhase::execute(long long slotStart) {
             } else print_dbg("No packet received, timeout reached\n");
         }
     } while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK);
-    ctx.transceiverTurnOff();
+    ctx.transceiverIdle();
     if (rcvResult.error == RecvResult::ErrorCode::OK) {
         //TODO parse message and send it to topology and stream management contexts
         auto data = std::vector<unsigned char>(packet.begin(), packet.begin() + rcvResult.size);

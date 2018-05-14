@@ -61,7 +61,7 @@ namespace mxnet {
                 } else print_dbg("No packet received, timeout reached\n");
             }
         }
-        ctx.transceiverTurnOff();
+        ctx.transceiverIdle();
 
         LedBar<replyPacketSize> p(packet.data());
         if(rcvResult.size == p.getPacketSize() && rcvResult.error == miosix::RecvResult::OK && rcvResult.timestampValid) {

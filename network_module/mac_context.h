@@ -142,16 +142,6 @@ public:
     miosix::RecvResult recv(void *pkt, int size, long long timeout, std::function<void(std::exception&)> cbk, miosix::Transceiver::Correct c=miosix::Transceiver::Correct::CORR);
 
     /**
-     * Turns on the transceiver
-     */
-    inline void transceiverTurnOn() { transceiver.turnOn(); }
-
-    /**
-     * Turns off the transceiver
-     */
-    inline void transceiverTurnOff() { transceiver.turnOff(); }
-
-    /**
      * Puts the transceiver in idle state
      */
     inline void transceiverIdle() { transceiver.idle(); }
