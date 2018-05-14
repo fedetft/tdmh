@@ -50,7 +50,7 @@ public:
     unsigned long long getSlotsCount() const override { return 1; }
     static const int phaseStartupTime = 450000;
     static const int syncPacketSize = 11;
-    static const int rebroadcastInterval = 1016000; //32us per-byte + 600us total delta
+    static const int rebroadcastInterval = (syncPacketSize+8)*32000 + 536000; //32us per-byte + 536us total delta
 
     /**
      * @return the status of the synchronization state machine
