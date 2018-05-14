@@ -104,6 +104,9 @@ public:
     }
     
 private:
+    friend void operator+= (NetworkTime& lhs, NetworkTime rhs);
+    friend void operator-= (NetworkTime& lhs, NetworkTime rhs);
+    
     /**
      * Constructor from long long, explicit to prevent unwanted casts between
      * other times in the node and NetworkTime
@@ -126,12 +129,12 @@ inline NetworkTime operator- (NetworkTime lhs, NetworkTime rhs)
 
 inline void operator+= (NetworkTime& lhs, NetworkTime rhs)
 {
-    lhs += rhs;
+    lhs.time += rhs.get();
 }
 
 inline void operator-= (NetworkTime& lhs, NetworkTime rhs)
 {
-    lhs -= rhs;
+    lhs.time -= rhs.get();
 }
 
 //NOTE: no operator * and / on purpose as 64x64 mult/div are slow ans should be avoided
