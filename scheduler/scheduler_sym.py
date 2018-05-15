@@ -56,6 +56,7 @@ def check_interference_conflict(schedule, topology, timeslot, node, activity):
 # option A iteration
 # TODO sort streams according to chosen metric
 def scheduler(topology, stream_list, data_slots):
+    schedule = []
     for stream in stream_list:
         for timeslot in range(data_slots):
             print('Checking stream ' + repr(stream) + ' on timeslot ' + repr(timeslot))
@@ -96,9 +97,9 @@ def scheduler(topology, stream_list, data_slots):
     print('\nResulting schedule')
     print('Time, Node, Activity')
     for x in schedule:
-    print(' {}     {}      {}'.format(x[0], x[1], x[2]))
-    
-    return schedule
+        print(' {}     {}      {}'.format(x[0], x[1], x[2]))
+
+    return schedule;
 
 
 if __name__ == '__main__':
