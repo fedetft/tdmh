@@ -94,7 +94,6 @@ void DynamicTimesyncDownlink::periodicSync() {
                 print_dbg("[T] lost sync\n");
         }
     }
-    printf("[GLOBAL] %lld\n",NetworkTime::now().get());
 }
 
 std::pair<long long, long long> DynamicTimesyncDownlink::getWakeupAndTimeout(long long tExpected) {

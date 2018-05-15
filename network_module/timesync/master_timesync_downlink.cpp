@@ -50,8 +50,6 @@ void MasterTimesyncDownlink::execute(long long slotStart)
         listeningRTP.execute(slotframeTime + RoundtripSubphase::senderDelay);
     ctx.transceiverIdle();
     incrementTimesyncPacketCounter();
-    memDump(packet.data(),syncPacketSize);
-    printf("[CTR] %u\n",getTimesyncPacketCounter());
 }
 
 std::pair<long long, long long> MasterTimesyncDownlink::getWakeupAndTimeout(long long tExpected) {
