@@ -117,7 +117,7 @@ def draw_graph(topology):
     
     ed = [''.join((repr(e[0]), repr(e[1]))) for e in topology]
     dot.edges(ed)
-    dot.render('test-output/round-table.gv', view=True)  # doctest: +SKIP
+    dot.render('topology.gv', view=True)  # doctest: +SKIP
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
