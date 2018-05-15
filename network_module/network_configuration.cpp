@@ -31,27 +31,20 @@
 
 namespace mxnet {
 
-NetworkConfiguration::NetworkConfiguration(const unsigned char maxHops, const unsigned short maxNodes, unsigned short networkId,
-        const unsigned char staticHop, const unsigned short panId, const short txPower, const unsigned int baseFrequency,
-        const unsigned long long slotframeDuration, const unsigned char maxForwardedTopologies,
-        const unsigned short scheduleDownlinkPerSlotframeCount, const unsigned long long maxAdmittedRcvWindow,
-        const unsigned short maxRoundsUnavailableBecomesDead, const unsigned short maxRoundsUnreliableParent,
-        const unsigned char maxMissedTimesyncs,
-        const TopologyMode topologyMode) :
+NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short maxNodes, unsigned short networkId,
+        unsigned char staticHop, unsigned short panId, short txPower, unsigned int baseFrequency,
+        unsigned long long clockSyncPeriod, unsigned char maxForwardedTopologies,
+        unsigned short scheduleDownlinkPerSlotframeCount, unsigned long long maxAdmittedRcvWindow,
+        unsigned short maxRoundsUnavailableBecomesDead, unsigned short maxRoundsUnreliableParent,
+        unsigned char maxMissedTimesyncs,
+        TopologyMode topologyMode) :
     maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)), staticNetworkId(networkId),
     staticHop(staticHop), maxNodes(maxNodes), networkIdBits(BitwiseOps::bitsForRepresentingCount(maxNodes)),
     panId(panId), txPower(txPower), baseFrequency(baseFrequency), topologyMode(topologyMode),
-    slotframeDuration(slotframeDuration), maxMissedTimesyncs(maxMissedTimesyncs),
-    maxAdmittedRcvWindow(maxAdmittedRcvWindow), maxForwardedTopologies(maxForwardedTopologies),
+    clockSyncPeriod(clockSyncPeriod), maxAdmittedRcvWindow(maxAdmittedRcvWindow),
+    maxMissedTimesyncs(maxMissedTimesyncs), maxForwardedTopologies(maxForwardedTopologies),
     maxRoundsUnavailableBecomesDead(maxRoundsUnavailableBecomesDead),
     maxRoundsUnreliableParent(maxRoundsUnreliableParent),
-    scheduleDownlinkPerSlotframeCount(scheduleDownlinkPerSlotframeCount) {
-    switch (topologyMode) {
-    case TopologyMode::NEIGHBOR_COLLECTION:
-        break;
-    case TopologyMode::ROUTING_VECTOR:
-        break;
-    }
-};
+    scheduleDownlinkPerSlotframeCount(scheduleDownlinkPerSlotframeCount) {}
 
 } /* namespace mxnet */

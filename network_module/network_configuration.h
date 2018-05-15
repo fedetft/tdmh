@@ -35,25 +35,25 @@ public:
         ROUTING_VECTOR
     };
 
-    NetworkConfiguration(const unsigned char maxHops, const unsigned short maxNodes, unsigned short networkId,
-            const unsigned char staticHop, const unsigned short panId, const short txPower,
-            const unsigned int baseFrequency, const unsigned long long slotframeDuration,
-            const unsigned char maxForwardedTopologies, const unsigned short scheduleDownlinkPerSlotframeCount,
-            const unsigned long long maxAdmittedRcvWindow, const unsigned short maxRoundsUnavailableBecomesDead,
-            const unsigned short maxRoundsUnreliableParent, const unsigned char maxMissedTimesyncs,
-            const TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION);
+    NetworkConfiguration(unsigned char maxHops, unsigned short maxNodes, unsigned short networkId,
+            unsigned char staticHop, unsigned short panId, short txPower,
+            unsigned int baseFrequency, unsigned long long clockSyncPeriod,
+            unsigned char maxForwardedTopologies, unsigned short scheduleDownlinkPerSlotframeCount,
+            unsigned long long maxAdmittedRcvWindow, unsigned short maxRoundsUnavailableBecomesDead,
+            unsigned short maxRoundsUnreliableParent, unsigned char maxMissedTimesyncs,
+            TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION);
 
     /**
      * @return the reference frequency for the protocol.
      */
-    const unsigned int getBaseFrequency() const {
+    unsigned int getBaseFrequency() const {
         return baseFrequency;
     }
 
     /**
      * @return if the network id is statically or dinamically configured.
      */
-    const bool isDynamicNetworkId() const {
+    bool isDynamicNetworkId() const {
         return dynamicNetworkId;
     }
 
@@ -67,7 +67,7 @@ public:
     /**
      * @return number of time synchronization missed, based on the local clock progress
      */
-    const unsigned char getMaxMissedTimesyncs() const {
+    unsigned char getMaxMissedTimesyncs() const {
         return maxMissedTimesyncs;
     }
 
@@ -76,49 +76,57 @@ public:
      * Id est, the threshold of synchronization beyond which the protocol can't work,
      * since it would have a too few accurate timing precision.
      */
-    const unsigned getMaxAdmittedRcvWindow() const {
+    unsigned getMaxAdmittedRcvWindow() const {
         return maxAdmittedRcvWindow;
     }
 
     /**
+     * TODO: remove
      * @return the duration of the slotframe, which corresponds to the interval separating two timesync downlink phases.
      */
-    const unsigned long long getSlotframeDuration() const {
-        return slotframeDuration;
+    unsigned long long getSlotframeDuration() const {
+        return clockSyncPeriod;
+    }
+    
+    /**
+     * @return the duration of the clock synchronization period
+     */
+    unsigned long long getClockSyncPeriod() const {
+        return clockSyncPeriod;
     }
 
     /**
      * @return the maximum number of topology messages that can be forwarded in an uplink.
      */
-    const unsigned char getMaxForwardedTopologies() const {
+    unsigned char getMaxForwardedTopologies() const {
         return maxForwardedTopologies;
     }
 
     /**
      * @return the maximum number of hops the networks supports.
      */
-    const unsigned char getMaxHops() const {
+    unsigned char getMaxHops() const {
         return maxHops;
     }
 
     /**
      * @return the maximum number of nodes the network supports.
      */
-    const unsigned short getMaxNodes() const {
+    unsigned short getMaxNodes() const {
         return maxNodes;
     }
 
     /**
      * @return the number of uplinks (for which it would be his turn) after which a neighbor not sending a packet is considered disconnected.
      */
-    const unsigned short getMaxRoundsUnavailableBecomesDead() const {
+    unsigned short getMaxRoundsUnavailableBecomesDead() const {
         return maxRoundsUnavailableBecomesDead;
     }
 
     /**
      * @return the number of uplinks (for which it would be his turn) after which a parent non sending a packet is considered disconnected.
      */
-    const unsigned short getMaxRoundsUnreliableParent() const {
+    unsigned short getMaxRoundsUnreliableParent() const {
         return maxRoundsUnreliableParent;
     }
 
@@ -132,63 +140,63 @@ public:
     /**
      * @return the pan id used in the timesync packets' header.
      */
-    const unsigned short getPanId() const {
+    unsigned short getPanId() const {
         return panId;
     }
 
     /**
      * @return the statically configured network id.
      */
-    const unsigned short getStaticNetworkId() const {
+    unsigned short getStaticNetworkId() const {
         return staticNetworkId;
     }
 
     /**
      * @return the statically configured hop.
      */
-    const unsigned short getStaticHop() const {
+    unsigned short getStaticHop() const {
         return staticHop;
     }
 
     /**
      * @return the topology mode used in the network to perform topology collection.
      */
-    const TopologyMode getTopologyMode() const {
+    TopologyMode getTopologyMode() const {
         return topologyMode;
     }
 
     /**
      * @return the power, in dBm, at which the radio operates.
      */
-    const short getTxPower() const {
+    short getTxPower() const {
         return txPower;
     }
 
     /**
      * @return the number of schedule downlinks each slotframe contains.
      */
-    const unsigned short getScheduleDownlinkPerSlotframeCount() const {
+    unsigned short getScheduleDownlinkPerSlotframeCount() const {
         return scheduleDownlinkPerSlotframeCount;
     }
 private:
     const unsigned char maxHops;
-    unsigned char hopBits;
+    const unsigned char hopBits;
     const bool dynamicNetworkId = false;
     const unsigned short staticNetworkId;
     const unsigned short staticHop;
     const unsigned short maxNodes;
-    unsigned short networkIdBits;
+    const unsigned short networkIdBits;
     const unsigned short panId;
     const short txPower;
     const unsigned int baseFrequency;
     const TopologyMode topologyMode;
-    const unsigned long long slotframeDuration;
-    const unsigned char maxMissedTimesyncs;
+    const unsigned long long clockSyncPeriod;
     const unsigned long long maxAdmittedRcvWindow;
+    const unsigned char maxMissedTimesyncs;
     const unsigned char maxForwardedTopologies;
     const unsigned short maxRoundsUnavailableBecomesDead;
     const unsigned short maxRoundsUnreliableParent;
     const unsigned short scheduleDownlinkPerSlotframeCount;
 };
-}
 
+}
