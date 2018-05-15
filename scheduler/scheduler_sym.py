@@ -2,6 +2,9 @@
 
 # Author: Federico Amedeo Izzo, federico.izzo42@gmail.com
 
+import argparse
+from graphviz import Graph
+
 ### GREEDY SCHEDULING ALGORITHM
 
 ## INPUTS:
@@ -101,7 +104,28 @@ def scheduler(topology, stream_list, data_slots):
 
     return schedule;
 
+def draw_graph(topology):
+    # Create directed graph (Digraph)
+    dot = Graph(format='pdf', comment='Network Topology', strict = True)
+    
+    # Flatten topology (list of tuples)
+    nodes = list(sum(topology, ()))
+    # Get unique nodes
+    nodes = set(nodes)
+    for x in nodes:
+        dot.node(repr(x))
+    
+    ed = [''.join((repr(e[0]), repr(e[1]))) for e in topology]
+    dot.edges(ed)
+    dot.render('test-output/round-table.gv', view=True)  # doctest: +SKIP
 
 if __name__ == '__main__':
-    scheduler(topology_1, stream_list_1, data_slots_1)
-    #scheduler(topology_1, stream_list_2, data_slots_1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("command", help="examples: plot, run")
+    args = parser.parse_args()
+    if (args.command == "plot"):
+        draw_graph(topology_1)
+    if (args.command == "run"):
+        scheduler(topology_1, stream_list_1, data_slots_1)
+        #scheduler(topology_1, stream_list_2, data_slots_1)
+    
