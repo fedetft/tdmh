@@ -130,7 +130,7 @@ void DynamicTimesyncDownlink::resync() {
     ledOff();
     ctx.transceiverIdle();
     
-    NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() * networkConfig.getSlotframeDuration() - correct(start));
+    NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() * networkConfig.getClockSyncPeriod() - correct(start));
 
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[F] hop=%d ats=%lld w=%d mst=%lld rssi=%d\n",
@@ -181,10 +181,10 @@ void DynamicTimesyncDownlink::next() {
     //This an uncorrected clock! Good for Rtc, that doesn't correct by itself
     //needed because we ALWAYS need to consider the reference to be the first hook time,
     //otherwise we would build a second integrator without actually managing it.
-    theoreticalFrameStart += networkConfig.getSlotframeDuration();
+    theoreticalFrameStart += networkConfig.getClockSyncPeriod();
     //This is the estimate of the next packet in our clock
     //using the FLOPSYNC-2 clock correction
-    computedFrameStart += networkConfig.getSlotframeDuration() + clockCorrection;
+    computedFrameStart += networkConfig.getClockSyncPeriod() + clockCorrection;
 }
 
 long long DynamicTimesyncDownlink::correct(long long int uncorrected) {

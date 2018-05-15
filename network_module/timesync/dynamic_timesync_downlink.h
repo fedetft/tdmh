@@ -50,7 +50,7 @@ public:
             theoreticalFrameStart(0),
             clockCorrection(0),
             missedPackets(0) {
-                vt.setSyncPeriod(networkConfig.getSlotframeDuration());
+                vt.setSyncPeriod(networkConfig.getClockSyncPeriod());
         };
     DynamicTimesyncDownlink(const DynamicTimesyncDownlink& orig) = delete;
     virtual ~DynamicTimesyncDownlink() {

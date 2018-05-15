@@ -47,7 +47,7 @@ MasterTimesyncDownlink::MasterTimesyncDownlink(MACContext& ctx) : TimesyncDownli
         }};
     
     auto now = getTime();
-    auto period = networkConfig.getSlotframeDuration();
+    auto period = networkConfig.getClockSyncPeriod();
     slotframeTime = now - (now % period) + period;
     if(slotframeTime - now < initializationDelay) slotframeTime += period;
     setTimesyncPacketCounter(slotframeTime / period);
@@ -81,7 +81,7 @@ std::pair<long long, long long> MasterTimesyncDownlink::getWakeupAndTimeout(long
 }
 
 void MasterTimesyncDownlink::next() {
-    slotframeTime += networkConfig.getSlotframeDuration();
+    slotframeTime += networkConfig.getClockSyncPeriod();
 }
 
 long long MasterTimesyncDownlink::correct(long long int uncorrected) {
