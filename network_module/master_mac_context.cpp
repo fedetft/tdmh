@@ -32,7 +32,7 @@
 namespace mxnet {
 MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
     MACContext(mac, transceiver, config) {
-    timesync = new MasterTimesyncDownlink(*this, miosix::getTime() + initializationDelay);
+    timesync = new MasterTimesyncDownlink(*this);
     schedule = new MasterScheduleDownlinkPhase(*this);
     streamManagement = new MasterStreamManagementContext();
     auto* topology = config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION?

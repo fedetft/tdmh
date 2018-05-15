@@ -34,29 +34,7 @@
 namespace mxnet {
 class MasterTimesyncDownlink : public TimesyncDownlink {
 public:
-    explicit MasterTimesyncDownlink(MACContext& ctx, long long firstTimesyncTime) :
-            TimesyncDownlink(ctx, MacroStatus::IN_SYNC), slotframeTime(firstTimesyncTime) {
-        auto panId = networkConfig.getPanId();
-        packet = {{
-                0x46, //frame type 0b110 (reserved), intra pan
-                0x08, //no source addressing, short destination addressing
-                0x00, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
-                static_cast<unsigned char>(panId>>8),
-                static_cast<unsigned char>(panId & 0xff), //destination pan ID
-                0xff, 0xff,                               //destination addr (broadcast)
-                1,0,0,0                                   //32bit timesync packet counter for absolute network time
-            }};
-    };
-    
-   /**
-    * Used to increment the timesync packet counter used for slave nodes to
-    * know the absolute network time
-    */
-    void incrementTimesyncPacketCounter()
-    {
-        auto ptr=reinterpret_cast<unsigned int*>(packet.data()+7);
-        (*ptr)++;
-    }
+    explicit MasterTimesyncDownlink(MACContext& ctx);
     
     MasterTimesyncDownlink() = delete;
     MasterTimesyncDownlink(const MasterTimesyncDownlink& orig) = delete;
@@ -67,11 +45,33 @@ public:
     virtual long long getSlotframeStart() const { return slotframeTime; }
 
 protected:
+    /**
+     * Set the timesync packet counter used for slave nodes to know the
+     * absolute network time
+     * \param value timesync packet counter
+     */
+    void setTimesyncPacketCounter(unsigned int value)
+    {
+        auto ptr=reinterpret_cast<unsigned int*>(packet.data()+7);
+        *ptr=value;
+    }
+    
+    /**
+     * Increment the timesync packet counter used for slave nodes to know the
+     * absolute network time
+     */
+    void incrementTimesyncPacketCounter()
+    {
+        auto ptr=reinterpret_cast<unsigned int*>(packet.data()+7);
+        (*ptr)++;
+    }
     
     void next() override;
     long long correct(long long int uncorrected) override;
 private:
     long long slotframeTime;
+    static const long long initializationDelay = 1000000;
 };
+
 }
 

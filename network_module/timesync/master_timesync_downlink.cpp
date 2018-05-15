@@ -33,6 +33,26 @@ using namespace miosix;
 
 namespace mxnet {
 
+MasterTimesyncDownlink::MasterTimesyncDownlink(MACContext& ctx) : TimesyncDownlink(ctx, MacroStatus::IN_SYNC)
+{    
+    auto panId = networkConfig.getPanId();
+    packet = {{
+            0x46, //frame type 0b110 (reserved), intra pan
+            0x08, //no source addressing, short destination addressing
+            0x00, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
+            static_cast<unsigned char>(panId>>8),
+            static_cast<unsigned char>(panId & 0xff), //destination pan ID
+            0xff, 0xff,                               //destination addr (broadcast)
+            0,0,0,0                                   //32bit timesync packet counter for absolute network time
+        }};
+    
+    auto now = getTime();
+    auto period = networkConfig.getSlotframeDuration();
+    slotframeTime = now - (now % period) + period;
+    if(slotframeTime - now < initializationDelay) slotframeTime += period;
+    setTimesyncPacketCounter(slotframeTime / period);
+}
+
 void MasterTimesyncDownlink::execute(long long slotStart)
 {
     next();

@@ -42,8 +42,6 @@ public:
     MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config);
     MasterMACContext() = delete;
     virtual ~MasterMACContext() {};
-protected:
-    long long initializationDelay = 1000000;
 };
 
 } /* namespace mxnet */

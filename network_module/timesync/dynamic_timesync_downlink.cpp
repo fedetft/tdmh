@@ -130,10 +130,7 @@ void DynamicTimesyncDownlink::resync() {
     ledOff();
     ctx.transceiverIdle();
     
-    //FIXME: is start in nanosecond corrected?
-    //FIXME: what if the master nede reboots?
-    NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() * networkConfig.getSlotframeDuration() - start);
-    printf("[GLOBAL] %lld\n",NetworkTime::now().get());
+    NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() * networkConfig.getSlotframeDuration() - correct(start));
 
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[F] hop=%d ats=%lld w=%d mst=%lld rssi=%d\n",
