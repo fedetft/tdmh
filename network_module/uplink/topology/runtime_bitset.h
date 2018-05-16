@@ -63,7 +63,7 @@ public:
         byteSize(((size - 1) >> shiftDivisor) + 1),
         content(new uint8_t[byteSize])
 #ifdef _ARCH_CORTEXM3_EFM32GG
-    , bbData(reinterpret_cast<uint8_t*>(((reinterpret_cast<unsigned long>(content) - sramBase) << 5) + bitBandBase))
+    , bbData(reinterpret_cast<unsigned*>(((reinterpret_cast<unsigned long>(content) - sramBase) << 5) + bitBandBase))
 #endif
     {}
 
@@ -76,6 +76,56 @@ public:
         memset(content, init? ~0 : 0, this->size());
     }
 
+    RuntimeBitset(const RuntimeBitset& other) :
+        bitCount(other.bitCount),
+        byteSize(other.byteSize),
+        content(new uint8_t[byteSize])
+#ifdef _ARCH_CORTEXM3_EFM32GG
+        , bbData(reinterpret_cast<unsigned*>(((reinterpret_cast<unsigned long>(content) - sramBase) << 5) + bitBandBase))
+#endif
+    {
+        memcpy(content, other.content, byteSize);
+    }
+
+    RuntimeBitset(RuntimeBitset&& other) :
+        bitCount(other.bitCount),
+        byteSize(other.byteSize),
+        content(other.content)
+#ifdef _ARCH_CORTEXM3_EFM32GG
+        , bbData(other.bbData)
+#endif
+    {
+        other.content = nullptr;
+#ifdef _ARCH_CORTEXM3_EFM32GG
+        other.bbData = nullptr;
+#endif
+    }
+
+    RuntimeBitset& operator=(const RuntimeBitset& other) {
+        bitCount = other.bitCount;
+        byteSize = other.byteSize;
+        delete[] content;
+        content = new uint8_t[byteSize];
+        memcpy(content, other.content, byteSize);
+#ifdef _ARCH_CORTEXM3_EFM32GG
+        bbData = reinterpret_cast<unsigned*>(((reinterpret_cast<unsigned long>(content) - sramBase) << 5) + bitBandBase);
+#endif
+        return *this;
+    }
+
+    RuntimeBitset& operator=(RuntimeBitset&& other) {
+        bitCount = other.bitCount;
+        byteSize = other.byteSize;
+        delete[] content;
+        content = other.content;
+        other.content = nullptr;
+#ifdef _ARCH_CORTEXM3_EFM32GG
+        bbData = other.bbData;
+        other.bbData = nullptr;
+#endif
+        return *this;
+    }
+
     virtual ~RuntimeBitset() {
         delete[] content;
     }
@@ -84,9 +134,9 @@ public:
     public:
 
 #ifndef _ARCH_CORTEXM3_EFM32GG
-        Bit(uint8_t* content, bool el, std::size_t byteIdx, unsigned char bitPow) : content(content), value(el), byteIdx(byteIdx), bitPow(bitPow)
+        Bit(uint8_t* content, bool el, std::size_t idx, unsigned char bitPow) : content(content), value(el), idx(idx), bitPow(bitPow)
 #else
-        Bit(uint8_t* content, bool el, std::size_t byteIdx) : content(content), value(el), byteIdx(byteIdx)
+        Bit(unsigned* content, bool el, std::size_t idx) : content(content), value(el), idx(idx)
 #endif
     {}
 
@@ -99,21 +149,28 @@ public:
         Bit& operator=(const bool& rhs) {
             if (rhs)
 #ifndef _ARCH_CORTEXM3_EFM32GG
-                content[byteIdx] |= b0 >> bitPow;
+                content[idx] |= b0 >> bitPow;
             else
-                content[byteIdx] &= ~(b0 >> bitPow);
+                content[idx] &= ~(b0 >> bitPow);
 #else
-                content[byteIdx] = 1;
+                content[idx] = 1;
             else
-                content[byteIdx] = 0;
+                content[idx] = 0;
 #endif
             value = rhs;
             return *this;
         }
+
+        bool get() const { return value; }
+        bool getRaw() const { return content[idx]; }
     private:
+#ifdef _ARCH_CORTEXM3_EFM32GG
+        unsigned* const content;
+#else
         uint8_t* const content;
+#endif
         bool value;
-        std::size_t byteIdx;
+        std::size_t idx;
 #ifndef _ARCH_CORTEXM3_EFM32GG
         unsigned char bitPow;
 #endif
@@ -191,52 +248,6 @@ public:
     bool operator !=(const RuntimeBitset& other) const {
         return !(*this == other);
     }
-    RuntimeBitset(const RuntimeBitset& other) :
-        bitCount(other.bitCount),
-        byteSize(other.byteSize),
-        content(new uint8_t[byteSize])
-#ifdef _ARCH_CORTEXM3_EFM32GG
-        , bbData(reinterpret_cast<uint8_t*>(((reinterpret_cast<unsigned long>(content) - sramBase) << 5) + bitBandBase))
-#endif
-    {
-        memcpy(content, other.content, byteSize);
-    }
-    RuntimeBitset(RuntimeBitset&& other) :
-        bitCount(other.bitCount),
-        byteSize(other.byteSize),
-        content(other.content)
-#ifdef _ARCH_CORTEXM3_EFM32GG
-        , bbData(other.bbData)
-#endif
-    {
-        other.content = nullptr;
-#ifdef _ARCH_CORTEXM3_EFM32GG
-        other.bbData = nullptr;
-#endif
-    }
-    RuntimeBitset& operator=(const RuntimeBitset& other) {
-        bitCount = other.bitCount;
-        byteSize = other.byteSize;
-        delete[] content;
-        content = new uint8_t[byteSize];
-        memcpy(content, other.content, byteSize);
-#ifdef _ARCH_CORTEXM3_EFM32GG
-        bbData = reinterpret_cast<uint8_t*>(((reinterpret_cast<unsigned long>(content) - sramBase) << 5) + bitBandBase);
-#endif
-        return *this;
-    }
-    RuntimeBitset& operator=(RuntimeBitset&& other) {
-        bitCount = other.bitCount;
-        byteSize = other.byteSize;
-        delete[] content;
-        content = other.content;
-        other.content = nullptr;
-#ifdef _ARCH_CORTEXM3_EFM32GG
-        bbData = other.bbData;
-        other.bbData = nullptr;
-#endif
-        return *this;
-    }
 
     /**
      * Debug method used to print the bitmap content as a string of 0s and 1s
@@ -258,7 +269,7 @@ private:
     std::size_t byteSize;
     uint8_t* content;
 #ifdef _ARCH_CORTEXM3_EFM32GG
-    uint8_t* bbData;
+    unsigned* bbData;
 #endif
     /**
      * Number of LSBs used to address the bit within the array element
