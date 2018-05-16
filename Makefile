@@ -17,7 +17,9 @@ SUBDIRS := $(KPATH)
 ## List here your source files (both .s, .c and .cpp)
 ##
 SRC :=\
-main.cpp\
+main.cpp
+
+NET_SRC :=\
 $(wildcard network_module/*.cpp) $(wildcard network_module/*/*.cpp) $(wildcard network_module/*/*/*.cpp)
 
 ##
@@ -51,6 +53,7 @@ TEST_BFILES := $(wildcard $(TEST_BPATH)/*.cpp) $(wildcard $(TEST_BPATH)/**/*.cpp
 
 ## Replaces both "foo.cpp"-->"foo.o" and "foo.c"-->"foo.o"
 OBJ := $(addsuffix .o, $(basename $(SRC)))
+NET_OBJ := $(addsuffix .o, $(basename $(NET_SRC)))
 TEST_LOBJ := $(addsuffix .o.local, $(basename $(basename $(TEST_LFILES))))
 TEST_BBINS := $(addsuffix .bin, $(basename $(TEST_BFILES)))
 
@@ -103,7 +106,7 @@ clean-recursive:
 	  clean || exit 1;)
 
 clean-topdir:
-	-rm -f $(OBJ) main.elf main.hex main.bin main.map $(OBJ:.o=.d)
+	-rm -f $(OBJ) $(NET_OBJ) main.elf main.hex main.bin main.map $(OBJ:.o=.d)
 
 main: main.elf
 	$(ECHO) "[CP  ] main.hex"
@@ -112,9 +115,9 @@ main: main.elf
 	$(Q)$(CP) -O binary main.elf main.bin
 	$(Q)$(SZ) main.elf
 
-main.elf: $(OBJ) all-recursive
+main.elf: $(OBJ) $(NET_OBJ) all-recursive
 	$(ECHO) "[LD  ] main.elf"
-	$(Q)$(CXX) $(LFLAGS) -o main.elf $(OBJ) $(KPATH)/$(BOOT_FILE) $(LINK_LIBS)
+	$(Q)$(CXX) $(LFLAGS) -o main.elf $(OBJ) $(NET_OBJ) $(KPATH)/$(BOOT_FILE) $(LINK_LIBS)
 
 %.o: %.s
 	$(ECHO) "[AS  ] $<"
@@ -132,6 +135,10 @@ test: testlocal testboard
 
 testlocal: $(TEST_LOBJ)
 
+%.o.local:
+	$(ECHO) "[CXX ] $(addsuffix .cpp, $(basename $(basename $@)))"
+	$(Q)$(LCXX) $(LDFLAGS) $(LCXXFLAGS) $(addsuffix .cpp, $(basename $(basename $@))) -o $(basename $@)
+
 testboard: $(TEST_BBINS)
 
 %.bin: %.elf
@@ -141,13 +148,9 @@ testboard: $(TEST_BBINS)
 	$(Q)$(CP) -O binary $< $@
 	$(Q)$(SZ) $<
 
-%.elf: $(TEST_BOBJ) $(OBJ) all-recursive
+%.elf: %.o $(NET_OBJ) all-recursive
 	$(ECHO) "[LD  ] $@"
-	$(Q)$(CXX) $(LFLAGS) -o $@ $(OBJ) $(KPATH)/$(BOOT_FILE) $(LINK_LIBS)
-
-%.o.local:
-	$(ECHO) "[CXX ] $(addsuffix .cpp, $(basename $(basename $@)))"
-	$(Q)$(LCXX) $(LDFLAGS) $(LCXXFLAGS) $(addsuffix .cpp, $(basename $(basename $@))) -o $(basename $@)
+	$(Q)$(CXX) $(LFLAGS) -o $@ $< $(NET_OBJ) $(KPATH)/$(BOOT_FILE) $(LINK_LIBS)
 
 #pull in dependecy info for existing .o files
--include $(OBJ:.o=.d)
+-include $(NET_OBJ:.o=.d)
