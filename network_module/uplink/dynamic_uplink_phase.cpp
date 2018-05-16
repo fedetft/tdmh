@@ -92,7 +92,7 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart) {
 
 void DynamicUplinkPhase::execute(long long slotStart) {
     auto address = currentNode();
-    if (ENABLE_UPLINK_INFO_DBG)
+    if (ENABLE_UPLINK_VERB_DBG)
         print_dbg("[U] N=%u T=%lld\n", address, slotStart);
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     if (address == ctx.getNetworkId()) sendMyUplink(slotStart);

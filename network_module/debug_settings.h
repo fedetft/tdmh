@@ -52,6 +52,9 @@ const bool ENABLE_ROUNDTRIP_ERROR_DBG = true;
 //prints the uplink phase debug info
 const bool ENABLE_UPLINK_INFO_DBG = false;
 
+//prints the uplink phase debug verbose info
+const bool ENABLE_UPLINK_VERB_DBG = false;
+
 //prints the uplink phase errors
 const bool ENABLE_UPLINK_ERROR_DBG = true;
 

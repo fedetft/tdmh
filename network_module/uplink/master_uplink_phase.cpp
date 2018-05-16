@@ -36,7 +36,7 @@ namespace mxnet {
 
 void MasterUplinkPhase::execute(long long slotStart) {
     auto address = currentNode();
-    if (ENABLE_UPLINK_INFO_DBG)
+    if (ENABLE_UPLINK_VERB_DBG)
         print_dbg("[U] N=%u T=%lld\n", address, slotStart);
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     auto wuTime = slotStart - MediumAccessController::receivingNodeWakeupAdvance;
@@ -60,13 +60,12 @@ void MasterUplinkPhase::execute(long long slotStart) {
     } while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK);
     ctx.transceiverIdle();
     if (rcvResult.error == RecvResult::ErrorCode::OK) {
-        //TODO parse message and send it to topology and stream management contexts
         auto data = std::vector<unsigned char>(packet.begin(), packet.begin() + rcvResult.size);
         auto msg = UplinkMessage::deserialize(data, ctx.getNetworkConfig());
         topology->receivedMessage(msg, address, rcvResult.rssi);
         auto smes = msg.getSMEs();
         streamManagement->receive(smes);
-        if (ENABLE_TOPOLOGY_INFO_DBG)
+        if (ENABLE_UPLINK_INFO_DBG)
             print_dbg("[U] <- N=%u @%llu\n", address, rcvResult.timestamp);
     } else {
         topology->unreceivedMessage(address);
