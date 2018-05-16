@@ -47,7 +47,7 @@ public:
     unsigned long long getDuration() const override {
         return phaseStartupTime + networkConfig.getMaxHops() * rebroadcastInterval + listeningRTP.getDuration();
     }
-    unsigned long long getSlotsCount() const override { return 1; }
+    unsigned getSlotsCount() const override { return 1; }
     static const int phaseStartupTime = 450000;
     static const int syncPacketSize = 11;
     static const int rebroadcastInterval = (syncPacketSize+8)*32000 + 536000; //32us per-byte + 536us total delta

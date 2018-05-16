@@ -56,7 +56,7 @@ public:
         return packetArrivalAndProcessingTime + transmissionInterval;
     }
 
-    unsigned long long getSlotsCount() const override { return slotsInFrame; }
+    unsigned getSlotsCount() const override { return slotsInFrame; }
 
     static const int transmissionInterval = 1000000; //1ms
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
@@ -72,7 +72,7 @@ private:
             nextSched = scheduleDownlink->getFirstSchedule();
         }
     }
-    unsigned short slotsInFrame = 0;
+    unsigned slotsInFrame = 0;
     unsigned short dataSlot;
     ScheduleDownlinkPhase* const scheduleDownlink;
     std::set<DynamicScheduleElement*>::iterator nextSched;

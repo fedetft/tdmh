@@ -46,7 +46,7 @@ public:
         return packetArrivalAndProcessingTime + transmissionInterval;
     }
 
-    unsigned long long getSlotsCount() const override { return nodesCount; }
+    unsigned getSlotsCount() const override { return nodesCount; }
     
     /**
      * @return the TopologyContext

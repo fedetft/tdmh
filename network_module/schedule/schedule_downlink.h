@@ -50,7 +50,7 @@ public:
         return phaseStartupTime + networkConfig.getMaxHops() * rebroadcastInterval;
     }
 
-    unsigned long long getSlotsCount() const override { return 1; /* FIXME */ }
+    unsigned getSlotsCount() const override { return 1; /* FIXME */ }
     bool isScheduleEnd(std::set<DynamicScheduleElement*>::iterator it) const { return nodeSchedule.empty() || nodeSchedule.end() == it; }
     std::set<DynamicScheduleElement*>::iterator getFirstSchedule() { return nodeSchedule.begin(); };
     std::queue<std::vector<unsigned char>>* getQueueForId(unsigned short id) {

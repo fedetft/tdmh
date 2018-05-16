@@ -65,7 +65,7 @@ public:
      * @return he number of slots the phase contains, which is the number of elementary,
      * non-sliceable parts it is composed of.
      */
-    virtual unsigned long long getSlotsCount() const = 0;
+    virtual unsigned getSlotsCount() const = 0;
 
     /**
      * @return the whole duration of the phase in the entire slotframe.
