@@ -28,8 +28,24 @@
 #include "network_configuration.h"
 #include "bitwise_ops.h"
 #include "mac_context.h"
+#include <stdexcept>
 
 namespace mxnet {
+
+void ControlSuperframeStructure::validate() const
+{
+    // Size between 2 and 32
+    if(size()<2 || size()>32) throw std::logic_error("size");
+    
+    // First tile has to be a control downlink
+    if(isControlDownlink(0)==false) throw std::logic_error("first tile");
+    
+    // Has to have at least one control uplink
+    for(int i=1;i<size();i++) if(isControlDownlink(i)==false) return;
+    throw std::logic_error("no control uplink");
+    
+    //TODO: check it is minimal, example 0b0101 should be 0x01
+}
 
 NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short maxNodes, unsigned short networkId,
         unsigned char staticHop, unsigned short panId, short txPower, unsigned int baseFrequency,

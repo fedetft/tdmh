@@ -28,6 +28,56 @@
 #pragma once
 
 namespace mxnet {
+
+/**
+ * This class defines the control superframe structure
+ */
+class ControlSuperframeStructure
+{
+public:
+    /**
+     * Default constructor, create the default control superframe with two
+     * tiles, where the first is a control downlink and the second a control
+     * uplink tile
+     */
+    ControlSuperframeStructure() : bitmask(0b01), sz(2) {}
+    
+    /**
+     * Create a custom control superframe
+     * \param bitmask bitmask defining the control superframe structure.
+     * Bit 0 is the first tile in the control superframe, If a bit is 1, the
+     * corresponding tile is a control downlink, else a control uplink.
+     * Note that the first tile has to be a control downlink, and there must
+     * be at least one control uplink tile in the superframe
+     * \param size number of tiles in the control superframe, from 2 to 32
+     * \throws logic_error if the parameters are not valid
+     */
+    ControlSuperframeStructure(unsigned int bitmask, int size)
+        : bitmask(bitmask), sz(size) { validate(); }
+    
+    /**
+     * \return the number of tiles in the control superframe
+     */
+    int size() const { return sz; }
+    
+    /**
+     * \param index tile index from 0 to size()-1
+     * \return true if the tile is a control downlink tile
+     */
+    bool isControlDownlink(int index) const { return (bitmask>>index) & 1; }
+    
+private:
+    /**
+     * Validates the control superframe structure
+     */
+    void validate() const;
+    
+    const unsigned int bitmask;
+    const int sz;
+};
+
+
+
 class NetworkConfiguration {
 public:
     enum TopologyMode {
