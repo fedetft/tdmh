@@ -91,7 +91,7 @@ public:
             unsigned char maxForwardedTopologies, unsigned long long tileDuration,
             unsigned long long maxAdmittedRcvWindow, unsigned short maxRoundsUnavailableBecomesDead,
             unsigned short maxRoundsUnreliableParent, unsigned char maxMissedTimesyncs,
-            ControlSuperframeStructure controlSuperframe=ControlSuperframe(),
+            ControlSuperframeStructure controlSuperframe=ControlSuperframeStructure(),
             TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION);
 
     /**

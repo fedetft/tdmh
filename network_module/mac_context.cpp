@@ -155,20 +155,25 @@ void MACContext::run()
             {
                 timesync->execute(currentNextDeadline);
                 if(!timesync->macCanOperate()) continue;
+                currentNextDeadline = timesync->getSlotframeStart();
             } else {
                 schedule->execute(currentNextDeadline);
             }
+            currentNextDeadline += downlinkSlotDuration;
             
             for(int i = 0; i < numDataSlotInDownlinkTile; i++)
             {
                 data->execute(currentNextDeadline);
+                currentNextDeadline += dataSlotDuration;
             }
         } else {
             uplink->execute(currentNextDeadline);
+            currentNextDeadline += uplinkSlotDuration;
             
             for(int i = 0; i < numDataSlotInUplinkTile; i++)
             {
                 data->execute(currentNextDeadline);
+                currentNextDeadline += dataSlotDuration;
             }
         }
         

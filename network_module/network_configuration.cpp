@@ -52,8 +52,7 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
         unsigned long long clockSyncPeriod, unsigned char maxForwardedTopologies,
         unsigned long long tileDuration, unsigned long long maxAdmittedRcvWindow,
         unsigned short maxRoundsUnavailableBecomesDead, unsigned short maxRoundsUnreliableParent,
-        unsigned char maxMissedTimesyncs,
-        TopologyMode topologyMode) :
+        unsigned char maxMissedTimesyncs, ControlSuperframeStructure controlSuperframe, TopologyMode topologyMode) :
     maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)), staticNetworkId(networkId),
     staticHop(staticHop), maxNodes(maxNodes), networkIdBits(BitwiseOps::bitsForRepresentingCount(maxNodes)),
     panId(panId), txPower(txPower), baseFrequency(baseFrequency), topologyMode(topologyMode),
