@@ -37,6 +37,7 @@
 #include <stdexcept>
 
 namespace mxnet {
+
 class MediumAccessController;
 class TimesyncDownlink;
 class UplinkPhase;
@@ -44,6 +45,7 @@ class TopologyContext;
 class StreamManagementContext;
 class ScheduleDownlinkPhase;
 class DataPhase;
+
 class MACContext {
 public:
     MACContext() = delete;
@@ -188,10 +190,6 @@ public:
     void stop();
 protected:
     MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config);
-    /**
-     * @return the number of dataslot, calculated using the given configuration
-     */
-    unsigned short getDataslotCount() const;
 
     TimesyncDownlink* timesync = nullptr;
     UplinkPhase* uplink = nullptr;

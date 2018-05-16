@@ -38,12 +38,16 @@ namespace mxnet {
  */
 class DataPhase : public MACPhase {
 public:
-    DataPhase(MACContext& ctx, unsigned short slotsInFrame) :
-            MACPhase(ctx), slotsInFrame(slotsInFrame), scheduleDownlink(ctx.getScheduleDownlink()) {};
-    DataPhase(const DataPhase& orig) = delete;
-    virtual ~DataPhase() {};
+    DataPhase(MACContext& ctx) : MACPhase(ctx), scheduleDownlink(ctx.getScheduleDownlink()) {}
+    
+    virtual ~DataPhase() {}
 
+    void setDataSuperframeSize(unsigned short slotsInFrame) {
+        this->slotsInFrame = slotsInFrame;
+    }
+    
     virtual void execute(long long slotStart) override;
+    
     unsigned long long getDuration() const override {
         return packetArrivalAndProcessingTime + transmissionInterval;
     }
@@ -57,14 +61,18 @@ public:
     static const int transmissionInterval = 1000000; //1ms
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
     static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
+
 private:
+    DataPhase(const DataPhase& orig) = delete;
+    DataPhase& operator= (const DataPhase& orig) = delete;
+    
     void nextSlot() {
         if (++dataSlot > slotsInFrame) {
             dataSlot = 0;
             nextSched = scheduleDownlink->getFirstSchedule();
         }
     }
-    const unsigned short slotsInFrame;
+    unsigned short slotsInFrame = 0;
     unsigned short dataSlot;
     ScheduleDownlinkPhase* const scheduleDownlink;
     std::set<DynamicScheduleElement*>::iterator nextSched;

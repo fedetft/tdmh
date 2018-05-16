@@ -42,6 +42,6 @@ DynamicMACContext::DynamicMACContext(const MediumAccessController& mac, miosix::
         topology = new DynamicTreeTopologyContext(*this);
     topologyContext = topology;
     uplink = new DynamicUplinkPhase(*this, topology);
-    data = new DataPhase(*this, getDataslotCount());
+    data = new DataPhase(*this);
 };
 } /* namespace mxnet */

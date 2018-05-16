@@ -32,7 +32,9 @@
 #include "data/dataphase.h"
 #include "interfaces-impl/transceiver.h"
 #include <type_traits>
+#include <stdexcept>
 
+using namespace std;
 using namespace miosix;
 
 namespace mxnet {
@@ -117,32 +119,87 @@ RecvResult MACContext::recv(void *pkt, int size, long long timeout, std::functio
     return rcvResult;
 }
 
-unsigned short MACContext::getDataslotCount() const {
-    return (networkConfig.getSlotframeDuration() -
-            (timesync->getTotalDuration() + uplink->getTotalDuration() + schedule->getTotalDuration())) /
-            DataPhase::getDurationStatic();
-}
-
-void MACContext::run() {
+void MACContext::run()
+{
+    auto downlinkSlotDuration = max(timesync->getDuration(),schedule->getDuration());
+    auto uplinkSlotDuration = uplink->getDuration();
+    auto dataSlotDuration = data->getDuration();
+    auto tileDuration = networkConfig.getTileDuration();
+    
+    auto clockSyncPeriod = networkConfig.getClockSyncPeriod();
+    auto controlSuperframe = networkConfig.getControlSuperframeStructure();
+    auto controlSuperframeDuration = tileDuration * controlSuperframe.size();
+    
+    if(tileDuration - downlinkSlotDuration < dataSlotDuration)
+        throw logic_error("downlink slot too large for tile");
+    
+    if(tileDuration - uplinkSlotDuration < dataSlotDuration)
+        throw logic_error("uplink slot too large for tile");
+    
+    if(clockSyncPeriod % controlSuperframeDuration != 0)
+        throw logic_error("control superframe does not divide clock sync period");
+    
+    unsigned int numDataSlotInDownlinkTile  = (tileDuration - downlinkSlotDuration) / dataSlotDuration;
+    unsigned int numDataSlotInUplinkTile    = (tileDuration - uplinkSlotDuration)   / dataSlotDuration;
+    unsigned int numSuperframesPerClockSync = clockSyncPeriod / controlSuperframeDuration;
+    
     transceiver.turnOn();
     long long currentNextDeadline = 0;
-    for (running = true; running; ) {
-        timesync->execute(currentNextDeadline);
-        if (!timesync->macCanOperate())
-            continue;
-        currentNextDeadline = timesync->getSlotframeStart() + timesync->getDuration();
-        for (int i = 0; i < networkConfig.getMaxNodes() - 1; i++) {
+    unsigned int controlSuperframeCounter = 0;
+    int tileCounter = 0;
+    for(running = true; running; )
+    {
+        if(controlSuperframe.isControlDownlink(tileCounter))
+        {
+            if(tileCounter==0 && controlSuperframeCounter==0)
+            {
+                timesync->execute(currentNextDeadline);
+                if(!timesync->macCanOperate()) continue;
+            } else {
+                schedule->execute(currentNextDeadline);
+            }
+            
+            for(int i = 0; i < numDataSlotInDownlinkTile; i++)
+            {
+                data->execute(currentNextDeadline);
+            }
+        } else {
             uplink->execute(currentNextDeadline);
-            currentNextDeadline += uplink->getDuration();
+            
+            for(int i = 0; i < numDataSlotInUplinkTile; i++)
+            {
+                data->execute(currentNextDeadline);
+            }
         }
-        schedule->execute(currentNextDeadline);
-        currentNextDeadline += schedule->getDuration();
-        for (unsigned i = 0; i < data->getSlotsCount(); i++) {
-            data->execute(currentNextDeadline);
-            currentNextDeadline += data->getDuration();
+        
+        if(++tileCounter>=controlSuperframe.size())
+        {
+            tileCounter=0;
+            if(++controlSuperframeCounter >= numSuperframesPerClockSync)
+                controlSuperframeCounter=0;
         }
     }
     transceiver.turnOff();
+
+//     transceiver.turnOn();
+//     long long currentNextDeadline = 0;
+//     for (running = true; running; ) {
+//         timesync->execute(currentNextDeadline);
+//         if (!timesync->macCanOperate())
+//             continue;
+//         currentNextDeadline = timesync->getSlotframeStart() + timesync->getDuration();
+//         for (int i = 0; i < networkConfig.getMaxNodes() - 1; i++) {
+//             uplink->execute(currentNextDeadline);
+//             currentNextDeadline += uplink->getDuration();
+//         }
+//         schedule->execute(currentNextDeadline);
+//         currentNextDeadline += schedule->getDuration();
+//         for (unsigned i = 0; i < data->getSlotsCount(); i++) {
+//             data->execute(currentNextDeadline);
+//             currentNextDeadline += data->getDuration();
+//         }
+//     }
+//     transceiver.turnOff();
 }
 
 

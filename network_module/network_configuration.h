@@ -88,9 +88,10 @@ public:
     NetworkConfiguration(unsigned char maxHops, unsigned short maxNodes, unsigned short networkId,
             unsigned char staticHop, unsigned short panId, short txPower,
             unsigned int baseFrequency, unsigned long long clockSyncPeriod,
-            unsigned char maxForwardedTopologies, unsigned short scheduleDownlinkPerSlotframeCount,
+            unsigned char maxForwardedTopologies, unsigned long long tileDuration,
             unsigned long long maxAdmittedRcvWindow, unsigned short maxRoundsUnavailableBecomesDead,
             unsigned short maxRoundsUnreliableParent, unsigned char maxMissedTimesyncs,
+            ControlSuperframeStructure controlSuperframe=ControlSuperframe(),
             TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION);
 
     /**
@@ -129,20 +130,26 @@ public:
     unsigned getMaxAdmittedRcvWindow() const {
         return maxAdmittedRcvWindow;
     }
-
-    /**
-     * TODO: remove
-     * @return the duration of the slotframe, which corresponds to the interval separating two timesync downlink phases.
-     */
-    unsigned long long getSlotframeDuration() const {
-        return clockSyncPeriod;
-    }
     
     /**
      * @return the duration of the clock synchronization period
      */
     unsigned long long getClockSyncPeriod() const {
         return clockSyncPeriod;
+    }
+    
+    /**
+     * @return the tile duration
+     */
+    unsigned long long getTileDuration() const {
+        return tileDuration;
+    }
+    
+    /**
+     * @return the control superframe structure
+     */
+    ControlSuperframeStructure getControlSuperframeStructure() const {
+        return controlSuperframe;
     }
 
     /**
@@ -222,12 +229,6 @@ public:
         return txPower;
     }
 
-    /**
-     * @return the number of schedule downlinks each slotframe contains.
-     */
-    unsigned short getScheduleDownlinkPerSlotframeCount() const {
-        return scheduleDownlinkPerSlotframeCount;
-    }
 private:
     const unsigned char maxHops;
     const unsigned char hopBits;
@@ -241,12 +242,13 @@ private:
     const unsigned int baseFrequency;
     const TopologyMode topologyMode;
     const unsigned long long clockSyncPeriod;
+    const unsigned long long tileDuration;
     const unsigned long long maxAdmittedRcvWindow;
     const unsigned char maxMissedTimesyncs;
     const unsigned char maxForwardedTopologies;
     const unsigned short maxRoundsUnavailableBecomesDead;
     const unsigned short maxRoundsUnreliableParent;
-    const unsigned short scheduleDownlinkPerSlotframeCount;
+    const ControlSuperframeStructure controlSuperframe;
 };
 
 }

@@ -50,17 +50,17 @@ void ControlSuperframeStructure::validate() const
 NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short maxNodes, unsigned short networkId,
         unsigned char staticHop, unsigned short panId, short txPower, unsigned int baseFrequency,
         unsigned long long clockSyncPeriod, unsigned char maxForwardedTopologies,
-        unsigned short scheduleDownlinkPerSlotframeCount, unsigned long long maxAdmittedRcvWindow,
+        unsigned long long tileDuration, unsigned long long maxAdmittedRcvWindow,
         unsigned short maxRoundsUnavailableBecomesDead, unsigned short maxRoundsUnreliableParent,
         unsigned char maxMissedTimesyncs,
         TopologyMode topologyMode) :
     maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)), staticNetworkId(networkId),
     staticHop(staticHop), maxNodes(maxNodes), networkIdBits(BitwiseOps::bitsForRepresentingCount(maxNodes)),
     panId(panId), txPower(txPower), baseFrequency(baseFrequency), topologyMode(topologyMode),
-    clockSyncPeriod(clockSyncPeriod), maxAdmittedRcvWindow(maxAdmittedRcvWindow),
+    clockSyncPeriod(clockSyncPeriod), tileDuration(tileDuration), maxAdmittedRcvWindow(maxAdmittedRcvWindow),
     maxMissedTimesyncs(maxMissedTimesyncs), maxForwardedTopologies(maxForwardedTopologies),
     maxRoundsUnavailableBecomesDead(maxRoundsUnavailableBecomesDead),
     maxRoundsUnreliableParent(maxRoundsUnreliableParent),
-    scheduleDownlinkPerSlotframeCount(scheduleDownlinkPerSlotframeCount) {}
+    controlSuperframe(controlSuperframe) {}
 
 } /* namespace mxnet */

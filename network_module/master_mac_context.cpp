@@ -40,6 +40,6 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
             static_cast<MasterTopologyContext*>(new MasterTreeTopologyContext(*this));
     topologyContext = topology;
     uplink = new MasterUplinkPhase(*this, topology);
-    data = new DataPhase(*this, getDataslotCount());
+    data = new DataPhase(*this);
 };
 } /* namespace mxnet */
