@@ -9,6 +9,10 @@ main.map
 *.o
 *.a
 *.d
+tests/**/*.bin
+tests/**/*.hex
+tests/**/*.elf
+tests/**/*.map
 
 # Exclude Mac OS X temporary
 ._*
