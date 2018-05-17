@@ -45,7 +45,7 @@ void masterNode(void*){
         false,         //staticHop
         6,             //panId
         5,             //txPower
-        2450,          //baseFrequency
+        2460,          //baseFrequency
         10000000000,   //clockSyncPeriod
         2,             //maxForwardedTopologies
         100000000,     //tileDuration
@@ -67,7 +67,7 @@ void node1Hop1(void*){
         false,         //staticHop
         6,             //panId
         5,             //txPower
-        2450,          //baseFrequency
+        2460,          //baseFrequency
         10000000000,   //clockSyncPeriod
         2,             //maxForwardedTopologies
         100000000,     //tileDuration
@@ -89,7 +89,7 @@ void node2Hop1(void*){
         false,         //staticHop
         6,             //panId
         5,             //txPower
-        2450,          //baseFrequency
+        2460,          //baseFrequency
         10000000000,   //clockSyncPeriod
         2,             //maxForwardedTopologies
         100000000,     //tileDuration
@@ -111,7 +111,7 @@ void node3Hop2(void*){
         false,         //staticHop
         6,             //panId
         5,             //txPower
-        2450,          //baseFrequency
+        2460,          //baseFrequency
         10000000000,   //clockSyncPeriod
         2,             //maxForwardedTopologies
         100000000,     //tileDuration
