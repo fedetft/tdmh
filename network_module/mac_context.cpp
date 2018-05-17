@@ -185,26 +185,6 @@ void MACContext::run()
         }
     }
     transceiver.turnOff();
-
-//     transceiver.turnOn();
-//     long long currentNextDeadline = 0;
-//     for (running = true; running; ) {
-//         timesync->execute(currentNextDeadline);
-//         if (!timesync->macCanOperate())
-//             continue;
-//         currentNextDeadline = timesync->getSlotframeStart() + timesync->getDuration();
-//         for (int i = 0; i < networkConfig.getMaxNodes() - 1; i++) {
-//             uplink->execute(currentNextDeadline);
-//             currentNextDeadline += uplink->getDuration();
-//         }
-//         schedule->execute(currentNextDeadline);
-//         currentNextDeadline += schedule->getDuration();
-//         for (unsigned i = 0; i < data->getSlotsCount(); i++) {
-//             data->execute(currentNextDeadline);
-//             currentNextDeadline += data->getDuration();
-//         }
-//     }
-//     transceiver.turnOff();
 }
 
 
