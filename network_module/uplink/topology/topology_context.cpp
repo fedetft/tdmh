@@ -55,7 +55,7 @@ void DynamicTopologyContext::unreceivedMessage(unsigned char sender) {
     });
     if (exist == predecessors.end()) return;
     exist->unseen();
-    if (exist->getUnseen() >= ctx.getNetworkConfig().getMaxRoundsUnreliableParent())
+    if (exist->getUnseen() >= ctx.getNetworkConfig().getMaxRoundsUnavailableBecomesDead())
         predecessors.erase(exist);
 }
 

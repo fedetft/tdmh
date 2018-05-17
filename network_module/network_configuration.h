@@ -90,7 +90,7 @@ public:
             unsigned int baseFrequency, unsigned long long clockSyncPeriod,
             unsigned char maxForwardedTopologies, unsigned long long tileDuration,
             unsigned long long maxAdmittedRcvWindow, unsigned short maxRoundsUnavailableBecomesDead,
-            unsigned short maxRoundsUnreliableParent, unsigned char maxMissedTimesyncs,
+            short minNeighborRSSI, unsigned char maxMissedTimesyncs,
             ControlSuperframeStructure controlSuperframe=ControlSuperframeStructure(),
             TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION);
 
@@ -181,10 +181,10 @@ public:
     }
 
     /**
-     * @return the number of uplinks (for which it would be his turn) after which a parent non sending a packet is considered disconnected.
+     * @return the minimum RSSI for considering a link reliable, thus adding the sender node as neighbor.
      */
-    unsigned short getMaxRoundsUnreliableParent() const {
-        return maxRoundsUnreliableParent;
+    short getMinNeighborRSSI() const {
+        return minNeighborRSSI;
     }
 
     /**
@@ -247,7 +247,7 @@ private:
     const unsigned char maxMissedTimesyncs;
     const unsigned char maxForwardedTopologies;
     const unsigned short maxRoundsUnavailableBecomesDead;
-    const unsigned short maxRoundsUnreliableParent;
+    const short minNeighborRSSI;
     const ControlSuperframeStructure controlSuperframe;
 };
 

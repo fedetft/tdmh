@@ -45,13 +45,13 @@ void masterNode(void*){
         false,         //staticHop
         6,             //panId
         5,             //txPower
-        2460,          //baseFrequency
+        2450,          //baseFrequency
         10000000000,   //clockSyncPeriod
         2,             //maxForwardedTopologies
         100000000,     //tileDuration
         150000,        //maxAdmittedRcvWindow
         2,             //maxRoundsUnavailableBecomesDead
-        2,             //maxRoundsUnreliableParent
+        -90,           //minNeighborRSSI
         3              //maxMissedTimesyncs
     );
     MasterMediumAccessController controller(Transceiver::instance(), config);
@@ -67,13 +67,13 @@ void node1Hop1(void*){
         false,         //staticHop
         6,             //panId
         5,             //txPower
-        2460,          //baseFrequency
+        2450,          //baseFrequency
         10000000000,   //clockSyncPeriod
         2,             //maxForwardedTopologies
         100000000,     //tileDuration
         150000,        //maxAdmittedRcvWindow
         2,             //maxRoundsUnavailableBecomesDead
-        2,             //maxRoundsUnreliableParent
+        -90,           //minNeighborRSSI
         3              //maxMissedTimesyncs
     );
     DynamicMediumAccessController controller(Transceiver::instance(), config);
@@ -89,13 +89,13 @@ void node2Hop1(void*){
         false,         //staticHop
         6,             //panId
         5,             //txPower
-        2460,          //baseFrequency
+        2450,          //baseFrequency
         10000000000,   //clockSyncPeriod
         2,             //maxForwardedTopologies
         100000000,     //tileDuration
         150000,        //maxAdmittedRcvWindow
         2,             //maxRoundsUnavailableBecomesDead
-        2,             //maxRoundsUnreliableParent
+        -90,           //minNeighborRSSI
         3              //maxMissedTimesyncs
     );
     DynamicMediumAccessController controller(Transceiver::instance(), config);
@@ -111,13 +111,13 @@ void node3Hop2(void*){
         false,         //staticHop
         6,             //panId
         5,             //txPower
-        2460,          //baseFrequency
+        2450,          //baseFrequency
         10000000000,   //clockSyncPeriod
         2,             //maxForwardedTopologies
         100000000,     //tileDuration
         150000,        //maxAdmittedRcvWindow
         2,             //maxRoundsUnavailableBecomesDead
-        2,             //maxRoundsUnreliableParent
+        -90,           //minNeighborRSSI
         3              //maxMissedTimesyncs
     );
     DynamicMediumAccessController controller(Transceiver::instance(), config);
@@ -126,9 +126,9 @@ void node3Hop2(void*){
 
 int main()
 {
-   auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+//    auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
 //    auto t1 = Thread::create(node1Hop1, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-//    auto t1 = Thread::create(node2Hop1, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+    auto t1 = Thread::create(node2Hop1, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
 //    auto t1 = Thread::create(node3Hop2, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
     
     t1->join();

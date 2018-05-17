@@ -51,7 +51,7 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
         unsigned char staticHop, unsigned short panId, short txPower, unsigned int baseFrequency,
         unsigned long long clockSyncPeriod, unsigned char maxForwardedTopologies,
         unsigned long long tileDuration, unsigned long long maxAdmittedRcvWindow,
-        unsigned short maxRoundsUnavailableBecomesDead, unsigned short maxRoundsUnreliableParent,
+        unsigned short maxRoundsUnavailableBecomesDead, short minNeighborRSSI,
         unsigned char maxMissedTimesyncs, ControlSuperframeStructure controlSuperframe, TopologyMode topologyMode) :
     maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)), staticNetworkId(networkId),
     staticHop(staticHop), maxNodes(maxNodes), networkIdBits(BitwiseOps::bitsForRepresentingCount(maxNodes)),
@@ -59,7 +59,7 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
     clockSyncPeriod(clockSyncPeriod), tileDuration(tileDuration), maxAdmittedRcvWindow(maxAdmittedRcvWindow),
     maxMissedTimesyncs(maxMissedTimesyncs), maxForwardedTopologies(maxForwardedTopologies),
     maxRoundsUnavailableBecomesDead(maxRoundsUnavailableBecomesDead),
-    maxRoundsUnreliableParent(maxRoundsUnreliableParent),
+    minNeighborRSSI(minNeighborRSSI),
     controlSuperframe(controlSuperframe) {}
 
 } /* namespace mxnet */

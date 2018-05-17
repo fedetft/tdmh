@@ -40,9 +40,14 @@ DynamicMeshTopologyContext::DynamicMeshTopologyContext(MACContext& ctx)  :
 
 void DynamicMeshTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
     DynamicTopologyContext::receivedMessage(msg, sender, rssi);
-    neighbors.addNeighbor(sender);
-    neighborsUnseenFor[sender] = 0;
-    if (msg.getAssignee() != ctx.getNetworkId()) return;
+    if (rssi >= ctx.getNetworkConfig().getMinNeighborRSSI()) {
+        neighbors.addNeighbor(sender);
+        neighborsUnseenFor[sender] = 0;
+    }
+    auto it = neighborsUnseenFor.find(sender);
+    if (it != neighborsUnseenFor.end())
+        it->second = 0;
+    if (it == neighborsUnseenFor.end() || msg.getAssignee() != ctx.getNetworkId()) return;
     auto* tMsg = static_cast<NeighborMessage*>(msg.getTopologyMessage());
     checkEnqueueOrUpdate(new ForwardedNeighborMessage(sender, tMsg->getNeighbors()));
     for (auto elem : tMsg->getForwardedTopologies())
@@ -55,6 +60,8 @@ void DynamicMeshTopologyContext::unreceivedMessage(unsigned char nodeIdByTopolog
     DynamicTopologyContext::unreceivedMessage(nodeIdByTopologySlot);
     auto it = neighborsUnseenFor.find(nodeIdByTopologySlot);
     if (it == neighborsUnseenFor.end()) return;
+    //if it is unseen for less than a configured number of uplink rounds, remove it
+    if (++(it->second) < ctx.getNetworkConfig().getMaxRoundsUnavailableBecomesDead()) return;
     neighborsUnseenFor.erase(it);
     neighbors.removeNeighbor(nodeIdByTopologySlot);
 }
