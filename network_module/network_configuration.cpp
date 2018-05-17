@@ -44,7 +44,10 @@ void ControlSuperframeStructure::validate() const
     for(int i=1;i<size();i++) if(isControlDownlink(i)==false) return;
     throw std::logic_error("no control uplink");
     
-    //TODO: check it is minimal, example 0b0101 should be 0x01
+    //Check it is minimal, example 0b0101 should be 0b01
+    unsigned char halfLength = BitwiseOps::bitsForRepresentingCount(bitmask) >> 1;
+    if ((bitmask >> halfLength) == (bitmask & ((1 << halfLength) - 1)))
+        throw std::logic_error("must be minimal");
 }
 
 NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short maxNodes, unsigned short networkId,
