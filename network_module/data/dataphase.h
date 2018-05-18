@@ -45,18 +45,14 @@ public:
     void setDataSuperframeSize(unsigned short slotsInFrame) {
         this->slotsInFrame = slotsInFrame;
     }
-    
-    virtual void execute(long long slotStart) override;
-    
-    unsigned long long getDuration() const override {
-        return packetArrivalAndProcessingTime + transmissionInterval;
-    }
-
-    static unsigned long long getDurationStatic() {
-        return packetArrivalAndProcessingTime + transmissionInterval;
-    }
 
     unsigned getSlotsCount() const override { return slotsInFrame; }
+    
+    virtual void execute(long long slotStart) override;
+
+    static unsigned long long getDuration() {
+        return packetArrivalAndProcessingTime + transmissionInterval;
+    }
 
     static const int transmissionInterval = 1000000; //1ms
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms

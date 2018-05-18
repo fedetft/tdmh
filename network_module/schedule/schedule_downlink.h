@@ -46,8 +46,8 @@ public:
     ScheduleDownlinkPhase() = delete;
     ScheduleDownlinkPhase(const ScheduleDownlinkPhase& orig) = delete;
     virtual ~ScheduleDownlinkPhase() {};
-    unsigned long long getDuration() const override {
-        return phaseStartupTime + networkConfig.getMaxHops() * rebroadcastInterval;
+    static unsigned long long getDuration(unsigned short hops) {
+        return phaseStartupTime + hops * rebroadcastInterval;
     }
 
     unsigned getSlotsCount() const override { return 1; /* FIXME */ }

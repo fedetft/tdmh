@@ -57,6 +57,19 @@ MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiv
 TopologyContext* MACContext::getTopologyContext() const { return uplink->getTopologyContext(); }
 StreamManagementContext* MACContext::getStreamManagementContext() const { return uplink->getStreamManagementContext(); }
 
+void MACContext::calculateDurations() {
+    dataSlotDuration = DataPhase::getDuration();
+    if (UplinkPhase::getDuration() % dataSlotDuration == 0)
+        uplinkSlotDuration = UplinkPhase::getDuration();
+    else
+        uplinkSlotDuration = (UplinkPhase::getDuration() / dataSlotDuration + 1) * dataSlotDuration;
+    auto downlinkMaxDuration = std::max(ScheduleDownlinkPhase::getDuration(networkConfig.getMaxHops()), TimesyncDownlink::getDuration(networkConfig.getMaxHops()));
+    if (downlinkMaxDuration % dataSlotDuration == 0)
+        downlinkSlotDuration = downlinkMaxDuration;
+    else
+        downlinkSlotDuration = (downlinkMaxDuration / dataSlotDuration + 1) * dataSlotDuration;
+}
+
 void MACContext::sendAt(const void* pkt, int size, long long ns) {
     try {
         transceiver.sendAt(pkt, size, ns);
@@ -121,9 +134,6 @@ RecvResult MACContext::recv(void *pkt, int size, long long timeout, std::functio
 
 void MACContext::run()
 {
-    auto downlinkSlotDuration = max(timesync->getDuration(),schedule->getDuration());
-    auto uplinkSlotDuration = uplink->getDuration();
-    auto dataSlotDuration = data->getDuration();
     auto tileDuration = networkConfig.getTileDuration();
     
     auto clockSyncPeriod = networkConfig.getClockSyncPeriod();
@@ -149,6 +159,7 @@ void MACContext::run()
     int tileCounter = 0;
     for(running = true; running; )
     {
+        unsigned dataSlots;
         if(controlSuperframe.isControlDownlink(tileCounter))
         {
             if(tileCounter==0 && controlSuperframeCounter==0)
@@ -160,21 +171,17 @@ void MACContext::run()
                 schedule->execute(currentNextDeadline);
             }
             currentNextDeadline += downlinkSlotDuration;
-            
-            for(int i = 0; i < numDataSlotInDownlinkTile; i++)
-            {
-                data->execute(currentNextDeadline);
-                currentNextDeadline += dataSlotDuration;
-            }
+            dataSlots = numDataSlotInDownlinkTile;
         } else {
             uplink->execute(currentNextDeadline);
             currentNextDeadline += uplinkSlotDuration;
+            dataSlots = numDataSlotInUplinkTile;
+        }
             
-            for(int i = 0; i < numDataSlotInUplinkTile; i++)
-            {
-                data->execute(currentNextDeadline);
-                currentNextDeadline += dataSlotDuration;
-            }
+        for(unsigned i = 0; i < dataSlots; i++)
+        {
+            data->execute(currentNextDeadline);
+            currentNextDeadline += dataSlotDuration;
         }
         
         if(++tileCounter >= controlSuperframe.size())

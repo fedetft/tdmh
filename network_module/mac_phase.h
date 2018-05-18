@@ -57,20 +57,10 @@ public:
     virtual void execute(long long slotStart) = 0;
 
     /**
-     * @return the duration of the execution of an elementary, non-sliceable part of the phase, called slot.
-     */
-    virtual unsigned long long getDuration() const = 0;
-
-    /**
      * @return he number of slots the phase contains, which is the number of elementary,
      * non-sliceable parts it is composed of.
      */
     virtual unsigned getSlotsCount() const = 0;
-
-    /**
-     * @return the whole duration of the phase in the entire slotframe.
-     */
-    virtual unsigned long long getTotalDuration() const { return getSlotsCount() * getDuration(); }
 protected:
     MACContext& ctx;
     TimesyncDownlink* const timesync;

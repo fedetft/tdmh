@@ -44,8 +44,8 @@ public:
     TimesyncDownlink() = delete;
     TimesyncDownlink(const TimesyncDownlink& orig) = delete;
     virtual ~TimesyncDownlink() {};
-    unsigned long long getDuration() const override {
-        return phaseStartupTime + networkConfig.getMaxHops() * rebroadcastInterval + listeningRTP.getDuration();
+    static unsigned long long getDuration(unsigned short hops) {
+        return phaseStartupTime + hops * rebroadcastInterval + RoundtripSubphase::getDuration();
     }
     unsigned getSlotsCount() const override { return 1; }
     static const int phaseStartupTime = 450000;

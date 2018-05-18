@@ -36,7 +36,7 @@ public:
     RoundtripSubphase(MACContext& ctx) : MACPhase(ctx) {};
     RoundtripSubphase() = delete;
     RoundtripSubphase(const RoundtripSubphase& orig) = delete;
-    unsigned long long getDuration() const override {
+    static unsigned long long getDuration() {
         return phaseDuration;
     }
     unsigned getSlotsCount() const override { return 1; }

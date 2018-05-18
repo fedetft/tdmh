@@ -42,7 +42,7 @@ public:
 
     virtual ~UplinkPhase() {};
 
-    unsigned long long getDuration() const override {
+    static unsigned long long getDuration() {
         return packetArrivalAndProcessingTime + transmissionInterval;
     }
 

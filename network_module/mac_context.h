@@ -195,6 +195,8 @@ public:
     void stop();
 protected:
     MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config);
+    
+    void calculateDurations();
 
     TimesyncDownlink* timesync = nullptr;
     UplinkPhase* uplink = nullptr;
@@ -203,6 +205,10 @@ protected:
 
     TopologyContext* topologyContext = nullptr;
     StreamManagementContext* streamManagement = nullptr;
+
+    unsigned long long dataSlotDuration;
+    unsigned long long downlinkSlotDuration;
+    unsigned long long uplinkSlotDuration;
 private:
     unsigned char hop;
     const MediumAccessController& mac;
@@ -222,6 +228,7 @@ private:
 
     bool running;
     const bool sleepDeep=false; //TODO: make it configurable
+
 };
 }
 
