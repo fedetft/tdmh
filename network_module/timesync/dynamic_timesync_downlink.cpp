@@ -129,7 +129,6 @@ void DynamicTimesyncDownlink::resync() {
     ctx.setHop(packet[2]);
     rebroadcast(correct(rcvResult.timestamp));
 
-    ledOff();
     ctx.transceiverIdle();
     
     NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() * networkConfig.getClockSyncPeriod() - correct(start));

@@ -51,7 +51,6 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     }
     if(now < wakeupTimeout.first)
         ctx.sleepUntil(wakeupTimeout.first);
-    ledOn();
     do {
             rcvResult = ctx.recv(packet.data(), MediumAccessController::maxPktSize, wakeupTimeout.second);
         if (ENABLE_PKT_INFO_DBG) {
