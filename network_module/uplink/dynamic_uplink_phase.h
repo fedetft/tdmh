@@ -39,6 +39,13 @@ public:
     DynamicUplinkPhase();
     virtual ~DynamicUplinkPhase() {};
     virtual void execute(long long slotStart) override;
+    
+    /**
+     * Align uplink phase to the master
+     * \param phase uplink phase, counting the uplink slots starting from the
+     * beginning of the global network time
+     */
+    void alignToMaster();
 
     /**
      * Starts expecting a message from the node to which the slot is assigned

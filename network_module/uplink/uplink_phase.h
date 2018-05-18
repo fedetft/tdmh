@@ -81,9 +81,10 @@ protected:
 
     TopologyContext* const topology;
     StreamManagementContext* const streamManagement;
-private:
+
     unsigned short nodesCount;
     unsigned char nextNode;
 };
+
 }
 

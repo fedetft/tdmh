@@ -50,13 +50,21 @@ void ControlSuperframeStructure::validate() const
         throw std::logic_error("must be minimal");
 }
 
+int ControlSuperframeStructure::countUplinkSlots() const
+{
+    int result = 0;
+    for(int i = 0; i < size(); i++) if(isControlUplink(i)) result++;
+    return result;
+}
+
 NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short maxNodes, unsigned short networkId,
         unsigned char staticHop, unsigned short panId, short txPower, unsigned int baseFrequency,
         unsigned long long clockSyncPeriod, unsigned char maxForwardedTopologies,
         unsigned long long tileDuration, unsigned long long maxAdmittedRcvWindow,
         unsigned short maxRoundsUnavailableBecomesDead, short minNeighborRSSI,
         unsigned char maxMissedTimesyncs, ControlSuperframeStructure controlSuperframe, TopologyMode topologyMode) :
-    maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)), staticNetworkId(networkId),
+    maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)),
+    numUplinkPerSuperframe(controlSuperframe.countUplinkSlots()), staticNetworkId(networkId),
     staticHop(staticHop), maxNodes(maxNodes), networkIdBits(BitwiseOps::bitsForRepresentingCount(maxNodes)),
     panId(panId), txPower(txPower), baseFrequency(baseFrequency), topologyMode(topologyMode),
     clockSyncPeriod(clockSyncPeriod), tileDuration(tileDuration), maxAdmittedRcvWindow(maxAdmittedRcvWindow),

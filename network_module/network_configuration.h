@@ -66,6 +66,22 @@ public:
      */
     bool isControlDownlink(int index) const { return (bitmask>>index) & 1; }
     
+    /**
+     * \param index tile index from 0 to size()-1
+     * \return true if the tile is a control uplink tile
+     */
+    bool isControlUplink(int index) const { return !isControlDownlink(index); }
+    
+    /**
+     * \return the number of downlink slots in the control superframe
+     */
+    int countDownlinkSlots() const { return size() - countUplinkSlots(); }
+    
+    /**
+     * \return the number of uplink slots in the control superframe
+     */
+    int countUplinkSlots() const;
+    
 private:
     /**
      * Validates the control superframe structure
@@ -228,10 +244,18 @@ public:
     short getTxPower() const {
         return txPower;
     }
+    
+    /**
+     * @return the number of uplink slots
+     */
+    unsigned int getNumUplinkSlotperSuperframe() const {
+        return numUplinkPerSuperframe;
+    }
 
 private:
     const unsigned char maxHops;
     const unsigned char hopBits;
+    const unsigned char numUplinkPerSuperframe;
     const bool dynamicNetworkId = false;
     const unsigned short staticNetworkId;
     const unsigned short staticHop;

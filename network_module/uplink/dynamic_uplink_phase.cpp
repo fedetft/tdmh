@@ -28,12 +28,35 @@
 #include "../debug_settings.h"
 #include "dynamic_uplink_phase.h"
 #include "../timesync/timesync_downlink.h"
+#include "../timesync/networktime.h"
 #include "topology/topology_context.h"
 #include <limits>
 
 using namespace miosix;
 
 namespace mxnet {
+
+void DynamicUplinkPhase::alignToMaster()
+{
+    auto controlSuperframeDuration = ctx.getControlSuperframeDuration();
+    auto tileDuration = ctx.getNetworkConfig().getTileDuration();
+    auto numUplinkPerSuperframe = ctx.getNetworkConfig().getNumUplinkSlotperSuperframe();
+    auto controlSuperframe = ctx.getNetworkConfig().getControlSuperframeStructure();
+    
+    auto now=NetworkTime::now();
+    auto superframeCount = now.get() / controlSuperframeDuration;
+    auto timeWithinSuperframe = now.get() % controlSuperframeDuration;
+    
+    long long phase = superframeCount * numUplinkPerSuperframe;
+    
+    for(int i = 0; i < controlSuperframe.size(); i++)
+    {
+        if(timeWithinSuperframe < tileDuration) break;
+        timeWithinSuperframe -= tileDuration;
+        if(controlSuperframe.isControlUplink(i)) phase++;
+    }
+    nextNode = nodesCount - 1 - (phase % nodesCount);
+}
 
 void DynamicUplinkPhase::receiveByNode(long long slotStart, unsigned char currentNode) {
     auto wakeUpTimeout = timesync->getWakeupAndTimeout(slotStart);

@@ -128,7 +128,7 @@ void MACContext::run()
     
     auto clockSyncPeriod = networkConfig.getClockSyncPeriod();
     auto controlSuperframe = networkConfig.getControlSuperframeStructure();
-    auto controlSuperframeDuration = tileDuration * controlSuperframe.size();
+    controlSuperframeDuration = tileDuration * controlSuperframe.size();
     
     if(tileDuration - downlinkSlotDuration < dataSlotDuration)
         throw logic_error("downlink slot too large for tile");
@@ -177,7 +177,7 @@ void MACContext::run()
             }
         }
         
-        if(++tileCounter>=controlSuperframe.size())
+        if(++tileCounter >= controlSuperframe.size())
         {
             tileCounter=0;
             if(++controlSuperframeCounter >= numSuperframesPerClockSync)

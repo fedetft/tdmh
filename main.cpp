@@ -126,10 +126,10 @@ void node3Hop2(void*){
 
 int main()
 {
-//    auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-//    auto t1 = Thread::create(node1Hop1, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-    auto t1 = Thread::create(node2Hop1, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-//    auto t1 = Thread::create(node3Hop2, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+    auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+//     auto t1 = Thread::create(node1Hop1, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+//     auto t1 = Thread::create(node2Hop1, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+//     auto t1 = Thread::create(node3Hop2, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
     
     t1->join();
     return 0;

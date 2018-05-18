@@ -184,6 +184,11 @@ public:
      * @return the DataPhase
      */
     DataPhase* const getDataPhase() const { return data; }
+    
+    /**
+     * @return the duration of the control superframe
+     */
+    unsigned long long getControlSuperframeDuration() const { return controlSuperframeDuration; }
 
     void run();
 
@@ -206,6 +211,8 @@ private:
     unsigned short networkId;
     miosix::Transceiver& transceiver;
     miosix::PowerManager& pm;
+    
+    unsigned long long controlSuperframeDuration;
 
     //TODO write getters for the statistics
     unsigned sendTotal;

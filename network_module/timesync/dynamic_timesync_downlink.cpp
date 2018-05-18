@@ -28,7 +28,9 @@
 #include "dynamic_timesync_downlink.h"
 #include "networktime.h"
 #include "../uplink/topology/topology_context.h"
+#include "../uplink/dynamic_uplink_phase.h"
 #include "../debug_settings.h"
+#include <cassert>
 
 using namespace miosix;
 
@@ -131,6 +133,10 @@ void DynamicTimesyncDownlink::resync() {
     ctx.transceiverIdle();
     
     NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() * networkConfig.getClockSyncPeriod() - correct(start));
+
+    auto uplink=dynamic_cast<DynamicUplinkPhase*>(ctx.getUplink());
+    assert(uplink);
+    uplink->alignToMaster();
 
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[F] hop=%d ats=%lld w=%d mst=%lld rssi=%d\n",
