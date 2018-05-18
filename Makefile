@@ -106,7 +106,7 @@ clean-recursive:
 	  clean || exit 1;)
 
 clean-topdir:
-	-rm -f $(OBJ) $(NET_OBJ) main.elf main.hex main.bin main.map $(OBJ:.o=.d)
+	-rm -f $(OBJ) $(NET_OBJ) main.elf main.hex main.bin main.map $(OBJ:.o=.d) $(NET_OBJ:.o=.d)
 
 main: main.elf
 	$(ECHO) "[CP  ] main.hex"
