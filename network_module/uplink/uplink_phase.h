@@ -32,6 +32,7 @@
 #include "topology/topology_context.h"
 #include "stream_management/stream_management_context.h"
 #include "../mac_context.h"
+#include "../timesync/networktime.h"
 
 namespace mxnet {
 class UplinkPhase : public MACPhase {
@@ -57,6 +58,11 @@ public:
      * @return the StreamManagementContext
      */
     StreamManagementContext* const getStreamManagementContext() const { return streamManagement; }
+    
+    /**
+     * Align uplink phase to the network time
+     */
+    void alignToNetworkTime(NetworkTime nt);
 
     static const int transmissionInterval = 1000000; //1ms
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms

@@ -36,29 +36,6 @@ using namespace miosix;
 
 namespace mxnet {
 
-void DynamicUplinkPhase::alignToMaster()
-{
-    auto controlSuperframeDuration = ctx.getControlSuperframeDuration();
-    auto tileDuration = ctx.getNetworkConfig().getTileDuration();
-    auto numUplinkPerSuperframe = ctx.getNetworkConfig().getNumUplinkSlotperSuperframe();
-    auto controlSuperframe = ctx.getNetworkConfig().getControlSuperframeStructure();
-    
-    auto now = NetworkTime::now();
-    auto superframeCount = now.get() / controlSuperframeDuration;
-    auto timeWithinSuperframe = now.get() % controlSuperframeDuration;
-    
-    //contains the number of uplink phases already executed
-    long long phase = superframeCount * numUplinkPerSuperframe;
-    
-    for(int i = 0; i < controlSuperframe.size(); i++)
-    {
-        if(timeWithinSuperframe < tileDuration) break;
-        timeWithinSuperframe -= tileDuration;
-        if(controlSuperframe.isControlUplink(i)) phase++;
-    }
-    nextNode = nodesCount - 1 - (phase % (nodesCount - 1));
-}
-
 void DynamicUplinkPhase::receiveByNode(long long slotStart, unsigned char currentNode) {
     auto wakeUpTimeout = timesync->getWakeupAndTimeout(slotStart);
     auto now = getTime();
