@@ -25,7 +25,22 @@ using namespace mxnet;
 void Node::activity()
 {
     using namespace miosix;
-    const NetworkConfiguration config(16, 256, address, false, 6, 1, 2450, 10000000000, 2, 1, 150000, 3, 3, 1);
+    const NetworkConfiguration config(
+            16,            //maxHops
+            256,           //maxNodes
+            address,       //networkId
+            false,         //staticHop
+            6,             //panId
+            5,             //txPower
+            2460,          //baseFrequency
+            10000000000,   //clockSyncPeriod
+            2,             //maxForwardedTopologies
+            100000000,     //tileDuration
+            150000,        //maxAdmittedRcvWindow
+            2,             //maxRoundsUnavailableBecomesDead
+            -90,           //minNeighborRSSI
+            3              //maxMissedTimesyncs
+    );
     DynamicMediumAccessController controller(Transceiver::instance(), config);
     controller.run();
 }

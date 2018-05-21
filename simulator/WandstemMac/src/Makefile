@@ -59,6 +59,7 @@ OBJS = \
     $O/network_module/schedule/schedule_information.o \
     $O/network_module/timesync/dynamic_timesync_downlink.o \
     $O/network_module/timesync/master_timesync_downlink.o \
+    $O/network_module/timesync/networktime.o \
     $O/network_module/timesync/timesync_downlink.o \
     $O/network_module/timesync/controller/flopsync1.o \
     $O/network_module/timesync/controller/flopsync2.o \
