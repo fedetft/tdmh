@@ -28,13 +28,29 @@
 #include "debug_settings.h"
 #include <cstdarg>
 #include <cstdio>
+#include <stdexcept>
+
+using namespace std;
 
 namespace mxnet {
 
-void print_dbg(const char *fmt, ...) {
+void print_dbg(const char *fmt, ...)
+{
     va_list args;
-    va_start (args, fmt);
-    vprintf (fmt, args);
-    va_end (args);
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
 }
+
+void throwLogicError(const char *fmt, ...)
+{
+    va_list arg;
+    char errorstr[128];
+    va_start(arg, fmt);
+    vsnprintf(errorstr, sizeof(errorstr)-1, fmt, arg);
+    va_end(arg);
+    errorstr[sizeof(errorstr)-1]='\0';
+    throw logic_error(errorstr);
+}
+
 }

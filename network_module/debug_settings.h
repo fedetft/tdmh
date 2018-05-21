@@ -77,5 +77,11 @@ const bool ENABLE_DATA_INFO_DBG = false;
  * Do this anywhere before including any network_module file.
  */
 void print_dbg(const char *fmt, ...);
+
+/**
+ * Throw logic error with format string, limited to 128 characters
+ */
+void throwLogicError(const char *fmt, ...);
+
 }
 

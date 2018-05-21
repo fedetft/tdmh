@@ -141,13 +141,14 @@ void MACContext::run()
     controlSuperframeDuration = tileDuration * controlSuperframe.size();
     
     if(tileDuration - downlinkSlotDuration < dataSlotDuration)
-        throw logic_error("downlink slot too large for tile");
+        throwLogicError("downlink slot (%lld) too large for tile (%lld)", downlinkSlotDuration, tileDuration);
     
     if(tileDuration - uplinkSlotDuration < dataSlotDuration)
-        throw logic_error("uplink slot too large for tile");
+        throwLogicError("uplink slot (%lld) too large for tile (%lld)", uplinkSlotDuration, tileDuration);
     
     if(clockSyncPeriod % controlSuperframeDuration != 0)
-        throw logic_error("control superframe does not divide clock sync period");
+        throwLogicError("control superframe (%lld) does not divide clock sync period (%lld)",
+                        controlSuperframeDuration, clockSyncPeriod);
     
     unsigned int numDataSlotInDownlinkTile  = (tileDuration - downlinkSlotDuration) / dataSlotDuration;
     unsigned int numDataSlotInUplinkTile    = (tileDuration - uplinkSlotDuration)   / dataSlotDuration;
