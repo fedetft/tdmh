@@ -132,7 +132,6 @@ void DynamicTimesyncDownlink::resync() {
     ctx.transceiverIdle();
     
     NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() * networkConfig.getClockSyncPeriod() - correct(start));
-
     ctx.getUplink()->alignToNetworkTime(NetworkTime::now());
 
     if (ENABLE_TIMESYNC_DL_INFO_DBG)

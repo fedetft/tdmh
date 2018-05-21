@@ -30,6 +30,7 @@
 #include <utility>
 #include <array>
 #include "timesync_downlink.h"
+#include "../uplink/uplink_phase.h"
 
 namespace mxnet {
 class MasterTimesyncDownlink : public TimesyncDownlink {
@@ -43,6 +44,8 @@ public:
     std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
     long long getDelayToMaster() const override { return 0; }
     virtual long long getSlotframeStart() const { return slotframeTime; }
+    
+    void macStartHook() override;
 
 protected:
     /**

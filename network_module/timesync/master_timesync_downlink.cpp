@@ -28,6 +28,7 @@
 #include "../debug_settings.h"
 #include "master_timesync_downlink.h"
 #include "../mac_context.h"
+#include "networktime.h"
 
 using namespace miosix;
 
@@ -45,19 +46,12 @@ MasterTimesyncDownlink::MasterTimesyncDownlink(MACContext& ctx) : TimesyncDownli
             0xff, 0xff,                               //destination addr (broadcast)
             0,0,0,0                                   //32bit timesync packet counter for absolute network time
         }};
-    
-    auto now = getTime();
-    auto period = networkConfig.getClockSyncPeriod();
-    slotframeTime = now - (now % period) + period;
-    if(slotframeTime - now < initializationDelay) slotframeTime += period;
-    setTimesyncPacketCounter(slotframeTime / period);
 }
 
 void MasterTimesyncDownlink::execute(long long slotStart)
 {
     next();
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    //Thread::nanoSleepUntil(startTime);
     auto deepsleepDeadline = getSenderWakeup(slotframeTime);
     if(getTime() < deepsleepDeadline)
         ctx.sleepUntil(deepsleepDeadline);
@@ -69,7 +63,6 @@ void MasterTimesyncDownlink::execute(long long slotStart)
     if (false)
         listeningRTP.execute(slotframeTime + RoundtripSubphase::senderDelay);
     ctx.transceiverIdle();
-    incrementTimesyncPacketCounter();
 }
 
 std::pair<long long, long long> MasterTimesyncDownlink::getWakeupAndTimeout(long long tExpected) {
@@ -80,8 +73,19 @@ std::pair<long long, long long> MasterTimesyncDownlink::getWakeupAndTimeout(long
     );
 }
 
+void MasterTimesyncDownlink::macStartHook()
+{
+    slotframeTime = getTime() + initializationDelay;
+    NetworkTime::setLocalNodeToNetworkTimeOffset(-slotframeTime);
+    
+    // Initialize considering the next() in execute
+    slotframeTime -= networkConfig.getClockSyncPeriod();
+    setTimesyncPacketCounter(-1);
+}
+
 void MasterTimesyncDownlink::next() {
     slotframeTime += networkConfig.getClockSyncPeriod();
+    incrementTimesyncPacketCounter();
 }
 
 long long MasterTimesyncDownlink::correct(long long int uncorrected) {

@@ -106,6 +106,8 @@ public:
     bool macCanOperate() {
         return internalStatus == IN_SYNC && receiverWindow <= networkConfig.getMaxAdmittedRcvWindow();
     }
+    
+    virtual void macStartHook() {}
 
 protected:
     TimesyncDownlink(MACContext& ctx, MacroStatus initStatus, unsigned receivingWindow) :

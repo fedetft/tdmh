@@ -158,6 +158,8 @@ void MACContext::run()
     unsigned int numSuperframesPerClockSync = clockSyncPeriod / controlSuperframeDuration;
     
     transceiver.turnOn();
+    timesync->macStartHook();
+    
     long long currentNextDeadline = 0;
     unsigned int controlSuperframeCounter = 0;
     int tileCounter = 0;
