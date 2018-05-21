@@ -43,6 +43,6 @@ DynamicMACContext::DynamicMACContext(const MediumAccessController& mac, miosix::
     topologyContext = topology;
     uplink = new DynamicUplinkPhase(*this, topology);
     data = new DataPhase(*this);
-    calculateDurations();
 };
+
 } /* namespace mxnet */
