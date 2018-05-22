@@ -51,7 +51,8 @@ MACContext::~MACContext() {
 MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiver, const NetworkConfiguration& config) :
                 mac(mac), transceiverConfig(config.getBaseFrequency(), config.getTxPower(), true, false),
                 networkConfig(config), networkId(config.getStaticNetworkId()), transceiver(transceiver),
-                pm(miosix::PowerManager::instance()), sendTotal(0), sendErrors(0), rcvTotal(0), rcvErrors(0),
+                pm(miosix::PowerManager::instance()), controlSuperframe(networkConfig.getControlSuperframeStructure()),
+                sendTotal(0), sendErrors(0), rcvTotal(0), rcvErrors(0),
                 running(false)
 {
     calculateDurations();
@@ -135,28 +136,22 @@ RecvResult MACContext::recv(void *pkt, int size, long long timeout, std::functio
     return rcvResult;
 }
 
-void MACContext::run()
-{
+void MACContext::warmUp() {
+
     auto tileDuration = networkConfig.getTileDuration();
-    
-    auto clockSyncPeriod = networkConfig.getClockSyncPeriod();
-    auto controlSuperframe = networkConfig.getControlSuperframeStructure();
-    controlSuperframeDuration = tileDuration * controlSuperframe.size();
-    
     if(tileDuration - downlinkSlotDuration < dataSlotDuration)
         throwLogicError("downlink slot (%lld) too large for tile (%lld)", downlinkSlotDuration, tileDuration);
-    
+
     if(tileDuration - uplinkSlotDuration < dataSlotDuration)
         throwLogicError("uplink slot (%lld) too large for tile (%lld)", uplinkSlotDuration, tileDuration);
-    
-    if(clockSyncPeriod % controlSuperframeDuration != 0)
-        throwLogicError("control superframe (%lld) does not divide clock sync period (%lld)",
-                        controlSuperframeDuration, clockSyncPeriod);
-    
-    unsigned int numDataSlotInDownlinkTile  = (tileDuration - downlinkSlotDuration) / dataSlotDuration;
-    unsigned int numDataSlotInUplinkTile    = (tileDuration - uplinkSlotDuration)   / dataSlotDuration;
-    unsigned int numSuperframesPerClockSync = clockSyncPeriod / controlSuperframeDuration;
-    
+
+    numDataSlotInDownlinkTile  = (tileDuration - downlinkSlotDuration) / dataSlotDuration;
+    numDataSlotInUplinkTile    = (tileDuration - uplinkSlotDuration)   / dataSlotDuration;
+}
+
+void MACContext::run()
+{
+    warmUp();
     transceiver.turnOn();
     timesync->macStartHook();
     
@@ -192,7 +187,7 @@ void MACContext::run()
         if(++tileCounter >= controlSuperframe.size())
         {
             tileCounter=0;
-            if(++controlSuperframeCounter >= numSuperframesPerClockSync)
+            if(++controlSuperframeCounter >= networkConfig.getNumSuperframesPerClockSync())
                 controlSuperframeCounter=0;
         }
     }

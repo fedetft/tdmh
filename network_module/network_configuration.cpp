@@ -28,6 +28,7 @@
 #include "network_configuration.h"
 #include "bitwise_ops.h"
 #include "mac_context.h"
+#include "debug_settings.h"
 #include <stdexcept>
 
 namespace mxnet {
@@ -64,13 +65,24 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
         unsigned short maxRoundsUnavailableBecomesDead, short minNeighborRSSI,
         unsigned char maxMissedTimesyncs, ControlSuperframeStructure controlSuperframe, TopologyMode topologyMode) :
     maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)),
-    numUplinkPerSuperframe(controlSuperframe.countUplinkSlots()), staticNetworkId(networkId),
-    staticHop(staticHop), maxNodes(maxNodes), networkIdBits(BitwiseOps::bitsForRepresentingCount(maxNodes)),
+    numUplinkPerSuperframe(controlSuperframe.countUplinkSlots()), numDownlinkPerSuperframe(controlSuperframe.countDownlinkSlots()),
+    staticNetworkId(networkId), staticHop(staticHop), maxNodes(maxNodes),
+    networkIdBits(BitwiseOps::bitsForRepresentingCount(maxNodes)),
     panId(panId), txPower(txPower), baseFrequency(baseFrequency), topologyMode(topologyMode),
     clockSyncPeriod(clockSyncPeriod), tileDuration(tileDuration), maxAdmittedRcvWindow(maxAdmittedRcvWindow),
     maxMissedTimesyncs(maxMissedTimesyncs), maxForwardedTopologies(maxForwardedTopologies),
     maxRoundsUnavailableBecomesDead(maxRoundsUnavailableBecomesDead),
     minNeighborRSSI(minNeighborRSSI),
-    controlSuperframe(controlSuperframe) {}
+    controlSuperframe(controlSuperframe), controlSuperframeDuration(tileDuration * controlSuperframe.size()),
+    numSuperframesPerClockSync(clockSyncPeriod / controlSuperframeDuration) {
+    validate();
+}
+
+void NetworkConfiguration::validate() const {
+    if(clockSyncPeriod % controlSuperframeDuration != 0)
+        throwLogicError("control superframe (%lld) does not divide clock sync period (%lld)",
+                        controlSuperframeDuration, clockSyncPeriod);
+
+}
 
 } /* namespace mxnet */

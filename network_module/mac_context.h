@@ -184,11 +184,39 @@ public:
      * @return the DataPhase
      */
     DataPhase* const getDataPhase() const { return data; }
-    
+
     /**
-     * @return the duration of the control superframe
+     * @return the number of data slots in an uplink tile
      */
-    unsigned long long getControlSuperframeDuration() const { return controlSuperframeDuration; }
+    unsigned getDataSlotsInUplinkTileCount() const { return numDataSlotInUplinkTile; }
+
+    /**
+     * @return the number of data slots in a downlink tile
+     */
+    unsigned getDataSlotsInDownlinkTileCount() const { return numDataSlotInDownlinkTile; }
+
+    /**
+     * @return the number of data slots in a control superframe
+     */
+    unsigned getDataSlotsInControlSuperframeCount() const {
+        return numDataSlotInUplinkTile * networkConfig.getControlSuperframeStructure().countUplinkSlots() +
+                numDataSlotInDownlinkTile * networkConfig.getControlSuperframeStructure().countDownlinkSlots();
+    }
+
+    /**
+     * @return the duration of a data slot
+     */
+    unsigned long long getDataSlotDuration() const { return dataSlotDuration; }
+
+    /**
+     * @return the duration of a downlink slot
+     */
+    unsigned long long getDownlinkSlotDuration() const { return downlinkSlotDuration; }
+
+    /**
+     * @return the duration of an uplink slot
+     */
+    unsigned long long getUplinkSlotDuration() const { return uplinkSlotDuration; }
 
     void run();
 
@@ -210,6 +238,8 @@ protected:
     unsigned long long downlinkSlotDuration;
     unsigned long long uplinkSlotDuration;
 private:
+    void warmUp();
+
     unsigned char hop;
     const MediumAccessController& mac;
     const miosix::TransceiverConfiguration transceiverConfig;
@@ -217,8 +247,10 @@ private:
     unsigned short networkId;
     miosix::Transceiver& transceiver;
     miosix::PowerManager& pm;
+    ControlSuperframeStructure controlSuperframe;
     
-    unsigned long long controlSuperframeDuration;
+    unsigned numDataSlotInDownlinkTile;
+    unsigned numDataSlotInUplinkTile;
 
     //TODO write getters for the statistics
     unsigned sendTotal;

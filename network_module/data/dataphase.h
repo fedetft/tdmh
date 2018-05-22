@@ -45,6 +45,11 @@ public:
     void setDataSuperframeSize(unsigned short slotsInFrame) {
         this->slotsInFrame = slotsInFrame;
     }
+
+    /**
+     * Align data phase to the network time
+     */
+    void alignToNetworkTime(NetworkTime nt);
     
     virtual void execute(long long slotStart) override;
 

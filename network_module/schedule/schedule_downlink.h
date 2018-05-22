@@ -30,6 +30,7 @@
 #include "dynamic_schedule_information.h"
 #include "../mac_phase.h"
 #include "../mac_context.h"
+#include "../timesync/networktime.h"
 #include "interfaces-impl/transceiver.h"
 #include "interfaces-impl/power_manager.h"
 #include <utility>

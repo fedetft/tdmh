@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2018 by Polidori Paolo                                 *
+ *   Copyright (C)  2018 by Terraneo Federico, Polidori Paolo              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,36 +25,63 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "uplink_phase.h"
+#pragma once
 
 namespace mxnet {
+//prints info if receiving a packet
+const bool ENABLE_PKT_INFO_DBG = false;
 
-void UplinkPhase::alignToNetworkTime(NetworkTime nt)
-{
-    auto controlSuperframeDuration = ctx.getNetworkConfig().getControlSuperframeDuration();
-    auto tileDuration = ctx.getNetworkConfig().getTileDuration();
-    auto numUplinkPerSuperframe = ctx.getNetworkConfig().getNumUplinkSlotperSuperframe();
-    auto controlSuperframe = ctx.getNetworkConfig().getControlSuperframeStructure();
-    
-    auto superframeCount = nt.get() / controlSuperframeDuration;
-    auto timeWithinSuperframe = nt.get() % controlSuperframeDuration;
-    
-    //contains the number of uplink phases already executed
-    long long phase = superframeCount * numUplinkPerSuperframe;
-    
-    for(int i = 0; i < controlSuperframe.size(); i++)
-    {
-        if(timeWithinSuperframe < tileDuration) break;
-        timeWithinSuperframe -= tileDuration;
-        if(controlSuperframe.isControlUplink(i)) phase++;
-    }
-    nextNode = nodesCount - 1 - (phase % (nodesCount - 1));
-}
+//dumps the contents of the packets, ENABLE_BAD_PKT_INFO must be defined
+const bool ENABLE_PKT_DUMP_DBG = false;
 
-void UplinkPhase::advance(long long int slotStart)
-{
-     currentNode();
-}
+//prints the exception if any while using the radio
+const bool ENABLE_RADIO_EXCEPTION_DBG = true;
+
+//prints the topology downlink phase debug info
+const bool ENABLE_TIMESYNC_DL_INFO_DBG = true;
+
+//prints the topology downlink phase errors
+const bool ENABLE_TIMESYNC_ERROR_DBG = true;
+
+//prints the roundtrip subphase debug info
+const bool ENABLE_ROUNDTRIP_INFO_DBG = true;
+
+//prints the roundtrip subphase errors
+const bool ENABLE_ROUNDTRIP_ERROR_DBG = true;
+
+//prints the uplink phase debug info
+const bool ENABLE_UPLINK_INFO_DBG = false;
+
+//prints the uplink phase debug verbose info
+const bool ENABLE_UPLINK_VERB_DBG = false;
+
+//prints the uplink phase errors
+const bool ENABLE_UPLINK_ERROR_DBG = true;
+
+//prints the topology context debug info
+const bool ENABLE_TOPOLOGY_INFO_DBG = true;
+
+//prints the stream context debug info
+const bool ENABLE_STREAM_INFO_DBG = true;
+
+//prints the schedule downlink phase debug info
+const bool ENABLE_SCHEDULE_DL_INFO_DBG = false;
+
+//prints the data phase debug info
+const bool ENABLE_DATA_INFO_DBG = false;
+
+/**
+ * If you want to override this function's behavior, define the macro
+ * #define print_dbg myfun
+ * and define the function myfun.
+ * Do this anywhere before including any network_module file.
+ */
+void print_dbg(const char *fmt, ...);
+
+/**
+ * Throw logic error with format string, limited to 128 characters
+ */
+void throwLogicError(const char *fmt, ...);
 
 }
 

@@ -29,6 +29,7 @@
 #include "networktime.h"
 #include "../uplink/topology/topology_context.h"
 #include "../uplink/uplink_phase.h"
+#include "../data/dataphase.h"
 #include "../debug_settings.h"
 #include <cassert>
 
@@ -132,7 +133,9 @@ void DynamicTimesyncDownlink::resync() {
     ctx.transceiverIdle();
     
     NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() * networkConfig.getClockSyncPeriod() - correct(start));
-    ctx.getUplink()->alignToNetworkTime(NetworkTime::now());
+    auto ntNow = NetworkTime::now();
+    ctx.getUplink()->alignToNetworkTime(ntNow);
+    ctx.getDataPhase()->alignToNetworkTime(ntNow);
 
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[F] hop=%d ats=%lld w=%d mst=%lld rssi=%d\n",

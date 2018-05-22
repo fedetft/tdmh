@@ -94,5 +94,39 @@ void DataPhase::advance(long long int slotStart)
     nextSlot();
 }
 
+void DataPhase::alignToNetworkTime(NetworkTime nt)
+{//TODO provide a version with only the timesync index (k)
+    auto networkConfig = ctx.getNetworkConfig();
+    auto controlSuperframe = networkConfig.getControlSuperframeStructure();
+    auto tileDuration = networkConfig.getTileDuration();
+
+    auto timeWithinTile = nt.get() % tileDuration;
+    auto tilesPassedTotal = nt.get() / tileDuration;
+
+    //during each control superframe, the number of tiles
+    unsigned tilesPassed = tilesPassedTotal % controlSuperframe.size();
+
+    //contains the number of data phases already executed
+    //the initial value is 0, since we start counting from the control
+    //superframe start
+    unsigned long long phase = 0;
+
+    //adds the data slots for each passed tile
+    for(int i = 0; i < tilesPassed; i++)
+    {
+        phase += controlSuperframe.isControlDownlink(i)?
+                ctx.getDataSlotsInDownlinkTileCount():
+                ctx.getDataSlotsInUplinkTileCount();
+    }
+
+    //removes the control time
+    timeWithinTile -= controlSuperframe.isControlDownlink(tilesPassed)?
+            ctx.getDownlinkSlotDuration():
+            ctx.getUplinkSlotDuration();
+
+    phase += timeWithinTile / ctx.getDataSlotDuration();
+    dataSlot = phase;
+}
+
 }
 

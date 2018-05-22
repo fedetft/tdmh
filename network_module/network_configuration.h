@@ -252,10 +252,37 @@ public:
         return numUplinkPerSuperframe;
     }
 
+    /**
+     * @return the number of downlink slots
+     */
+    unsigned int getNumDownlinkSlotperSuperframe() const {
+        return numDownlinkPerSuperframe;
+    }
+
+    /**
+     * @return the duration of a control superframe
+     */
+    unsigned long long getControlSuperframeDuration() const {
+        return controlSuperframeDuration;
+    }
+
+    /**
+     * @return the number of superframes contained within a clock sync period
+     */
+    unsigned getNumSuperframesPerClockSync() const {
+        return numSuperframesPerClockSync;
+    }
+
 private:
+    /**
+     * Validates the times configured
+     */
+    void validate() const;
+
     const unsigned char maxHops;
     const unsigned char hopBits;
     const unsigned char numUplinkPerSuperframe;
+    const unsigned char numDownlinkPerSuperframe;
     const bool dynamicNetworkId = false;
     const unsigned short staticNetworkId;
     const unsigned short staticHop;
@@ -273,6 +300,9 @@ private:
     const unsigned short maxRoundsUnavailableBecomesDead;
     const short minNeighborRSSI;
     const ControlSuperframeStructure controlSuperframe;
+    const unsigned long long controlSuperframeDuration;
+
+    unsigned numSuperframesPerClockSync;
 };
 
 }
