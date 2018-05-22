@@ -33,63 +33,66 @@ using namespace miosix;
 
 namespace mxnet {
 
-    void DataPhase::execute(long long slotStart) {
-        if (ENABLE_DATA_INFO_DBG)
-            print_dbg("[D] GFAT=%llu\n", slotStart);
-        ctx.configureTransceiver(ctx.getTransceiverConfig());
-        if (scheduleDownlink->isScheduleEnd(nextSched) || (*nextSched)->getDataslot() != dataSlot) return;
-        /*
-        std::tuple<bool, ScheduleContext::Role, std::queue<std::vector<unsigned char>>*> slotJob = s->executeTimeslot(i);
-        std::queue<std::vector<unsigned char>>* q;
-        if (!std::get<0>(slotJob)) continue;
-        vector<unsigned char> pkt(125);
-        auto expectedTs = globalFirstActivityTime + ((long long) i) * (transmissionInterval + packetArrivalAndProcessingTime);
-        auto wuTo = status == nullptr?
-                std::make_pair(expectedTs - MediumAccessController::maxAdmittableResyncReceivingWindow - MediumAccessController::receivingNodeWakeupAdvance, expectedTs + MediumAccessController::maxAdmittableResyncReceivingWindow) :
-                status->getWakeupAndTimeout(expectedTs);
-        auto now = getTime();
-        switch (std::get<1>(slotJob)) {
-        case ScheduleContext::Role::SEND:
-            str = (std::string("Hello, I am ") + std::to_string(ctx.getNetworkId()));
-            strcpy((char *)pkt.data(), str.c_str());
-            transceiver.sendAt(pkt.data(), sizeof(str) * sizeof(str[0]) / sizeof(unsigned char), expectedTs);
-            print_dbg("[D] Sent packet with size %d at %llu\n", sizeof(str), expectedTs);
+void DataPhase::execute(long long slotStart) {
+    if (ENABLE_DATA_INFO_DBG)
+        print_dbg("[D] GFAT=%llu\n", slotStart);
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    if (scheduleDownlink->isScheduleEnd(nextSched) || (*nextSched)->getDataslot() != dataSlot) return;
+    /*
+    std::tuple<bool, ScheduleContext::Role, std::queue<std::vector<unsigned char>>*> slotJob = s->executeTimeslot(i);
+    std::queue<std::vector<unsigned char>>* q;
+    if (!std::get<0>(slotJob)) continue;
+    vector<unsigned char> pkt(125);
+    auto expectedTs = globalFirstActivityTime + ((long long) i) * (transmissionInterval + packetArrivalAndProcessingTime);
+    auto wuTo = status == nullptr?
+            std::make_pair(expectedTs - MediumAccessController::maxAdmittableResyncReceivingWindow - MediumAccessController::receivingNodeWakeupAdvance, expectedTs + MediumAccessController::maxAdmittableResyncReceivingWindow) :
+            status->getWakeupAndTimeout(expectedTs);
+    auto now = getTime();
+    switch (std::get<1>(slotJob)) {
+    case ScheduleContext::Role::SEND:
+        str = (std::string("Hello, I am ") + std::to_string(ctx.getNetworkId()));
+        strcpy((char *)pkt.data(), str.c_str());
+        transceiver.sendAt(pkt.data(), sizeof(str) * sizeof(str[0]) / sizeof(unsigned char), expectedTs);
+        print_dbg("[D] Sent packet with size %d at %llu\n", sizeof(str), expectedTs);
+        break;
+    case ScheduleContext::Role::RCV:
+        if (now >= expectedTs - (status == nullptr? MediumAccessController::maxAdmittableResyncReceivingWindow : status->receiverWindow))
+            print_dbg("[D] start late\n");
+        if (now < wuTo.first)
+            ctx.sleepUntil(wuTo.first);
+        r = transceiver.recv(pkt.data(), 125, wuTo.second);
+        print_dbg("[D] Received packet with size %d at %llu:\n%s\n", r.size, r.timestamp, std::string((char*) pkt.data(), r.size).c_str());
+        break;
+    case ScheduleContext::Role::FWE:
+        if (now >= expectedTs - (status == nullptr? MediumAccessController::maxAdmittableResyncReceivingWindow : status->receiverWindow))
+            print_dbg("[D] start late\n");
+        if (now < wuTo.first)
+            ctx.sleepUntil(wuTo.first);
+        r = transceiver.recv(pkt.data(), 125, wuTo.second);
+        pkt.resize(r.size);
+        q = std::get<2>(slotJob);
+        if (r.error == RecvResult::OK)
+            q->push(pkt);
+        print_dbg("[D] Received forwarded with size %d packet at %llu with error %d\n", r.size, r.timestamp, r.error);
+        break;
+    case ScheduleContext::Role::FWD:
+        q = std::get<2>(slotJob);
+        if (q->empty()) {
+            print_dbg("[D] No packets to forward at %llu\n", expectedTs);
             break;
-        case ScheduleContext::Role::RCV:
-            if (now >= expectedTs - (status == nullptr? MediumAccessController::maxAdmittableResyncReceivingWindow : status->receiverWindow))
-                print_dbg("[D] start late\n");
-            if (now < wuTo.first)
-                ctx.sleepUntil(wuTo.first);
-            r = transceiver.recv(pkt.data(), 125, wuTo.second);
-            print_dbg("[D] Received packet with size %d at %llu:\n%s\n", r.size, r.timestamp, std::string((char*) pkt.data(), r.size).c_str());
-            break;
-        case ScheduleContext::Role::FWE:
-            if (now >= expectedTs - (status == nullptr? MediumAccessController::maxAdmittableResyncReceivingWindow : status->receiverWindow))
-                print_dbg("[D] start late\n");
-            if (now < wuTo.first)
-                ctx.sleepUntil(wuTo.first);
-            r = transceiver.recv(pkt.data(), 125, wuTo.second);
-            pkt.resize(r.size);
-            q = std::get<2>(slotJob);
-            if (r.error == RecvResult::OK)
-                q->push(pkt);
-            print_dbg("[D] Received forwarded with size %d packet at %llu with error %d\n", r.size, r.timestamp, r.error);
-            break;
-        case ScheduleContext::Role::FWD:
-            q = std::get<2>(slotJob);
-            if (q->empty()) {
-                print_dbg("[D] No packets to forward at %llu\n", expectedTs);
-                break;
-            }
-            pkt = q->front();
-            transceiver.sendAt(pkt.data(), pkt.size(), expectedTs);
-            print_dbg("[D] Forwarded packet with size %d at %llu\n", pkt.size(), expectedTs);
-            break;
-        }*/
-        ctx.transceiverIdle();
-    }
+        }
+        pkt = q->front();
+        transceiver.sendAt(pkt.data(), pkt.size(), expectedTs);
+        print_dbg("[D] Forwarded packet with size %d at %llu\n", pkt.size(), expectedTs);
+        break;
+    }*/
+    ctx.transceiverIdle();
+}
 
-
+void DataPhase::advance(long long int slotStart)
+{
+    nextSlot();
+}
 
 }
 
