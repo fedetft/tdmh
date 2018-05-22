@@ -109,6 +109,8 @@ public:
     
     virtual void macStartHook() {}
 
+    void advance(long long slotStart) override;
+
 protected:
     TimesyncDownlink(MACContext& ctx, MacroStatus initStatus, unsigned receivingWindow) :
             MACPhase(ctx),

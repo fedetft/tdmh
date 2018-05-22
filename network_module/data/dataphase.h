@@ -50,6 +50,8 @@ public:
     
     virtual void execute(long long slotStart) override;
 
+    void advance(long long slotStart) override {} //TODO
+
     static unsigned long long getDuration() {
         return packetArrivalAndProcessingTime + transmissionInterval;
     }

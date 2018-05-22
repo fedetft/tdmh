@@ -50,6 +50,8 @@ public:
         return phaseStartupTime + hops * rebroadcastInterval;
     }
 
+    void advance(long long slotStart) override {} //TODO
+
     unsigned getSlotsCount() const override { return 1; /* FIXME */ }
     bool isScheduleEnd(std::set<DynamicScheduleElement*>::iterator it) const { return nodeSchedule.empty() || nodeSchedule.end() == it; }
     std::set<DynamicScheduleElement*>::iterator getFirstSchedule() { return nodeSchedule.begin(); };

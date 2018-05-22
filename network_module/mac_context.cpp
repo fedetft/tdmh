@@ -171,22 +171,21 @@ void MACContext::run()
             if(tileCounter==0 && controlSuperframeCounter==0)
             {
                 timesync->execute(currentNextDeadline);
-                if(!timesync->macCanOperate()) continue;
                 currentNextDeadline = timesync->getSlotframeStart();
             } else {
-                schedule->execute(currentNextDeadline);
+                schedule->run(currentNextDeadline);
             }
             currentNextDeadline += downlinkSlotDuration;
             dataSlots = numDataSlotInDownlinkTile;
         } else {
-            uplink->execute(currentNextDeadline);
+            uplink->run(currentNextDeadline);
             currentNextDeadline += uplinkSlotDuration;
             dataSlots = numDataSlotInUplinkTile;
         }
             
         for(unsigned i = 0; i < dataSlots; i++)
         {
-            data->execute(currentNextDeadline);
+            data->run(currentNextDeadline);
             currentNextDeadline += dataSlotDuration;
         }
         

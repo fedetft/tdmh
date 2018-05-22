@@ -28,9 +28,16 @@
 #include <stdio.h>
 #include "../debug_settings.h"
 #include "timesync_downlink.h"
+#include <stdexcept>
 
 using namespace miosix;
 
 namespace mxnet {
+
+void TimesyncDownlink::advance(long long slotStart)
+{
+    throw std::logic_error("TimesyncDownlink can't advance");
+}
+
 }
 

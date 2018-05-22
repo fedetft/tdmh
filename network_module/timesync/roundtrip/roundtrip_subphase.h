@@ -39,6 +39,7 @@ public:
     static unsigned long long getDuration() {
         return phaseDuration;
     }
+    void advance(long long slotStart) override {}
     unsigned getSlotsCount() const override { return 1; }
     virtual ~RoundtripSubphase() {};
     

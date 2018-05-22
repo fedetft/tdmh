@@ -27,9 +27,16 @@
 
 #include "mac_phase.h"
 #include "mac_context.h"
+#include "timesync/timesync_downlink.h"
 
 namespace mxnet {
-MACPhase::MACPhase(MACContext& ctx) :
-        ctx(ctx),
-        timesync(ctx.getTimesync()) {}
+
+MACPhase::MACPhase(MACContext& ctx) : ctx(ctx), timesync(ctx.getTimesync()) {}
+
+void MACPhase::run(long long slotStart)
+{
+    if(ctx.getTimesync()->macCanOperate()) execute(slotStart);
+    else advance(slotStart);
+}
+
 }

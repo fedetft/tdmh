@@ -51,10 +51,22 @@ public:
     virtual ~MACPhase() {};
 
     /**
+     * Calls execute() or advance() depending on the clock synchronization state
+     */
+    void run(long long slotStart);
+
+    /**
      * Executes the phase for the slot starting when specified.
      * @param slotStart timestamp identifying the first action executed in the network.
      */
     virtual void execute(long long slotStart) = 0;
+
+    /**
+     * Advance the internal state of the phase without actually executing it.
+     * Used to keep the internal phase state in sync with the master while clock
+     * synchronization is out of spec
+     */
+    virtual void advance(long long slotStart) = 0;
 
     /**
      * @return he number of slots the phase contains, which is the number of elementary,

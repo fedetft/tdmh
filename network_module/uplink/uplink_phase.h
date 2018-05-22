@@ -33,6 +33,7 @@
 #include "stream_management/stream_management_context.h"
 #include "../mac_context.h"
 #include "../timesync/networktime.h"
+#include <cstdio>
 
 namespace mxnet {
 class UplinkPhase : public MACPhase {
@@ -63,6 +64,8 @@ public:
      * Align uplink phase to the network time
      */
     void alignToNetworkTime(NetworkTime nt);
+
+    void advance(long long slotStart) override;
 
     static const int transmissionInterval = 1000000; //1ms
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms

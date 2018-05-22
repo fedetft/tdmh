@@ -51,5 +51,10 @@ void UplinkPhase::alignToNetworkTime(NetworkTime nt)
     nextNode = nodesCount - 1 - (phase % (nodesCount - 1));
 }
 
+void UplinkPhase::advance(long long int slotStart)
+{
+     currentNode();
+}
+
 }
 
