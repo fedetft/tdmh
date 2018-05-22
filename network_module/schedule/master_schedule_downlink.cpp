@@ -68,6 +68,7 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     ctx.transceiverIdle();
     for (auto el : data.first)
         delete el;
+    //TODO add management of nodeSchedule, containing the current schedule to execute in the data phase
 }
 
 std::pair<std::vector<ScheduleAddition*>, std::vector<unsigned char>> MasterScheduleDownlinkPhase::getScheduleToDistribute(unsigned short bytes) {

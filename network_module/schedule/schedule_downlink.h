@@ -42,6 +42,7 @@
  * all of them, so they start operating it when configured.
  */
 namespace mxnet {
+//TODO refactor to support incremental schedule (schedule taking effect after N downlinks)
 class ScheduleDownlinkPhase : public MACPhase {
 public:
     ScheduleDownlinkPhase() = delete;
