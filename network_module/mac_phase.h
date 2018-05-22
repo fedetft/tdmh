@@ -68,11 +68,6 @@ public:
      */
     virtual void advance(long long slotStart) = 0;
 
-    /**
-     * @return he number of slots the phase contains, which is the number of elementary,
-     * non-sliceable parts it is composed of.
-     */
-    virtual unsigned getSlotsCount() const = 0;
 protected:
     MACContext& ctx;
     TimesyncDownlink* const timesync;

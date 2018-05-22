@@ -45,8 +45,6 @@ public:
     void setDataSuperframeSize(unsigned short slotsInFrame) {
         this->slotsInFrame = slotsInFrame;
     }
-
-    unsigned getSlotsCount() const override { return slotsInFrame; }
     
     virtual void execute(long long slotStart) override;
 

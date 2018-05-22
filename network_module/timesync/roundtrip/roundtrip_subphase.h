@@ -40,7 +40,6 @@ public:
         return phaseDuration;
     }
     void advance(long long slotStart) override {}
-    unsigned getSlotsCount() const override { return 1; }
     virtual ~RoundtripSubphase() {};
     
     static const unsigned int receiverWindow = 200000; //200us
