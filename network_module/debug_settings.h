@@ -50,10 +50,10 @@ const bool ENABLE_ROUNDTRIP_INFO_DBG = true;
 const bool ENABLE_ROUNDTRIP_ERROR_DBG = true;
 
 //prints the uplink phase debug info
-const bool ENABLE_UPLINK_INFO_DBG = true;
+const bool ENABLE_UPLINK_INFO_DBG = false;
 
 //prints the uplink phase debug verbose info
-const bool ENABLE_UPLINK_VERB_DBG = true;
+const bool ENABLE_UPLINK_VERB_DBG = false;
 
 //prints the uplink phase errors
 const bool ENABLE_UPLINK_ERROR_DBG = true;
@@ -65,7 +65,7 @@ const bool ENABLE_TOPOLOGY_INFO_DBG = true;
 const bool ENABLE_STREAM_INFO_DBG = true;
 
 //prints the schedule downlink phase debug info
-const bool ENABLE_SCHEDULE_DL_INFO_DBG = true;
+const bool ENABLE_SCHEDULE_DL_INFO_DBG = false;
 
 //prints the data phase debug info
 const bool ENABLE_DATA_INFO_DBG = false;
