@@ -29,10 +29,96 @@
 #include <cstdarg>
 #include <cstdio>
 #include <stdexcept>
+#include <miosix.h>
+#include <queue>
+#include <list>
+#include <string>
 
 using namespace std;
+using namespace miosix;
 
 namespace mxnet {
+
+#ifdef DEBUG_MESSAGES_IN_SEPARATE_THREAD
+
+/*
+ * Threaded logger configuration parameters
+ */
+const unsigned int maxMessageSize=128;  ///< Max size of individual debug message
+const unsigned int maxQueueSize=20*128; ///< Max size of queued logging data
+
+class DebugPrinter
+{
+public:
+    static DebugPrinter& instance();
+    
+    void enqueue(const string& s);
+    
+private:
+    DebugPrinter(const DebugPrinter&) = delete;
+    DebugPrinter& operator=(const DebugPrinter&) = delete;
+    
+    DebugPrinter() : thread(Thread::create(threadLauncher,1024,MAIN_PRIORITY,this)) {}
+    
+    void run();
+    
+    static void threadLauncher(void *argv);
+    
+    Thread *thread;
+    FastMutex mutex;
+    ConditionVariable cv;
+    queue<string,list<string>> messages;
+    unsigned int size=0;
+};
+
+DebugPrinter& DebugPrinter::instance()
+{
+    static DebugPrinter singleton;
+    return singleton;
+}
+
+void DebugPrinter::enqueue(const string& s)
+{
+    Lock<FastMutex> l(mutex);
+    if(size + s.size() > maxQueueSize) return;
+    messages.push(s);
+    size += s.size();
+    cv.signal();
+}
+
+void DebugPrinter::run()
+{
+    for(;;)
+    {
+        string s;
+        {
+            Lock<FastMutex> l(mutex);
+            while(messages.empty()) cv.wait(l);
+            s=messages.front();
+            messages.pop();
+            size -= s.size();
+        }
+        printf("%s",s.c_str());
+    }
+}
+
+void DebugPrinter::threadLauncher(void *argv)
+{
+    reinterpret_cast<DebugPrinter*>(argv)->run();
+}
+
+void print_dbg(const char *fmt, ...)
+{
+    va_list args;
+    char str[maxMessageSize];
+    va_start(args, fmt);
+    vsnprintf(str, sizeof(str)-1, fmt, args);
+    va_end(args);
+    str[sizeof(str)-1]='\0';
+    DebugPrinter::instance().enqueue(str);
+}
+
+#else //DEBUG_MESSAGES_IN_SEPARATE_THREAD
 
 void print_dbg(const char *fmt, ...)
 {
@@ -41,6 +127,8 @@ void print_dbg(const char *fmt, ...)
     vprintf(fmt, args);
     va_end(args);
 }
+
+#endif //DEBUG_MESSAGES_IN_SEPARATE_THREAD
 
 void throwLogicError(const char *fmt, ...)
 {

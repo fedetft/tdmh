@@ -52,6 +52,9 @@ const bool ENABLE_ROUNDTRIP_ERROR_DBG = true;
 //prints the uplink phase debug info
 const bool ENABLE_UPLINK_INFO_DBG = false;
 
+//prints the slot number, if packets received and RSSI
+const bool ENABLE_TOPOLOGY_SHORT_SUMMARY = true;
+
 //prints the uplink phase debug verbose info
 const bool ENABLE_UPLINK_VERB_DBG = false;
 
@@ -69,6 +72,8 @@ const bool ENABLE_SCHEDULE_DL_INFO_DBG = false;
 
 //prints the data phase debug info
 const bool ENABLE_DATA_INFO_DBG = false;
+
+#define DEBUG_MESSAGES_IN_SEPARATE_THREAD
 
 /**
  * If you want to override this function's behavior, define the macro

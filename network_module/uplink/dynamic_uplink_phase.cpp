@@ -60,8 +60,12 @@ void DynamicUplinkPhase::receiveByNode(long long slotStart, unsigned char curren
         streamManagement->receive(smes);
         if (ENABLE_UPLINK_INFO_DBG)
             print_dbg("[U] <- N=%u @%llu\n", currentNode, rcvResult.timestamp);
+        if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
+            print_dbg("<-%d %ddBm\n",currentNode,rcvResult.rssi);
     } else {
         topology->unreceivedMessage(currentNode);
+        if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
+            print_dbg("  %d\n",currentNode);
     }
 }
 
@@ -89,6 +93,8 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart) {
         delete (*it);
     }
     smes.clear();
+    if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
+        print_dbg("->%d\n",ctx.getNetworkId());
 }
 
 void DynamicUplinkPhase::execute(long long slotStart) {
