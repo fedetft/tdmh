@@ -31,93 +31,54 @@
 #include "network_module/network_configuration.h"
 #include "network_module/dynamic_medium_access_controller.h"
 #include "network_module/master_medium_access_controller.h"
+#include "network_module/timesync/networktime.h"
+#include "interfaces-impl/gpio_timer_corr.h"
 
 using namespace std;
 using namespace mxnet;
 using namespace miosix;
 
-void masterNode(void*){    
+void masterNode(void*)
+{
     printf("Master node\n");
     const NetworkConfiguration config(
-        16,            //maxHops
-        256,           //maxNodes
+        6,             //maxHops
+        32,            //maxNodes
         0,             //networkId
         false,         //staticHop
         6,             //panId
         5,             //txPower
         2460,          //baseFrequency
         10000000000,   //clockSyncPeriod
-        2,             //maxForwardedTopologies
+        10,            //maxForwardedTopologies
         100000000,     //tileDuration
         150000,        //maxAdmittedRcvWindow
         2,             //maxRoundsUnavailableBecomesDead
-        -90,           //minNeighborRSSI
+        -80,           //minNeighborRSSI
         3              //maxMissedTimesyncs
     );
     MasterMediumAccessController controller(Transceiver::instance(), config);
     controller.run();
 }
 
-void node1Hop1(void*){    
-    printf("Dynamic node 1 hop 1\n");
+void dynamicNode(void* arg)
+{
+    auto node = reinterpret_cast<int>(arg);
+    printf("Dynamic node %d\n",node);
     const NetworkConfiguration config(
-        16,            //maxHops
-        256,           //maxNodes
-        1,             //networkId
+        6,             //maxHops
+        32,            //maxNodes
+        node,          //networkId
         false,         //staticHop
         6,             //panId
         5,             //txPower
         2460,          //baseFrequency
         10000000000,   //clockSyncPeriod
-        2,             //maxForwardedTopologies
+        10,            //maxForwardedTopologies
         100000000,     //tileDuration
         150000,        //maxAdmittedRcvWindow
         2,             //maxRoundsUnavailableBecomesDead
-        -90,           //minNeighborRSSI
-        3              //maxMissedTimesyncs
-    );
-    DynamicMediumAccessController controller(Transceiver::instance(), config);
-    controller.run();
-}
-
-void node2Hop1(void*){    
-    printf("Dynamic node 2 hop 1\n");
-    const NetworkConfiguration config(
-        16,            //maxHops
-        256,           //maxNodes
-        2,             //networkId
-        false,         //staticHop
-        6,             //panId
-        5,             //txPower
-        2460,          //baseFrequency
-        10000000000,   //clockSyncPeriod
-        2,             //maxForwardedTopologies
-        100000000,     //tileDuration
-        150000,        //maxAdmittedRcvWindow
-        2,             //maxRoundsUnavailableBecomesDead
-        -90,           //minNeighborRSSI
-        3              //maxMissedTimesyncs
-    );
-    DynamicMediumAccessController controller(Transceiver::instance(), config);
-    controller.run();
-}
-
-void node3Hop2(void*){    
-    printf("Dynamic node 3 hop 2\n");
-    const NetworkConfiguration config(
-        16,            //maxHops
-        256,           //maxNodes
-        3,             //networkId
-        false,         //staticHop
-        6,             //panId
-        5,             //txPower
-        2460,          //baseFrequency
-        10000000000,   //clockSyncPeriod
-        2,             //maxForwardedTopologies
-        100000000,     //tileDuration
-        150000,        //maxAdmittedRcvWindow
-        2,             //maxRoundsUnavailableBecomesDead
-        -90,           //minNeighborRSSI
+        -80,           //minNeighborRSSI
         3              //maxMissedTimesyncs
     );
     DynamicMediumAccessController controller(Transceiver::instance(), config);
@@ -127,10 +88,27 @@ void node3Hop2(void*){
 int main()
 {
     auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-//     auto t1 = Thread::create(node1Hop1, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-//     auto t1 = Thread::create(node2Hop1, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-//     auto t1 = Thread::create(node3Hop2, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, reinterpret_cast<void*>(1), Thread::JOINABLE);
+//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, reinterpret_cast<void*>(2), Thread::JOINABLE);
+//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, reinterpret_cast<void*>(3), Thread::JOINABLE);
+//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, reinterpret_cast<void*>(4), Thread::JOINABLE);
+//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, reinterpret_cast<void*>(5), Thread::JOINABLE);
+//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, reinterpret_cast<void*>(6), Thread::JOINABLE);
+//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, reinterpret_cast<void*>(7), Thread::JOINABLE);
+//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, reinterpret_cast<void*>(8), Thread::JOINABLE);
     
     t1->join();
-    return 0;
+    
+//     sleep(25);
+//     auto& timestamp=GPIOtimerCorr::instance();
+//     auto now=NetworkTime::fromNetworkTime(((NetworkTime::now().get()/10000000000)+1)*10000000000+1000000000);
+//     auto period=NetworkTime::fromNetworkTime(10000000000);
+//     printf("--- %lld %lld %lld\n",now.get(),now.toLocalTime(),period.get());
+//     for(;;now+=period)
+//     {
+//         timestamp.absoluteWaitTrigger(timestamp.ns2tick(now.toLocalTime()));
+//         printf("[TIMESTAMP] %lld %lld\n",now.get(),now.toLocalTime());
+//     }
+//     
+//     return 0;
 }
