@@ -142,7 +142,7 @@ void DynamicTimesyncDownlink::resync() {
                 packet[2], rcvResult.timestamp, receiverWindow, start, rcvResult.rssi
         );
 
-    static_cast<DynamicTopologyContext*>(ctx.getTopologyContext())->setMasterAsNeighbor(packet[2] == 1);
+    static_cast<DynamicTopologyContext*>(ctx.getTopologyContext())->changeHop(packet[2]);
 }
 
 inline void DynamicTimesyncDownlink::execute(long long slotStart)

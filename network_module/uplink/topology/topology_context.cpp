@@ -66,12 +66,14 @@ std::vector<TopologyElement*> DynamicTopologyContext::dequeueMessages(std::size_
     return retval;
 }
 
-void DynamicTopologyContext::setMasterAsNeighbor(bool yes) {
-   if (yes) { if (predecessors.empty()) predecessors.push_back(Predecessor(0, 5)); }
-   else {
-       auto it = std::find(predecessors.begin(), predecessors.end(), 0);
-       if (it != predecessors.end()) predecessors.erase(it);
-   }
+void DynamicTopologyContext::changeHop(unsigned hop) {
+    //hop == 1 means directly attached to master
+    predecessors.clear();
+    if (hop == 1) { 
+        //removing all the elements, since the first hop has only the master as predecessor
+        //setting the max rssi, since there is no alternative in any case...
+        predecessors.push_back(Predecessor(0, 5));
+    }
 }
 
 bool DynamicTopologyContext::hasPredecessor() {

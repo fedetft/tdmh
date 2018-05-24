@@ -65,9 +65,9 @@ public:
      * since in such case it won't receive any uplink from the master, it will just need the timesync with
      * hop count = 0.
      */
-    void setMasterAsNeighbor(bool yes) override {
-        DynamicTopologyContext::setMasterAsNeighbor(yes);
-        if (yes) neighbors.addNeighbor(0);
+    void changeHop(unsigned hop) override {
+        DynamicTopologyContext::changeHop(hop);
+        if (hop == 1) neighbors.addNeighbor(0);
         else neighbors.removeNeighbor(0);
     }
 protected:

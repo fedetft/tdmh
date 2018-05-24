@@ -160,9 +160,9 @@ public:
     virtual bool hasPredecessor();
 
     /**
-     * Sets the master node as neighbor, meaning that the node has hop count = 1
+     * Changes the hop to which the neighbor belong. Happens only after a resync
      */
-    virtual void setMasterAsNeighbor(bool yes);
+    virtual void changeHop(unsigned hop);
 
 protected:
     UpdatableQueue<unsigned char, TopologyElement*> enqueuedTopologyMessages;
