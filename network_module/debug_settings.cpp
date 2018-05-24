@@ -29,13 +29,17 @@
 #include <cstdarg>
 #include <cstdio>
 #include <stdexcept>
-#include <miosix.h>
 #include <queue>
 #include <list>
 #include <string>
+#ifdef _MIOSIX
+#include <miosix.h>
+#endif
 
 using namespace std;
+#ifdef _MIOSIX
 using namespace miosix;
+#endif
 
 namespace mxnet {
 

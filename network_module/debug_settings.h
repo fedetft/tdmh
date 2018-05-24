@@ -73,7 +73,9 @@ const bool ENABLE_SCHEDULE_DL_INFO_DBG = false;
 //prints the data phase debug info
 const bool ENABLE_DATA_INFO_DBG = false;
 
+#ifdef _MIOSIX
 #define DEBUG_MESSAGES_IN_SEPARATE_THREAD
+#endif
 
 /**
  * If you want to override this function's behavior, define the macro
