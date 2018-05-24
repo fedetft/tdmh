@@ -81,7 +81,8 @@ void DynamicTimesyncDownlink::periodicSync() {
         receiverWindow = clockCorrectionReceiverWindow.second;
         updateVt();
         if (ENABLE_TIMESYNC_DL_INFO_DBG) {
-            print_dbg("[T] ets=%lld ats=%lld e=%lld u=%d w=%d Mts=%lld rssi=%d\n",
+            print_dbg("[T] hop=%u ets=%lld ats=%lld e=%lld u=%d w=%d Mts=%lld rssi=%d\n",
+                    packet[2],
                     correctedStart,
                     rcvResult.timestamp,
                     error,
