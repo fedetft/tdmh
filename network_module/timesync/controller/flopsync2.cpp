@@ -25,7 +25,7 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "../controller/flopsync2.h"
+#include "flopsync2.h"
 
 #include <algorithm>
 
@@ -47,7 +47,7 @@ pair<int,int> Flopsync2::computeCorrection(int error)
             eo=e;
             uo=2*512*e;
             uoo=512*e;
-            return make_pair(2*e,wMax);
+            return make_pair(2*e,static_cast<int>(wMax));
         case 1:
             init=2;
             eo=0;
@@ -80,7 +80,7 @@ pair<int,int> Flopsync2::computeCorrection(int error)
         //Set the window size to three sigma, clamped to at least one
         threeSigma=max(1,stddev*3);
         //Clamp between min and max window
-        dw=max(min(threeSigma*varianceScaleFactor,wMax),wMin);
+        dw=max(min(threeSigma*varianceScaleFactor,static_cast<int>(wMax)),static_cast<int>(wMin));
         sum=squareSum=count=0;
     }
 
@@ -101,7 +101,7 @@ pair<int,int> Flopsync2::lostPacket()
 //     threeSigma*=2;
 //     dw=max(min(threeSigma*varianceScaleFactor,wMax),wMin);
     //Option two, double the window
-    dw=min(2*dw,wMax);
+    dw=min(2*dw,static_cast<int>(wMax));
     
     //Error measure is unavailable if the packet is lost, the best we can
     //do is to reuse the past correction value

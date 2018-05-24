@@ -28,7 +28,7 @@
 #ifndef FLOPSYNC_2_H
 #define	FLOPSYNC_2_H
 
-#include "../controller/synchronizer.h"
+#include "synchronizer.h"
 
 /**
  * A new flopsync controller that can reach zero steady-state error both
@@ -90,7 +90,7 @@ private:
     
     static const int wMin=  50000; //50us
     static const int wMax=6000000; //6ms
-    
+
     static const int numSamples=5; //Number of samples for variance compuation
     static const int controllerScaleFactor=6;
     static const int varianceScaleFactor=300;
