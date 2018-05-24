@@ -42,7 +42,8 @@ void DynamicTopologyContext::receivedMessage(UplinkMessage msg, unsigned char se
         return el.getNodeId() == sender;
     });
     if (exist == predecessors.end()) {
-        predecessors.push_back(Predecessor(sender, rssi));
+        if (rssi >= ctx.getNetworkConfig().getMinNeighborRSSI())
+            predecessors.push_back(Predecessor(sender, rssi));
     } else {
         exist->seen();
         exist->setRssi(rssi);
