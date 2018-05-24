@@ -112,7 +112,7 @@ void DataPhase::alignToNetworkTime(NetworkTime nt)
     unsigned long long phase = 0;
 
     //adds the data slots for each passed tile
-    for(int i = 0; i < tilesPassed; i++)
+    for(unsigned i = 0; i < tilesPassed; i++)
     {
         phase += controlSuperframe.isControlDownlink(i)?
                 ctx.getDataSlotsInDownlinkTileCount():
