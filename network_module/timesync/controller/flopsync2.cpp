@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2013 by Terraneo Federico                              *
+ *   Copyright (C)  2013,2018 by Terraneo Federico                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -32,27 +32,22 @@
 using namespace std;
 
 //
-// class OptimizedRampFlopsync2
+// class Flopsync2
 //
 
-Flopsync2::Flopsync2()
+pair<int,int> Flopsync2::computeCorrection(int error)
 {
-    wMin= 100000/scaleFactor; //100us
-    wMax=6000000/scaleFactor; //6ms
-    reset();
-}
-
-pair<int,int> Flopsync2::computeCorrection(int e)
-{
+    int e=error/controllerScaleFactor; //Scaling to prevent overflows
     //Controller preinit, for fast boot convergence
     switch(init)
     {
         case 0:
             init=1;
+            //One step of a deadbeat controller
             eo=e;
             uo=2*512*e;
             uoo=512*e;
-            return make_pair(2*e,wMax*scaleFactor); //One step of a deadbeat controller
+            return make_pair(2*e,wMax);
         case 1:
             init=2;
             eo=0;
@@ -68,30 +63,28 @@ pair<int,int> Flopsync2::computeCorrection(int e)
     eo=e;
 
     int sign=u>=0 ? 1 : -1;
-    int uquant=(u+256*sign)/512;
-    
-    //Scale numbers if VHT is enabled to prevent overflows
-    e/=scaleFactor;
+    int uquant=(u+256*sign)/512*controllerScaleFactor;
     
     //Update receiver window size
-    sum+=e*fp;
-    squareSum+=e*e*fp;
+    e=error/varianceScaleFactor; //Scaling to prevent overflows
+    sum+=e;
+    squareSum+=e*e;
     if(++count>=numSamples)
     {
         //Variance computed as E[X^2]-E[X]^2
         int average=sum/numSamples;
-        int var=squareSum/numSamples-average*average/fp;
+        int var=squareSum/numSamples-average*average;
         //Using the Babylonian method to approximate square root
         int stddev=var/7;
-        for(int j=0;j<3;j++) if(stddev>0) stddev=(stddev+var*fp/stddev)/2;
-        //Set the window size to three sigma
-        int winSize=stddev*3/fp;
+        for(int j=0;j<3;j++) if(stddev>0) stddev=(stddev+var/stddev)/2;
+        //Set the window size to three sigma, clamped to at least one
+        threeSigma=max(1,stddev*3);
         //Clamp between min and max window
-        dw=max<int>(min<int>(winSize,wMax),wMin);
+        dw=max(min(threeSigma*varianceScaleFactor,wMax),wMin);
         sum=squareSum=count=0;
     }
 
-    return make_pair(uquant,scaleFactor*dw);
+    return make_pair(uquant,dw);
 }
 
 pair<int,int> Flopsync2::lostPacket()
@@ -103,21 +96,26 @@ pair<int,int> Flopsync2::lostPacket()
         uo/=2;
     }
     //Double receiver window on packet loss, still clamped to max value
-    dw=min<int>(4*dw,wMax);
-    return make_pair(getClockCorrection(),scaleFactor*dw);
+    
+//     //Option one: double the underlying threesigma
+//     threeSigma*=2;
+//     dw=max(min(threeSigma*varianceScaleFactor,wMax),wMin);
+    //Option two, double the window
+    dw=min(2*dw,wMax);
+    
+    //Error measure is unavailable if the packet is lost, the best we can
+    //do is to reuse the past correction value
+    return make_pair(getClockCorrection(),dw);
 }
 
 void Flopsync2::reset()
 {
-    uo=uoo=eo=eoo=sum=squareSum=count=0;
+    eo=eoo=uo=uoo=sum=squareSum=threeSigma=count=init=0;
     dw=wMax;
-    init=0;
 }
 
 int Flopsync2::getClockCorrection() const
 {
-    //Error measure is unavailable if the packet is lost, the best we can
-    //do is to reuse the past correction value
     int sign=uo>=0 ? 1 : -1;
-    return (uo+256*sign)/512;
+    return (uo+256*sign)/512*controllerScaleFactor;
 }

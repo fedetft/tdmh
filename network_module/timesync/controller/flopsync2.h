@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2013 by Terraneo Federico                              *
+ *   Copyright (C)  2013,2018 by Terraneo Federico                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,8 +25,8 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef OPTIMIZED_RAMP_FLOPSYNC_2_H
-#define	OPTIMIZED_RAMP_FLOPSYNC_2_H
+#ifndef FLOPSYNC_2_H
+#define	FLOPSYNC_2_H
 
 #include "../controller/synchronizer.h"
 
@@ -43,14 +43,14 @@ public:
     /**
      * Constructor
      */
-    Flopsync2();
+    Flopsync2() { reset(); }
     
     /**
      * Compute clock correction and receiver window given synchronization error
-     * \param e synchronization error
+     * \param error synchronization error
      * \return a pair with the clock correction, and the receiver window
      */
-    std::pair<int,int> computeCorrection(int e);
+    std::pair<int,int> computeCorrection(int error);
     
     /**
      * Compute clock correction and receiver window when a packet is lost
@@ -76,34 +76,25 @@ public:
     /**
      * \return the receiver window (w)
      */
-    int getReceiverWindow() const { return scaleFactor*dw; }
+    int getReceiverWindow() const { return dw; }
     
 private:
+    int eo, eoo;
     int uo, uoo;
     int sum;
     int squareSum;
-    int eo, eoo;
-    unsigned char count;
+    int threeSigma;
     int dw;
+    unsigned char count;
     char init;
-    int wMin;
-    int wMax;
     
-    static const int numSamples=8; //Number of samples for variance compuation
-    static const int fp=64; //Fixed point, log2(fp) bits are the decimal part
-    #ifndef USE_VHT
-    static const int scaleFactor=64;
-    #else //USE_VHT
-    //The maximum value that can enter the window computation algorithm without
-    //without causing overflows is around 700, resulting in a scaleFactor of
-    //5 when the vht resolution is 1us, and w is 3ms. That however would cause
-    //overflow when writing the result to dw, which is just an unsigned char
-    //(to save RAM). This requires a higher scale factor, of about w/255, or 12.
-    //However, this requires more iterations to approximate the square root,
-    //so we're using a scale factor of 30.
-    static const int scaleFactor=480;
-    #endif //USE_VHT
+    static const int wMin=  50000; //50us
+    static const int wMax=6000000; //6ms
+    
+    static const int numSamples=5; //Number of samples for variance compuation
+    static const int controllerScaleFactor=6;
+    static const int varianceScaleFactor=300;
 };
 
-#endif //OPTIMIZED_RAMP_FLOPSYNC_2_H
+#endif //FLOPSYNC_2_H
 
