@@ -105,6 +105,7 @@ void MasterMeshTopologyContext::manageTopologyUpdate(unsigned char sender, Neigh
     auto newNeighbors = neighbors.getNeighbors();
     auto oldNeighbors = topology.getEdges(sender);
     setDifferenceDo<std::vector<unsigned char>::iterator, std::vector<unsigned char>::iterator>(oldNeighbors.begin(), oldNeighbors.end(), newNeighbors.begin(), newNeighbors.end(), [this, sender](unsigned char id) {
+            //this is not as easy as that. TODO add check for orphaned links, ex kite with first hop dying
         topology.removeEdge(sender, id);
     });
     setDifferenceDo<std::vector<unsigned char>::iterator, std::vector<unsigned char>::iterator>(newNeighbors.begin(), newNeighbors.end(), oldNeighbors.begin(), oldNeighbors.end(), [this, sender](unsigned char id) {
