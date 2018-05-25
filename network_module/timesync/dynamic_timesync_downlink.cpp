@@ -63,7 +63,7 @@ void DynamicTimesyncDownlink::periodicSync() {
                     memDump(packet.data(), rcvResult.size);
             } else print_dbg("[T] TO!\n");
         }
-    } while(!isSyncPacket() && rcvResult.error != RecvResult::ErrorCode::TIMEOUT);
+    } while(!isSyncPacket(true) && rcvResult.error != RecvResult::ErrorCode::TIMEOUT);
 
     ctx.transceiverIdle(); //Save power waiting for rebroadcast time
 
@@ -109,11 +109,12 @@ std::pair<long long, long long> DynamicTimesyncDownlink::getWakeupAndTimeout(lon
 }
 
 void DynamicTimesyncDownlink::resync() {
-    if (ENABLE_TIMESYNC_DL_INFO_DBG)
     //Even the Theoretic is started at this time, so the absolute time is dependent of the board
+    if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[T] Resync\n");
     //TODO: attach to strongest signal, not just to the first received packet
-    for (bool success = false; !success; success = isSyncPacket()) {
+
+    for (bool success = false; !success; success = isSyncPacket(false)) {
         rcvResult = ctx.recv(packet.data(), syncPacketSize, infiniteTimeout, Transceiver::Correct::UNCORR);
         if (ENABLE_PKT_INFO_DBG) {
             if(rcvResult.size){
