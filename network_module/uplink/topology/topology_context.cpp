@@ -37,7 +37,7 @@ unsigned char DynamicTopologyContext::getBestPredecessor() {
 }
 
 void DynamicTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
-    if (ctx.getHop() != msg.getHop() + 1) return;
+    if (ctx.getHop() <= msg.getHop()) return;
     auto exist = std::find_if(predecessors.begin(), predecessors.end(), [sender](Predecessor el){
         return el.getNodeId() == sender;
     });
