@@ -169,6 +169,9 @@ protected:
     ForwardedNeighborMessage(NeighborTable&& table) : neighbors(table) {};
     unsigned char nodeId;
     NeighborTable neighbors;
+private:
+    ForwardedNeighborMessage(const ForwardedNeighborMessage&)=delete;
+    ForwardedNeighborMessage& operator=(const ForwardedNeighborMessage&)=delete;
 };
 
 class NeighborMessage : public TopologyMessage  {

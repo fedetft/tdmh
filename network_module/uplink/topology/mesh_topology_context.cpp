@@ -47,8 +47,13 @@ void DynamicMeshTopologyContext::receivedMessage(UplinkMessage msg, unsigned cha
     auto it = neighborsUnseenFor.find(sender);
     if (it != neighborsUnseenFor.end())
         it->second = 0;
-    if (it == neighborsUnseenFor.end() || msg.getAssignee() != ctx.getNetworkId()) return;
     auto* tMsg = static_cast<NeighborMessage*>(msg.getTopologyMessage());
+    if (it == neighborsUnseenFor.end() || msg.getAssignee() != ctx.getNetworkId())
+    {
+        tMsg->deleteForwarded();
+        delete tMsg;
+        return;
+    }
     checkEnqueueOrUpdate(new ForwardedNeighborMessage(sender, tMsg->getNeighbors()));
     for (auto elem : tMsg->getForwardedTopologies())
         checkEnqueueOrUpdate(elem);

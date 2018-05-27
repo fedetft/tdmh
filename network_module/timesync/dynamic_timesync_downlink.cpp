@@ -54,6 +54,7 @@ void DynamicTimesyncDownlink::periodicSync() {
     //sleep, if we have time
     if(now < wakeupTimeout.first)
         ctx.sleepUntil(wakeupTimeout.first);
+    greenLed::high();
     do {
         rcvResult = ctx.recv(packet.data(), syncPacketSize, wakeupTimeout.second, Transceiver::Correct::UNCORR);
         if (ENABLE_PKT_INFO_DBG) {
@@ -64,6 +65,7 @@ void DynamicTimesyncDownlink::periodicSync() {
             } else print_dbg("[T] TO!\n");
         }
     } while(!isSyncPacket(true) && rcvResult.error != RecvResult::ErrorCode::TIMEOUT);
+    greenLed::low();
 
     ctx.transceiverIdle(); //Save power waiting for rebroadcast time
 
@@ -114,7 +116,8 @@ void DynamicTimesyncDownlink::resync() {
         print_dbg("[T] Resync\n");
     //TODO: attach to strongest signal, not just to the first received packet
 
-    for (bool success = false; !success; success = isSyncPacket(false)) {
+    greenLed::high();
+    for (bool success = false; !success; success = isSyncPacket(false) && rcvResult.rssi>=networkConfig.getMinNeighborRSSI()) {
         rcvResult = ctx.recv(packet.data(), syncPacketSize, infiniteTimeout, Transceiver::Correct::UNCORR);
         if (ENABLE_PKT_INFO_DBG) {
             if(rcvResult.size){
@@ -126,6 +129,7 @@ void DynamicTimesyncDownlink::resync() {
             } else print_dbg("No packet received, timeout reached\n");
         }
     }
+    greenLed::low();
     auto start = rcvResult.timestamp - packet[2] * rebroadcastInterval;
     ++packet[2];
     reset(rcvResult.timestamp);

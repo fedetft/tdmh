@@ -38,77 +38,119 @@ using namespace std;
 using namespace mxnet;
 using namespace miosix;
 
+class Arg
+{
+public:
+    Arg(unsigned char id, unsigned char hop=false) : id(id), hop(hop) {}
+    const unsigned char id, hop;
+};
+
 void masterNode(void*)
 {
-    printf("Master node\n");
-    const NetworkConfiguration config(
-        6,             //maxHops
-        32,            //maxNodes
-        0,             //networkId
-        false,         //staticHop
-        6,             //panId
-        5,             //txPower
-        2460,          //baseFrequency
-        10000000000,   //clockSyncPeriod
-        10,            //maxForwardedTopologies
-        100000000,     //tileDuration
-        150000,        //maxAdmittedRcvWindow
-        2,             //maxRoundsUnavailableBecomesDead
-        -80,           //minNeighborRSSI
-        3              //maxMissedTimesyncs
-    );
-    MasterMediumAccessController controller(Transceiver::instance(), config);
-    controller.run();
+    try {
+        printf("Master node\n");
+        const NetworkConfiguration config(
+            6,             //maxHops
+            32,            //maxNodes
+            0,             //networkId
+            false,         //staticHop
+            6,             //panId
+            5,             //txPower
+            2450,          //baseFrequency
+            10000000000,   //clockSyncPeriod
+            10,            //maxForwardedTopologies
+            100000000,     //tileDuration
+            150000,        //maxAdmittedRcvWindow
+            3,             //maxRoundsUnavailableBecomesDead
+            -75,           //minNeighborRSSI
+            3              //maxMissedTimesyncs
+        );
+        MasterMediumAccessController controller(Transceiver::instance(), config);
+        controller.run();
+    } catch(exception& e) {
+        for(;;)
+        {
+            printf("exception %s\n",e.what());
+            Thread::sleep(1000);
+        }
+    }
 }
 
-void dynamicNode(void* arg)
+void dynamicNode(void* argv)
 {
-    auto node = reinterpret_cast<int>(arg);
-    printf("Dynamic node %d\n",node);
-    const NetworkConfiguration config(
-        6,             //maxHops
-        32,            //maxNodes
-        node,          //networkId
-        false,         //staticHop
-        6,             //panId
-        5,             //txPower
-        2460,          //baseFrequency
-        10000000000,   //clockSyncPeriod
-        10,            //maxForwardedTopologies
-        100000000,     //tileDuration
-        150000,        //maxAdmittedRcvWindow
-        2,             //maxRoundsUnavailableBecomesDead
-        -80,           //minNeighborRSSI
-        3              //maxMissedTimesyncs
-    );
-    DynamicMediumAccessController controller(Transceiver::instance(), config);
-    controller.run();
+    try {
+        auto arg = reinterpret_cast<Arg*>(argv);
+        printf("Dynamic node %d",arg->id);
+        if(arg->hop) printf(" forced hop %d",arg->hop);
+        printf("\n");
+        const NetworkConfiguration config(
+            6,             //maxHops
+            32,            //maxNodes
+            arg->id,       //networkId
+            arg->hop,      //staticHop
+            6,             //panId
+            5,             //txPower
+            2450,          //baseFrequency
+            10000000000,   //clockSyncPeriod
+            10,            //maxForwardedTopologies
+            100000000,     //tileDuration
+            150000,        //maxAdmittedRcvWindow
+            3,             //maxRoundsUnavailableBecomesDead
+            -75,           //minNeighborRSSI
+            3              //maxMissedTimesyncs
+        );
+        DynamicMediumAccessController controller(Transceiver::instance(), config);
+        controller.run();
+    } catch(exception& e) {
+        for(;;)
+        {
+            printf("exception %s\n",e.what());
+            Thread::sleep(1000);
+        }
+    }
+}
+
+void blinkThread(void *)
+{
+    for(;;)
+    {
+        redLed::high();
+        Thread::sleep(10);
+        redLed::low();
+        Thread::sleep(990);
+    }
 }
 
 int main()
 {
     auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, reinterpret_cast<void*>(1), Thread::JOINABLE);
-//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, reinterpret_cast<void*>(2), Thread::JOINABLE);
-//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, reinterpret_cast<void*>(3), Thread::JOINABLE);
-//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, reinterpret_cast<void*>(4), Thread::JOINABLE);
-//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, reinterpret_cast<void*>(5), Thread::JOINABLE);
-//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, reinterpret_cast<void*>(6), Thread::JOINABLE);
-//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, reinterpret_cast<void*>(7), Thread::JOINABLE);
-//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, reinterpret_cast<void*>(8), Thread::JOINABLE);
+//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1,1), Thread::JOINABLE);
+//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2,3), Thread::JOINABLE);
+//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,1), Thread::JOINABLE);
+//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(4,2), Thread::JOINABLE);
+//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(5,1), Thread::JOINABLE);
+//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(6,3), Thread::JOINABLE);
+//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(7,1), Thread::JOINABLE);
+//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(8,2), Thread::JOINABLE);
     
-    t1->join();
+    Thread::create(blinkThread,STACK_MIN,PRIORITY_MAX-1);
+//     t1->join();
     
-//     sleep(25);
-//     auto& timestamp=GPIOtimerCorr::instance();
-//     auto now=NetworkTime::fromNetworkTime(((NetworkTime::now().get()/10000000000)+1)*10000000000+1000000000);
-//     auto period=NetworkTime::fromNetworkTime(10000000000);
-//     printf("--- %lld %lld %lld\n",now.get(),now.toLocalTime(),period.get());
-//     for(;;now+=period)
-//     {
-//         timestamp.absoluteWaitTrigger(timestamp.ns2tick(now.toLocalTime()));
-//         printf("[TIMESTAMP] %lld %lld\n",now.get(),now.toLocalTime());
-//     }
-//     
-//     return 0;
+    auto& timestamp=GPIOtimerCorr::instance();
+    for(;;)
+    {
+        auto period=NetworkTime::fromNetworkTime(10000000000);
+        auto now=NetworkTime::fromNetworkTime(((NetworkTime::now().get()/period.get())+2)*period.get());
+        auto offset=NetworkTime::fromLocalTime(0).get();
+        printf("--- %lld %lld %lld\n",now.get(),now.toLocalTime(),period.get());
+        for(;;now+=period)
+        {
+            timestamp.absoluteWaitTrigger(timestamp.ns2tick(now.toLocalTime()));
+            printf("[TIMESTAMP] %lld %lld\n",now.get(),now.toLocalTime());
+            MemoryProfiling::print();
+            if(offset!=NetworkTime::fromLocalTime(0).get()) break; //Offset changed
+        }
+    }
+    
+    return 0;
 }

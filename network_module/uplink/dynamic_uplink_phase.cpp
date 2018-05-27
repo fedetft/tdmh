@@ -56,8 +56,11 @@ void DynamicUplinkPhase::receiveByNode(long long slotStart, unsigned char curren
     if (rcvResult.error == RecvResult::ErrorCode::OK) {
         auto msg = UplinkMessage::deserialize(packet.data(), rcvResult.size, ctx.getNetworkConfig());
         topology->receivedMessage(msg, currentNode, rcvResult.rssi);
-        auto smes = msg.getSMEs();
-        streamManagement->receive(smes);
+        if(msg.getAssignee() == ctx.getNetworkId())
+        {
+            auto smes = msg.getSMEs();
+            streamManagement->receive(smes);
+        }
         if (ENABLE_UPLINK_INFO_DBG)
             print_dbg("[U] <- N=%u @%llu\n", currentNode, rcvResult.timestamp);
         if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
