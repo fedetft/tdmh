@@ -141,14 +141,11 @@ int main()
     {
         auto period=NetworkTime::fromNetworkTime(10000000000);
         auto now=NetworkTime::fromNetworkTime(((NetworkTime::now().get()/period.get())+2)*period.get());
-        auto offset=NetworkTime::fromLocalTime(0).get();
         printf("--- %lld %lld %lld\n",now.get(),now.toLocalTime(),period.get());
-        for(;;now+=period)
-        {
+        for(auto offset=NetworkTime::fromLocalTime(0).get(); offset == NetworkTime::fromLocalTime(0).get(); now += period) {
             timestamp.absoluteWaitTrigger(timestamp.ns2tick(now.toLocalTime()));
             printf("[TIMESTAMP] %lld %lld\n",now.get(),now.toLocalTime());
-            MemoryProfiling::print();
-            if(offset!=NetworkTime::fromLocalTime(0).get()) break; //Offset changed
+            // MemoryProfiling::print();
         }
     }
     
