@@ -27,19 +27,19 @@ void RootNode::activity()
     using namespace miosix;
     print_dbg("Master node\n");
     const NetworkConfiguration config(
-            16,            //maxHops
-            256,           //maxNodes
+            6,            //maxHops
+            32,           //maxNodes
             address,       //networkId
             false,         //staticHop
             6,             //panId
             5,             //txPower
             2460,          //baseFrequency
             10000000000,   //clockSyncPeriod
-            2,             //maxForwardedTopologies
+            10,             //maxForwardedTopologies
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
-            2,             //maxRoundsUnavailableBecomesDead
-            -90,           //minNeighborRSSI
+            3,             //maxRoundsUnavailableBecomesDead
+            -75,           //minNeighborRSSI
             3              //maxMissedTimesyncs
     );
     MasterMediumAccessController controller(Transceiver::instance(), config);
