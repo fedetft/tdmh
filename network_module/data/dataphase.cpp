@@ -27,6 +27,8 @@
 
 #include "dataphase.h"
 #include "../debug_settings.h"
+#include "../timesync/timesync_downlink.h"
+#include <algorithm>
 
 using namespace std;
 using namespace miosix;
@@ -34,68 +36,126 @@ using namespace miosix;
 namespace mxnet {
 
 void DataPhase::execute(long long slotStart) {
-    if (ENABLE_DATA_INFO_DBG)
-        print_dbg("[D] GFAT=%llu\n", slotStart);
+    nextSlot();
+    if (scheduleDownlink->isScheduleEnd(curSched) || (*curSched)->getDataslot() != dataSlot) return;
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    if (scheduleDownlink->isScheduleEnd(nextSched) || (*nextSched)->getDataslot() != dataSlot) return;
-    /*
-    std::tuple<bool, ScheduleContext::Role, std::queue<std::vector<unsigned char>>*> slotJob = s->executeTimeslot(i);
-    std::queue<std::vector<unsigned char>>* q;
-    if (!std::get<0>(slotJob)) continue;
-    vector<unsigned char> pkt(125);
-    auto expectedTs = globalFirstActivityTime + ((long long) i) * (transmissionInterval + packetArrivalAndProcessingTime);
-    auto wuTo = status == nullptr?
-            std::make_pair(expectedTs - MediumAccessController::maxAdmittableResyncReceivingWindow - MediumAccessController::receivingNodeWakeupAdvance, expectedTs + MediumAccessController::maxAdmittableResyncReceivingWindow) :
-            status->getWakeupAndTimeout(expectedTs);
-    auto now = getTime();
-    switch (std::get<1>(slotJob)) {
-    case ScheduleContext::Role::SEND:
-        str = (std::string("Hello, I am ") + std::to_string(ctx.getNetworkId()));
-        strcpy((char *)pkt.data(), str.c_str());
-        transceiver.sendAt(pkt.data(), sizeof(str) * sizeof(str[0]) / sizeof(unsigned char), expectedTs);
-        print_dbg("[D] Sent packet with size %d at %llu\n", sizeof(str), expectedTs);
-        break;
-    case ScheduleContext::Role::RCV:
-        if (now >= expectedTs - (status == nullptr? MediumAccessController::maxAdmittableResyncReceivingWindow : status->receiverWindow))
-            print_dbg("[D] start late\n");
-        if (now < wuTo.first)
-            ctx.sleepUntil(wuTo.first);
-        r = transceiver.recv(pkt.data(), 125, wuTo.second);
-        print_dbg("[D] Received packet with size %d at %llu:\n%s\n", r.size, r.timestamp, std::string((char*) pkt.data(), r.size).c_str());
-        break;
-    case ScheduleContext::Role::FWE:
-        if (now >= expectedTs - (status == nullptr? MediumAccessController::maxAdmittableResyncReceivingWindow : status->receiverWindow))
-            print_dbg("[D] start late\n");
-        if (now < wuTo.first)
-            ctx.sleepUntil(wuTo.first);
-        r = transceiver.recv(pkt.data(), 125, wuTo.second);
-        pkt.resize(r.size);
-        q = std::get<2>(slotJob);
-        if (r.error == RecvResult::OK)
-            q->push(pkt);
-        print_dbg("[D] Received forwarded with size %d packet at %llu with error %d\n", r.size, r.timestamp, r.error);
-        break;
-    case ScheduleContext::Role::FWD:
-        q = std::get<2>(slotJob);
-        if (q->empty()) {
-            print_dbg("[D] No packets to forward at %llu\n", expectedTs);
+    auto sched = *curSched++;
+    switch (sched->getRole()) {
+    //TODO move to the polymorphic methods of DynamicScheduleElement::run
+    case DynamicScheduleElement::SENDER: {
+        char a[8];
+        snprintf(a, 8, "hello %hhu", ctx.getNetworkId());
+        strcpy((char *)packet.data(), a);
+        auto wu = timesync->getSenderWakeup(slotStart);
+        auto now = getTime();
+        if (now >= slotStart) {
+            if (ENABLE_DATA_ERROR_DBG)
+                print_dbg("[D] start late\n");
             break;
         }
-        pkt = q->front();
-        transceiver.sendAt(pkt.data(), pkt.size(), expectedTs);
-        print_dbg("[D] Forwarded packet with size %d at %llu\n", pkt.size(), expectedTs);
+        if (now < wu)
+            ctx.sleepUntil(wu);
+        ctx.sendAt(packet.data(), 8, slotStart);
+        if (ENABLE_DATA_INFO_DBG)
+            print_dbg("[D]<-#%hu @%llu[%hu]\n", sched->getId(), slotStart, dataSlot);
         break;
-    }*/
+    }
+    case DynamicScheduleElement::RECEIVER: {
+        auto wakeUpTimeout = timesync->getWakeupAndTimeout(slotStart);
+        auto now = getTime();
+        if (now + timesync->getReceiverWindow() >= slotStart) {
+            if (ENABLE_DATA_ERROR_DBG)
+                print_dbg("[D] start late\n");
+            break;
+        }
+        if (now < wakeUpTimeout.first)
+            ctx.sleepUntil(wakeUpTimeout.first);
+        do {
+            rcvResult = ctx.recv(packet.data(), packet.size(), wakeUpTimeout.second);
+            if (ENABLE_PKT_INFO_DBG) {
+                if(rcvResult.size) {
+                    print_dbg("Received packet, error %d, size %d, timestampValid %d: ", rcvResult.error, rcvResult.size, rcvResult.timestampValid);
+                    if (ENABLE_PKT_DUMP_DBG)
+                        memDump(packet.data(), rcvResult.size);
+                } else print_dbg("No packet received, timeout reached\n");
+            }
+        } while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK);
+        if (rcvResult.error == RecvResult::OK) {
+            char a[8];
+            strcpy(a, (char *)packet.data());
+            if (ENABLE_DATA_INFO_DBG)
+#ifndef _MIOSIX
+                print_dbg("[D]#%hu @%llu[%hu] %s\n", sched->getId(), rcvResult.timestamp, dataSlot, a);
+#else
+                print_dbg("[D]#%hu %c\n", sched->getId(), a[6]);
+#endif
+        } else if (ENABLE_DATA_INFO_DBG)
+#ifndef _MIOSIX
+            print_dbg("[D]#%hu @%llu[%hu] ERR\n", sched->getId(), slotStart, dataSlot);
+#else
+            print_dbg("[D]#%hu X\n", sched->getId());
+#endif
+        break;
+    }
+    case DynamicScheduleElement::FORWARDEE: {
+        auto wakeUpTimeout = timesync->getWakeupAndTimeout(slotStart);
+        auto now = getTime();
+        if (now + timesync->getReceiverWindow() >= slotStart) {
+            if (ENABLE_DATA_ERROR_DBG)
+                print_dbg("[D] start late\n");
+            break;
+        }
+        if (now < wakeUpTimeout.first)
+            ctx.sleepUntil(wakeUpTimeout.first);
+        do {
+            rcvResult = ctx.recv(packet.data(), packet.size(), wakeUpTimeout.second);
+            if (ENABLE_PKT_INFO_DBG) {
+                if(rcvResult.size) {
+                    print_dbg("Received packet, error %d, size %d, timestampValid %d: ", rcvResult.error, rcvResult.size, rcvResult.timestampValid);
+                    if (ENABLE_PKT_DUMP_DBG)
+                        memDump(packet.data(), rcvResult.size);
+                } else print_dbg("No packet received, timeout reached\n");
+            }
+        } while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK);
+        if (rcvResult.error == RecvResult::OK) {
+            queues[sched->getId()] = vector<unsigned char>(packet.begin(), packet.begin() + rcvResult.size);
+            if (ENABLE_DATA_INFO_DBG)
+                print_dbg("[D]->#%hu{%hhu} @%llu[%hu]\n", sched->getId(), rcvResult.size, rcvResult.timestamp, dataSlot);
+        } else if (ENABLE_DATA_INFO_DBG)
+            print_dbg("[D]->#%hu[%hu] ERR\n", sched->getId(), dataSlot);
+        break;
+    }
+    case DynamicScheduleElement::FORWARDER: {
+        if (queues[sched->getId()].empty()) {
+            print_dbg("[D] #%hhu @%llu[%hu] empty Q\n", sched->getId(), slotStart, dataSlot);
+            break;
+        }
+        std::copy_n(queues[sched->getId()].begin(), queues[sched->getId()].size(), packet.begin());
+        queues[sched->getId()].resize(0);
+        auto wu = timesync->getSenderWakeup(slotStart);
+        auto now = getTime();
+        if (now >= slotStart) {
+            if (ENABLE_DATA_ERROR_DBG)
+                print_dbg("[D] start late\n");
+            break;
+        }
+        if (now < wu)
+            ctx.sleepUntil(wu);
+        ctx.sendAt(packet.data(), 8, slotStart);
+        if (ENABLE_DATA_INFO_DBG)
+            print_dbg("[D]<-#%hu @%llu[%hu]\n", sched->getId(), slotStart, dataSlot);
+        break;
+    }
+    }
     ctx.transceiverIdle();
 }
 
-void DataPhase::advance(long long int slotStart)
-{
+void DataPhase::advance(long long int slotStart) {
     nextSlot();
 }
 
-void DataPhase::alignToNetworkTime(NetworkTime nt)
-{//TODO provide a version with only the timesync index (k)
+void DataPhase::alignToNetworkTime(NetworkTime nt) {
+    //TODO provide a version with only the timesync index (k)
     auto networkConfig = ctx.getNetworkConfig();
     auto controlSuperframe = networkConfig.getControlSuperframeStructure();
     auto tileDuration = networkConfig.getTileDuration();
@@ -124,8 +184,13 @@ void DataPhase::alignToNetworkTime(NetworkTime nt)
             ctx.getDownlinkSlotDuration():
             ctx.getUplinkSlotDuration();
 
-    phase += timeWithinTile / ctx.getDataSlotDuration();
+    if (timeWithinTile > 0)
+        phase += timeWithinTile / ctx.getDataSlotDuration();
     dataSlot = phase;
+    curSched = scheduleDownlink->getScheduleForOrBeforeSlot(phase);
+    // TODO remove porchettona
+    dataSlot = 0;
+    curSched = scheduleDownlink->getFirstSchedule();
 }
 
 }

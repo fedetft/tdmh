@@ -151,6 +151,9 @@ void MACContext::warmUp() {
     assert(downlinkSlotDuration + numDataSlotInDownlinkTile * dataSlotDuration ==
            uplinkSlotDuration   + numDataSlotInUplinkTile   * dataSlotDuration);
     tileSlackTime = tileDuration - (uplinkSlotDuration + numDataSlotInUplinkTile * dataSlotDuration);
+
+    //TODO remove
+    data->setDataSuperframeSize(numDataSlotInUplinkTile + numDataSlotInDownlinkTile);
 }
 
 void MACContext::run()

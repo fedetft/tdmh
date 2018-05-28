@@ -28,9 +28,117 @@
 #include <stdio.h>
 #include "../debug_settings.h"
 #include "schedule_downlink.h"
+#include <algorithm>
 
 using namespace miosix;
 
 namespace mxnet {
+
+ScheduleDownlinkPhase::ScheduleDownlinkPhase(MACContext& ctx) :
+                MACPhase(ctx),
+                networkConfig(ctx.getNetworkConfig()) {
+    switch (ctx.getNetworkId()) {
+    case 0: {
+        //STREAM 0
+        nodeSchedule.insert(new ReceiverScheduleElement(10, 1, 3));
+        nodeSchedule.insert(new ReceiverScheduleElement(11, 2, 3));
+        nodeSchedule.insert(new ReceiverScheduleElement(100, 15, 3));
+        nodeSchedule.insert(new ReceiverScheduleElement(101, 17, 3));
+        //STREAM 1
+        nodeSchedule.insert(new ReceiverScheduleElement(20, 3, 6));
+        nodeSchedule.insert(new ReceiverScheduleElement(21, 6, 6));
+        //STREAM 2
+        nodeSchedule.insert(new ReceiverScheduleElement(30, 8, 4));
+        nodeSchedule.insert(new ReceiverScheduleElement(31, 10, 4));
+        break;
+    }
+    case 1: {
+        //STREAM 0
+        auto* a = new ForwarderScheduleElement(10, 1);
+        auto* b = new ForwarderScheduleElement(100, 16);
+        nodeSchedule.insert(new ForwardeeScheduleElement(10, 0, a));
+        nodeSchedule.insert(a);
+        nodeSchedule.insert(new ForwardeeScheduleElement(100, 15, b));
+        nodeSchedule.insert(b);
+        forwardQueues[10] = std::queue<std::vector<unsigned char>>();
+        forwardQueues[100] = std::queue<std::vector<unsigned char>>();
+        break;
+    }
+    case 2: {
+        //STREAM 1
+        auto* a = new ForwarderScheduleElement(21, 4);
+        nodeSchedule.insert(new ForwardeeScheduleElement(21, 1, a));
+        nodeSchedule.insert(a);
+        forwardQueues[21] = std::queue<std::vector<unsigned char>>();
+        break;
+    }
+    case 3: {
+        //STREAM 0
+        nodeSchedule.insert(new SenderScheduleElement(10, 0, 0));
+        nodeSchedule.insert(new SenderScheduleElement(11, 2, 0));
+        nodeSchedule.insert(new SenderScheduleElement(100, 15, 0));
+        nodeSchedule.insert(new SenderScheduleElement(101, 17, 0));
+        break;
+    }
+    case 4: {
+        //STREAM 1
+        auto* a = new ForwarderScheduleElement(21, 5);
+        nodeSchedule.insert(new ForwardeeScheduleElement(21, 4, a));
+        nodeSchedule.insert(a);
+        forwardQueues[21] = std::queue<std::vector<unsigned char>>();
+        //STREAM 2
+        nodeSchedule.insert(new SenderScheduleElement(30, 7, 0));
+        nodeSchedule.insert(new SenderScheduleElement(31, 9, 0));
+        break;
+    }
+    case 5: {
+        //STREAM 1
+        auto* a = new ForwarderScheduleElement(21, 6);
+        nodeSchedule.insert(new ForwardeeScheduleElement(21, 5, a));
+        nodeSchedule.insert(a);
+        forwardQueues[21] = std::queue<std::vector<unsigned char>>();
+        //STREAM 2
+        auto* b = new ForwarderScheduleElement(31, 10);
+        nodeSchedule.insert(new ForwardeeScheduleElement(31, 9, b));
+        nodeSchedule.insert(b);
+        forwardQueues[31] = std::queue<std::vector<unsigned char>>();
+        break;
+    }
+    case 6: {
+        //STREAM 1
+        nodeSchedule.insert(new SenderScheduleElement(20, 0, 0));
+        nodeSchedule.insert(new SenderScheduleElement(21, 1, 0));
+        break;
+    }
+    case 7: {
+        //STREAM 1
+        auto* a = new ForwarderScheduleElement(20, 3);
+        nodeSchedule.insert(new ForwardeeScheduleElement(20, 2, a));
+        nodeSchedule.insert(a);
+        forwardQueues[20] = std::queue<std::vector<unsigned char>>();
+        //STREAM 2
+        auto* b = new ForwarderScheduleElement(30, 8);
+        nodeSchedule.insert(new ForwardeeScheduleElement(30, 7, b));
+        nodeSchedule.insert(b);
+        forwardQueues[30] = std::queue<std::vector<unsigned char>>();
+        break;
+    }
+    case 8: {
+        //STREAM 1
+        auto* a = new ForwarderScheduleElement(20, 2);
+        nodeSchedule.insert(new ForwardeeScheduleElement(20, 0, a));
+        nodeSchedule.insert(a);
+        forwardQueues[20] = std::queue<std::vector<unsigned char>>();
+        break;
+    }
+    }
+}
+
+std::set<DynamicScheduleElement*>::iterator ScheduleDownlinkPhase::getScheduleForOrBeforeSlot(unsigned short slot) {
+    return std::lower_bound(nodeSchedule.begin(), nodeSchedule.end(), slot, [](DynamicScheduleElement* elem, unsigned short slot) {
+        return elem->getDataslot() == slot;
+    });
+}
+
 }
 
