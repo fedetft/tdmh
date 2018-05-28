@@ -41,7 +41,7 @@ protected:
     void rebroadcast(long long slotStart);
     void addSchedule(DynamicScheduleElement* element);
     void deleteSchedule(unsigned char id);
-    void parseSchedule(std::vector<unsigned char>& pkt);
+    void parseSchedule();
     /**
      * Not containing forwarder elements, only sender, receiver and forwardee.
      * Forwarder will be accessible as `forwardee.next`.

@@ -66,12 +66,10 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     
     if (rcvResult.error == miosix::RecvResult::TIMEOUT) return;
 
-    //This conversion is really necessary to get the corrected time in NS, to pass to transceiver
     //Rebroadcast the sync packet
     rebroadcast(rcvResult.timestamp);
     ctx.transceiverIdle();
-    auto data = std::vector<unsigned char>(packet.begin(), packet.begin() + rcvResult.size);
-    parseSchedule(data);
+    parseSchedule();
 }
 
 void DynamicScheduleDownlinkPhase::rebroadcast(long long rcvTime) {
@@ -103,13 +101,12 @@ void DynamicScheduleDownlinkPhase::deleteSchedule(unsigned char id) {
     //TODO notify successful stream close, if needed
 }
 
-void DynamicScheduleDownlinkPhase::parseSchedule(std::vector<unsigned char>& pkt) {
-    assert(pkt.size() > 0);
-    auto addCount = pkt[0];
+void DynamicScheduleDownlinkPhase::parseSchedule() {
+    auto addCount = packet[0];
     auto myId = ctx.getNetworkId();
     auto bitsRead = std::numeric_limits<unsigned char>::digits;
     for (int i = 0; i < addCount; i++) {
-        auto* sa = ScheduleAddition::deserialize(pkt.data(), bitsRead);
+        auto* sa = ScheduleAddition::deserialize(packet.data(), bitsRead);
         bitsRead += sa->bitSize();
         auto transitions = sa->getTransitions();
         auto t = sa->getTransitionForNode(myId);
@@ -124,8 +121,8 @@ void DynamicScheduleDownlinkPhase::parseSchedule(std::vector<unsigned char>& pkt
         }
         delete sa;
     }
-    for (int i = pkt.size() * std::numeric_limits<unsigned char>::digits - bitsRead; i > 0; i-= std::numeric_limits<unsigned char>::digits) {
-        auto* sd = ScheduleDeletion::deserialize(pkt.data(), bitsRead);
+    for (int i = rcvResult.size * std::numeric_limits<unsigned char>::digits - bitsRead; i > 0; i-= std::numeric_limits<unsigned char>::digits) {
+        auto* sd = ScheduleDeletion::deserialize(packet.data(), bitsRead);
         deleteSchedule(sd->getScheduleId());
         bitsRead += std::numeric_limits<unsigned char>::digits;
         delete sd;
