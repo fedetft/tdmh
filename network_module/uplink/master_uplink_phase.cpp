@@ -66,7 +66,7 @@ void MasterUplinkPhase::execute(long long slotStart) {
         auto smes = msg.getSMEs();
         streamManagement->receive(smes);
         if (ENABLE_UPLINK_INFO_DBG)
-            print_dbg("[U] <- N=%u @%llu\n", address, rcvResult.timestamp);
+            print_dbg("[U]<-N=%u @%llu %hddBm\n", address, rcvResult.timestamp, rcvResult.rssi);
         if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
             print_dbg("<-%d %ddBm\n",address,rcvResult.rssi);
     } else {

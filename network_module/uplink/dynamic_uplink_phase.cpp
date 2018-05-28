@@ -62,7 +62,7 @@ void DynamicUplinkPhase::receiveByNode(long long slotStart, unsigned char curren
             streamManagement->receive(smes);
         }
         if (ENABLE_UPLINK_INFO_DBG)
-            print_dbg("[U] <- N=%u @%llu\n", currentNode, rcvResult.timestamp);
+            print_dbg("[U]<-N=%u @%llu %hddBm\n", currentNode, rcvResult.timestamp, rcvResult.rssi);
         if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
             print_dbg("<-%d %ddBm\n",currentNode,rcvResult.rssi);
     } else {
