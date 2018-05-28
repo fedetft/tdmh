@@ -120,6 +120,10 @@ RecvResult Transceiver::recv(void* pkt, int size, long long timeout, Unit unit, 
         msg = parentNode->receive();
     } else {
         auto waitDelta = SimTime(timeout, SIMTIME_NS) - simTime();
+        if (waitDelta < 0){
+            result.error = RecvResult::TIMEOUT;
+            return result;
+        }
         msg = parentNode->receive(waitDelta);
     }
     auto* cPkt = dynamic_cast<RadioMessage*>(msg);
