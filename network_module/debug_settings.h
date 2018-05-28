@@ -27,6 +27,8 @@
 
 #pragma once
 
+#define MASTERNODE true
+
 namespace mxnet {
 //prints info if receiving a packet
 const bool ENABLE_PKT_INFO_DBG = false;
@@ -38,7 +40,7 @@ const bool ENABLE_PKT_DUMP_DBG = false;
 const bool ENABLE_RADIO_EXCEPTION_DBG = true;
 
 //prints the topology downlink phase debug info
-const bool ENABLE_TIMESYNC_DL_INFO_DBG = true;
+const bool ENABLE_TIMESYNC_DL_INFO_DBG = MASTERNODE;
 
 //prints the topology downlink phase errors
 const bool ENABLE_TIMESYNC_ERROR_DBG = true;
@@ -50,10 +52,7 @@ const bool ENABLE_ROUNDTRIP_INFO_DBG = true;
 const bool ENABLE_ROUNDTRIP_ERROR_DBG = true;
 
 //prints the uplink phase debug info
-const bool ENABLE_UPLINK_INFO_DBG = false;
-
-//prints the slot number, if packets received and RSSI
-const bool ENABLE_TOPOLOGY_SHORT_SUMMARY = true;
+const bool ENABLE_UPLINK_INFO_DBG = MASTERNODE;
 
 //prints the uplink phase debug verbose info
 const bool ENABLE_UPLINK_VERB_DBG = false;
@@ -64,6 +63,9 @@ const bool ENABLE_UPLINK_ERROR_DBG = true;
 //prints the topology context debug info
 const bool ENABLE_TOPOLOGY_INFO_DBG = true;
 
+//prints the slot number, if packets received and RSSI
+const bool ENABLE_TOPOLOGY_SHORT_SUMMARY = false;
+
 //prints the stream context debug info
 const bool ENABLE_STREAM_INFO_DBG = true;
 
@@ -71,7 +73,10 @@ const bool ENABLE_STREAM_INFO_DBG = true;
 const bool ENABLE_SCHEDULE_DL_INFO_DBG = false;
 
 //prints the data phase debug info
-const bool ENABLE_DATA_INFO_DBG = false;
+const bool ENABLE_DATA_INFO_DBG = MASTERNODE;
+
+//prints the data phase errors
+const bool ENABLE_DATA_ERROR_DBG = true;
 
 #ifdef _MIOSIX
 #define DEBUG_MESSAGES_IN_SEPARATE_THREAD
