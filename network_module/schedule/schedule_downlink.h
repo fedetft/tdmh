@@ -56,6 +56,7 @@ public:
 
     bool isScheduleEnd(std::set<DynamicScheduleElement*>::iterator it) const { return nodeSchedule.empty() || nodeSchedule.end() == it; }
     std::set<DynamicScheduleElement*>::iterator getFirstSchedule() { return nodeSchedule.begin(); };
+    std::set<DynamicScheduleElement*>::iterator getScheduleForOrBeforeSlot(unsigned short slot);
     std::queue<std::vector<unsigned char>>* getQueueForId(unsigned short id) {
         std::map<unsigned short, std::queue<std::vector<unsigned char>>>::iterator retval = forwardQueues.find(id);
         if (retval == forwardQueues.end()) return nullptr;
@@ -65,12 +66,15 @@ public:
     static const int rebroadcastInterval = 5000000; //32us per-byte + 600us total delta
     
 protected:
-    ScheduleDownlinkPhase(MACContext& ctx) :
-        MACPhase(ctx),
-        networkConfig(ctx.getNetworkConfig()) {};
+    ScheduleDownlinkPhase(MACContext& ctx);
     
     const NetworkConfiguration& networkConfig;
-    std::set<DynamicScheduleElement*> nodeSchedule;
+    struct DynamicScheduleComp {
+        bool operator()(const DynamicScheduleElement* lhs, const DynamicScheduleElement* rhs) const {
+            return *lhs < *rhs;
+        }
+    };
+    std::set<DynamicScheduleElement*, DynamicScheduleComp> nodeSchedule;
     std::map<unsigned short, std::queue<std::vector<unsigned char>>> forwardQueues;
 };
 }

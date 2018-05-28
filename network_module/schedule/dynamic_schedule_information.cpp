@@ -29,17 +29,17 @@
 
 namespace mxnet {
 
-} /* namespace mxnet */
-
-void mxnet::SenderScheduleElement::run(DynamicScheduleContext& ctx) {
+void SenderScheduleElement::run(DynamicScheduleContext& ctx) {
     //TODO interface to the transceiver and the queue or interface to callback as needed.
 }
 
-void mxnet::ReceiverScheduleElement::run(DynamicScheduleContext& ctx) {
+void ReceiverScheduleElement::run(DynamicScheduleContext& ctx) {
 }
 
-void mxnet::ForwarderScheduleElement::run(DynamicScheduleContext& ctx) {
+void ForwarderScheduleElement::run(DynamicScheduleContext& ctx) {
 }
 
-void mxnet::ForwardeeScheduleElement::run(DynamicScheduleContext& ctx) {
+void ForwardeeScheduleElement::run(DynamicScheduleContext& ctx) {
 }
+
+} /* namespace mxnet */

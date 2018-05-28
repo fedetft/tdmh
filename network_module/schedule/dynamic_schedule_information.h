@@ -49,14 +49,14 @@ public:
     };
     DynamicScheduleElement() = delete;
     virtual ~DynamicScheduleElement() {};
-    unsigned short getId() { return id; }
-    unsigned short getDataslot() { return dataslot; }
-    virtual DynamicRole getRole() { return role; }
+    unsigned short getId() const { return id; }
+    unsigned short getDataslot() const { return dataslot; }
+    virtual DynamicRole getRole() const { return role; }
     virtual void run(DynamicScheduleContext& ctx) = 0;
-    bool operator>(const DynamicScheduleElement& other) {
+    bool operator>(const DynamicScheduleElement& other) const {
         return dataslot > other.dataslot;
     }
-    bool operator<(const DynamicScheduleElement& other) {
+    bool operator<(const DynamicScheduleElement& other) const {
         return !(*this > other);
     }
 protected:
