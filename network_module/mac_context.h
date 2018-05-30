@@ -237,6 +237,7 @@ protected:
     unsigned long long dataSlotDuration;
     unsigned long long downlinkSlotDuration;
     unsigned long long uplinkSlotDuration;
+    unsigned long long tileSlackTime;
 private:
     void warmUp();
 

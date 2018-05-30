@@ -147,6 +147,10 @@ void MACContext::warmUp() {
 
     numDataSlotInDownlinkTile  = (tileDuration - downlinkSlotDuration) / dataSlotDuration;
     numDataSlotInUplinkTile    = (tileDuration - uplinkSlotDuration)   / dataSlotDuration;
+    
+    assert(downlinkSlotDuration + numDataSlotInDownlinkTile * dataSlotDuration ==
+           uplinkSlotDuration   + numDataSlotInUplinkTile   * dataSlotDuration);
+    tileSlackTime = tileDuration - (uplinkSlotDuration + numDataSlotInUplinkTile * dataSlotDuration);
 }
 
 void MACContext::run()
@@ -184,6 +188,7 @@ void MACContext::run()
             currentNextDeadline += dataSlotDuration;
         }
         
+        currentNextDeadline += tileSlackTime;
         if(++tileCounter >= controlSuperframe.size())
         {
             tileCounter=0;
