@@ -73,7 +73,7 @@ private:
     DataPhase& operator= (const DataPhase& orig) = delete;
     
     void nextSlot() {
-        if (++dataSlot > slotsInFrame) {
+        if (++dataSlot >= slotsInFrame) {
             dataSlot = 0;
             curSched = scheduleDownlink->getFirstSchedule();
         }

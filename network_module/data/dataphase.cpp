@@ -122,7 +122,7 @@ void DataPhase::execute(long long slotStart) {
             if (ENABLE_DATA_INFO_DBG)
                 print_dbg("[D]->#%hu{%hhu} @%llu[%hu]\n", sched->getId(), rcvResult.size, rcvResult.timestamp, dataSlot);
         } else if (ENABLE_DATA_INFO_DBG)
-            print_dbg("[D]->#%hu[%hu] ERR\n", sched->getId(), dataSlot);
+            print_dbg("[D]->#%hu X @%llu[%hu]\n", sched->getId(), slotStart, dataSlot);
         break;
     }
     case DynamicScheduleElement::FORWARDER: {
@@ -189,7 +189,7 @@ void DataPhase::alignToNetworkTime(NetworkTime nt) {
     dataSlot = phase;
     curSched = scheduleDownlink->getScheduleForOrBeforeSlot(phase);
     // TODO remove porchettona
-    dataSlot = 0;
+    dataSlot = -1;
     curSched = scheduleDownlink->getFirstSchedule();
 }
 

@@ -119,7 +119,7 @@ void MasterMeshTopologyContext::manageTopologyUpdate(unsigned char sender, Neigh
 }
 
 void MasterMeshTopologyContext::print() const {
-    print_dbg("[U] Current topology:\n");
+    print_dbg("[U] Current topology @%llu:\n", getTime());
     for (auto it : topology.getEdges())
         print_dbg("[%d - %d]\n", it.first, it.second);
 }
