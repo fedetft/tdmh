@@ -44,6 +44,8 @@ public:
 
 protected:
     unsigned char address;
+    unsigned short nodes;
+    unsigned short hops;
     virtual void initialize();
 
 private:

@@ -50,7 +50,7 @@ VirtualClock& VirtualClock::instance() {
         if (it == VirtualClock::instances.end()) {
             retval = new VirtualClock();
             VirtualClock::instances[curNode] = retval;
-        }
+        } else retval = it->second;
     } else retval = it->second;
     return *retval;
 }

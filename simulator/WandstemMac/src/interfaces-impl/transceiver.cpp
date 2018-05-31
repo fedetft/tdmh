@@ -54,7 +54,7 @@ Transceiver& Transceiver::instance() {
         if (it == Transceiver::instances.end()) {
             retval = new Transceiver();
             Transceiver::instances[curNode] = retval;
-        }
+        } else retval = it->second;
     } else retval = it->second;
     return *retval;
 }

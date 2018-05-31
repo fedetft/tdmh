@@ -26,8 +26,8 @@ void Node::activity()
 {
     using namespace miosix;
     const NetworkConfiguration config(
-            6,            //maxHops
-            32,           //maxNodes
+            hops,            //maxHops
+            nodes,           //maxNodes
             address,       //networkId
             false,         //staticHop
             6,             //panId

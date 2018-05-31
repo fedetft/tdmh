@@ -53,7 +53,7 @@ PowerManager& PowerManager::instance() {
         if (it == PowerManager::instances.end()) {
             retval = new PowerManager();
             PowerManager::instances[curNode] = retval;
-        }
+        } else retval = it->second;
     } else retval = it->second;
     return *retval;
 }

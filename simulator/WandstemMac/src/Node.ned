@@ -23,6 +23,8 @@ simple Node
 {
     parameters:
         int address;
+        int nodes;
+        int hops;
         @display("i=block/wrxtx");
     gates:
         inout wireless[];

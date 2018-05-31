@@ -27,8 +27,8 @@ void RootNode::activity()
     using namespace miosix;
     print_dbg("Master node\n");
     const NetworkConfiguration config(
-            6,            //maxHops
-            32,           //maxNodes
+            hops,            //maxHops
+            nodes,           //maxNodes
             address,       //networkId
             false,         //staticHop
             6,             //panId

@@ -4,8 +4,10 @@ import re
 import sys
 from graphviz import Graph
 
-dot = Graph(comment='Topology')
+dot = Graph(name='Topology')
+dot.graph_attr['rankdir'] = 'LR'
 nodes = []
+fname = (sys.argv[1][0: sys.argv[1].rindex(".")] if sys.argv[1].index(".") > 0 else sys.argv[1]) + '.pdf'
 
 with open(sys.argv[1], 'r') as fin:
     line = fin.readline()
@@ -19,4 +21,4 @@ with open(sys.argv[1], 'r') as fin:
         m = re.search(r'([^ ]+) %$', line)
         dot.edge(str(node_a), str(node_b), m.group(1) + "%")
         line = fin.readline()
-dot.render((sys.argv[1][0: sys.argv[1].rindex(".")] if sys.argv[1].index(".") > 0 else sys.argv[1]) +'.pdf')
+print dot.render(fname)

@@ -39,4 +39,6 @@ NodeBase::~NodeBase() {
 
 void NodeBase::initialize() {
     address = static_cast<unsigned char>(par("address").intValue());
+    nodes = static_cast<unsigned char>(par("nodes").intValue());
+    hops = static_cast<unsigned char>(par("hops").intValue());
 }
