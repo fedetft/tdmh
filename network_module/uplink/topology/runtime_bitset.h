@@ -233,7 +233,7 @@ public:
      * @return the dimension of the bitset in bytes
      */
     std::size_t size() const {
-        return bitCount >> shiftDivisor;
+        return byteSize;
     }
 
     /**
