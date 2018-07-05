@@ -8,21 +8,22 @@ from graphviz import Graph
 ### GREEDY SCHEDULING ALGORITHM
 
 ## INPUTS:
-# - Topology map: graph as list of edges
+# - Topology map: graph as list of edges without repeated arcs
+# This is because every established link is bidirectional and the Network Graph
+# is an unoriented graph
+# ex: (1,2) and (2,1) is saved as (1,2)
 #    - edge: tuple of (nodeID, nodeID)
 # Diamond topology example
-# TODO: should we state links bidirectionally? yes for searching
 topology_1 = [(0, 1), (0, 2), 
-              (1, 0), (1, 2), (1, 3),
-              (2, 0), (2, 1), (2, 3), 
-              (3, 1), (3, 2)]
+              (1, 2), (1, 3),
+              (2, 3)]
 
 # - List of required streams (broken down in 1-hop transmissions)
 #    - transmission: (source, destination) hop not listed (=1)
-# example 1, concurrent
-stream_list_1 = [(0, 1), 
+# example 1, TX-RX conflict (3,1)
+stream_list_1 = [(0, 1),
                  (3, 2)]         
-# example 2, TX-RX conflict          
+# example 2, TX-RX conflict (2,1)         
 stream_list_2 = [(0, 1), 
                  (2, 3)]
              
@@ -35,9 +36,10 @@ data_slots_1 = 10
 # schedule = []
 
 def check_unicity_conflict(schedule, timeslot, stream):
-    # Unicity check: no TX and RX for same node,timeslot
+    # Unicity check: no activity for src or dst node on a given timeslot
     src, dst = stream;
-    conflict_set = [e for e in schedule if ((e[0] == timeslot) and (e[1] in {src, dst}))]
+    link = {src,dst}
+    conflict_set = [e for e in schedule if ((e[0] == timeslot) and (e[1] in link))]
     if conflict_set:
         print('Conflict Detected! src or dst node are busy on timeslot ' + repr(timeslot))
         return True;
@@ -46,8 +48,12 @@ def check_unicity_conflict(schedule, timeslot, stream):
 
 def check_interference_conflict(schedule, topology, timeslot, node, activity):
     # Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
+    # Checks if nodes at 1-hop distance of 'node' are doing 'activity'
     conflict = False;
-    one_hop = [edge[1] for edge in topology if edge[0] == node]
+    # one_hop is list of adjacence of node 'node'
+    one_hop = [edge[1] for edge in topology if edge[0] == node] \
+    + [edge[0] for edge in topology if edge[1] == node]
+    print(repr(one_hop))
     for n in one_hop:
         for elem in schedule:
             #print(repr(node)+repr(elem))
@@ -71,13 +77,13 @@ def scheduler(topology, stream_list, data_slots):
             err_unreachable = False;
             
             ## Connectivity check: edge between src and dst nodes
-            if (src,dst) not in topology:
+            if (src,dst) not in topology and (dst,src) not in topology:
                 err_unreachable = True;
                 print('Nodes are not reachable in topology, cannot schedule stream ' + repr(stream))
                 break;    #Cannot schedule transmission
                 
             ## Conflict checks
-            # Unicity check: no TX and RX for same node,timeslot
+            # Unicity check: no activity for src or dst node on a given timeslot
             err_conflict |= check_unicity_conflict(schedule, timeslot, stream)        
             # Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
             # Check TX node for RX neighbors
