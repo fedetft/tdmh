@@ -17,6 +17,16 @@ from graphviz import Graph
 topology_1 = [(0, 1), (0, 2), 
               (1, 2), (1, 3),
               (2, 3)]
+  
+# RTSS Paper topology example
+topology_2 = [(0, 1), (0, 3), (0, 5), (0, 7),
+              (1, 3), (1, 5), (1, 7),
+              (2, 4), (2, 6), (2, 7), (2, 8),
+              (3, 5),
+              (4, 5), (4, 6), (4, 7), (4, 8),
+              (5, 7), (5, 8),
+              (6, 8),
+              (7, 8)]
 
 # - List of required streams (broken down in 1-hop transmissions)
 #    - transmission: (source, destination) hop not listed (=1)
@@ -26,7 +36,11 @@ stream_list_1 = [(0, 1),
 # example 2, TX-RX conflict (2,1)         
 stream_list_2 = [(0, 1), 
                  (2, 3)]
-             
+# example 3, RTSS Paper streams
+stream_list_3 = [(3, 0), 
+                 (6, 0),
+                 (4, 0)]
+                 
 # - Number of data slots per slotframe
 data_slots_1 = 10
 
@@ -53,7 +67,7 @@ def check_interference_conflict(schedule, topology, timeslot, node, activity):
     # one_hop is list of adjacence of node 'node'
     one_hop = [edge[1] for edge in topology if edge[0] == node] \
     + [edge[0] for edge in topology if edge[1] == node]
-    print(repr(one_hop))
+    #print(repr(one_hop))
     for n in one_hop:
         for elem in schedule:
             #print(repr(node)+repr(elem))
@@ -130,8 +144,8 @@ if __name__ == '__main__':
     parser.add_argument("command", help="examples: plot, run")
     args = parser.parse_args()
     if (args.command == "plot"):
-        draw_graph(topology_1)
+        draw_graph(topology_2)
     if (args.command == "run"):
-        scheduler(topology_1, stream_list_1, data_slots_1)
+        scheduler(topology_2, stream_list_3, data_slots_1)
         #scheduler(topology_1, stream_list_2, data_slots_1)
     
