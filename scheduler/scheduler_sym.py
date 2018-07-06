@@ -3,6 +3,7 @@
 # Author: Federico Amedeo Izzo, federico.izzo42@gmail.com
 
 import argparse
+import queue
 from graphviz import Graph
 
 ### GREEDY SCHEDULING ALGORITHM
@@ -49,6 +50,23 @@ data_slots_1 = 10
 #   - ScheduleElement: tuple of (timeslot, node, activity, [destination node])
 # schedule = []
 
+## Data structures to use
+topology = topology_2
+stream_list = stream_list_3
+data_slots = data_slots_1
+def adjacence(topology, node):
+    return [edge[1] for edge in topology if edge[0] == node] \
+    + [edge[0] for edge in topology if edge[1] == node]
+
+def is_onehop(topology,stream):
+    # Connectivity check: edge between src and dst nodes
+    # Check if nodes are 1-hop distance in graph
+    src, dst = stream;
+    if (src,dst) in topology or (dst,src) in topology:
+        return True;
+    else:
+        return False;
+
 def check_unicity_conflict(schedule, timeslot, stream):
     # Unicity check: no activity for src or dst node on a given timeslot
     src, dst = stream;
@@ -64,17 +82,59 @@ def check_interference_conflict(schedule, topology, timeslot, node, activity):
     # Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
     # Checks if nodes at 1-hop distance of 'node' are doing 'activity'
     conflict = False;
-    # one_hop is list of adjacence of node 'node'
-    one_hop = [edge[1] for edge in topology if edge[0] == node] \
-    + [edge[0] for edge in topology if edge[1] == node]
-    #print(repr(one_hop))
-    for n in one_hop:
+    for n in adjacence(topology, node):
         for elem in schedule:
             #print(repr(node)+repr(elem))
             if elem == (timeslot, n, activity):
                 conflict = True;
                 print('Conflict Detected! TX-RX conflict between node ' + repr(node) + ' and node ' + repr(n))
     return conflict;
+
+def breadth_first_search(topology, stream):
+    # Breadth First Search for topology graph
+    #print('Starting Breadth First search')
+    # Data structures
+    open_set = queue.Queue()
+    visited = set()       # Can be turned to a bit-vector to save space
+    parent_of = dict()  # key:node -> parent node
+    src, dst = stream;
+    
+    root = src
+    parent_of[root] = None
+    open_set.put(root)
+    
+    while not open_set.empty():
+        subtree_root = open_set.get()
+        if subtree_root == dst:
+            return construct_path(subtree_root, parent_of)
+
+        for child in adjacence(topology, subtree_root):
+            if child in visited:
+                continue;
+            if child not in list(open_set.queue):
+                parent_of[child] = subtree_root
+                open_set.put(child)
+        visited.add(subtree_root)
+
+def construct_path(node, parent_of):
+    path = list()
+    # Continue until you reach root that has parent = None
+    # Append destination node to avoid losing it
+    path.append(node)
+    while parent_of[node] is not None:
+        # This code skips 'node' that is saved above (destination)
+        node = parent_of[node]
+        path.append(node)
+ 
+    path.reverse()
+    return path
+
+def path_to_stream_list(path):
+    st_list=[]
+    for x in range(0,len(path)-1):
+        st_list.append((path[x],path[x+1]))
+    #print(repr(st_list))
+    return st_list
 
 # option A iteration
 # TODO sort streams according to chosen metric
@@ -91,7 +151,7 @@ def scheduler(topology, stream_list, data_slots):
             err_unreachable = False;
             
             ## Connectivity check: edge between src and dst nodes
-            if (src,dst) not in topology and (dst,src) not in topology:
+            if not is_onehop(topology,stream):
                 err_unreachable = True;
                 print('Nodes are not reachable in topology, cannot schedule stream ' + repr(stream))
                 break;    #Cannot schedule transmission
@@ -115,14 +175,41 @@ def scheduler(topology, stream_list, data_slots):
                 schedule.append((timeslot, dst, 'RX'));
                 print('Scheduled stream ' + repr(stream) + ' on timeslot ' + repr(timeslot))
                 break;     #Successfully scheduled transmission, break timeslot cycle
-
+                
     ### Print resulting Schedule
     print('\nResulting schedule')
     print('Time, Node, Activity')
     for x in schedule:
         print(' {}     {}      {}'.format(x[0], x[1], x[2]))
-
     return schedule;
+
+# Algorithm that breaks down N-hop streams (N>1) in sequences of 1-hop streams,
+# by finding shortest paths over the network graph. 
+def router(topology, stream_list):
+    #Get the set of nodes from topology (list of tuples) by flattening the tuples 
+    #and finding unique elements by turning the list into a set.
+    nodes = set(sum(topology, ()))
+    #print(repr(nodes))
+    for stream in stream_list:
+        # Stream tuple unpacking
+        src, dst = stream;
+
+        ## If src and dst are 1-hop, no routing is needed
+        if is_onehop(topology,stream):
+            continue;
+        
+        ## Breadth First Search for topology graph
+        path = breadth_first_search(topology, stream)
+ 
+        ## Insert path to stream_list in place of previous multihop stream
+        n = stream_list.index(stream)
+        path_streams = path_to_stream_list(path)
+        print('Routing '+repr(stream_list[n])+' as '+repr(path_streams))
+        stream_list.remove(stream)
+        pos = n
+        for item in path_streams:
+            stream_list.insert(pos, item)
+            pos += 1
 
 def draw_graph(topology):
     # Create directed graph (Digraph)
@@ -146,6 +233,7 @@ if __name__ == '__main__':
     if (args.command == "plot"):
         draw_graph(topology_2)
     if (args.command == "run"):
-        scheduler(topology_2, stream_list_3, data_slots_1)
-        #scheduler(topology_1, stream_list_2, data_slots_1)
+        router(topology, stream_list)
+        print('Final stream list: '+repr(stream_list))
+        scheduler(topology, stream_list, data_slots)
     
