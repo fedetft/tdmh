@@ -10,7 +10,7 @@ while(<>)
 	if(/(\[\d+ - \d+\])/)
 	{
 		$links{$1}=$links{$1}+1;
-	} elsif(/\[U\] Current topology:/) {
+	} elsif(/\[U\] Current topology/) {
 		$uplinks++;
 	}
 }

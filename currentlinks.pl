@@ -6,7 +6,7 @@ my $links;
 
 while(<>)
 {
-    if(/\[U\] Current topology:/) {
+    if(/\[U\] Current topology/) {
 		$links = "";
 	}
 
