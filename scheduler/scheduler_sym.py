@@ -15,6 +15,7 @@ multipath = True
 # max hop difference between first and redundant solution
 more_hops = 2
 bfs_debug = False
+sch_debug = False
 
 ### GREEDY SCHEDULING ALGORITHM
 
@@ -86,7 +87,8 @@ def check_unicity_conflict(schedule, timeslot, stream):
     link = {src,dst}
     conflict_set = [e for e in schedule if ((e[0] == timeslot) and (e[1] in link))]
     if conflict_set:
-        print('Conflict Detected! src or dst node are busy on timeslot ' + repr(timeslot))
+        if sch_debug:
+            print('Conflict Detected! src or dst node are busy on timeslot ' + repr(timeslot))
         return True;
     else:
         return False
@@ -100,7 +102,8 @@ def check_interference_conflict(schedule, topology, timeslot, node, activity):
             #print(repr(node)+repr(elem))
             if elem == (timeslot, n, activity):
                 conflict = True;
-                print('Conflict Detected! TX-RX conflict between node ' + repr(node) + ' and node ' + repr(n))
+                if sch_debug:
+                    print('Conflict Detected! TX-RX conflict between node ' + repr(node) + ' and node ' + repr(n))
     return conflict;
 
 def breadth_first_search(topology, stream, avoid):
@@ -189,14 +192,16 @@ def scheduler(topology, req_streams, data_slots):
             # If a stream in a block cannot be scheduled, undo the whole block,
             # then break block cycle
             if err_block:
-                print('Block scheduling failed, removing streams of block ' + repr(stream_block))
+                if sch_debug:
+                    print('Block scheduling failed, removing streams of block ' + repr(stream_block))
                 for i in range(num_streams_in_block):
                     schedule.pop();
                     schedule.pop();
                 break;
 
             for timeslot in range(last_ts, data_slots):
-                print('Checking stream ' + repr(stream) + ' on timeslot ' + repr(timeslot))
+                if sch_debug:
+                    print('Checking stream ' + repr(stream) + ' on timeslot ' + repr(timeslot))
                 
                 # Stream tuple unpacking
                 src, dst = stream;
@@ -208,7 +213,8 @@ def scheduler(topology, req_streams, data_slots):
                 if not is_onehop(topology,stream):
                     err_block = True;
                     err_unreachable = True;
-                    print('Nodes are not reachable in topology, cannot schedule stream ' + repr(stream_block))
+                    if sch_debug:
+                        print('Nodes are not reachable in topology, cannot schedule stream ' + repr(stream_block))
                     break;    #Cannot schedule transmission
                     
                 ## Conflict checks
@@ -222,7 +228,8 @@ def scheduler(topology, req_streams, data_slots):
                 
                 # Checks evaluation
                 if conflict:
-                    print('Cannot schedule stream ' + repr(stream) + ' on timeslot ' + repr(timeslot))
+                    if sch_debug:
+                        print('Cannot schedule stream ' + repr(stream) + ' on timeslot ' + repr(timeslot))
                     continue;  #Try to schedule in next timeslot
                 else:
                     last_ts = timeslot
@@ -230,7 +237,8 @@ def scheduler(topology, req_streams, data_slots):
                     # Adding stream to schedule
                     schedule.append((timeslot, src, 'TX'));
                     schedule.append((timeslot, dst, 'RX'));
-                    print('Scheduled stream ' + repr(stream) + ' on timeslot ' + repr(timeslot))
+                    if sch_debug:
+                        print('Scheduled stream ' + repr(stream) + ' on timeslot ' + repr(timeslot))
                     break;     #Successfully scheduled transmission, break timeslot cycle
             ## Next stream in block starts from next timeslot (otherwise conflict is assured)
             last_ts += 1
@@ -258,11 +266,11 @@ def router(topology, req_streams, multipath, more_hops):
         # Stream tuple unpacking
         #print(repr(stream))
         src, dst = stream;
-        pos = req_streams.index(stream)
 
         ## If src and dst are 1-hop, no routing is needed
         ## single streams are packed into one-stream list for uniformity
         if is_onehop(topology,stream):
+            pos = final_streams.index(stream)
             final_streams.remove(stream)
             final_streams.insert(pos, [stream])
             continue;
@@ -270,12 +278,12 @@ def router(topology, req_streams, multipath, more_hops):
         avoid = []
         ## Breadth First Search for topology graph
         first_path = breadth_first_search(topology, stream, avoid)
-        print('BFS solution: ' + repr(first_path))
+        print('Primary Path (BFS): ' + repr(first_path))
  
         ## Inserting first_path in final_streams in place of multihop stream
-        
         stream_block = path_to_stream_block(first_path)
-        print('Routing '+repr(req_streams[pos])+' as '+repr(stream_block))
+        print('Routing '+repr(stream)+' as '+repr(stream_block))
+        pos = final_streams.index(stream)
         final_streams.remove(stream)
         final_streams.insert(pos, stream_block)
 
@@ -313,12 +321,11 @@ def router(topology, req_streams, multipath, more_hops):
                 ## SPATIAL REDUNDANCY IS ADDED HERE
                 # Inserting secondary path
                 stream_block_2 = path_to_stream_block(second_path)
-                print('Routing ' + repr(req_streams[pos] )+' as '+repr(stream_block_2))
-                pos += 1
-                if pos > len(req_streams):
+                print('Routing ' + repr(stream)+' as '+repr(stream_block_2))
+                if (pos + 1) > len(final_streams):
                     final_streams.append(stream_block_2)
                 else:
-                    final_streams.insert(pos, stream_block_2)
+                    final_streams.insert((pos + 1), stream_block_2)
 
     return final_streams;
 
