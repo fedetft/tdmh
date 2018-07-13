@@ -11,10 +11,10 @@ from collections import defaultdict
 # enable or disable spatial redundancy
 # if disabled only temporal redundancy is used whether required.
 #multipath = True
-multipath = False
+multipath = True
 # max hop difference between first and redundant solution
 more_hops = 2
-bfs_debug = False
+bfs_debug = True
 
 ### GREEDY SCHEDULING ALGORITHM
 
@@ -103,7 +103,7 @@ def check_interference_conflict(schedule, topology, timeslot, node, activity):
                 print('Conflict Detected! TX-RX conflict between node ' + repr(node) + ' and node ' + repr(n))
     return conflict;
 
-def breadth_first_search(topology, stream):
+def breadth_first_search(topology, stream, avoid):
     # Breadth First Search for topology graph
     if bfs_debug:
         print('Starting Breadth First search')
@@ -128,45 +128,18 @@ def breadth_first_search(topology, stream):
         for child in adjacence(topology, subtree_root):
             if child in visited:
                 continue;
-            if child not in list(open_set.queue):
+            if child not in list(open_set.queue) and child not in avoid:
                 parent_of[child] = subtree_root
                 open_set.put(child)
         visited.add(subtree_root)
 
-def breadth_first_search_multi(topology, stream, more_hops):
-    solution_list = []
-    # Breadth First Search for topology graph
-    if bfs_debug:
-        print('Starting Breadth First search with multipath')
-    # Data structures
-    open_set = queue.Queue()
-    visited = set()       # Can be turned to a bit-vector to save space
-    parent_of = defaultdict(list)  # key:node -> [parent node list]
-    src, dst = stream;
-    
-    root = src
-    parent_of[root].append(None)
-    open_set.put(root)
-    
-    while not open_set.empty():
-        if bfs_debug:
-            print('bfs open set: ' + repr(list(open_set.queue)))
-            print('parent_of: ' + repr(parent_of))
-        subtree_root = open_set.get()
-        if subtree_root == dst:
-            solution_list.append(construct_path_multi(subtree_root, parent_of))
-            if not multipath:
-                return solution_list
-
-        for child in adjacence(topology, subtree_root):
-            if child in visited:
-                continue;
-            if child not in list(open_set.queue):
-                parent_of[child].append(subtree_root)
-                open_set.put(child)
-        visited.add(subtree_root)
-    if multipath:
-        return solution_list    
+def dfs_paths(graph, start, target, path=None):
+    if path is None:        #Necessary for python only
+        path = [start]      #
+    if start == target:
+        yield path          
+    for next in set(adjacence(graph,start)) - set(path):
+        yield from dfs_paths(graph, next, target, path + [next]) #https://legacy.python.org/dev/peps/pep-0380/
 
 def construct_path(node, parent_of):
     path = list()
@@ -181,25 +154,14 @@ def construct_path(node, parent_of):
     path.reverse()    
     return path
 
-def construct_path_multi(node, parent_of):
-    path = list()
-    # Continue until you reach root that has parent = None
-    # Append destination node to avoid losing it
-    path.append(node)
-    while None not in parent_of[node]:
-        # This code skips 'node' that is saved above (destination)
-        node = parent_of[node]
-        path.append(node)
- 
-    path.reverse()
-    return path
-
 def path_to_stream_block(path):
-    st_block=[]
-    for x in range(0,len(path)-1):
-        st_block.append((path[x],path[x+1]))
-    #print(repr(st_list))
-    return st_block
+    if path is not None:
+        st_block=[]
+        for x in range(0,len(path)-1):
+            st_block.append((path[x],path[x+1]))
+        return st_block
+    else:
+        return None
 
 # option A iteration
 # TODO sort streams according to chosen metric
@@ -291,44 +253,45 @@ def router(topology, req_streams, multipath, more_hops):
             req_streams.insert(pos, [stream])
             continue;
 
-        # Multipath search disabled
-        if not multipath:
-            ## Breadth First Search for topology graph
-            path = breadth_first_search(topology, stream)
-            print('Search solution: ' + repr(path))
+        avoid = []
+        ## Breadth First Search for topology graph
+        path = breadth_first_search(topology, stream, avoid)
+        print('Search solution: ' + repr(path))
  
-            ## Inserting path in req_streams in place of multihop stream
-            stream_block = path_to_stream_block(path)
-            print('Routing '+repr(req_streams[pos])+' as '+repr(stream_block))
-            req_streams.remove(stream)
-            req_streams.insert(pos, stream_block)
+        ## Inserting path in req_streams in place of multihop stream
+        stream_block = path_to_stream_block(path)
+        print('Routing '+repr(req_streams[pos])+' as '+repr(stream_block))
+        req_streams.remove(stream)
+        req_streams.insert(pos, stream_block)
 
         # Multipath search enabled
-        else:
-            ## Breadth First Search with multiple results
-            path_list = breadth_first_search_multi(topology, stream, more_hops)
-            sol = len(path_list)
-            if sol == 1:
-                print(repr(sol) + ' solution found: ' + repr(path_list))
-            else:
-                print(repr(sol) + ' solutions found: ' + repr(path_list))
+        if multipath:
+            ## BFS avoiding intermediate nodes
+            #avoid = path
+            #path = breadth_first_search(topology, stream, avoid)
+            #if path is None:
+            #    for e in range(len(avoid)):
+            #        new_avoid = avoid
+            #        print('New avoid '+repr(new_avoid))
+            #        new_avoid.pop(e)
+            #        path = breadth_first_search(topology, stream, new_avoid)
+            #        if path is not None:
+            #            break;
+            #print('Search solution: ' + repr(path))
  
-            ## Inserting primary path to req_streams in place of
-            ## previous multihop stream
-            first_path_stream_block = path_to_stream_block(path_list[0])
-            print('Routing ' + repr(req_streams[pos]) + ' as '+ repr(first_path_stream_block))
-            req_streams.remove(stream)
-            req_streams.insert(pos, first_path_stream_block)
-        
+            ## DFS limited in depth
+            path = dfs_paths(topology, src, dst)
+            print(list(path))
+ 
             ## SPATIAL REDUNDANCY IS ADDED HERE
             ## Inserting secondary path
-            if sol == 1:
+            if path is None:
                 print('No extra path found: falling back to temporal redundancy ')
             else:
                 pos += 1
-                second_path_stream_block = path_to_stream_block(path_list[1])
-                print('Routing ' + repr(req_streams[pos] ) + ' as ' + repr(first_path_stream_block))
-                req_streams.insert(pos, first_path_stream_block)
+                #second_path_stream_block = path_to_stream_block(path[0])
+                #print('Routing ' + repr(req_streams[pos] ) + ' as ' + repr(second_path_stream_block))
+                #req_streams.insert(pos, first_path_stream_block)
 
     return req_streams;
 
