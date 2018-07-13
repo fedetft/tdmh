@@ -16,6 +16,7 @@ multipath = True
 more_hops = 2
 bfs_debug = False
 sch_debug = False
+sch_raw_print = False
 
 ### GREEDY SCHEDULING ALGORITHM
 
@@ -181,6 +182,7 @@ def get_shortest_path(path_list):
 # TODO sort streams according to chosen metric
 def scheduler(topology, req_streams, data_slots):
     schedule = []
+    schedule_human = [] #Just for printing purposes
     for stream_block in req_streams:
         # last_ts guarantees sequentiality in blocks and avoid conflicts between
         # two consecutive streams in a block.
@@ -237,6 +239,7 @@ def scheduler(topology, req_streams, data_slots):
                     # Adding stream to schedule
                     schedule.append((timeslot, src, 'TX'));
                     schedule.append((timeslot, dst, 'RX'));
+                    schedule_human.append((timeslot, src, dst));
                     if sch_debug:
                         print('Scheduled stream ' + repr(stream) + ' on timeslot ' + repr(timeslot))
                     break;     #Successfully scheduled transmission, break timeslot cycle
@@ -245,12 +248,21 @@ def scheduler(topology, req_streams, data_slots):
             # Last-timeslot + conflict = unschedulable stream
             if timeslot == data_slots - 1:
                 err_block = True;
-                
-    ### Print resulting Schedule
-    print('\nResulting schedule')
-    print('Time, Node, Activity')
-    for x in schedule:
-        print(' {}     {}      {}'.format(x[0], x[1], x[2]))
+    
+    if sch_raw_print:
+        ### Print Raw Schedule
+        print('\nResulting schedule')
+        print('Time, Node, Activity')
+        for x in schedule:
+            print(' {}     {}      {}'.format(x[0], x[1], x[2]))
+    
+    else:
+        ### Print Pretty Schedule
+        print('\nResulting schedule')
+        print('Time   Src, Dst')
+        for x in schedule_human:
+            print(' {}:     {}    {}'.format(x[0], x[1], x[2]))
+            
     return schedule;
 
 # Algorithm that breaks down N-hop streams (N>1) in sequences of 1-hop streams,
@@ -293,9 +305,8 @@ def router(topology, req_streams, multipath, more_hops):
             ## DFS limited in depth
             sol_size = len(first_path)
             print('Primary path length: ' + repr(sol_size))
-            sol_size += more_hops
-            print('Finding secondary path of length: ' + repr(sol_size))
-            path_list = dfs_paths(topology, src, dst, sol_size)
+            print('Searching secondary path of length: ' + repr(sol_size) + '+' + repr(more_hops) + '= ' + repr(sol_size + more_hops))
+            path_list = dfs_paths(topology, src, dst, sol_size + more_hops)
             path_list = list(path_list) # Materializes results
             print('DFS solutions: ' + repr(path_list))
             
@@ -313,9 +324,11 @@ def router(topology, req_streams, multipath, more_hops):
                     if middle_nodes in path:
                         solutions.remove(path)
                 if solutions:
+                    print('Found indipendent path')
                     second_path = get_shortest_path(solutions)
                 else:
                 # Path with some nodes in common
+                    print('Cannot find indipendent path')
                     second_path = get_shortest_path(path_list)
                 
                 ## SPATIAL REDUNDANCY IS ADDED HERE
