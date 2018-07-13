@@ -14,7 +14,7 @@ from collections import defaultdict
 multipath = True
 # max hop difference between first and redundant solution
 more_hops = 2
-bfs_debug = True
+bfs_debug = False
 
 ### GREEDY SCHEDULING ALGORITHM
 
@@ -133,14 +133,6 @@ def breadth_first_search(topology, stream, avoid):
                 open_set.put(child)
         visited.add(subtree_root)
 
-def dfs_paths(graph, start, target, path=None):
-    if path is None:        #Necessary for python only
-        path = [start]      #
-    if start == target:
-        yield path          
-    for next in set(adjacence(graph,start)) - set(path):
-        yield from dfs_paths(graph, next, target, path + [next]) #https://legacy.python.org/dev/peps/pep-0380/
-
 def construct_path(node, parent_of):
     path = list()
     # Continue until you reach root that has parent = None
@@ -150,9 +142,19 @@ def construct_path(node, parent_of):
         # This code skips 'node' that is saved above (destination)
         node = parent_of[node]
         path.append(node)
-    
     path.reverse()    
     return path
+    
+def dfs_paths(graph, start, target, limit, path=None):
+    if path is None:        #Necessary for python only
+        path = [start]      #
+    if start == target:
+        yield path    
+    for next in set(adjacence(graph,start)) - set(path):
+        if limit == 0:
+            continue
+        limit -= 1
+        yield from dfs_paths(graph, next, target, limit, path + [next]) #https://legacy.python.org/dev/peps/pep-0380/
 
 def path_to_stream_block(path):
     if path is not None:
@@ -162,6 +164,15 @@ def path_to_stream_block(path):
         return st_block
     else:
         return None
+
+def get_shortest_path(path_list):
+    best_path = path_list[0]
+    size = len(path_list[0])
+    for path in path_list:
+        if len(path) < size:
+            best_path = path
+            size = len(path)
+    return best_path
 
 # option A iteration
 # TODO sort streams according to chosen metric
@@ -237,63 +248,79 @@ def scheduler(topology, req_streams, data_slots):
 # Algorithm that breaks down N-hop streams (N>1) in sequences of 1-hop streams,
 # by finding shortest paths over the network graph. 
 def router(topology, req_streams, multipath, more_hops):
+    # Results should be put in separate data structure to not cycle over them
+    final_streams = req_streams.copy()
     #Get the set of nodes from topology (list of tuples) by flattening the tuples 
     #and finding unique elements by turning the list into a set.
     nodes = set(sum(topology, ()))
     #print(repr(nodes))
     for stream in req_streams:
         # Stream tuple unpacking
+        #print(repr(stream))
         src, dst = stream;
         pos = req_streams.index(stream)
 
         ## If src and dst are 1-hop, no routing is needed
         ## single streams are packed into one-stream list for uniformity
         if is_onehop(topology,stream):
-            req_streams.remove(stream)
-            req_streams.insert(pos, [stream])
+            final_streams.remove(stream)
+            final_streams.insert(pos, [stream])
             continue;
 
         avoid = []
         ## Breadth First Search for topology graph
-        path = breadth_first_search(topology, stream, avoid)
-        print('Search solution: ' + repr(path))
+        first_path = breadth_first_search(topology, stream, avoid)
+        print('BFS solution: ' + repr(first_path))
  
-        ## Inserting path in req_streams in place of multihop stream
-        stream_block = path_to_stream_block(path)
+        ## Inserting first_path in final_streams in place of multihop stream
+        
+        stream_block = path_to_stream_block(first_path)
         print('Routing '+repr(req_streams[pos])+' as '+repr(stream_block))
-        req_streams.remove(stream)
-        req_streams.insert(pos, stream_block)
+        final_streams.remove(stream)
+        final_streams.insert(pos, stream_block)
 
         # Multipath search enabled
         if multipath:
-            ## BFS avoiding intermediate nodes
-            #avoid = path
-            #path = breadth_first_search(topology, stream, avoid)
-            #if path is None:
-            #    for e in range(len(avoid)):
-            #        new_avoid = avoid
-            #        print('New avoid '+repr(new_avoid))
-            #        new_avoid.pop(e)
-            #        path = breadth_first_search(topology, stream, new_avoid)
-            #        if path is not None:
-            #            break;
-            #print('Search solution: ' + repr(path))
  
             ## DFS limited in depth
-            path = dfs_paths(topology, src, dst)
-            print(list(path))
- 
-            ## SPATIAL REDUNDANCY IS ADDED HERE
-            ## Inserting secondary path
-            if path is None:
-                print('No extra path found: falling back to temporal redundancy ')
+            sol_size = len(first_path)
+            print('Primary path length: ' + repr(sol_size))
+            sol_size += more_hops
+            print('Finding secondary path of length: ' + repr(sol_size))
+            path_list = dfs_paths(topology, src, dst, sol_size)
+            path_list = list(path_list) # Materializes results
+            print('DFS solutions: ' + repr(path_list))
+            
+            ## Choosing best secondary path
+            # Check if another path exists
+            path_list.remove(first_path)
+            if not path_list: #Check if list is empty
+                print('No extra path found: falling back to temporal redundancy')
             else:
+                # Exists path without middle nodes in common with first_path
+                middle_nodes = first_path[1:-1]
+                solutions = path_list
+                print('Middle nodes ' + repr(middle_nodes))
+                for path in solutions:
+                    if middle_nodes in path:
+                        solutions.remove(path)
+                if solutions:
+                    second_path = get_shortest_path(solutions)
+                else:
+                # Path with some nodes in common
+                    second_path = get_shortest_path(path_list)
+                
+                ## SPATIAL REDUNDANCY IS ADDED HERE
+                # Inserting secondary path
+                stream_block_2 = path_to_stream_block(second_path)
+                print('Routing ' + repr(req_streams[pos] )+' as '+repr(stream_block_2))
                 pos += 1
-                #second_path_stream_block = path_to_stream_block(path[0])
-                #print('Routing ' + repr(req_streams[pos] ) + ' as ' + repr(second_path_stream_block))
-                #req_streams.insert(pos, first_path_stream_block)
+                if pos > len(req_streams):
+                    final_streams.append(stream_block_2)
+                else:
+                    final_streams.insert(pos, stream_block_2)
 
-    return req_streams;
+    return final_streams;
 
 def draw_graph(topology):
     # Create directed graph (Digraph)
@@ -317,7 +344,7 @@ if __name__ == '__main__':
     if (args.command == "plot"):
         draw_graph(topology_2)
     if (args.command == "run"):
-        req_streams = router(topology, req_streams, multipath, more_hops)
-        print('Final stream list: '+repr(req_streams))
-        scheduler(topology, req_streams, data_slots)
+        final_streams = router(topology, req_streams, multipath, more_hops)
+        print('Final stream list: '+repr(final_streams))
+        scheduler(topology, final_streams, data_slots)
     
