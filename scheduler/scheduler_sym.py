@@ -305,12 +305,12 @@ def router(topology, req_streams, multipath, more_hops):
             ## DFS limited in depth
             sol_size = len(first_path)
             print('Primary path length: ' + repr(sol_size))
-            print('Searching secondary path of length: ' + repr(sol_size) + '+' + repr(more_hops) + '= ' + repr(sol_size + more_hops))
+            print('Searching secondary path of max length: ' + repr(sol_size) + '+' + repr(more_hops) + '= ' + repr(sol_size + more_hops))
             path_list = dfs_paths(topology, src, dst, sol_size + more_hops)
             path_list = list(path_list) # Materializes results
             print('DFS solutions: ' + repr(path_list))
             
-            ## Choosing best secondary path
+            ## Choosing best secondary path from DFS solutions
             # Check if another path exists
             path_list.remove(first_path)
             if not path_list: #Check if list is empty
@@ -323,7 +323,6 @@ def router(topology, req_streams, multipath, more_hops):
                 for path in path_list:
                     for node in middle_nodes:
                         if node in path and path in indip_path:
-                            print(repr(path))
                             indip_path.remove(path)
                             continue
                 if indip_path:
@@ -336,6 +335,7 @@ def router(topology, req_streams, multipath, more_hops):
                 
                 ## SPATIAL REDUNDANCY IS ADDED HERE
                 # Inserting secondary path
+                print('Secondary Path (limited-DFS): ' + repr(second_path))
                 stream_block_2 = path_to_stream_block(second_path)
                 print('Routing ' + repr(stream)+' as '+repr(stream_block_2))
                 if (pos + 1) > len(final_streams):
