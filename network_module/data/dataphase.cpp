@@ -80,9 +80,9 @@ void DataPhase::execute(long long slotStart) {
                 } else print_dbg("No packet received, timeout reached\n");
             }
         } while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK);
-        if (rcvResult.error == RecvResult::OK) {
+        if (rcvResult.error == RecvResult::OK && memcmp((char *)packet.data(),"hello ",6)==0) {
             char a[8];
-            strcpy(a, (char *)packet.data());
+            strncpy(a, (char *)packet.data(), 8);
             if (ENABLE_DATA_INFO_DBG)
 #ifndef _MIOSIX
                 print_dbg("[D]#%hu @%llu[%hu] %s\n", sched->getId(), rcvResult.timestamp, dataSlot, a);
@@ -127,7 +127,8 @@ void DataPhase::execute(long long slotStart) {
     }
     case DynamicScheduleElement::FORWARDER: {
         if (queues[sched->getId()].empty()) {
-            print_dbg("[D] #%hhu @%llu[%hu] empty Q\n", sched->getId(), slotStart, dataSlot);
+            if(ENABLE_DATA_INFO_DBG)
+                print_dbg("[D] #%hhu @%llu[%hu] empty Q\n", sched->getId(), slotStart, dataSlot);
             break;
         }
         std::copy_n(queues[sched->getId()].begin(), queues[sched->getId()].size(), packet.begin());
