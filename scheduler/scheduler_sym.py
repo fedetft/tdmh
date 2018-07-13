@@ -318,14 +318,17 @@ def router(topology, req_streams, multipath, more_hops):
             else:
                 # Exists path without middle nodes in common with first_path
                 middle_nodes = first_path[1:-1]
-                solutions = path_list
+                indip_path = path_list.copy()
                 print('Middle nodes ' + repr(middle_nodes))
-                for path in solutions:
-                    if middle_nodes in path:
-                        solutions.remove(path)
-                if solutions:
+                for path in path_list:
+                    for node in middle_nodes:
+                        if node in path and path in indip_path:
+                            print(repr(path))
+                            indip_path.remove(path)
+                            continue
+                if indip_path:
                     print('Found indipendent path')
-                    second_path = get_shortest_path(solutions)
+                    second_path = get_shortest_path(indip_path)
                 else:
                 # Path with some nodes in common
                     print('Cannot find indipendent path')
