@@ -27,7 +27,7 @@
 
 #include "../debug_settings.h"
 #include "dynamic_schedule_downlink.h"
-#include "schedule_downlink.h"
+#include "schedule_context.h"
 #include "schedule_information.h"
 #include "../timesync/timesync_downlink.h"
 

@@ -176,7 +176,7 @@ public:
     StreamManagementContext* getStreamManagementContext() const;
 
     /**
-     * @return the UplinkPhase
+     * @return the ScheduleDownlink
      */
     ScheduleDownlinkPhase* const getScheduleDownlink() const { return schedule; }
 
@@ -264,4 +264,3 @@ private:
 
 };
 }
-

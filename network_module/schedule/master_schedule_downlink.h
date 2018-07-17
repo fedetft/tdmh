@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include "schedule_downlink.h"
+#include "schedule_context.h"
 #include "master_schedule_information.h"
 
 namespace mxnet {

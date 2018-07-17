@@ -40,7 +40,7 @@ namespace mxnet {
 class MACContext;
 
 /**
- * Class storing the status of thr topology information received and collected by the other nodes
+ * Class storing the status of the topology information received and collected by the other nodes
  */
 class TopologyContext {
 public:

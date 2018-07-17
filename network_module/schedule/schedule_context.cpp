@@ -27,7 +27,7 @@
 
 #include <stdio.h>
 #include "../debug_settings.h"
-#include "schedule_downlink.h"
+#include "schedule_context.h"
 #include <algorithm>
 
 using namespace miosix;

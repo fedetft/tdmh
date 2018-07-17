@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include "schedule_downlink.h"
+#include "schedule_context.h"
 
 namespace mxnet {
 class DynamicScheduleDownlinkPhase : public ScheduleDownlinkPhase {
