@@ -25,7 +25,7 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "dynamic_medium_access_controller.h"
+#include "dynamic_tdmh.h"
 
 namespace mxnet {
 } /* namespace mxnet */

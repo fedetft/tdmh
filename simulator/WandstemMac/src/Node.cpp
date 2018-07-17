@@ -14,7 +14,7 @@
 // 
 
 #include "Node.h"
-#include "network_module/dynamic_medium_access_controller.h"
+#include "network_module/dynamic_tdmh.h"
 #include "network_module/network_configuration.h"
 #include <iostream>
 

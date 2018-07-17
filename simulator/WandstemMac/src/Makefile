@@ -43,12 +43,12 @@ OBJS = \
     $O/kernel/timeconversion.o \
     $O/network_module/debug_settings.o \
     $O/network_module/dynamic_mac_context.o \
-    $O/network_module/dynamic_medium_access_controller.o \
+    $O/network_module/dynamic_tdmh.o \
     $O/network_module/mac_context.o \
     $O/network_module/mac_phase.o \
     $O/network_module/master_mac_context.o \
-    $O/network_module/master_medium_access_controller.o \
-    $O/network_module/medium_access_controller.o \
+    $O/network_module/master_tdmh.o \
+    $O/network_module/tdmh.o \
     $O/network_module/network_configuration.o \
     $O/network_module/data/dataphase.o \
     $O/network_module/schedule/dynamic_schedule_downlink.o \

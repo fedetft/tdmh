@@ -29,8 +29,8 @@
 #include <unistd.h>
 #include <miosix.h>
 #include "network_module/network_configuration.h"
-#include "network_module/dynamic_medium_access_controller.h"
-#include "network_module/master_medium_access_controller.h"
+#include "network_module/dynamic_tdmh.h"
+#include "network_module/master_tdmh.h"
 #include "network_module/timesync/networktime.h"
 #include "interfaces-impl/gpio_timer_corr.h"
 

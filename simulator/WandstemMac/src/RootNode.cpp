@@ -15,7 +15,7 @@
 
 #include "RootNode.h"
 
-#include "network_module/master_medium_access_controller.h"
+#include "network_module/master_tdmh.h"
 #include "network_module/network_configuration.h"
 
 Define_Module(RootNode);

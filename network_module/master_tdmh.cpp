@@ -25,18 +25,7 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#pragma once
-
-#include "medium_access_controller.h"
-#include "master_mac_context.h"
+#include "master_tdmh.h"
 
 namespace mxnet {
-
-class MasterMediumAccessController : public MediumAccessController {
-public:
-    MasterMediumAccessController(miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
-        MediumAccessController(new MasterMACContext(*this, transceiver, config)) {};
-    virtual ~MasterMediumAccessController() {};
-};
-
 } /* namespace mxnet */

@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include "medium_access_controller.h"
+#include "tdmh.h"
 #include "dynamic_mac_context.h"
 
 namespace mxnet {

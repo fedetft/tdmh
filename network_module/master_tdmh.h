@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2018 by Polidori Paolo                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,31 +25,18 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "medium_access_controller.h"
-#include "mac_context.h"
+#pragma once
+
+#include "tdmh.h"
+#include "master_mac_context.h"
 
 namespace mxnet {
 
-MediumAccessController::~MediumAccessController() {
-    delete ctx;
-}
+class MasterMediumAccessController : public MediumAccessController {
+public:
+    MasterMediumAccessController(miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
+        MediumAccessController(new MasterMACContext(*this, transceiver, config)) {};
+    virtual ~MasterMediumAccessController() {};
+};
 
-void MediumAccessController::run() {
-    async = false;
-    ctx->run();
-}
-
-void MediumAccessController::runAsync() {
-    async = true;
-#ifdef _MIOSIX
-    thread = miosix::Thread::create(MediumAccessController::runLauncher, 2048, miosix::PRIORITY_MAX-1, this, miosix::Thread::JOINABLE);
-#else
-    thread = new std::thread(&MediumAccessController::run, this);
-#endif
-}
-
-void MediumAccessController::stop() {
-    ctx->stop();
-    if (async) thread->join();
-}
-}
+} /* namespace mxnet */

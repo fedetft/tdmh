@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include "medium_access_controller.h"
+#include "tdmh.h"
 #include "interfaces-impl/transceiver.h"
 #include <array>
 
