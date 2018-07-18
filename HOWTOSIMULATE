@@ -1,0 +1,19 @@
+Install OMNeT++ version 5.3. Newer versions may work but have not been tested.
+
+Run the OMNeT++ eclipse ide
+
+Select as workspace the "simulator" directory in this git repository ("file" > "switch workspace" if no popup appears)
+
+If an "empty workspace" window appears, deselect "install inet framework" and "import OMNeT++ programming examples"
+
+Select "file" > "open projects from file system"
+
+Select as directory "simulator/wandstem-mac" in this git repository
+
+Select "wandstem-mac" > "simulations" from the left pane
+
+Double click on a ned file
+
+Select the "run" green button
+
+

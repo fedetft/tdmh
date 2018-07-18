@@ -1,1 +1,17 @@
-:exec !! sx -b main.bin
+Install wandstem-flash from
+
+https://github.com/legobrick/wandstem-flash-utility
+
+To compile for the nodes
+
+make -j8
+
+To put a wandstem node in programming mode, press and release the reset button while the user button is kept pressed. The red and green LED will turn on.
+
+To flash via USB, use
+
+wandstem-flash -m usb -f main.bin -d /dev/ttyACM0
+
+To flash via serial port, use
+
+wandstem-flash -m serial -f main.bin -d /dev/ttyUSB0
