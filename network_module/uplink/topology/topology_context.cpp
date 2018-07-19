@@ -31,7 +31,7 @@
 namespace mxnet {
 
 unsigned char DynamicTopologyContext::getBestPredecessor() {
-    return (ctx.getHop() > 1)? min_element(predecessors.begin(),
+    return (ctx.getHop() > 1 && hasPredecessor())? min_element(predecessors.begin(),
             predecessors.end(),
             Predecessor::CompareRSSI())->getNodeId(): 0;
 }
