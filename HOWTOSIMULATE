@@ -14,6 +14,23 @@ Select "wandstem-mac" > "simulations" from the left pane
 
 Double click on a ned file
 
-Select the "run" green button
+Select the "debug" green button
+
+TODO: simulations fail when compiled in release mode. Find out why?
+
+Once eclipse builds the binaries, you can run then also from the command line
+(from the "simulator/WandstemMac" directory:
+
+# First, make sure the omnet setenv script is executed
+cd ../../../omnet++/omnetpp-5.3/
+. ./setenv
+cd -
+
+# Then compile and run 
+MODE=debug make
+./out/clang-debug/src/WandstemMac_dbg -m -u Cmdenv -n src:simulations simulations/Line4.ini
+
+
+time ./out/clang-debug/src/WandstemMac_dbg -m -u Cmdenv -n src:simulations simulations/Line4.ini  --cmdenv-express-mode=false --cmdenv-log-prefix="%l %o %N:" > /dev/null
 
 
