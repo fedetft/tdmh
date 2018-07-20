@@ -287,6 +287,7 @@ def router(topology, req_streams, multipath, more_hops):
             final_streams.insert(pos, [stream])
             continue;
 
+        #TODO remove unused avoid set in bfs 
         avoid = []
         ## Breadth First Search for topology graph
         first_path = breadth_first_search(topology, stream, avoid)
