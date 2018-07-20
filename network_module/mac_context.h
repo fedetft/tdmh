@@ -178,7 +178,7 @@ public:
     /**
      * @return the ScheduleDownlink
      */
-    ScheduleDownlinkPhase* const getScheduleDownlink() const { return schedule; }
+    ScheduleDownlinkPhase* const getScheduleDownlink() const { return schedule_distribution; }
 
     /**
      * @return the DataPhase
@@ -228,7 +228,7 @@ protected:
 
     TimesyncDownlink* timesync = nullptr;
     UplinkPhase* uplink = nullptr;
-    ScheduleDownlinkPhase* schedule = nullptr;
+    ScheduleDownlinkPhase* schedule_distribution = nullptr;
     DataPhase* data = nullptr;
 
     TopologyContext* topologyContext = nullptr;
