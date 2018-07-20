@@ -33,7 +33,7 @@
 #include "uplink/topology/tree_topology_context.h"
 #include "uplink/master_uplink_phase.h"
 #include "uplink/stream_management/stream_management_context.h"
-#include "schedule/master_schedule_downlink.h"
+#include "schedule/master_schedule_context.h"
 
 namespace mxnet {
 

@@ -48,6 +48,7 @@ void ControlSuperframeStructure::validate() const
     for(int i=1;i<size();i++) if(isControlDownlink(i)==false) return;
     throw std::logic_error("no control uplink");
     
+    //TODO: double check that is minimal.
     //Check it is minimal, example 0b0101 should be 0b01
     unsigned char halfLength = BitwiseOps::bitsForRepresentingCount(bitmask) >> 1;
     if ((bitmask >> halfLength) == (bitmask & ((1 << halfLength) - 1)))

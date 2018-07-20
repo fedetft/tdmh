@@ -49,7 +49,7 @@ public:
     virtual ~TopologyContext() {}
 
     /**
-     * Checks wether a node is a successor of another node
+     * Checks wether a node is a successor of the current node
      * @param nodeId the id of the successor
      * @return if such node is a successor for the current one
      */
@@ -58,6 +58,17 @@ public:
             return s.getNodeId() == nodeId;
         }) != successors.end();
     }
+    
+    /**
+     * Checks wether a node is a successor of another node
+     * @param nodeId the id of the successor
+     * @return if such node is a successor for the current one
+     */
+     bool areSuccessors(unsigned char node1, unsigned char node2) {
+         return std::find_if(successors.begin(), successors.end(), [=](Successor s){
+             return s.getNodeId() == node2;
+         }) != successors.end();
+     }
 
     /**
      * @return the TopologyMode in use by the network

@@ -68,6 +68,17 @@ public:
      * Closes the stream, if the data rate is 0.
      */
     virtual void open(StreamManagementElement* sme);
+    
+    /*
+     * Return reference to stream of given index
+     */
+    StreamManagementElement* getStream(int index);
+    
+    /*
+     * Return number of stream requests
+     */
+    int getStreamNumber();
+    
 protected:
     std::vector<StreamManagementElement*> opened;
 };

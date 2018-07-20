@@ -40,8 +40,27 @@
 /**
  * Represents the phase in which the schedule is flooded, in order to reach all the nodes and make it available for
  * all of them, so they start operating it when configured.
+ *
+ * Contains information about:
+ * Master Node:
+ * - "stream requests" from the nodes
+ * - "stream list" from multihop routing
+ * - "final schedule" from scheduling
+ * Dynamic Node:
+ * - "received schedule" from schedule distribution
  */
+
 namespace mxnet {
+
+class ScheduleContext {
+public:
+    ScheduleContext();
+    virtual ~ScheduleContext() {};
+        
+protected:
+};
+
+//TODO Remove old class ScheduleDownlinkPhase
 //TODO refactor to support incremental schedule (schedule taking effect after N downlinks)
 class ScheduleDownlinkPhase : public MACPhase {
 public:

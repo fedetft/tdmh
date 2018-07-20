@@ -48,12 +48,12 @@ OBJS = \
     $O/network_module/mac_phase.o \
     $O/network_module/master_mac_context.o \
     $O/network_module/master_tdmh.o \
-    $O/network_module/tdmh.o \
     $O/network_module/network_configuration.o \
+    $O/network_module/tdmh.o \
     $O/network_module/data/dataphase.o \
     $O/network_module/schedule/dynamic_schedule_downlink.o \
     $O/network_module/schedule/dynamic_schedule_information.o \
-    $O/network_module/schedule/master_schedule_downlink.o \
+    $O/network_module/schedule/master_schedule_context.o \
     $O/network_module/schedule/master_schedule_information.o \
     $O/network_module/schedule/schedule_context.o \
     $O/network_module/schedule/schedule_information.o \

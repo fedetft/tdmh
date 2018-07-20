@@ -48,6 +48,14 @@ void MasterStreamManagementContext::open(StreamManagementElement* sme) {
     }
 }
 
+StreamManagementElement* MasterStreamManagementContext::getStream(int index) {
+    return opened.at(index);
+}
+
+int MasterStreamManagementContext::getStreamNumber() {
+    return opened.size();
+}
+
 void DynamicStreamManagementContext::receive(std::vector<StreamManagementElement*>& smes) {
     for (auto* sme : smes) {
         auto id = sme->getId();
