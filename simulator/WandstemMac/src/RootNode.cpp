@@ -17,13 +17,16 @@
 
 #include "network_module/master_tdmh.h"
 #include "network_module/network_configuration.h"
+#include <iostream>
+#include <stdexcept>
 
 Define_Module(RootNode);
 
+using namespace std;
 using namespace mxnet;
 
 void RootNode::activity()
-{
+try {
     using namespace miosix;
     print_dbg("Master node\n");
     const NetworkConfiguration config(
@@ -35,7 +38,7 @@ void RootNode::activity()
             5,             //txPower
             2460,          //baseFrequency
             10000000000,   //clockSyncPeriod
-            10,             //maxForwardedTopologies
+            6,//15,             //maxForwardedTopologies
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
             3,             //maxRoundsUnavailableBecomesDead
@@ -44,4 +47,7 @@ void RootNode::activity()
     );
     MasterMediumAccessController controller(Transceiver::instance(), config);
     controller.run();
+} catch(exception& e) {
+	cerr<<"\nException thrown: "<<e.what()<<endl;
+	throw;
 }

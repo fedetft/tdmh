@@ -17,13 +17,15 @@
 #include "network_module/dynamic_tdmh.h"
 #include "network_module/network_configuration.h"
 #include <iostream>
+#include <stdexcept>
 
 Define_Module(Node);
 
+using namespace std;
 using namespace mxnet;
 
 void Node::activity()
-{
+try {
     using namespace miosix;
     const NetworkConfiguration config(
             hops,            //maxHops
@@ -34,7 +36,7 @@ void Node::activity()
             5,             //txPower
             2460,          //baseFrequency
             10000000000,   //clockSyncPeriod
-            10,             //maxForwardedTopologies
+            6,//15,             //maxForwardedTopologies
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
             3,             //maxRoundsUnavailableBecomesDead
@@ -43,4 +45,7 @@ void Node::activity()
     );
     DynamicMediumAccessController controller(Transceiver::instance(), config);
     controller.run();
+} catch(exception& e) {
+	cerr<<"\nException thrown: "<<e.what()<<endl;
+	throw;
 }
