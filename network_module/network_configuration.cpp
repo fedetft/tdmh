@@ -29,6 +29,9 @@
 #include "bitwise_ops.h"
 #include "mac_context.h"
 #include "debug_settings.h"
+#include "medium_access_controller.h"
+#include "uplink/uplink_message.h"
+#include "uplink/topology/topology_message.h"
 #include <stdexcept>
 
 namespace mxnet {
@@ -79,6 +82,8 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
 }
 
 void NetworkConfiguration::validate() const {
+    if(UplinkMessage::getMinSize()+NeighborMessage::maxSize(this)>MediumAccessController::maxPktSize)
+        throwLogicError("maxForwardedTopologies exceeds max packet size");
     if(clockSyncPeriod % controlSuperframeDuration != 0)
         throwLogicError("control superframe (%lld) does not divide clock sync period (%lld)",
                         controlSuperframeDuration, clockSyncPeriod);

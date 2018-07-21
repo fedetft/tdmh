@@ -58,6 +58,13 @@ public:
     static std::size_t getSizeWithoutSMEs(TopologyMessage* const tMsg) {
         return sizeof(UplinkMessagePkt) + tMsg->size();
     }
+    
+    /**
+     * @return the minimum packet size, without topology or sme
+     */
+    static std::size_t getMinSize() {
+        return sizeof(UplinkMessagePkt);
+    }
 
     /**
      * @return the hop of the message sender
