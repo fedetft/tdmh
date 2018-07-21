@@ -31,6 +31,7 @@
 #include "../timesync/networktime.h"
 #include "topology/topology_context.h"
 #include <limits>
+#include <cassert>
 
 using namespace miosix;
 
@@ -76,6 +77,7 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart) {
     auto* dTopology = static_cast<DynamicTopologyContext*>(topology);
     auto* dSMContext = static_cast<DynamicStreamManagementContext*>(streamManagement);
     auto* tMsg = dTopology->getMyTopologyMessage();
+    assert(MediumAccessController::maxPktSize - UplinkMessage::getSizeWithoutSMEs(tMsg)>0);
     unsigned char maxSMEs = (MediumAccessController::maxPktSize - UplinkMessage::getSizeWithoutSMEs(tMsg)) / StreamManagementElement::maxSize();
     auto smes = dSMContext->dequeue(maxSMEs);
     UplinkMessage msg(ctx.getHop(), dTopology->getBestPredecessor(), tMsg, smes);
