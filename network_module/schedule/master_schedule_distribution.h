@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2018 by Polidori Paolo                                 *
+ *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,63 +27,22 @@
 
 #pragma once
 
-#include "schedule_context.h"
+#include "schedule_distribution.h"
 #include "master_schedule_information.h"
 
 namespace mxnet {
-
-class MasterTopologyContext;
-class MasterStreamManagementContext;
-class StreamManagementElement;
-class MACContext;
-
-
-class Scheduler : ScheduleContext {
-public:
-    Scheduler(MasterTopologyContext& topology_ctx, MasterStreamManagementContext& stream_ctx, MACContext& mac_ctx) : topology_ctx(topology_ctx), stream_ctx(stream_ctx), mac_ctx(mac_ctx) {};
-    virtual ~Scheduler() {};
-    
-    void run(long long slotStart);
-    
-protected:
-    // References to other classes
-    MasterTopologyContext& topology_ctx;
-    MasterStreamManagementContext& stream_ctx;
-    MACContext& mac_ctx;
-    std::vector<StreamManagementElement*> stream_list;
-};
-
-class Router {
-public:
-    Router(MasterTopologyContext& topology_ctx, MasterStreamManagementContext& stream_ctx, bool multipath, int more_hops) : 
-    topology_ctx(topology_ctx), stream_ctx(stream_ctx) {};
-    virtual ~Router() {};
-    
-    std::vector<StreamManagementElement*> run();
-    
-    std::vector<StreamManagementElement*> breadthFirstSearch(StreamManagementElement& stream);
-    
-protected:
-    int multipath;
-    // References to other classes
-    MasterTopologyContext& topology_ctx;
-    MasterStreamManagementContext& stream_ctx;
-};
-
-class ScheduleDistribution {};
-
-class MasterScheduleDownlinkPhase : public ScheduleDownlinkPhase {
-public:
-    explicit MasterScheduleDownlinkPhase(MACContext& ctx) :
-            ScheduleDownlinkPhase(ctx) {};
-    MasterScheduleDownlinkPhase() = delete;
-    MasterScheduleDownlinkPhase(const MasterScheduleDownlinkPhase& orig) = delete;
-    virtual ~MasterScheduleDownlinkPhase() {};
-    void execute(long long slotStart) override;
-    std::pair<std::vector<ScheduleAddition*>, std::vector<unsigned char>> getScheduleToDistribute(unsigned short bytes);
-protected:
-    std::set<MasterScheduleElement> currentSchedule;
-    std::deque<ScheduleDeltaElement*> deltaToDistribute;
-};
+    class MasterScheduleDownlinkPhase : public ScheduleDownlinkPhase {
+    public:
+        explicit MasterScheduleDownlinkPhase(MACContext& ctx) :
+                ScheduleDownlinkPhase(ctx) {};
+        MasterScheduleDownlinkPhase() = delete;
+        MasterScheduleDownlinkPhase(const MasterScheduleDownlinkPhase& orig) = delete;
+        virtual ~MasterScheduleDownlinkPhase() {};
+        void execute(long long slotStart) override;
+        std::pair<std::vector<ScheduleAddition*>, std::vector<unsigned char>> getScheduleToDistribute(unsigned short bytes);
+    protected:
+        std::set<MasterScheduleElement> currentSchedule;
+        std::deque<ScheduleDeltaElement*> deltaToDistribute;
+    };
 }
 

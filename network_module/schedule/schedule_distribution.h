@@ -52,14 +52,6 @@
 
 namespace mxnet {
 
-class ScheduleContext {
-public:
-    ScheduleContext();
-    virtual ~ScheduleContext() {};
-        
-protected:
-};
-
 //TODO Remove old class ScheduleDownlinkPhase
 //TODO refactor to support incremental schedule (schedule taking effect after N downlinks)
 class ScheduleDownlinkPhase : public MACPhase {

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2018 by Polidori Paolo                                 *
+ *   Copyright (C)  2018 by Federico Amedeo Izzo                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,21 +27,45 @@
 
 #pragma once
 
-#include "mac_context.h"
-#include "timesync/dynamic_timesync_downlink.h"
-#include "uplink/topology/mesh_topology_context.h"
-#include "uplink/topology/tree_topology_context.h"
-#include "uplink/dynamic_uplink_phase.h"
-#include "uplink/stream_management/stream_management_context.h"
-#include "schedule/dynamic_schedule_distribution.h"
+#include "master_schedule_information.h"
 
 namespace mxnet {
 
-class DynamicMACContext : public MACContext {
+class MasterTopologyContext;
+class MasterStreamManagementContext;
+class StreamManagementElement;
+class MACContext;
+
+
+class ScheduleComputation{
 public:
-    DynamicMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config);
-    DynamicMACContext() = delete;
-    virtual ~DynamicMACContext() {};
+    ScheduleComputation(MACContext& mac_ctx, MasterTopologyContext& topology_ctx, MasterStreamManagementContext& stream_ctx) : topology_ctx(topology_ctx), stream_ctx(stream_ctx), mac_ctx(mac_ctx) {};
+    virtual ~ScheduleComputation() {};
+    
+    void run(long long slotStart);
+    
+protected:
+    // References to other classes
+    MasterTopologyContext& topology_ctx;
+    MasterStreamManagementContext& stream_ctx;
+    MACContext& mac_ctx; //TODO is really needed?
+    std::vector<StreamManagementElement*> stream_list;
 };
 
-} /* namespace mxnet */
+class Router {
+public:
+    Router(MasterTopologyContext& topology_ctx, MasterStreamManagementContext& stream_ctx, bool multipath, int more_hops) : 
+    topology_ctx(topology_ctx), stream_ctx(stream_ctx) {};
+    virtual ~Router() {};
+    
+    std::vector<StreamManagementElement*> run();
+    
+    std::vector<StreamManagementElement*> breadthFirstSearch(StreamManagementElement& stream);
+    
+protected:
+    int multipath;
+    // References to other classes
+    MasterTopologyContext& topology_ctx;
+    MasterStreamManagementContext& stream_ctx;
+};
+}

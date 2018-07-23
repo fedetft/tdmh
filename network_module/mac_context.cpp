@@ -44,7 +44,7 @@ MACContext::~MACContext() {
     delete uplink;
     delete topologyContext;
     delete streamManagement;
-    delete schedule_distribution;
+    delete scheduleDistribution;
     delete data;
 }
     
@@ -175,7 +175,7 @@ void MACContext::run()
                 timesync->execute(currentNextDeadline);
                 currentNextDeadline = timesync->getSlotframeStart();
             } else {
-                schedule_distribution->run(currentNextDeadline);
+                scheduleDistribution->run(currentNextDeadline);
             }
             currentNextDeadline += downlinkSlotDuration;
             dataSlots = numDataSlotInDownlinkTile;

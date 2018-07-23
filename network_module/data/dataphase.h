@@ -28,7 +28,7 @@
 #pragma once
 
 #include "../mac_phase.h"
-#include "../schedule/schedule_context.h"
+#include "../schedule/schedule_distribution.h"
 #include "../mac_context.h"
 
 namespace mxnet {
