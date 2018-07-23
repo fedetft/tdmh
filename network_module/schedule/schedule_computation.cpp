@@ -32,13 +32,21 @@
 #include "../uplink/topology/topology_context.h"
 #include "../mac_context.h"
 #include <algorithm>
+#include <miosix.h>
 
 using namespace std;
 using namespace miosix;
 
 namespace mxnet {
 
-void ScheduleComputation::run(long long slotStart) {
+ScheduleComputation::ScheduleComputation(MACContext& mac_ctx, MasterTopologyContext& topology_ctx,
+                                         MasterStreamManagementContext& stream_ctx)
+                            : topology_ctx(topology_ctx), stream_ctx(stream_ctx), mac_ctx(mac_ctx) {
+    // Thread launched using static function threadLauncher to which is passed the class instance.
+    auto scthread = Thread::create(&ScheduleComputation::threadLauncher, 2048, PRIORITY_MAX-2, this, Thread::JOINABLE);
+}
+
+void ScheduleComputation::run() {
     // Get number of dataslots in current controlsuperframe (to avoid re-computating it)
     int data_slots = mac_ctx.getDataSlotsInControlSuperframeCount();
     

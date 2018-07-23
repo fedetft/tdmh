@@ -39,10 +39,11 @@ class MACContext;
 
 class ScheduleComputation{
 public:
-    ScheduleComputation(MACContext& mac_ctx, MasterTopologyContext& topology_ctx, MasterStreamManagementContext& stream_ctx) : topology_ctx(topology_ctx), stream_ctx(stream_ctx), mac_ctx(mac_ctx) {};
+    ScheduleComputation(MACContext& mac_ctx, MasterTopologyContext& topology_ctx,
+                        MasterStreamManagementContext& stream_ctx);
     virtual ~ScheduleComputation() {};
     
-    void run(long long slotStart);
+    void run();
     
 protected:
     // References to other classes
@@ -50,6 +51,12 @@ protected:
     MasterStreamManagementContext& stream_ctx;
     MACContext& mac_ctx; //TODO is really needed?
     std::vector<StreamManagementElement*> stream_list;
+    
+private:
+    static void threadLauncher(void *arg)
+    {
+        reinterpret_cast<ScheduleComputation*>(arg)->run();
+    }
 };
 
 class Router {
