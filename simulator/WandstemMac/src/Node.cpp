@@ -46,6 +46,9 @@ try {
     DynamicMediumAccessController controller(Transceiver::instance(), config);
     controller.run();
 } catch(exception& e) {
-	cerr<<"\nException thrown: "<<e.what()<<endl;
-	throw;
+    //Note: omnet++ seems to terminate coroutines with an exception
+    //of type cStackCleanupException. Squelch these
+    if(string(typeid(e).name()).find("cStackCleanupException")==string::npos)
+        cerr<<"\nException thrown: "<<e.what()<<endl;
+    throw;
 }
