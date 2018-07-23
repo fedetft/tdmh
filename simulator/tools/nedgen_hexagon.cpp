@@ -39,7 +39,7 @@ void printIni(ostream& os, string name, int simtime)
 
 void printHeader(ostream& os, string name, int n, int maxn, int h)
 {
-	os<<"package wandstemmac.simulations;\n\n"
+	os//<<"package wandstemmac.simulations;\n\n"
 	  <<"import wandstemmac.Node;\n"
 	  <<"import wandstemmac.RootNode;\n\n"
 	  <<"network "<<name<<"\n"
