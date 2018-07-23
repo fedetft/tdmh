@@ -27,6 +27,13 @@
 
 #pragma once
 
+
+#ifdef _MIOSIX
+#include <miosix.h>
+#else
+#include <thread>
+#endif
+//TODO remove if not needed
 #include "master_schedule_information.h"
 
 namespace mxnet {
@@ -35,7 +42,6 @@ class MasterTopologyContext;
 class MasterStreamManagementContext;
 class StreamManagementElement;
 class MACContext;
-
 
 class ScheduleComputation{
 public:
@@ -51,12 +57,16 @@ protected:
     MasterStreamManagementContext& stream_ctx;
     MACContext& mac_ctx; //TODO is really needed?
     std::vector<StreamManagementElement*> stream_list;
+#ifdef _MIOSIX
+    miosix::Thread* scthread;
     
 private:
-    static void threadLauncher(void *arg)
-    {
+    static void threadLauncher(void *arg) {
         reinterpret_cast<ScheduleComputation*>(arg)->run();
     }
+#else
+    std::thread* scthread;
+#endif
 };
 
 class Router {

@@ -42,8 +42,12 @@ namespace mxnet {
 ScheduleComputation::ScheduleComputation(MACContext& mac_ctx, MasterTopologyContext& topology_ctx,
                                          MasterStreamManagementContext& stream_ctx)
                             : topology_ctx(topology_ctx), stream_ctx(stream_ctx), mac_ctx(mac_ctx) {
-    // Thread launched using static function threadLauncher to which is passed the class instance.
-    auto scthread = Thread::create(&ScheduleComputation::threadLauncher, 2048, PRIORITY_MAX-2, this, Thread::JOINABLE);
+#ifdef _MIOSIX
+    // Thread launched using static function threadLauncher with the class instance as parameter.
+    scthread = miosix::Thread::create(&ScheduleComputation::threadLauncher, 2048, PRIORITY_MAX-2, this, Thread::JOINABLE);
+#else
+    scthread = new std::thread(&ScheduleComputation::run, this);
+#endif
 }
 
 void ScheduleComputation::run() {

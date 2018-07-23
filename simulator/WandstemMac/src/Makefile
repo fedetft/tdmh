@@ -53,8 +53,9 @@ OBJS = \
     $O/network_module/data/dataphase.o \
     $O/network_module/schedule/dynamic_schedule_distribution.o \
     $O/network_module/schedule/dynamic_schedule_information.o \
-    $O/network_module/schedule/schedule_computation.o \
+    $O/network_module/schedule/master_schedule_distribution.o \
     $O/network_module/schedule/master_schedule_information.o \
+    $O/network_module/schedule/schedule_computation.o \
     $O/network_module/schedule/schedule_distribution.o \
     $O/network_module/schedule/schedule_information.o \
     $O/network_module/timesync/dynamic_timesync_downlink.o \
