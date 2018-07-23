@@ -60,8 +60,9 @@ inline int maxForwardedTopologiesFromMaxNumNodes(int maxNumNodes)
      * packet space allocation anyway
      * UplinkMessagePkt                 { hop, assignee }   3
      * NeighborTable                    { bitmask }         maxNumNodes/8
+     * number of forwarded topologies (NeighborMessage::serialize) 1
      * vector<ForwardedNeighborMessage> { nodeId, bitmask } 1+maxForwardedTopologies*maxNumNodes/8
      */
-    return (125 - 3 - maxNumNodes/8) / (1 + maxNumNodes/8);
+    return (125 - 3 - maxNumNodes/8 - 1) / (1 + maxNumNodes/8);
 }
 
