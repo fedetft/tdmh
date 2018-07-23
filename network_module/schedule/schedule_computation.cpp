@@ -31,11 +31,7 @@
 #include "../uplink/stream_management/stream_management_element.h"
 #include "../uplink/topology/topology_context.h"
 #include "../mac_context.h"
-#include <algorithm>
 #include <miosix.h>
-
-using namespace std;
-using namespace miosix;
 
 namespace mxnet {
 
@@ -44,7 +40,7 @@ ScheduleComputation::ScheduleComputation(MACContext& mac_ctx, MasterTopologyCont
                             : topology_ctx(topology_ctx), stream_ctx(stream_ctx), mac_ctx(mac_ctx) {
 #ifdef _MIOSIX
     // Thread launched using static function threadLauncher with the class instance as parameter.
-    scthread = miosix::Thread::create(&ScheduleComputation::threadLauncher, 2048, PRIORITY_MAX-2, this, Thread::JOINABLE);
+    scthread = miosix::Thread::create(&ScheduleComputation::threadLauncher, 2048, miosix::PRIORITY_MAX-2, this, miosix::Thread::JOINABLE);
 #else
     scthread = new std::thread(&ScheduleComputation::run, this);
 #endif
@@ -56,16 +52,13 @@ void ScheduleComputation::run() {
     
     Router router(topology_ctx, stream_ctx, 1, 2);
     // Run router to route multi-hop streams and get multiple paths
-    stream_list = router.run();
+    router.run();
     
     //Add scheduler code
     
 }
 
-std::vector<StreamManagementElement*> Router::run() {
-    // Expanded stream request after routing
-    std::list<StreamManagementElement*> routed_streams;
-    
+void Router::run() {
     //Cycle over stream_requests
     for(int i=0; i<stream_ctx.getStreamNumber(); i++) {
         StreamManagementElement* stream = stream_ctx.getStream(i);
@@ -91,7 +84,7 @@ std::vector<StreamManagementElement*> Router::run() {
     }
 }
 
-std::vector<StreamManagementElement*> Router::breadthFirstSearch(StreamManagementElement& stream) {
+void Router::breadthFirstSearch(StreamManagementElement& stream) {
     
 /*    // V = number of nodes in the network
     V = 

@@ -33,8 +33,8 @@
 #else
 #include <thread>
 #endif
-//TODO remove if not needed
-#include "master_schedule_information.h"
+#include <list>
+#include <iterator>
 
 namespace mxnet {
 
@@ -56,7 +56,7 @@ protected:
     MasterTopologyContext& topology_ctx;
     MasterStreamManagementContext& stream_ctx;
     MACContext& mac_ctx; //TODO is really needed?
-    std::vector<StreamManagementElement*> stream_list;
+    std::list<StreamManagementElement*> scheduled_streams;
 #ifdef _MIOSIX
     miosix::Thread* scthread;
     
@@ -75,12 +75,14 @@ public:
     topology_ctx(topology_ctx), stream_ctx(stream_ctx) {};
     virtual ~Router() {};
     
-    std::vector<StreamManagementElement*> run();
+    void run();
     
-    std::vector<StreamManagementElement*> breadthFirstSearch(StreamManagementElement& stream);
+    void breadthFirstSearch(StreamManagementElement& stream);
     
 protected:
     int multipath;
+    // Expanded stream request after routing
+    std::list<StreamManagementElement*> routed_streams;
     // References to other classes
     MasterTopologyContext& topology_ctx;
     MasterStreamManagementContext& stream_ctx;
