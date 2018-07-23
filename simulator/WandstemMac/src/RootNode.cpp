@@ -38,7 +38,7 @@ try {
             5,             //txPower
             2460,          //baseFrequency
             10000000000,   //clockSyncPeriod
-            6,//15,             //maxForwardedTopologies
+            maxForwardedTopologiesFromMaxNumNodes(nodes), //maxForwardedTopologies
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
             3,             //maxRoundsUnavailableBecomesDead

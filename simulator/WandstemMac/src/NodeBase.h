@@ -53,3 +53,15 @@ private:
     static const int coroutineStack=32*1024;
 };
 
+inline int maxForwardedTopologiesFromMaxNumNodes(int maxNumNodes)
+{
+    /*
+     * FIXME: this leaves no space for sme, but we should move to dynamic uplink
+     * packet space allocation anyway
+     * UplinkMessagePkt                 { hop, assignee }   3
+     * NeighborTable                    { bitmask }         maxNumNodes/8
+     * vector<ForwardedNeighborMessage> { nodeId, bitmask } 1+maxForwardedTopologies*maxNumNodes/8
+     */
+    return (125 - 3 - maxNumNodes/8) / (1 + maxNumNodes/8);
+}
+
