@@ -49,10 +49,25 @@ void ScheduleComputation::startThread() {
 #endif
 }
 
+void ScheduleComputation::wakeupThread() {
+    if (scthread == NULL)
+#ifdef _MIOSIX
+        // Thread launched using static function threadLauncher with the class instance as parameter.
+        scthread->wakeup();
+#else
+        scthread = new std::thread(&ScheduleComputation::run, this);
+#endif
+}
+
 void ScheduleComputation::run() {
     // Get number of dataslots in current controlsuperframe (to avoid re-computating it)
     int data_slots = mac_ctx.getDataSlotsInControlSuperframeCount();
     print_dbg("Begin scheduling for %d dataslots\n", data_slots);
+    int num_streams = stream_ctx.getStreamNumber();
+    if(num_streams == 0) {
+        print_dbg("No stream to schedule, waiting...\n");
+        scthread->wait();
+    }
     Router router(topology_ctx, stream_ctx, 1, 2);
     // Run router to route multi-hop streams and get multiple paths
     router.run();
@@ -62,12 +77,14 @@ void ScheduleComputation::run() {
 }
 
 void Router::run() {
+    int num_streams = stream_ctx.getStreamNumber();
+    print_dbg("Routing %d stream requests\n", num_streams);
     //Cycle over stream_requests
-    for(int i=0; i<stream_ctx.getStreamNumber(); i++) {
+    for(int i=0; i<num_streams; i++) {
         StreamManagementElement* stream = stream_ctx.getStream(i);
         unsigned char src = stream->getSrc();
         unsigned char dst = stream->getDst();
-        print_dbg("Routing stream %c to %c\n", src, dst);
+        print_dbg("Routing stream n.%d: %c to %c\n", i, src, dst);
         
         //Check if 1-hop
         if(topology_ctx.areSuccessors(src, dst)) {

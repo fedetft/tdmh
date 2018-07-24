@@ -51,6 +51,8 @@ public:
     
     void startThread();
     
+    void wakeupThread();
+    
     void run();
     
 protected:
