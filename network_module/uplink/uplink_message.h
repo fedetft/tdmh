@@ -37,7 +37,7 @@ namespace mxnet {
 class UplinkMessage : public SerializableMessage {
 public:
     UplinkMessage(unsigned char hop,
-            unsigned short assignee,
+            unsigned char assignee,
             TopologyMessage* const topology,
             std::vector<StreamManagementElement*> smes) :
         content({hop, assignee}), topology(topology), smes(smes) {};
@@ -79,12 +79,12 @@ public:
     /**
      * @return the node to which the message content is assigned, in order to pass it to the hop closer to the master.
      */
-    unsigned short getAssignee() const { return content.assignee; }
+    unsigned char getAssignee() const { return content.assignee; }
 
     /**
      * @param assignee the node to which the message content is assigned, in order to pass it to the hop closer to the master.
      */
-    void setAssignee(unsigned short assignee) { content.assignee = assignee; }
+    void setAssignee(unsigned char assignee) { content.assignee = assignee; }
 
     /**
      * @return the TopologyMessage contained
@@ -102,7 +102,7 @@ public:
 protected:
     struct UplinkMessagePkt {
         unsigned char hop;
-        unsigned short assignee;
+        unsigned char assignee;
     } __attribute__((packed));
     UplinkMessage(TopologyMessage* const topology) : topology(topology) {};
     UplinkMessagePkt content;
