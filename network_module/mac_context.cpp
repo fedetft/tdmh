@@ -161,6 +161,7 @@ void MACContext::run()
     warmUp();
     transceiver.turnOn();
     timesync->macStartHook();
+    startScheduler();
     
     long long currentNextDeadline = 0;
     unsigned int controlSuperframeCounter = 0;

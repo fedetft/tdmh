@@ -49,6 +49,8 @@ public:
                         MasterStreamManagementContext& stream_ctx);
     virtual ~ScheduleComputation() {};
     
+    void startThread();
+    
     void run();
     
 protected:
@@ -58,14 +60,14 @@ protected:
     MACContext& mac_ctx; //TODO is really needed?
     std::list<StreamManagementElement*> scheduled_streams;
 #ifdef _MIOSIX
-    miosix::Thread* scthread;
+    miosix::Thread* scthread = NULL;
     
 private:
     static void threadLauncher(void *arg) {
         reinterpret_cast<ScheduleComputation*>(arg)->run();
     }
 #else
-    std::thread* scthread;
+    std::thread* scthread = NULL;
 #endif
 };
 

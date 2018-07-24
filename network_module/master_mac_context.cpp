@@ -44,4 +44,8 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
     uplink = new MasterUplinkPhase(*this, topology);
     data = new DataPhase(*this);
 };
+
+void MasterMACContext::startScheduler() {
+scheduleComputation->startThread();
+};
 } /* namespace mxnet */

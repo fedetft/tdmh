@@ -37,19 +37,22 @@ namespace mxnet {
 
 ScheduleComputation::ScheduleComputation(MACContext& mac_ctx, MasterTopologyContext& topology_ctx,
                                          MasterStreamManagementContext& stream_ctx)
-                            : topology_ctx(topology_ctx), stream_ctx(stream_ctx), mac_ctx(mac_ctx) {
+                            : topology_ctx(topology_ctx), stream_ctx(stream_ctx), mac_ctx(mac_ctx) {}
+
+void ScheduleComputation::startThread() {
+    if (scthread == NULL)
 #ifdef _MIOSIX
-    // Thread launched using static function threadLauncher with the class instance as parameter.
-    scthread = miosix::Thread::create(&ScheduleComputation::threadLauncher, 2048, miosix::PRIORITY_MAX-2, this, miosix::Thread::JOINABLE);
+        // Thread launched using static function threadLauncher with the class instance as parameter.
+        scthread = miosix::Thread::create(&ScheduleComputation::threadLauncher, 2048, miosix::PRIORITY_MAX-2, this, miosix::Thread::JOINABLE);
 #else
-    scthread = new std::thread(&ScheduleComputation::run, this);
+        scthread = new std::thread(&ScheduleComputation::run, this);
 #endif
 }
 
 void ScheduleComputation::run() {
     // Get number of dataslots in current controlsuperframe (to avoid re-computating it)
     int data_slots = mac_ctx.getDataSlotsInControlSuperframeCount();
-    
+    print_dbg("Begin scheduling for %d dataslots\n", data_slots);
     Router router(topology_ctx, stream_ctx, 1, 2);
     // Run router to route multi-hop streams and get multiple paths
     router.run();
@@ -64,7 +67,7 @@ void Router::run() {
         StreamManagementElement* stream = stream_ctx.getStream(i);
         unsigned char src = stream->getSrc();
         unsigned char dst = stream->getDst();
-        print_dbg("Routing stream %c to %c", &src, &dst);
+        print_dbg("Routing stream %c to %c\n", src, dst);
         
         //Check if 1-hop
         if(topology_ctx.areSuccessors(src, dst)) {
