@@ -53,7 +53,7 @@ function hex_topology_experiment {
 
     convergencetime=`perl ../../tools/convergencetime.pl "Hex$1_$2.ned" "results/Hex$1_$2.elog"`
     
-    echo "$1 $2 $3 $convergencetime" >> "../$5"
+    echo "$1 $2 $3 $convergencetime" >> "$5"
 }
 
 # Parameters
@@ -77,12 +77,12 @@ function rhex_topology_experiment {
 
     convergencetime=`perl ../../tools/convergencetime.pl "RHex$1_$2.ned" "results/RHex$1_$2.elog"`
     
-    echo "$1 $2 $3 $convergencetime" >> "../$5"
+    echo "$1 $2 $3 $convergencetime" >> "$5"
 }
 
 # Create the results and temporary directory
 
-mkdir results
+mkdir results_scalability_nodeformation
 
 rm -rf temp
 mkdir temp || fail
@@ -90,76 +90,76 @@ cd temp
 
 ## Run the hex experiments
 
-rm -f "results/hex_128.txt"
-hex_topology_experiment   2 128 10 100 "results/hex_128.txt"
-hex_topology_experiment   4 128 10 100 "results/hex_128.txt"
-hex_topology_experiment   8 128 10 100 "results/hex_128.txt"
-hex_topology_experiment  16 128 10 200 "results/hex_128.txt"
-hex_topology_experiment  32 128 10 200 "results/hex_128.txt"
-hex_topology_experiment  64 128 10 400 "results/hex_128.txt"
-hex_topology_experiment 128 128 10 400 "results/hex_128.txt"
+rm -f "../results_scalability_nodeformation/hex_128.txt"
+hex_topology_experiment   2 128 10 200 "../results_scalability_nodeformation/hex_128.txt"
+hex_topology_experiment   4 128 10 200 "../results_scalability_nodeformation/hex_128.txt"
+hex_topology_experiment   8 128 10 200 "../results_scalability_nodeformation/hex_128.txt"
+hex_topology_experiment  16 128 10 200 "../results_scalability_nodeformation/hex_128.txt"
+hex_topology_experiment  32 128 10 200 "../results_scalability_nodeformation/hex_128.txt"
+hex_topology_experiment  64 128 10 400 "../results_scalability_nodeformation/hex_128.txt"
+hex_topology_experiment 128 128 10 400 "../results_scalability_nodeformation/hex_128.txt"
 
-rm -f "results/hex_64.txt"
-hex_topology_experiment   2  64 10  50 "results/hex_64.txt"
-hex_topology_experiment   4  64 10  50 "results/hex_64.txt"
-hex_topology_experiment   8  64 10  50 "results/hex_64.txt"
-hex_topology_experiment  16  64 10 100 "results/hex_64.txt"
-hex_topology_experiment  32  64 10 100 "results/hex_64.txt"
-hex_topology_experiment  64  64 10 200 "results/hex_64.txt"
+rm -f "../results_scalability_nodeformation/hex_64.txt"
+hex_topology_experiment   2  64 10 100 "../results_scalability_nodeformation/hex_64.txt"
+hex_topology_experiment   4  64 10 100 "../results_scalability_nodeformation/hex_64.txt"
+hex_topology_experiment   8  64 10 200 "../results_scalability_nodeformation/hex_64.txt"
+hex_topology_experiment  16  64 10 200 "../results_scalability_nodeformation/hex_64.txt"
+hex_topology_experiment  32  64 10 200 "../results_scalability_nodeformation/hex_64.txt"
+hex_topology_experiment  64  64 10 200 "../results_scalability_nodeformation/hex_64.txt"
 
-rm -f "results/hex_32.txt"
-hex_topology_experiment   2  32 10  50 "results/hex_32.txt"
-hex_topology_experiment   4  32 10  50 "results/hex_32.txt"
-hex_topology_experiment   8  32 10  50 "results/hex_32.txt"
-hex_topology_experiment  16  32 10 100 "results/hex_32.txt"
-hex_topology_experiment  32  32 10 100 "results/hex_32.txt"
+rm -f "../results_scalability_nodeformation/hex_32.txt"
+hex_topology_experiment   2  32 10 100 "../results_scalability_nodeformation/hex_32.txt"
+hex_topology_experiment   4  32 10 100 "../results_scalability_nodeformation/hex_32.txt"
+hex_topology_experiment   8  32 10 200 "../results_scalability_nodeformation/hex_32.txt"
+hex_topology_experiment  16  32 10 200 "../results_scalability_nodeformation/hex_32.txt"
+hex_topology_experiment  32  32 10 200 "../results_scalability_nodeformation/hex_32.txt"
 
-rm -f "results/hex_16.txt"
-hex_topology_experiment   2  16 10  50 "results/hex_16.txt"
-hex_topology_experiment   4  16 10  50 "results/hex_16.txt"
-hex_topology_experiment   8  16 10  50 "results/hex_16.txt"
-hex_topology_experiment  16  16 10 100 "results/hex_16.txt"
+rm -f "../results_scalability_nodeformation/hex_16.txt"
+hex_topology_experiment   2  16 10 100 "../results_scalability_nodeformation/hex_16.txt"
+hex_topology_experiment   4  16 10 100 "../results_scalability_nodeformation/hex_16.txt"
+hex_topology_experiment   8  16 10 100 "../results_scalability_nodeformation/hex_16.txt"
+hex_topology_experiment  16  16 10 100 "../results_scalability_nodeformation/hex_16.txt"
 
-rm -f "results/hex_8.txt"
-hex_topology_experiment   2   8 10  50 "results/hex_8.txt"
-hex_topology_experiment   4   8 10  50 "results/hex_8.txt"
-hex_topology_experiment   8   8 10  50 "results/hex_8.txt"
+rm -f "../results_scalability_nodeformation/hex_8.txt"
+hex_topology_experiment   2   8 10 100 "../results_scalability_nodeformation/hex_8.txt"
+hex_topology_experiment   4   8 10 100 "../results_scalability_nodeformation/hex_8.txt"
+hex_topology_experiment   8   8 10 100 "../results_scalability_nodeformation/hex_8.txt"
 
 ## Run the rhex experiments
 
-rm -f "results/rhex_128.txt"
-rhex_topology_experiment   2 128 10 100 "results/rhex_128.txt"
-rhex_topology_experiment   4 128 10 100 "results/rhex_128.txt"
-rhex_topology_experiment   8 128 10 100 "results/rhex_128.txt"
-rhex_topology_experiment  16 128 10 200 "results/rhex_128.txt"
-rhex_topology_experiment  32 128 10 200 "results/rhex_128.txt"
-rhex_topology_experiment  64 128 10 400 "results/rhex_128.txt"
-rhex_topology_experiment 128 128 10 400 "results/rhex_128.txt"
+rm -f "../results_scalability_nodeformation/rhex_128.txt"
+rhex_topology_experiment   2 128 10 200 "../results_scalability_nodeformation/rhex_128.txt"
+rhex_topology_experiment   4 128 10 200 "../results_scalability_nodeformation/rhex_128.txt"
+rhex_topology_experiment   8 128 10 200 "../results_scalability_nodeformation/rhex_128.txt"
+rhex_topology_experiment  16 128 10 200 "../results_scalability_nodeformation/rhex_128.txt"
+rhex_topology_experiment  32 128 10 200 "../results_scalability_nodeformation/rhex_128.txt"
+rhex_topology_experiment  64 128 10 400 "../results_scalability_nodeformation/rhex_128.txt"
+rhex_topology_experiment 128 128 10 400 "../results_scalability_nodeformation/rhex_128.txt"
 
-rm -f "results/rhex_64.txt"
-rhex_topology_experiment   2  64 10  50 "results/rhex_64.txt"
-rhex_topology_experiment   4  64 10  50 "results/rhex_64.txt"
-rhex_topology_experiment   8  64 10  50 "results/rhex_64.txt"
-rhex_topology_experiment  16  64 10 100 "results/rhex_64.txt"
-rhex_topology_experiment  32  64 10 100 "results/rhex_64.txt"
-rhex_topology_experiment  64  64 10 200 "results/rhex_64.txt"
+rm -f "../results_scalability_nodeformation/rhex_64.txt"
+rhex_topology_experiment   2  64 10 100 "../results_scalability_nodeformation/rhex_64.txt"
+rhex_topology_experiment   4  64 10 100 "../results_scalability_nodeformation/rhex_64.txt"
+rhex_topology_experiment   8  64 10 200 "../results_scalability_nodeformation/rhex_64.txt"
+rhex_topology_experiment  16  64 10 200 "../results_scalability_nodeformation/rhex_64.txt"
+rhex_topology_experiment  32  64 10 200 "../results_scalability_nodeformation/rhex_64.txt"
+rhex_topology_experiment  64  64 10 200 "../results_scalability_nodeformation/rhex_64.txt"
 
-rm -f "results/rhex_32.txt"
-rhex_topology_experiment   2  32 10  50 "results/rhex_32.txt"
-rhex_topology_experiment   4  32 10  50 "results/rhex_32.txt"
-rhex_topology_experiment   8  32 10  50 "results/rhex_32.txt"
-rhex_topology_experiment  16  32 10 100 "results/rhex_32.txt"
-rhex_topology_experiment  32  32 10 100 "results/rhex_32.txt"
+rm -f "../results_scalability_nodeformation/rhex_32.txt"
+rhex_topology_experiment   2  32 10 100 "../results_scalability_nodeformation/rhex_32.txt"
+rhex_topology_experiment   4  32 10 100 "../results_scalability_nodeformation/rhex_32.txt"
+rhex_topology_experiment   8  32 10 200 "../results_scalability_nodeformation/rhex_32.txt"
+rhex_topology_experiment  16  32 10 200 "../results_scalability_nodeformation/rhex_32.txt"
+rhex_topology_experiment  32  32 10 200 "../results_scalability_nodeformation/rhex_32.txt"
 
-rm -f "results/rhex_16.txt"
-rhex_topology_experiment   2  16 10  50 "results/rhex_16.txt"
-rhex_topology_experiment   4  16 10  50 "results/rhex_16.txt"
-rhex_topology_experiment   8  16 10  50 "results/rhex_16.txt"
-rhex_topology_experiment  16  16 10 100 "results/rhex_16.txt"
+rm -f "../results_scalability_nodeformation/rhex_16.txt"
+rhex_topology_experiment   2  16 10 100 "../results_scalability_nodeformation/rhex_16.txt"
+rhex_topology_experiment   4  16 10 100 "../results_scalability_nodeformation/rhex_16.txt"
+rhex_topology_experiment   8  16 10 100 "../results_scalability_nodeformation/rhex_16.txt"
+rhex_topology_experiment  16  16 10 100 "../results_scalability_nodeformation/rhex_16.txt"
 
-rm -f "results/rhex_8.txt"
-rhex_topology_experiment   2   8 10  50 "results/rhex_8.txt"
-rhex_topology_experiment   4   8 10  50 "results/rhex_8.txt"
-rhex_topology_experiment   8   8 10  50 "results/rhex_8.txt"
+rm -f "../results_scalability_nodeformation/rhex_8.txt"
+rhex_topology_experiment   2   8 10 100 "../results_scalability_nodeformation/rhex_8.txt"
+rhex_topology_experiment   4   8 10 100 "../results_scalability_nodeformation/rhex_8.txt"
+rhex_topology_experiment   8   8 10 100 "../results_scalability_nodeformation/rhex_8.txt"
 
 cd ..
