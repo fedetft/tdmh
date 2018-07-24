@@ -29,7 +29,7 @@
 #include "bitwise_ops.h"
 #include "mac_context.h"
 #include "debug_settings.h"
-#include "medium_access_controller.h"
+#include "tdmh.h"
 #include "uplink/uplink_message.h"
 #include "uplink/topology/topology_message.h"
 #include <stdexcept>
