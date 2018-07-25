@@ -16,6 +16,7 @@
 #pragma once
 
 #include <omnetpp.h>
+#include <algorithm>
 #include "miosix_utils_sim.h"
 
 using namespace omnetpp;
@@ -63,6 +64,7 @@ inline int maxForwardedTopologiesFromMaxNumNodes(int maxNumNodes)
      * number of forwarded topologies (NeighborMessage::serialize) 1
      * vector<ForwardedNeighborMessage> { nodeId, bitmask } 1+maxForwardedTopologies*maxNumNodes/8
      */
-    return (125 - 2 - maxNumNodes/8 - 1) / (1 + maxNumNodes/8);
+    int packetCapacity = (125 - 2 - maxNumNodes/8 - 1) / (1 + maxNumNodes/8);
+    return std::min(packetCapacity, maxNumNodes - 2);
 }
 
