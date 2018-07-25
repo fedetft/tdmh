@@ -31,9 +31,17 @@
 namespace mxnet {
 
 unsigned char DynamicTopologyContext::getBestPredecessor() {
-    return (ctx.getHop() > 1 && hasPredecessor())? min_element(predecessors.begin(),
-            predecessors.end(),
-            Predecessor::CompareRSSI())->getNodeId(): 0;
+    if(ctx.getHop() == 1) return 0;
+    if(hasPredecessor())
+    {
+        return max_element(predecessors.begin(),predecessors.end(),
+            Predecessor::CompareRSSI())->getNodeId();
+    }
+    // We still haven't heard a node with a lower hop, so we can't forward.
+    // It is however still useful to send the uplink packet to let other nodes
+    // know that we are in their radio range so thay can update their bitmasks.
+    // For this reason, we send the packet with ourselves as predecessor.
+    return ctx.getNetworkId();
 }
 
 void DynamicTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
@@ -56,14 +64,16 @@ void DynamicTopologyContext::unreceivedMessage(unsigned char sender) {
     });
     if (exist == predecessors.end()) return;
     exist->unseen();
+    exist->setRssi(Predecessor::minRssi);
     if (exist->getUnseen() >= ctx.getNetworkConfig().getMaxRoundsUnavailableBecomesDead())
         predecessors.erase(exist);
 }
 
 std::vector<TopologyElement*> DynamicTopologyContext::dequeueMessages(std::size_t count) {
-    std::vector<TopologyElement*> retval(std::min(enqueuedTopologyMessages.size(), count));
-    for (unsigned i = 0; i < retval.size(); i++)
-        retval[i] = enqueuedTopologyMessages.dequeue();
+    std::vector<TopologyElement*> retval;
+    std::size_t n = std::min(enqueuedTopologyMessages.size(), count);
+    retval.reserve(n);
+    for (std::size_t i = 0; i < n; i++) retval.push_back(enqueuedTopologyMessages.dequeue());
     return retval;
 }
 

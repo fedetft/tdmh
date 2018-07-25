@@ -27,6 +27,8 @@
 
 #pragma once
 
+#include <limits>
+
 namespace mxnet {
 
 class Neighbor {
@@ -84,10 +86,12 @@ public:
      * Sets the RSSI of the node during the last uplink phase
      */
     void setRssi(short rssi) { this->rssi = rssi; }
+    
+    static const short minRssi = std::numeric_limits<short>::min();
 
     struct CompareRSSI {
         bool operator()(const Predecessor& left, const Predecessor& right) const {
-            return left.getUnseen() < right.getUnseen();
+            return left.getRssi() < right.getRssi();
         }
     };
 protected:
