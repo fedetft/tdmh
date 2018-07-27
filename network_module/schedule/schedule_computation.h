@@ -56,11 +56,13 @@ public:
     void run();
     
 protected:
+    miosix::Mutex sched_mutex;
+    miosix::ConditionVariable sched_cv;
+    std::list<StreamManagementElement*> scheduled_streams;
     // References to other classes
     MasterTopologyContext& topology_ctx;
     MasterStreamManagementContext& stream_ctx;
     MACContext& mac_ctx; //TODO is really needed?
-    std::list<StreamManagementElement*> scheduled_streams;
 #ifdef _MIOSIX
     miosix::Thread* scthread = NULL;
     

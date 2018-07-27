@@ -60,16 +60,21 @@ void ScheduleComputation::wakeupThread() {
 }
 
 void ScheduleComputation::run() {
+    // Condition variable to wait for streams to schedule.
+    // Mutex lock to access stream list.
+    sched_mutex.lock();
+    while(stream_ctx.getStreamNumber() == 0) {
+        print_dbg("No stream to schedule, waiting...\n");
+        sched_cv.wait(sched_mutex);
+    }
+
     // Get number of dataslots in current controlsuperframe (to avoid re-computating it)
     int data_slots = mac_ctx.getDataSlotsInControlSuperframeCount();
     print_dbg("Begin scheduling for %d dataslots\n", data_slots);
     int num_streams = stream_ctx.getStreamNumber();
-    if(num_streams == 0) {
-        print_dbg("No stream to schedule, waiting...\n");
-        scthread->wait();
-    }
-    Router router(topology_ctx, stream_ctx, 1, 2);
+
     // Run router to route multi-hop streams and get multiple paths
+    Router router(topology_ctx, stream_ctx, 1, 2);
     router.run();
     
     //Add scheduler code
