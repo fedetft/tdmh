@@ -67,6 +67,7 @@ public:
      * Updates the data rate, if different.
      * Closes the stream, if the data rate is 0.
      */
+     //TODO not yet used.
     virtual void open(StreamManagementElement* sme);
     
     /*

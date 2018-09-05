@@ -34,14 +34,12 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
     MACContext(mac, transceiver, config) {
     timesync = new MasterTimesyncDownlink(*this);
     scheduleDistribution = new MasterScheduleDownlinkPhase(*this);
-    auto smc = new MasterStreamManagementContext();
-    streamManagement = smc;
     auto* topology = config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION?
             static_cast<MasterTopologyContext*>(new MasterMeshTopologyContext(*this)) :
             static_cast<MasterTopologyContext*>(new MasterTreeTopologyContext(*this));
     topologyContext = topology;
-    scheduleComputation = new ScheduleComputation(*this, *topology, *smc);
-    uplink = new MasterUplinkPhase(*this, topology);
+    scheduleComputation = new ScheduleComputation(*this, *topology);
+    uplink = new MasterUplinkPhase(*this, topology, *scheduleComputation);
     data = new DataPhase(*this);
 };
 

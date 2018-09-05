@@ -29,9 +29,12 @@
 
 
 #ifdef _MIOSIX
+#include "../uplink/stream_management/stream_management_context.h"
 #include <miosix.h>
 #else
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 #endif
 #include <list>
 #include <iterator>
@@ -39,46 +42,56 @@
 namespace mxnet {
 
 class MasterTopologyContext;
-class MasterStreamManagementContext;
 class StreamManagementElement;
 class MACContext;
 
-class ScheduleComputation{
+class ScheduleComputation {
+    friend class Router;
 public:
-    ScheduleComputation(MACContext& mac_ctx, MasterTopologyContext& topology_ctx,
-                        MasterStreamManagementContext& stream_ctx);
+    ScheduleComputation(MACContext& mac_ctx, MasterTopologyContext& topology_ctx) : 
+            topology_ctx(topology_ctx), mac_ctx(mac_ctx) {};
+
     virtual ~ScheduleComputation() {};
     
     void startThread();
     
-    void wakeupThread();
+    void beginScheduling();
     
     void run();
     
+    void addNewStreams(std::vector<StreamManagementElement*>& smes) {
+        stream_mgmt.receive(smes);
+    };
+    
 protected:
-    miosix::Mutex sched_mutex;
-    miosix::ConditionVariable sched_cv;
+    
     std::list<StreamManagementElement*> scheduled_streams;
     // References to other classes
     MasterTopologyContext& topology_ctx;
-    MasterStreamManagementContext& stream_ctx;
     MACContext& mac_ctx; //TODO is really needed?
 #ifdef _MIOSIX
+    miosix::Mutex sched_mutex;
+    miosix::ConditionVariable sched_cv;
     miosix::Thread* scthread = NULL;
-    
 private:
     static void threadLauncher(void *arg) {
         reinterpret_cast<ScheduleComputation*>(arg)->run();
     }
 #else
+    std::mutex sched_mutex;
+    std::condition_variable sched_cv;
     std::thread* scthread = NULL;
+private:
 #endif
+    // Class containing the current Stream Requests (SME)
+    MasterStreamManagementContext stream_mgmt;
+    MasterStreamManagementContext stream_snapshot;
 };
 
 class Router {
 public:
-    Router(MasterTopologyContext& topology_ctx, MasterStreamManagementContext& stream_ctx, bool multipath, int more_hops) : 
-    topology_ctx(topology_ctx), stream_ctx(stream_ctx) {};
+    Router(MasterTopologyContext& topology_ctx, ScheduleComputation& schedule_comp, bool multipath, int more_hops) : 
+    topology_ctx(topology_ctx), schedule_comp(schedule_comp) {};
     virtual ~Router() {};
     
     void run();
@@ -87,10 +100,10 @@ public:
     
 protected:
     int multipath;
+    ScheduleComputation& schedule_comp;
     // Expanded stream request after routing
     std::list<StreamManagementElement*> routed_streams;
     // References to other classes
     MasterTopologyContext& topology_ctx;
-    MasterStreamManagementContext& stream_ctx;
 };
 }

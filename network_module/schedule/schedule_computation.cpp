@@ -35,10 +35,6 @@
 
 namespace mxnet {
 
-ScheduleComputation::ScheduleComputation(MACContext& mac_ctx, MasterTopologyContext& topology_ctx,
-                                         MasterStreamManagementContext& stream_ctx)
-                            : topology_ctx(topology_ctx), stream_ctx(stream_ctx), mac_ctx(mac_ctx) {}
-
 void ScheduleComputation::startThread() {
     if (scthread == NULL)
 #ifdef _MIOSIX
@@ -49,13 +45,11 @@ void ScheduleComputation::startThread() {
 #endif
 }
 
-void ScheduleComputation::wakeupThread() {
-    if (scthread == NULL)
+void ScheduleComputation::beginScheduling() {
 #ifdef _MIOSIX
-        // Thread launched using static function threadLauncher with the class instance as parameter.
-        scthread->wakeup();
+    sched_cv.signal();
 #else
-        scthread = new std::thread(&ScheduleComputation::run, this);
+    sched_cv.notify_one();
 #endif
 }
 
@@ -63,18 +57,23 @@ void ScheduleComputation::run() {
     // Condition variable to wait for streams to schedule.
     // Mutex lock to access stream list.
     sched_mutex.lock();
-    while(stream_ctx.getStreamNumber() == 0) {
+    while(stream_mgmt.getStreamNumber() == 0) {
         print_dbg("No stream to schedule, waiting...\n");
         sched_cv.wait(sched_mutex);
     }
+    
+    // Taking snapshot of stream requests
+    // TODO Protect with mutex
+    stream_snapshot = stream_mgmt;
+    // From now on use only the snapshot class `stream_snapshot`
 
     // Get number of dataslots in current controlsuperframe (to avoid re-computating it)
     int data_slots = mac_ctx.getDataSlotsInControlSuperframeCount();
     print_dbg("Begin scheduling for %d dataslots\n", data_slots);
-    int num_streams = stream_ctx.getStreamNumber();
+    int num_streams = stream_snapshot.getStreamNumber();
 
     // Run router to route multi-hop streams and get multiple paths
-    Router router(topology_ctx, stream_ctx, 1, 2);
+    Router router(topology_ctx, *this, 1, 2);
     router.run();
     
     //Add scheduler code
@@ -82,11 +81,11 @@ void ScheduleComputation::run() {
 }
 
 void Router::run() {
-    int num_streams = stream_ctx.getStreamNumber();
+    int num_streams = schedule_comp.stream_mgmt.getStreamNumber();
     print_dbg("Routing %d stream requests\n", num_streams);
     //Cycle over stream_requests
     for(int i=0; i<num_streams; i++) {
-        StreamManagementElement* stream = stream_ctx.getStream(i);
+        StreamManagementElement* stream = schedule_comp.stream_snapshot.getStream(i);
         unsigned char src = stream->getSrc();
         unsigned char dst = stream->getDst();
         print_dbg("Routing stream n.%d: %c to %c\n", i, src, dst);

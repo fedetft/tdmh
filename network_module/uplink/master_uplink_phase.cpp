@@ -64,7 +64,7 @@ void MasterUplinkPhase::execute(long long slotStart) {
         auto msg = UplinkMessage::deserialize(data, ctx.getNetworkConfig());
         topology->receivedMessage(msg, address, rcvResult.rssi);
         auto smes = msg.getSMEs();
-        streamManagement->receive(smes);
+        scheduleComputation.addNewStreams(smes);
         if (ENABLE_UPLINK_INFO_DBG)
             print_dbg("[U]<-N=%u @%llu %hddBm\n", address, rcvResult.timestamp, rcvResult.rssi);
         if(ENABLE_TOPOLOGY_SHORT_SUMMARY)

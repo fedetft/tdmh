@@ -28,16 +28,22 @@
 #pragma once
 
 #include "uplink_phase.h"
+#include "../schedule/schedule_computation.h"
 
 namespace mxnet {
 
 class MasterUplinkPhase : public UplinkPhase {
 public:
-    MasterUplinkPhase(MACContext& ctx, MasterTopologyContext* const topology) :
-        UplinkPhase(ctx, topology, new MasterStreamManagementContext()) {}
+    MasterUplinkPhase(MACContext& ctx, MasterTopologyContext* const topology, 
+                      ScheduleComputation& scheduleComputation) :
+        UplinkPhase(ctx, topology, new MasterStreamManagementContext()),
+        scheduleComputation(scheduleComputation) {}
+        
     virtual ~MasterUplinkPhase() {};
     virtual void execute(long long slotStart) override;
-};
 
+protected:
+    ScheduleComputation& scheduleComputation;
+};
 } /* namespace mxnet */
 
