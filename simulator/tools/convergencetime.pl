@@ -33,7 +33,7 @@ sub compare {
 	return 1;
 }
 
-# Compute the topology colletion onergene time form the omnet++ log file
+# Compute the topology colletion convergence time from the omnet++ log file
 
 my $flag=0;
 my $start;
