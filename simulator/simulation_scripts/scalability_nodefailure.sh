@@ -72,6 +72,11 @@ function hex_topology_experiment {
 function rhex_topology_experiment {
     echo "topology=rhex node=$1 maxnodes=$2 maxhops=$3 simtime=$4"
     
+    # Hardcoding connect/disconnect time to half simulation time
+    time=$(($4 / 2))
+    node=1
+    connstr="$node $5 $time"
+    
     # NOTE: 1=rhex
     ../../tools/nedgen_hexagon "RHex$1_$2" $1 $2 $3 $4 1 "$connstr" > /dev/null || fail
     
@@ -170,3 +175,5 @@ rhex_topology_experiment   4   8 1 200 disconnect "../results_scalability_nodefa
 rhex_topology_experiment   8   8 2 200 disconnect "../results_scalability_nodefailure/rhex_8.txt"
 
 cd ..
+
+scilab -f plot_scalability_networkformation.sce || echo "Scilab not found, not plotting results"
