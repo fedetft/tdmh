@@ -259,7 +259,7 @@ private:
     unsigned rcvTotal;
     unsigned rcvErrors;
 
-    bool running;
+    volatile bool running;
     const bool sleepDeep=false; //TODO: make it configurable
 
 };

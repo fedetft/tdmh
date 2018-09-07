@@ -14,15 +14,25 @@
 // 
 
 #include "Node.h"
+#include "DisconnectMessage.h"
 #include "network_module/dynamic_tdmh.h"
 #include "network_module/network_configuration.h"
+#include <miosix.h>
 #include <iostream>
 #include <stdexcept>
 
 Define_Module(Node);
 
 using namespace std;
+using namespace miosix;
 using namespace mxnet;
+
+void Node::initialize()
+{
+    NodeBase::initialize();
+    connectTime = par("connect_time").intValue();
+    disconnectTime = par("disconnect_time").intValue();
+}
 
 void Node::activity()
 try {
@@ -44,7 +54,25 @@ try {
             3              //maxMissedTimesyncs
     );
     DynamicMediumAccessController controller(Transceiver::instance(), config);
-    controller.run();
+    
+    if(connectTime > 0)
+    {
+        Thread::nanoSleepUntil(connectTime);
+        print_dbg("===> Starting @ %lld\n", connectTime);
+    }
+    
+    if(disconnectTime < numeric_limits<long long>::max())
+    {
+        print_dbg("Note: setting disconnect event\n");
+        scheduleAt(SimTime(disconnectTime, SIMTIME_NS), new DisconnectMessage);
+    }
+    
+    try {
+        controller.run();
+    } catch(DisconnectException&) {
+        print_dbg("===> Stopping @ %lld (disconnecTime %lld)\n",getTime(),disconnectTime);
+    }
+    
 } catch(exception& e) {
     //Note: omnet++ seems to terminate coroutines with an exception
     //of type cStackCleanupException. Squelch these

@@ -29,6 +29,7 @@
 #include "transceiver.h"
 
 #include "RadioMessage.h"
+#include "DisconnectMessage.h"
 #include "omnetpp.h"
 #include <cstring>
 #include <algorithm>
@@ -128,6 +129,8 @@ RecvResult Transceiver::recv(void* pkt, int size, long long timeout, Unit unit, 
     }
     auto* cPkt = dynamic_cast<RadioMessage*>(msg);
     if (msg == nullptr || !cPkt) {
+        if(msg != nullptr && dynamic_cast<DisconnectMessage*>(msg) != nullptr)
+            throw DisconnectException();
         result.error = RecvResult::TIMEOUT;
         delete msg;
         return result; //no message received

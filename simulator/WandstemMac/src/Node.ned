@@ -25,6 +25,9 @@ simple Node
         int address;
         int nodes;
         int hops;
+        // These allow to simulate nodes joining/node failure
+        int connect_time = default(0);
+        int disconnect_time = default(9223372036854775807); //numeric_limits<long long>::max()
         @display("i=block/wrxtx");
     gates:
         inout wireless[];

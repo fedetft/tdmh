@@ -14,6 +14,7 @@
 //
 
 #include "NodeBase.h"
+#include "DisconnectMessage.h"
 #include "interfaces-impl/power_manager.h"
 #include "interfaces-impl/transceiver.h"
 #include "interfaces-impl/virtual_clock.h"
@@ -27,7 +28,13 @@ void NodeBase::waitAndDeletePackets(simtime_t timeDelta)
     cQueue queue;
     waitAndEnqueue(timeDelta,&queue);
     //TODO: is this efficient? And most important, why can't they use std::list?
-    while(!queue.isEmpty()) delete queue.pop();
+    while(!queue.isEmpty())
+    {
+        auto *message = queue.pop();
+        bool isDisconnectMessage = dynamic_cast<DisconnectMessage*>(message) != nullptr;
+        delete message;
+        if(isDisconnectMessage) throw DisconnectException();
+    }
 }
 
 NodeBase::~NodeBase() {
