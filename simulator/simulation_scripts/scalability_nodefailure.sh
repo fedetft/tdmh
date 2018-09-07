@@ -70,7 +70,7 @@ function hex_topology_experiment {
 # $5 connect|disconnect
 # $6 results file
 function rhex_topology_experiment {
-    echo "topology=rhex node=$1 maxnodes=$2 maxhops=$3 simtime=$4"
+    echo "topology=rhex node=$1 maxnodes=$2 maxhops=$3 simtime=$4 $5"
     
     # Hardcoding connect/disconnect time to half simulation time
     time=$(($4 / 2))
