@@ -26,11 +26,11 @@ function print_convergence(convergence)
 endfunction
 
 figure(1); clf
-hex=     get_convergence_times('results_scalability_nodeformation/hex_128.txt',7,1);
-hex=[hex;get_convergence_times('results_scalability_nodeformation/hex_64.txt',7,2)];
-hex=[hex;get_convergence_times('results_scalability_nodeformation/hex_32.txt',7,3)];
-hex=[hex;get_convergence_times('results_scalability_nodeformation/hex_16.txt',7,4)];
-hex=[hex;get_convergence_times('results_scalability_nodeformation/hex_8.txt',7,5)];
+hex=     get_convergence_times('results_scalability_networkformation/hex_128.txt',7,1);
+hex=[hex;get_convergence_times('results_scalability_networkformation/hex_64.txt',7,2)];
+hex=[hex;get_convergence_times('results_scalability_networkformation/hex_32.txt',7,3)];
+hex=[hex;get_convergence_times('results_scalability_networkformation/hex_16.txt',7,4)];
+hex=[hex;get_convergence_times('results_scalability_networkformation/hex_8.txt',7,5)];
 title("Hexagon topology (best case ordering)");
 xlabel("Number of nodes");
 ylabel("Convergence time [s]");
@@ -42,11 +42,11 @@ printf("\n\n\n");
 
 
 figure(2); clf
-rhex=      get_convergence_times('results_scalability_nodeformation/rhex_128.txt',7,1);
-rhex=[rhex;get_convergence_times('results_scalability_nodeformation/rhex_64.txt',7,2)];
-rhex=[rhex;get_convergence_times('results_scalability_nodeformation/rhex_32.txt',7,3)];
-rhex=[rhex;get_convergence_times('results_scalability_nodeformation/rhex_16.txt',7,4)];
-rhex=[rhex;get_convergence_times('results_scalability_nodeformation/rhex_8.txt',7,5)];
+rhex=      get_convergence_times('results_scalability_networkformation/rhex_128.txt',7,1);
+rhex=[rhex;get_convergence_times('results_scalability_networkformation/rhex_64.txt',7,2)];
+rhex=[rhex;get_convergence_times('results_scalability_networkformation/rhex_32.txt',7,3)];
+rhex=[rhex;get_convergence_times('results_scalability_networkformation/rhex_16.txt',7,4)];
+rhex=[rhex;get_convergence_times('results_scalability_networkformation/rhex_8.txt',7,5)];
 title("Reverse hexagon topology (worst case ordering)");
 xlabel("Number of nodes");
 ylabel("Convergence time [s]");
