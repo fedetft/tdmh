@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <algorithm>
 #include <functional>
@@ -24,6 +25,14 @@
 #include <cassert>
 
 using namespace std;
+
+class ConnectData
+{
+public:
+    int nodeId=-1;
+    bool connect;
+    long long time;
+};
 
 // Printing stuff
 
@@ -37,7 +46,7 @@ void printIni(ostream& os, string name, int simtime)
 	  <<"record-eventlog = true\n";
 }
 
-void printHeader(ostream& os, string name, int n, int maxn, int h)
+void printHeader(ostream& os, string name, int n, int maxn, int h, ConnectData cd)
 {
 	os//<<"package wandstemmac.simulations;\n\n"
 	  <<"import wandstemmac.Node;\n"
@@ -54,8 +63,14 @@ void printHeader(ostream& os, string name, int n, int maxn, int h)
 	for(int i=1;i<n;i++)
 	{
 		os<<"        n"<<i<<": Node {\n"
-		  <<"            address = "<<i<<";\n"
-		  <<"        }\n";
+		  <<"            address = "<<i<<";\n";
+        if(i==cd.nodeId)
+        {
+            if(cd.connect) os<<"            connect_time = ";
+            else           os<<"            disconnect_time = ";
+            os<<cd.time*1000000000LL<<";\n";
+        }
+		os<<"        }\n";
 	}
 	os<<"    connections:\n";
 }
@@ -142,9 +157,16 @@ void generator(function<void (const vector<Point>&, Point)> callback, int n, boo
 
 int main(int argc, char *argv[])
 {
-	if(argc!=7)
+	if(argc!=7 && argc!=8)
 	{
-		cerr<<"use: ./nedgen filename n maxn h simtime reverse"<<endl;
+		cerr<<"use: ./nedgen filename n maxn h simtime reverse [connstr]"<<endl
+            <<" filename = name of both .ini and .ned file"<<endl
+            <<" n        = number of nodes"<<endl
+            <<" maxn     = maximum number of nodes"<<endl
+            <<" h        = number of hops"<<endl
+            <<" simtime  = simulation time [s]"<<endl
+            <<" reverse  = 0:hexagon 1:reverse hexagon"<<endl
+            <<" connstr  = \"nodeID connect|disconnect time_in_s\""<<endl;
 		return 1;
 	}
 	string filename=argv[1];
@@ -153,11 +175,24 @@ int main(int argc, char *argv[])
 	int h=stoi(argv[4]);
 	int simtime=stoi(argv[5]);
 	bool reverse=stoi(argv[6]);
+    
+    ConnectData cd;
+    if(argc==8)
+    {
+        stringstream connstr(argv[7]);
+        connstr>>cd.nodeId;
+        string s;
+        connstr>>s;
+        if(s=="connect") cd.connect=true;
+        else if(s=="disconnect") cd.connect=false;
+        else throw runtime_error("Wrong connstr");
+        connstr>>cd.time;
+    }
 	
 	ofstream ini((filename+".ini").c_str());
 	printIni(ini,filename,simtime);
 	ofstream ned((filename+".ned").c_str());
-	printHeader(ned,filename,n,maxn,h);
+	printHeader(ned,filename,n,maxn,h,cd);
 	
 	generator([&](const vector<Point>& points, Point p) {
 		cout<<p.x<<" "<<p.y<<" "<<p.id<<endl;
