@@ -176,4 +176,4 @@ rhex_topology_experiment   8   8 2 200 disconnect "../results_scalability_nodefa
 
 cd ..
 
-scilab -f plot_scalability_networkformation.sce || echo "Scilab not found, not plotting results"
+scilab -f plot_scalability_nodefailure.sce || echo "Scilab not found, not plotting results"
