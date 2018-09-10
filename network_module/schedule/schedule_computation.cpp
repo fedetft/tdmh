@@ -62,8 +62,8 @@ void ScheduleComputation::run() {
       std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
       while(stream_mgmt.getStreamNumber() == 0) {
-        print_dbg("No stream to schedule, waiting...\n");
-        sched_cv.wait(lck);
+          print_dbg("No stream to schedule, waiting...\n");
+          sched_cv.wait(lck);
       }
       // If stream list is not empty
       // Take snapshot of stream requests
@@ -82,6 +82,15 @@ void ScheduleComputation::run() {
     
     //Add scheduler code
     
+}
+
+  void ScheduleComputation::addNewStreams(std::vector<StreamManagementElement*>& smes) {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+    std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
+    stream_mgmt.receive(smes);
 }
 
 void Router::run() {

@@ -60,9 +60,7 @@ public:
     
     void run();
     
-    void addNewStreams(std::vector<StreamManagementElement*>& smes) {
-        stream_mgmt.receive(smes);
-    };
+    void addNewStreams(std::vector<StreamManagementElement*>& smes);
     
 protected:
     
