@@ -31,7 +31,6 @@
 #include "../uplink/stream_management/stream_management_element.h"
 #include "../uplink/topology/topology_context.h"
 #include "../mac_context.h"
-#include <miosix.h>
 
 namespace mxnet {
 
@@ -56,15 +55,20 @@ void ScheduleComputation::beginScheduling() {
 void ScheduleComputation::run() {
     // Condition variable to wait for streams to schedule.
     // Mutex lock to access stream list.
-    sched_mutex.lock();
-    while(stream_mgmt.getStreamNumber() == 0) {
+    {
+#ifdef _MIOSIX
+      miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+      std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
+      while(stream_mgmt.getStreamNumber() == 0) {
         print_dbg("No stream to schedule, waiting...\n");
-        sched_cv.wait(sched_mutex);
+        sched_cv.wait(lck);
+      }
+      // If stream list is not empty
+      // Take snapshot of stream requests
+      stream_snapshot = stream_mgmt;
     }
-    
-    // Taking snapshot of stream requests
-    // TODO Protect with mutex
-    stream_snapshot = stream_mgmt;
     // From now on use only the snapshot class `stream_snapshot`
 
     // Get number of dataslots in current controlsuperframe (to avoid re-computating it)

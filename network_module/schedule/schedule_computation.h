@@ -28,8 +28,8 @@
 #pragma once
 
 
-#ifdef _MIOSIX
 #include "../uplink/stream_management/stream_management_context.h"
+#ifdef _MIOSIX
 #include <miosix.h>
 #else
 #include <thread>
@@ -37,6 +37,7 @@
 #include <condition_variable>
 #endif
 #include <list>
+#include <vector>
 #include <iterator>
 
 namespace mxnet {
