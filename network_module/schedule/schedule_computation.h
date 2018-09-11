@@ -61,6 +61,8 @@ public:
     void run();
     
     void addNewStreams(std::vector<StreamManagementElement*>& smes);
+
+    void open(StreamManagementElement* sme);
     
 protected:
     

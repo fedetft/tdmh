@@ -93,6 +93,16 @@ void ScheduleComputation::run() {
     stream_mgmt.receive(smes);
 }
 
+  void ScheduleComputation::open(StreamManagementElement* sme) {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+    std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
+    stream_mgmt.open(sme);
+  }
+
+
 void Router::run() {
     int num_streams = schedule_comp.stream_mgmt.getStreamNumber();
     print_dbg("Routing %d stream requests\n", num_streams);
