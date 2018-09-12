@@ -95,6 +95,7 @@ public:
     bool operator !=(const StreamManagementElement& other) const {
         return !(*this == other);
     }
+    static unsigned short maxSize() { return sizeof(StreamManagementElementPkt); }
 
 protected:
     struct StreamManagementElementPkt {
