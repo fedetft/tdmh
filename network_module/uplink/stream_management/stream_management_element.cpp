@@ -31,19 +31,19 @@
 namespace mxnet {
 
 void StreamManagementElement::serialize(unsigned char* pkt) const {
-    memcpy(pkt, reinterpret_cast<unsigned char*>(const_cast<StreamManagementElementPkt*>(&content)), size());
+    memcpy(pkt, &content), size());
 }
 
-std::vector<StreamManagementElement*> StreamManagementElement::deserialize(std::vector<unsigned char>& pkt) {
+std::vector<StreamManagementElement> StreamManagementElement::deserialize(std::vector<unsigned char>& pkt) {
     return deserialize(pkt.data(), pkt.size());
 }
 
-std::vector<StreamManagementElement*> StreamManagementElement::deserialize(unsigned char* pkt, std::size_t size) {
+std::vector<StreamManagementElement> StreamManagementElement::deserialize(unsigned char* pkt, std::size_t size) {
     auto count = size / maxSize();
     std::vector<StreamManagementElement*> retval(count);
     for (unsigned i = 0, bytes = 0; i < count; i++, bytes += maxSize()) {
         auto* val = new StreamManagementElement();
-        memcpy(reinterpret_cast<unsigned char*>(const_cast<StreamManagementElementPkt*>(&val->content)), pkt + bytes, maxSize());
+        memcpy(&val->content, pkt + bytes, maxSize());
         val->id.src = val->getSrc();
         val->id.dst = val->getDst();
         retval[i] = val;
