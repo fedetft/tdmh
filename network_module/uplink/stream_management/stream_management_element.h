@@ -28,6 +28,7 @@
 #pragma once
 
 #include "../../serializable_message.h"
+#include <string.h>
 #include <vector>
 
 namespace mxnet {
@@ -96,6 +97,16 @@ public:
         return !(*this == other);
     }
     static unsigned short maxSize() { return sizeof(StreamManagementElementPkt); }
+    
+    std::size_t size() const { return maxSize(); }
+    
+    /**
+     * \return an unique key for each stream
+     */
+    unsigned int getKey() const
+    {
+        return content.src | content.dst<<8 | content.srcPort<<16 | content.dstPort<<20;
+    }
 
 protected:
     struct StreamManagementElementPkt {
