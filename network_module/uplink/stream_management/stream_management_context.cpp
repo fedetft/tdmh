@@ -33,16 +33,14 @@ namespace mxnet {
 void MasterStreamManagementContext::receive(std::vector<StreamManagementElement>& smes) {
     for (auto sme: smes) {
         open(sme);
-        delete sme;
     }
 }
 
 void MasterStreamManagementContext::open(StreamManagementElement sme) {
-    auto it = std::find_if(opened.begin(), opened.end(), [sme](StreamManagementElement el){return sme->getKey() == el->getKey(); });
+    auto it = std::find_if(opened.begin(), opened.end(), [sme](StreamManagementElement el){return sme.getKey() == el.getKey(); });
     if (it == opened.end())
         opened.push_back(sme);
     else {
-        delete *it;
         it = opened.erase(it);
         opened.insert(it, sme);
     }
@@ -60,8 +58,8 @@ void DynamicStreamManagementContext::receive(std::vector<StreamManagementElement
     for (auto sme : smes) {
         auto key = sme.getKey();
         if (queue.hasKey(key)) {
-            queue.getByKey(key)->setDataRate(sme->getDataRate());
-            delete sme;
+          //TODO: restore this line
+          //queue.getByKey(key).setDataRate(sme->getDataRate());
         } else
             queue.enqueue(key, sme);
     }
@@ -78,7 +76,6 @@ void DynamicStreamManagementContext::opened(StreamManagementElement sme) {
     pending.erase(it);
     auto it2 = queue.getByKey(sme.getKey());
     queue.removeElement(sme.getKey());
-    delete it2;
 }
 
 std::vector<StreamManagementElement> DynamicStreamManagementContext::dequeue(std::size_t count) {
@@ -90,7 +87,7 @@ std::vector<StreamManagementElement> DynamicStreamManagementContext::dequeue(std
         result[i] = val;
         auto it = std::find(pending.begin(), pending.end(), val);
         if (it != pending.end())
-            queue.enqueue(it.getKey(), it);
+            queue.enqueue(it->getKey(), *it);
     }
     return result;
 }

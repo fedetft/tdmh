@@ -81,7 +81,7 @@ public:
     int getStreamNumber();
     
 protected:
-    std::vector<StreamManagementElement*> opened;
+    std::vector<StreamManagementElement> opened;
 };
 
 class DynamicStreamManagementContext : public StreamManagementContext {

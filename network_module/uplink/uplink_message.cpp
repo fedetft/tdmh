@@ -35,9 +35,9 @@ void UplinkMessage::serialize(unsigned char* pkt) const {
     pkt += sizeof(UplinkMessagePkt);
     topology->serialize(pkt);
     pkt += topology->size();
-    for (StreamManagementElement* sme : smes) {
-        sme->serialize(pkt);
-        pkt += sme->size();
+    for (StreamManagementElement sme : smes) {
+        sme.serialize(pkt);
+        pkt += sme.size();
     }
 }
 

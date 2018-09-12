@@ -60,13 +60,13 @@ public:
     
     void run();
     
-    void addNewStreams(std::vector<StreamManagementElement*>& smes);
+    void addNewStreams(std::vector<StreamManagementElement>& smes);
 
-    void open(StreamManagementElement* sme);
+    void open(StreamManagementElement sme);
     
 protected:
     
-    std::list<StreamManagementElement*> scheduled_streams;
+    std::list<StreamManagementElement> scheduled_streams;
     // References to other classes
     MasterTopologyContext& topology_ctx;
     MACContext& mac_ctx; //TODO is really needed?
@@ -102,7 +102,7 @@ public:
 protected:
     int multipath;
     // Expanded stream request after routing
-    std::list<StreamManagementElement*> routed_streams;
+    std::list<StreamManagementElement> routed_streams;
     // References to other classes
     MasterTopologyContext& topology_ctx;
     ScheduleComputation& schedule_comp;

@@ -39,7 +39,7 @@ public:
     UplinkMessage(unsigned char hop,
             unsigned char assignee,
             TopologyMessage* const topology,
-            std::vector<StreamManagementElement*> smes) :
+            std::vector<StreamManagementElement> smes) :
         content({hop, assignee}), topology(topology), smes(smes) {};
 
     virtual ~UplinkMessage() {};
@@ -94,7 +94,7 @@ public:
     /**
      * @return the StreamManagementElements contained
      */
-    std::vector<StreamManagementElement*> getSMEs() const { return smes; }
+    std::vector<StreamManagementElement> getSMEs() const { return smes; }
 
     std::size_t size() const override {
         return getSizeWithoutSMEs(topology) + smes.size() * StreamManagementElement::maxSize();
@@ -107,7 +107,7 @@ protected:
     UplinkMessage(TopologyMessage* const topology) : topology(topology) {};
     UplinkMessagePkt content;
     TopologyMessage* const topology;
-    std::vector<StreamManagementElement*> smes;
+    std::vector<StreamManagementElement> smes;
 };
 
 } /* namespace mxnet */

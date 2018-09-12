@@ -89,6 +89,9 @@ public:
     Redundancy getRedundancy() const { return static_cast<Redundancy>(content.redundancy); }
     Period getPeriod() const { return static_cast<Period>(content.period); }
     unsigned short getPayloadSize() const { return content.payloadSize; }
+    void setPeriod(Redundancy per) {content.period=static_cast<int>(per);}
+    void setPayloadSize(Redundancy size) {content.payloadSize=size;}
+    void setRedundancy(Redundancy red) {content.redundancy=static_cast<int>(red);}
 
     bool operator ==(const StreamManagementElement& other) const {
         return memcmp(&content,&other.content,sizeof(StreamManagementElementPkt))==0;

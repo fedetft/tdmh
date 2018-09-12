@@ -84,7 +84,7 @@ void ScheduleComputation::run() {
     
 }
 
-  void ScheduleComputation::addNewStreams(std::vector<StreamManagementElement*>& smes) {
+  void ScheduleComputation::addNewStreams(std::vector<StreamManagementElement>& smes) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
@@ -93,7 +93,7 @@ void ScheduleComputation::run() {
     stream_mgmt.receive(smes);
 }
 
-  void ScheduleComputation::open(StreamManagementElement* sme) {
+  void ScheduleComputation::open(StreamManagementElement sme) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
@@ -108,9 +108,9 @@ void Router::run() {
     print_dbg("Routing %d stream requests\n", num_streams);
     //Cycle over stream_requests
     for(int i=0; i<num_streams; i++) {
-        StreamManagementElement* stream = schedule_comp.stream_snapshot.getStream(i);
-        unsigned char src = stream->getSrc();
-        unsigned char dst = stream->getDst();
+        StreamManagementElement stream = schedule_comp.stream_snapshot.getStream(i);
+        unsigned char src = stream.getSrc();
+        unsigned char dst = stream.getDst();
         print_dbg("Routing stream n.%d: %c to %c\n", i, src, dst);
         
         //Check if 1-hop
@@ -121,7 +121,7 @@ void Router::run() {
         }
         //Otherwise run BFS
         //TODO Uncomment after implementing nested list
-        //std::list<StreamManagementElement*> path = breadthFirstSearch(stream);
+        //std::list<StreamManagementElement> path = breadthFirstSearch(stream);
         //routed_streams.push_back(path);
         //If redundancy, run DFS
         if(multipath) {

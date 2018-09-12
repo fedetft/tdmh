@@ -93,9 +93,6 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart) {
     ctx.sendAt(packet.data(), msg.size(), slotStart);
     tMsg->deleteForwarded();
     delete tMsg;
-    for (auto it = smes.begin() ; it != smes.end(); ++it) {
-        delete (*it);
-    }
     smes.clear();
     if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
         print_dbg("->%d\n",ctx.getNetworkId());
