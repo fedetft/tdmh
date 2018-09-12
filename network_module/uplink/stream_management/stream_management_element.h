@@ -32,42 +32,81 @@
 
 namespace mxnet {
 
+enum class Period
+{
+    P0dot1, //  0.1*tileDuration (currently unsupported)
+    P0dot2, //  0.2*tileDuration (currently unsupported)
+    P0dot5, //  0.5*tileDuration (currently unsupported)
+    P1,     //    1*tileDuration
+    P2,     //    2*tileDuration
+    P5,     //    5*tileDuration
+    P10,    //   10*tileDuration
+    P20,    //   20*tileDuration
+    P50,    //   50*tileDuration
+    P100,   //  100*tileDuration
+    P200,   //  200*tileDuration (currently unsupported)
+    P500,   //  500*tileDuration (currently unsupported)
+    P1000,  // 1000*tileDuration (currently unsupported)
+    P2000,  // 2000*tileDuration (currently unsupported)
+    P5000,  // 5000*tileDuration (currently unsupported)
+    P10000  //10000*tileDuration (currently unsupported)
+};
+
+enum class Redundancy
+{
+    NONE,            //No redundancy
+    DOUBLE,          //Double redundancy, packets follow the same path
+    DOUBLE_SPATIAL,  //Double redundancy, packets follow more than one path
+    TRIPLE,          //Triple redundancy, packets follow the same path
+    TRIPLE_SPATIAL   //Triple redundancy, packets follow more than one path
+};
+
 class StreamManagementElement : public SerializableMessage {
 public:
+    StreamManagementElement() {}
+    
     StreamManagementElement(unsigned char src, unsigned char dst, unsigned char srcPort,
-                            unsigned char dstPort, Redundancy redundancy,
-                            unsigned char period, unsigned char payloadSize) :
-        src(src), dst(dst), srcPort(srcPort), dstPort(dstPort),
-        redundancy(redundancy), period(period), payloadSize(payloadSize) {};
-    virtual ~StreamManagementElement() {};
+                            unsigned char dstPort, Period period, unsigned char payloadSize,
+                            Redundancy redundancy=Redundancy::NONE)
+    {
+        content.src=src;
+        content.dst=dst;
+        content.srcPort=srcPort;
+        content.dstPort=dstPort;
+        content.period=static_cast<int>(period);
+        content.payloadSize=payloadSize;
+        content.redundancy=static_cast<int>(redundancy);
+    }
 
     void serialize(unsigned char* pkt) const override;
     static std::vector<StreamManagementElement*> deserialize(std::vector<unsigned char>& pkt);
     static std::vector<StreamManagementElement*> deserialize(unsigned char* pkt, std::size_t size);
-    unsigned char getSrc() const { return src; }
-    unsigned char getSrcPort() const { return srcPort; }
-    unsigned char getDst() const { return dst; }
-    unsigned char getDstPort() const { return dstPort; }
-    Redundancy getRedundancy() const { return redundancy; }
-    unsigned char getPeriod() const { return period; }
-    unsigned short getPayloadSize() const { return payloadSize; }
+    unsigned char getSrc() const { return content.src; }
+    unsigned char getSrcPort() const { return content.srcPort; }
+    unsigned char getDst() const { return content.dst; }
+    unsigned char getDstPort() const { return content.dstPort; }
+    Redundancy getRedundancy() const { return static_cast<Redundancy>(content.redundancy); }
+    Period getPeriod() const { return static_cast<Period>(content.period); }
+    unsigned short getPayloadSize() const { return content.payloadSize; }
 
     bool operator ==(const StreamManagementElement& other) const {
-        return content.src == other.content.src && content.dst == other.content.dst && content.dataRate == other.content.dataRate;
+        return memcmp(&content,&other.content,sizeof(StreamManagementElementPkt))==0;
     }
     bool operator !=(const StreamManagementElement& other) const {
         return !(*this == other);
     }
 
 protected:
-    StreamManagementElement() {};
-    unsigned int src:8;
-    unsigned int dst:8;
-    unsigned int srcPort:4;
-    unsigned int dstPort:4;
-    unsigned int redundancy:3;
-    unsigned int period:4;
-    unsigned int payloadSize:9;
+    struct StreamManagementElementPkt {
+        unsigned int src:8;
+        unsigned int dst:8;
+        unsigned int srcPort:4;
+        unsigned int dstPort:4;
+        unsigned int redundancy:3;
+        unsigned int period:4;
+        unsigned int payloadSize:9;
+    };
+    StreamManagementElementPkt content;
 };
 
 
