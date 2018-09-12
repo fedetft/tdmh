@@ -31,7 +31,7 @@
 namespace mxnet {
 
 void StreamManagementElement::serialize(unsigned char* pkt) const {
-    memcpy(pkt, &content), size());
+    memcpy(pkt, &content, size());
 }
 
 std::vector<StreamManagementElement> StreamManagementElement::deserialize(std::vector<unsigned char>& pkt) {
