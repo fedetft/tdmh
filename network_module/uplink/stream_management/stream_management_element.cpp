@@ -45,7 +45,7 @@ std::vector<StreamManagementElement> StreamManagementElement::deserialize(unsign
     for (unsigned i = 0, bytes = 0; i < count; i++, bytes += maxSize()) {
         StreamManagementElement val;
         memcpy(&val.content, pkt + bytes, maxSize());
-        result.push_bach(val);
+        result.push_back(val);
     }
     return result;
 }

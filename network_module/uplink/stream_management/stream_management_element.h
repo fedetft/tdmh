@@ -80,8 +80,8 @@ public:
     }
 
     void serialize(unsigned char* pkt) const override;
-    static std::vector<StreamManagementElement*> deserialize(std::vector<unsigned char>& pkt);
-    static std::vector<StreamManagementElement*> deserialize(unsigned char* pkt, std::size_t size);
+    static std::vector<StreamManagementElement> deserialize(std::vector<unsigned char>& pkt);
+    static std::vector<StreamManagementElement> deserialize(unsigned char* pkt, std::size_t size);
     unsigned char getSrc() const { return content.src; }
     unsigned char getSrcPort() const { return content.srcPort; }
     unsigned char getDst() const { return content.dst; }
