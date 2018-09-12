@@ -40,15 +40,14 @@ std::vector<StreamManagementElement> StreamManagementElement::deserialize(std::v
 
 std::vector<StreamManagementElement> StreamManagementElement::deserialize(unsigned char* pkt, std::size_t size) {
     auto count = size / maxSize();
-    std::vector<StreamManagementElement*> retval(count);
+    std::vector<StreamManagementElement> result;
+    result.reserve(count);
     for (unsigned i = 0, bytes = 0; i < count; i++, bytes += maxSize()) {
-        auto* val = new StreamManagementElement();
-        memcpy(&val->content, pkt + bytes, maxSize());
-        val->id.src = val->getSrc();
-        val->id.dst = val->getDst();
-        retval[i] = val;
+        StreamManagementElement val();
+        memcpy(&val.content, pkt + bytes, maxSize());
+        result.push_bach(val);
     }
-    return retval;
+    return result;
 }
 
 } /* namespace mxnet */
