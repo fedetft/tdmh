@@ -42,7 +42,7 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
     uplink = new MasterUplinkPhase(*this, topology, *scheduleComputation);
     data = new DataPhase(*this);
     /* Stream list hardcoding */
-     scheduleComputation->open(new StreamManagementElement(0, 1, 0));
+    //scheduleComputation->open(new StreamManagementElement(0, 1, 0));
 };
 
 void MasterMACContext::startScheduler() {

@@ -13,7 +13,7 @@
  *                                                                         *
  *   As a special exception, if other files instantiate templates or use   *
  *   macros or inline functions from this file, or you compile this file   *
- *   and link it with other works to produce a work based on this file,    *
+ *   and link it with other works to  produce a work based on this file,    *
  *   this file does not by itself cause the resulting work to be covered   *
  *   by the GNU General Public License. However the source code for this   *
  *   file must still be made available in accordance with the GNU General  *
@@ -30,15 +30,15 @@
 
 namespace mxnet {
 
-void MasterStreamManagementContext::receive(std::vector<StreamManagementElement*>& smes) {
-    for (auto* sme: smes) {
+void MasterStreamManagementContext::receive(std::vector<StreamManagementElement>& smes) {
+    for (auto sme: smes) {
         open(sme);
         delete sme;
     }
 }
 
-void MasterStreamManagementContext::open(StreamManagementElement* sme) {
-    auto it = std::find_if(opened.begin(), opened.end(), [sme](StreamManagementElement* el){ return sme->getId() == el->getId(); });
+void MasterStreamManagementContext::open(StreamManagementElement sme) {
+    auto it = std::find_if(opened.begin(), opened.end(), [sme](StreamManagementElement el){return sme->getKey() == el->getKey(); });
     if (it == opened.end())
         opened.push_back(sme);
     else {
@@ -48,7 +48,7 @@ void MasterStreamManagementContext::open(StreamManagementElement* sme) {
     }
 }
 
-StreamManagementElement* MasterStreamManagementContext::getStream(int index) {
+StreamManagementElement MasterStreamManagementContext::getStream(int index) {
     return opened.at(index);
 }
 
@@ -56,42 +56,43 @@ int MasterStreamManagementContext::getStreamNumber() {
     return opened.size();
 }
 
-void DynamicStreamManagementContext::receive(std::vector<StreamManagementElement*>& smes) {
-    for (auto* sme : smes) {
-        auto id = sme->getId();
-        if (queue.hasKey(id)) {
-            queue.getByKey(id)->setDataRate(sme->getDataRate());
+void DynamicStreamManagementContext::receive(std::vector<StreamManagementElement>& smes) {
+    for (auto sme : smes) {
+        auto key = sme.getKey();
+        if (queue.hasKey(key)) {
+            queue.getByKey(key)->setDataRate(sme->getDataRate());
             delete sme;
         } else
-            queue.enqueue(id, sme);
+            queue.enqueue(key, sme);
     }
 }
 
-void DynamicStreamManagementContext::open(StreamManagementElement* sme) {
+void DynamicStreamManagementContext::open(StreamManagementElement sme) {
     pending.push_back(sme);
-    queue.enqueue(sme->getId(), sme);
+    queue.enqueue(sme.getKey(), sme);
 }
 
-void DynamicStreamManagementContext::opened(StreamManagementElement* sme) {
+void DynamicStreamManagementContext::opened(StreamManagementElement sme) {
     auto it = std::find(pending.begin(), pending.end(), sme);
     if (it == pending.end()) return;
     pending.erase(it);
-    auto it2 = queue.getByKey(sme->getId());
-    queue.removeElement(sme->getId());
+    auto it2 = queue.getByKey(sme.getKey());
+    queue.removeElement(sme.getKey());
     delete it2;
 }
 
-std::vector<StreamManagementElement*> DynamicStreamManagementContext::dequeue(std::size_t count) {
+std::vector<StreamManagementElement> DynamicStreamManagementContext::dequeue(std::size_t count) {
     count = std::min(count, queue.size());
-    std::vector<StreamManagementElement*> retval(count);
+    std::vector<StreamManagementElement> result;
+    result.reserve(count);
     for (unsigned i = 0; i < count; i++) {
         auto&& val = queue.dequeue();
-        retval[i] = val;
+        result[i] = val;
         auto it = std::find(pending.begin(), pending.end(), val);
         if (it != pending.end())
-            queue.enqueue((*it)->getId(), *it);
+            queue.enqueue(it.getKey(), it);
     }
-    return retval;
+    return result;
 }
 
 } /* namespace mxnet */

@@ -44,12 +44,12 @@ public:
     /**
      * Receives a list of SME.
      */
-    virtual void receive(std::vector<StreamManagementElement*>& smes)=0;
+    virtual void receive(std::vector<StreamManagementElement>& smes)=0;
 
     /**
      * Opens a new stream.
      */
-    virtual void open(StreamManagementElement* sme)=0;
+    virtual void open(StreamManagementElement sme)=0;
 };
 
 class MasterStreamManagementContext : public StreamManagementContext {
@@ -60,7 +60,7 @@ public:
     /**
      * Just opens all the received streams.
      */
-    virtual void receive(std::vector<StreamManagementElement*>& smes);
+    virtual void receive(std::vector<StreamManagementElement>& smes);
 
     /**
      * Adds the stream, if missing.
@@ -68,12 +68,12 @@ public:
      * Closes the stream, if the data rate is 0.
      */
      //TODO not yet used.
-    virtual void open(StreamManagementElement* sme);
-    
+    virtual void open(StreamManagementElement sme);
+ 
     /*
-     * Return reference to stream of given index
+     * Return SME object of given index
      */
-    StreamManagementElement* getStream(int index);
+    StreamManagementElement getStream(int index);
     
     /*
      * Return number of stream requests
@@ -92,26 +92,26 @@ public:
     /**
      * Adds the received stream to the queue, or updates the existing if corresponding.
      */
-    virtual void receive(std::vector<StreamManagementElement*>& smes);
+    virtual void receive(std::vector<StreamManagementElement>& smes);
 
     /**
      * Adds the stream to the queue to be send and stores it in a pending list,
      * which makes a SME getting re-enqueued after it gets sent in an uplink message.
      */
-    virtual void open(StreamManagementElement* sme);
+    virtual void open(StreamManagementElement sme);
 
     /**
      * Sets a SME as opened, removing it from the list of pending.
      */
-    void opened(StreamManagementElement* sme);
+    void opened(StreamManagementElement sme);
 
     /**
      * Gets a count number of SMEs from the queue
      */
-    std::vector<StreamManagementElement*> dequeue(std::size_t count);
+    std::vector<StreamManagementElement> dequeue(std::size_t count);
 protected:
-    UpdatableQueue<StreamManagementElement::SMEId, StreamManagementElement*> queue;
-    std::vector<StreamManagementElement*> pending;
+    UpdatableQueue<unsigned int, StreamManagementElement> queue;
+    std::vector<StreamManagementElement> pending;
 };
 
 } /* namespace mxnet */
