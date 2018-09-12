@@ -101,10 +101,10 @@ public:
     
 protected:
     int multipath;
-    ScheduleComputation& schedule_comp;
     // Expanded stream request after routing
     std::list<StreamManagementElement*> routed_streams;
     // References to other classes
     MasterTopologyContext& topology_ctx;
+    ScheduleComputation& schedule_comp;
 };
 }
