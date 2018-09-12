@@ -34,39 +34,24 @@ namespace mxnet {
 
 class StreamManagementElement : public SerializableMessage {
 public:
-    class SMEId {
-    public:
-        friend class StreamManagementElement;
-        SMEId(unsigned char src, unsigned char dst) : src(src), dst(dst) {};
-        unsigned char getSrc() const { return src; }
-        unsigned char getDst() const { return dst; }
-        bool operator <(const SMEId& other) const {
-            return src < other.src || (src == other.src && dst < other.dst);
-        }
-        bool operator >(const SMEId& other) const {
-            return !(*this < other);
-        }
-        bool operator ==(const SMEId& other) const {
-            return src == other.src && dst == other.dst;
-        }
-        bool operator !=(const SMEId& other) const {
-            return !(*this == other);
-        }
-    protected:
-        SMEId() {};
-    private:
-        unsigned char src;
-        unsigned char dst;
-    };
-    StreamManagementElement(unsigned char src, unsigned char dst, unsigned char dataRate) :
-        content({src, dst, dataRate}), id(src, dst) {};
+    StreamManagementElement(unsigned char src, unsigned char dst, unsigned char srcPort,
+                            unsigned char dstPort, Redundancy redundancy,
+                            unsigned char period, unsigned char payloadSize) :
+        src(src), dst(dst), srcPort(srcPort), dstPort(dstPort),
+        redundancy(redundancy), period(period), payloadSize(payloadSize) {};
     virtual ~StreamManagementElement() {};
-    static unsigned short maxSize() { return sizeof(StreamManagementElementPkt); }
-    unsigned char getSrc() const { return content.src; }
-    unsigned char getDst() const { return content.dst; }
-    unsigned char getDataRate() const { return content.dataRate; }
-    void setDataRate(unsigned char dataRate) { content.dataRate = dataRate; }
-    SMEId getId() const { return id; }
+
+    void serialize(unsigned char* pkt) const override;
+    static std::vector<StreamManagementElement*> deserialize(std::vector<unsigned char>& pkt);
+    static std::vector<StreamManagementElement*> deserialize(unsigned char* pkt, std::size_t size);
+    unsigned char getSrc() const { return src; }
+    unsigned char getSrcPort() const { return srcPort; }
+    unsigned char getDst() const { return dst; }
+    unsigned char getDstPort() const { return dstPort; }
+    Redundancy getRedundancy() const { return redundancy; }
+    unsigned char getPeriod() const { return period; }
+    unsigned short getPayloadSize() const { return payloadSize; }
+
     bool operator ==(const StreamManagementElement& other) const {
         return content.src == other.content.src && content.dst == other.content.dst && content.dataRate == other.content.dataRate;
     }
@@ -74,19 +59,15 @@ public:
         return !(*this == other);
     }
 
-    void serialize(unsigned char* pkt) const override;
-    static std::vector<StreamManagementElement*> deserialize(std::vector<unsigned char>& pkt);
-    static std::vector<StreamManagementElement*> deserialize(unsigned char* pkt, std::size_t size);
-    std::size_t size() const override { return maxSize(); }
 protected:
     StreamManagementElement() {};
-    struct StreamManagementElementPkt {
-        unsigned char src;
-        unsigned char dst;
-        unsigned char dataRate;
-    } __attribute__((packed));
-    StreamManagementElementPkt content;
-    SMEId id;
+    unsigned int src:8;
+    unsigned int dst:8;
+    unsigned int srcPort:4;
+    unsigned int dstPort:4;
+    unsigned int redundancy:3;
+    unsigned int period:4;
+    unsigned int payloadSize:9;
 };
 
 
