@@ -69,6 +69,7 @@ void ScheduleComputation::run() {
       // Take snapshot of stream requests
       stream_snapshot = stream_mgmt;
     }
+    //TODO: snapshot the Topology Context to avoid inconsistencies
     // From now on use only the snapshot class `stream_snapshot`
 
     // Get number of dataslots in current controlsuperframe (to avoid re-computating it)
@@ -116,12 +117,13 @@ void Router::run() {
         //Check if 1-hop
         if(topology_ctx.areSuccessors(src, dst)) {
             //Add stream as is to final List
-            //routed_streams.push_back(stream);
+            routed_streams.push_back(stream);
             continue;
         }
         //Otherwise run BFS
         //TODO Uncomment after implementing nested list
-        //std::list<StreamManagementElement> path = breadthFirstSearch(stream);
+        std::list<StreamManagementElement> path = breadthFirstSearch(stream);
+        //Insert routed path in place of multihop stream
         //routed_streams.push_back(path);
         //If redundancy, run DFS
         if(multipath) {
@@ -131,44 +133,62 @@ void Router::run() {
     }
 }
 
-void Router::breadthFirstSearch(StreamManagementElement& stream) {
-    
-/*    // V = number of nodes in the network
-    V = 
+std::list<StreamManagementElement> Router::breadthFirstSearch(StreamManagementElement stream) {
+    unsigned char root = stream.getSrc();
+    unsigned char dest = stream.getDst();
+    // V = number of nodes in the network
+    //TODO: implement topology_ctx.getnodecount()
+    int V = 6;
     // Mark all the vertices as not visited
-    bool *visited = new bool[V];
+    //TODO: Can be turned to a bit-vector to save space
+    bool visited[V];
     for(int i = 0; i < V; i++)
         visited[i] = false;
- 
+
     // Create a queue for BFS
-    list<int> queue;
- 
+    std::queue<unsigned char> open_set;
+    // Dictionary to save parent-of relations between vertices
+    std::map<const unsigned char, unsigned char> parent_of;
     // Mark the current node as visited and enqueue it
-    visited[s] = true;
-    queue.push_back(s);
- 
-    // 'i' will be used to get all adjacent
-    // vertices of a vertex
-    list<int>::iterator i;
- 
-    while(!queue.empty())
-    {
-        // Dequeue a vertex from queue and print it
-        s = queue.front();
-        cout << s << " ";
-        queue.pop_front();
- 
-        // Get all adjacent vertices of the dequeued
-        // vertex s. If a adjacent has not been visited, 
-        // then mark it visited and enqueue it
-        for (i = adj[s].begin(); i != adj[s].end(); ++i)
-        {
-            if (!visited[*i])
-            {
-                visited[*i] = true;
-                queue.push_back(*i);
-            }
+    visited[root] = true;
+    open_set.push(root);
+    /* The root node is the only to have itself as predecessor */
+    parent_of.insert(std::pair<const unsigned char, unsigned char>(root, root));
+
+    while (!open_set.empty()) {
+        //Get and remove first element of open set
+        unsigned char subtree_root = open_set.front();
+        open_set.pop();
+        if (subtree_root == dest) return construct_path(subtree_root, parent_of);
+        // Get all adjacent vertices of the dequeued vertex
+        // TODO: implement topology_ctx.getSuccessors();
+        // TODO: eventually change to another data structure
+        std::vector<unsigned char> adjacence;
+        for (unsigned char child : adjacence) {
+            if (visited[child] == true) continue;
+            // If child is not already in open_set
+            // Add to parent_of structure
+            parent_of.insert(std::pair<const unsigned char, unsigned char>(child, subtree_root));
+            // Add to open_set
         }
-    }*/
+        visited[subtree_root] = true;
+    }
+}
+
+std::list<StreamManagementElement> Router::construct_path(unsigned char node, std::map<const unsigned char, unsigned char> parent_of) {
+    /* Construct path by following the parent-of relation to the root node */
+    std::list<StreamManagementElement> path;
+    unsigned char dst = node;
+    unsigned char src = parent_of[node];
+    // TODO: figure out how to pass other parameters (period...)
+    path.push_back(StreamManagementElement(src, dst, 0, 0, Period::P1, 0));
+    /* The root node is the only to have itself as predecessor */
+    while(parent_of[dst] != dst) {
+        dst = src;
+        src = parent_of[dst];
+        path.push_back(StreamManagementElement(src, dst, 0, 0, Period::P1, 0));
+    }
+    path.reverse();
+    return path;
 }
 }

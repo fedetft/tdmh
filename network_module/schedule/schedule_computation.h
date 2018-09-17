@@ -97,7 +97,11 @@ public:
     
     void run();
     
-    void breadthFirstSearch(StreamManagementElement& stream);
+    std::list<StreamManagementElement> breadthFirstSearch(StreamManagementElement stream);
+
+private:
+
+    std::list<StreamManagementElement> construct_path(unsigned char node, std::map<const unsigned char, unsigned char> parent_of);
     
 protected:
     int multipath;

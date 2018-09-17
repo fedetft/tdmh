@@ -47,6 +47,7 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
        unsigned char dstPort, Period period, unsigned char payloadSize,
        Redundancy redundancy=Redundancy::NONE)*/
     scheduleComputation->open(StreamManagementElement(0, 1, 0, 0, Period::P1, 0));
+    scheduleComputation->open(StreamManagementElement(3, 2, 0, 0, Period::P1, 0));
 };
 
 void MasterMACContext::startScheduler() {
