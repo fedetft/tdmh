@@ -58,8 +58,8 @@ void DynamicStreamManagementContext::receive(std::vector<StreamManagementElement
     for (auto sme : smes) {
         auto key = sme.getKey();
         if (queue.hasKey(key)) {
-          //Overwrite saved sme with updated one
-          queue.getByKey(key) = sme;
+            //Overwrite saved sme with updated one
+            queue.getByKey(key) = sme;
         } else
             queue.enqueue(key, sme);
     }
