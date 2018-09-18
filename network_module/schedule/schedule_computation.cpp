@@ -170,6 +170,7 @@ std::list<StreamManagementElement> Router::breadthFirstSearch(StreamManagementEl
             // Add to parent_of structure
             parent_of.insert(std::pair<const unsigned char, unsigned char>(child, subtree_root));
             // Add to open_set
+            open_set.push(child);
         }
         visited[subtree_root] = true;
     }

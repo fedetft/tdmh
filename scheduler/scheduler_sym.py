@@ -120,6 +120,8 @@ def breadth_first_search(topology, stream, avoid):
     root = src
     parent_of[root] = None
     open_set.put(root)
+    #TODO: check if needed
+    #visited.add(root)
     
     while not open_set.empty():
         if bfs_debug:
