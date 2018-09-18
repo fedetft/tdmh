@@ -104,8 +104,9 @@ public:
     NetworkConfiguration(unsigned char maxHops, unsigned short maxNodes, unsigned short networkId,
             unsigned char staticHop, unsigned short panId, short txPower,
             unsigned int baseFrequency, unsigned long long clockSyncPeriod,
-            unsigned char maxForwardedTopologies, unsigned long long tileDuration,
-            unsigned long long maxAdmittedRcvWindow, unsigned short maxRoundsUnavailableBecomesDead,
+            unsigned char maxForwardedTopologies, unsigned char numUplinkPackets,
+            unsigned long long tileDuration, unsigned long long maxAdmittedRcvWindow,
+            unsigned short maxRoundsUnavailableBecomesDead,
             short minNeighborRSSI, unsigned char maxMissedTimesyncs,
             ControlSuperframeStructure controlSuperframe=ControlSuperframeStructure(),
             TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION);
@@ -173,6 +174,13 @@ public:
      */
     unsigned char getMaxForwardedTopologies() const {
         return maxForwardedTopologies;
+    }
+    
+    /**
+     * @return the number of uplink packets per uplink tile
+     */
+    unsigned char getNumUplinkPackets() const {
+        return numUplinkPackets;
     }
 
     /**
@@ -289,6 +297,7 @@ private:
     const unsigned long long maxAdmittedRcvWindow;
     const unsigned char maxMissedTimesyncs;
     const unsigned char maxForwardedTopologies;
+    const unsigned char numUplinkPackets;
     const unsigned short maxRoundsUnavailableBecomesDead;
     const short minNeighborRSSI;
     const ControlSuperframeStructure controlSuperframe;

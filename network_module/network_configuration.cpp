@@ -65,7 +65,8 @@ int ControlSuperframeStructure::countUplinkSlots() const
 NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short maxNodes, unsigned short networkId,
         unsigned char staticHop, unsigned short panId, short txPower, unsigned int baseFrequency,
         unsigned long long clockSyncPeriod, unsigned char maxForwardedTopologies,
-        unsigned long long tileDuration, unsigned long long maxAdmittedRcvWindow,
+        unsigned char numUplinkPackets, unsigned long long tileDuration,
+        unsigned long long maxAdmittedRcvWindow,
         unsigned short maxRoundsUnavailableBecomesDead, short minNeighborRSSI,
         unsigned char maxMissedTimesyncs, ControlSuperframeStructure controlSuperframe, TopologyMode topologyMode) :
     maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)),
@@ -74,6 +75,7 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
     panId(panId), txPower(txPower), baseFrequency(baseFrequency), topologyMode(topologyMode),
     clockSyncPeriod(clockSyncPeriod), tileDuration(tileDuration), maxAdmittedRcvWindow(maxAdmittedRcvWindow),
     maxMissedTimesyncs(maxMissedTimesyncs), maxForwardedTopologies(maxForwardedTopologies),
+    numUplinkPackets(numUplinkPackets),
     maxRoundsUnavailableBecomesDead(maxRoundsUnavailableBecomesDead),
     minNeighborRSSI(minNeighborRSSI),
     controlSuperframe(controlSuperframe), controlSuperframeDuration(tileDuration * controlSuperframe.size()),

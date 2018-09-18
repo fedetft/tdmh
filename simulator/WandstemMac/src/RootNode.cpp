@@ -39,6 +39,7 @@ try {
             2460,          //baseFrequency
             10000000000,   //clockSyncPeriod
             maxForwardedTopologiesFromMaxNumNodes(nodes), //maxForwardedTopologies
+            1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
             3,             //maxRoundsUnavailableBecomesDead
