@@ -63,10 +63,9 @@ StreamManagementContext* MACContext::getStreamManagementContext() const { return
 
 void MACContext::calculateDurations() {
     dataSlotDuration = DataPhase::getDuration();
-    if (UplinkPhase::getDuration() % dataSlotDuration == 0)
-        uplinkSlotDuration = UplinkPhase::getDuration();
-    else
-        uplinkSlotDuration = (UplinkPhase::getDuration() / dataSlotDuration + 1) * dataSlotDuration;
+    uplinkSlotDuration = UplinkPhase::getDuration(networkConfig.getNumUplinkPackets());
+    if (uplinkSlotDuration % dataSlotDuration != 0)
+        uplinkSlotDuration = (uplinkSlotDuration / dataSlotDuration + 1) * dataSlotDuration;
     auto downlinkMaxDuration = std::max(ScheduleDownlinkPhase::getDuration(networkConfig.getMaxHops()), TimesyncDownlink::getDuration(networkConfig.getMaxHops()));
     if (downlinkMaxDuration % dataSlotDuration == 0)
         downlinkSlotDuration = downlinkMaxDuration;

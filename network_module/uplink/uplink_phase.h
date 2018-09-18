@@ -44,8 +44,8 @@ public:
 
     virtual ~UplinkPhase() {};
 
-    static unsigned long long getDuration() {
-        return packetArrivalAndProcessingTime + transmissionInterval;
+    static unsigned long long getDuration(unsigned char numUplinkPackets) {
+        return (packetArrivalAndProcessingTime + transmissionInterval) * numUplinkPackets;
     }
     
     /**
