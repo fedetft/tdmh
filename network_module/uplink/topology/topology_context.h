@@ -61,13 +61,26 @@ public:
     
     /**
      * Checks wether a node is a successor of another node
-     * @param nodeId the id of the successor
+     * @param node1 and node2: id of the two nodes
      * @return if such node is a successor for the current one
      */
      bool areSuccessors(unsigned char node1, unsigned char node2) {
          return std::find_if(successors.begin(), successors.end(), [=](Successor s){
              return s.getNodeId() == node2;
          }) != successors.end();
+     }
+
+    /**
+     * Returns a vector of the neighbors in the current topology
+     * @param nodeId the id of the current node
+     * @return a vector containing the neighbors of the node
+     */
+     std::vector<unsigned char> getNeighbors(unsigned char nodeId) {
+         std::vector<unsigned char> neighbors;
+         for(auto s : successors){
+             neighbors.push_back(s.getNodeId());
+         }
+         return neighbors;
      }
 
     /**

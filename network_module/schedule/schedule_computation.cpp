@@ -25,7 +25,7 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include <queue>
+#include <list>
 #include "../debug_settings.h"
 #include "schedule_computation.h"
 #include "../uplink/stream_management/stream_management_context.h"
@@ -147,31 +147,32 @@ std::list<StreamManagementElement> Router::breadthFirstSearch(StreamManagementEl
         visited[i] = false;
 
     // Create a queue for BFS
-    std::queue<unsigned char> open_set;
+    std::list<unsigned char> open_set;
     // Dictionary to save parent-of relations between vertices
     std::map<const unsigned char, unsigned char> parent_of;
     // Mark the current node as visited and enqueue it
     visited[root] = true;
-    open_set.push(root);
+    open_set.push_back(root);
     /* The root node is the only to have itself as predecessor */
     parent_of.insert(std::pair<const unsigned char, unsigned char>(root, root));
 
     while (!open_set.empty()) {
         //Get and remove first element of open set
         unsigned char subtree_root = open_set.front();
-        open_set.pop();
+        open_set.pop_front();
         if (subtree_root == dest) return construct_path(subtree_root, parent_of);
         // Get all adjacent vertices of the dequeued vertex
-        // TODO: implement topology_ctx.getSuccessors();
-        // TODO: eventually change to another data structure
-        std::vector<unsigned char> adjacence;
+        std::vector<unsigned char> adjacence = topology_ctx.getNeighbors(subtree_root);
         for (unsigned char child : adjacence) {
+            // If child is already visited, skip.
             if (visited[child] == true) continue;
             // If child is not already in open_set
-            // Add to parent_of structure
-            parent_of.insert(std::pair<const unsigned char, unsigned char>(child, subtree_root));
-            // Add to open_set
-            open_set.push(child);
+            if(!(std::find(open_set.begin(), open_set.end(), child) != open_set.end())) {
+                // Add to parent_of structure
+                parent_of.insert(std::pair<const unsigned char, unsigned char>(child, subtree_root));
+                // Add to open_set
+                open_set.push_back(child);
+            }
         }
         visited[subtree_root] = true;
     }
