@@ -154,7 +154,7 @@ std::list<StreamManagementElement> Router::breadthFirstSearch(StreamManagementEl
     visited[root] = true;
     open_set.push_back(root);
     /* The root node is the only to have itself as predecessor */
-    parent_of.insert(std::pair<const unsigned char, unsigned char>(root, root));
+    parent_of[root] = root;
 
     while (!open_set.empty()) {
         //Get and remove first element of open set
@@ -169,7 +169,7 @@ std::list<StreamManagementElement> Router::breadthFirstSearch(StreamManagementEl
             // If child is not already in open_set
             if(!(std::find(open_set.begin(), open_set.end(), child) != open_set.end())) {
                 // Add to parent_of structure
-                parent_of.insert(std::pair<const unsigned char, unsigned char>(child, subtree_root));
+                parent_of[child] = subtree_root;
                 // Add to open_set
                 open_set.push_back(child);
             }
