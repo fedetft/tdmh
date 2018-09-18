@@ -25,6 +25,7 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
+#include <queue>
 #include "../debug_settings.h"
 #include "schedule_computation.h"
 #include "../uplink/stream_management/stream_management_context.h"
