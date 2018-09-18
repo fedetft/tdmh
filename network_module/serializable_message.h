@@ -33,6 +33,8 @@
 namespace mxnet {
 
 /**
+ * This class is not meant to be used polymorphically. Do not upcast to this class.
+ * 
  * Represents a serializable data structure, providing an interface with the basic methods for doing so.
  * The serialization output is a byte-aligned vector of bytes.
  * The complementary part for deserialization would need the addition of the following methods:
@@ -42,7 +44,6 @@ namespace mxnet {
  */
 class SerializableMessage {
 public:
-    virtual ~SerializableMessage() {};
     /**
      * Serializes the structure into a vector of `size()` bytes created on purpose.
      * @return the serialized structure.
@@ -78,7 +79,10 @@ public:
      */
     virtual std::size_t size() const = 0;
 protected:
-    SerializableMessage() {};
+    SerializableMessage() {}
+    //Explicit copy constructor in base class causes slicing attempts to produce compiler errors
+    //https://stackoverflow.com/questions/36473354/prevent-derived-class-from-casting-to-base
+    explicit SerializableMessage(const SerializableMessage&) {}
 };
 
 /**
