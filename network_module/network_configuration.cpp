@@ -71,7 +71,6 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
     maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)),
     numUplinkPerSuperframe(controlSuperframe.countUplinkSlots()), numDownlinkPerSuperframe(controlSuperframe.countDownlinkSlots()),
     staticNetworkId(networkId), staticHop(staticHop), maxNodes(maxNodes),
-    networkIdBits(BitwiseOps::bitsForRepresentingCount(maxNodes)),
     panId(panId), txPower(txPower), baseFrequency(baseFrequency), topologyMode(topologyMode),
     clockSyncPeriod(clockSyncPeriod), tileDuration(tileDuration), maxAdmittedRcvWindow(maxAdmittedRcvWindow),
     maxMissedTimesyncs(maxMissedTimesyncs), maxForwardedTopologies(maxForwardedTopologies),

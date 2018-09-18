@@ -204,13 +204,6 @@ public:
     }
 
     /**
-     * @return the number of bits needed to represent a network id.
-     */
-    unsigned short getNetworkIdBits() const {
-        return networkIdBits;
-    }
-
-    /**
      * @return the pan id used in the timesync packets' header.
      */
     unsigned short getPanId() const {
@@ -287,7 +280,6 @@ private:
     const unsigned short staticNetworkId;
     const unsigned short staticHop;
     const unsigned short maxNodes;
-    const unsigned short networkIdBits;
     const unsigned short panId;
     const short txPower;
     const unsigned int baseFrequency;
