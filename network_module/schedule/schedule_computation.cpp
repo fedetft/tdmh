@@ -113,24 +113,25 @@ void Router::run() {
         StreamManagementElement stream = schedule_comp.stream_snapshot.getStream(i);
         unsigned char src = stream.getSrc();
         unsigned char dst = stream.getDst();
-        print_dbg("Routing stream n.%d: %c to %c\n", i, src, dst);
+        print_dbg("Routing stream n.%d: %d to %d\n", i, src, dst);
         
         //Check if 1-hop
         if(topology_ctx.areSuccessors(src, dst)) {
             //Add stream as is to final List
+            print_dbg("Stream n.%d: %d to %d is single hop\n", i, src, dst);
             routed_streams.push_back(stream);
             continue;
         }
         //Otherwise run BFS
         //TODO Uncomment after implementing nested list
-        std::list<StreamManagementElement> path = breadthFirstSearch(stream);
+        //std::list<StreamManagementElement> path = breadthFirstSearch(stream);
         //Insert routed path in place of multihop stream
         //routed_streams.push_back(path);
         //If redundancy, run DFS
         if(multipath) {
             //int sol_size = path.size();
-            
-        }    
+
+        }
     }
 }
 
