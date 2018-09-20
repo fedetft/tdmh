@@ -59,6 +59,7 @@ void masterNode(void*)
             2450,          //baseFrequency
             10000000000,   //clockSyncPeriod
             10,            //maxForwardedTopologies
+            1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
             3,             //maxRoundsUnavailableBecomesDead
@@ -93,6 +94,7 @@ void dynamicNode(void* argv)
             2450,          //baseFrequency
             10000000000,   //clockSyncPeriod
             10,            //maxForwardedTopologies
+            1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
             3,             //maxRoundsUnavailableBecomesDead
