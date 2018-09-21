@@ -73,6 +73,12 @@ public:
     bool hasEdge(T a, T b) const;
 
     /**
+     * Checks wether a node is present in the graph.
+     * @return if the node is present
+     */
+    bool hasNode(T a) const;
+
+    /**
      * Removes a connection between two nodes.
      * @param a the node of an edge
      * @param b the node of the other edge
@@ -125,6 +131,12 @@ template<typename T>
 inline bool TopologyMap<T>::hasEdge(T a, T b) const {
     auto it = edges.equal_range(a);
     return std::count_if(it.first, it.second, [b](std::pair<T, T> const& el) { return el.second == b; }) > 0;
+}
+
+template<typename T>
+inline bool TopologyMap<T>::hasNode(T a) const {
+    auto it = edges.find(a);
+    return it != edges.end();
 }
 
 template<typename T>

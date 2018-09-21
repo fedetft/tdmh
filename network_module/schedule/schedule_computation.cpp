@@ -109,27 +109,31 @@ void ScheduleComputation::run() {
 void Router::run() {
     int num_streams = scheduler.stream_mgmt.getStreamNumber();
     print_dbg("Routing %d stream requests\n", num_streams);
-    //Cycle over stream_requests
+    // Cycle over stream_requests
     for(int i=0; i<num_streams; i++) {
         StreamManagementElement stream = scheduler.stream_snapshot.getStream(i);
         unsigned char src = stream.getSrc();
         unsigned char dst = stream.getDst();
         print_dbg("Routing stream n.%d: %d to %d\n", i, src, dst);
 
-        //Check if 1-hop
+        // Check if 1-hop
         if(scheduler.topology_map.hasEdge(src, dst)) {
-            //Add stream as is to final List
+            // Add stream as is to final List
             print_dbg("Stream n.%d: %d to %d is single hop\n", i, src, dst);
             routed_streams.push_back(stream);
             continue;
         }
-        //Otherwise run BFS
-        //TODO Uncomment after implementing nested list
+        // Otherwise run BFS
+        // TODO Uncomment after implementing nested list
         std::list<StreamManagementElement> path;
-        //path = breadthFirstSearch(stream);
-        //Insert routed path in place of multihop stream
-        //routed_streams.push_back(path);
-        //If redundancy, run DFS
+        path = breadthFirstSearch(stream);
+        // Print routed path
+        for(auto s : path) {
+            print_dbg("%d -> %d\n", s.getSrc(), s.getDst());
+        }
+        // Insert routed path in place of multihop stream
+        // routed_streams.push_back(path);
+        // If redundancy, run DFS
         if(multipath) {
             //int sol_size = path.size();
 
@@ -141,6 +145,16 @@ void Router::run() {
 std::list<StreamManagementElement> Router::breadthFirstSearch(StreamManagementElement stream) {
     unsigned char root = stream.getSrc();
     unsigned char dest = stream.getDst();
+    // Check that the source node exists in the graph
+    if(!scheduler.topology_map.hasNode(root)) {
+        print_dbg("Error: source node is not present in TopologyMap\n");
+        return std::list<StreamManagementElement>();
+    }
+    // Check that the destination node exists in the graph
+    if(!scheduler.topology_map.hasNode(dest)) {
+        print_dbg("Error: destination node is not present in TopologyMap\n");
+        return std::list<StreamManagementElement>();
+    }
     // V = number of nodes in the network
     //TODO: implement topology_ctx.getnodecount()
     int V = 32;
@@ -180,6 +194,9 @@ std::list<StreamManagementElement> Router::breadthFirstSearch(StreamManagementEl
         }
         visited[subtree_root] = true;
     }
+    // If the execution ends here, src and dst are not connected in the graph
+    print_dbg("Error: source and destination node are not connected in TopologyMap\n");
+    return std::list<StreamManagementElement>();
 }
 
 std::list<StreamManagementElement> Router::construct_path(unsigned char node, std::map<const unsigned char, unsigned char> parent_of) {
