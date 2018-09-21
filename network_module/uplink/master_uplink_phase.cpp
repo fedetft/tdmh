@@ -62,7 +62,15 @@ void MasterUplinkPhase::execute(long long slotStart) {
     if (rcvResult.error == RecvResult::ErrorCode::OK) {
         auto data = std::vector<unsigned char>(packet.begin(), packet.begin() + rcvResult.size);
         auto msg = UplinkMessage::deserialize(data, ctx.getNetworkConfig());
-        topology->receivedMessage(msg, address, rcvResult.rssi);
+        // Mutex to access shared class MasterTopologyContext
+        {
+#ifdef _MIOSIX
+            miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+            std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
+            topology->receivedMessage(msg, address, rcvResult.rssi);
+        }
         auto smes = msg.getSMEs();
         scheduleComputation.addNewStreams(smes);
         if (ENABLE_UPLINK_INFO_DBG)
@@ -70,7 +78,15 @@ void MasterUplinkPhase::execute(long long slotStart) {
         if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
             print_dbg("<-%d %ddBm\n",address,rcvResult.rssi);
     } else {
-        topology->unreceivedMessage(address);
+        // Mutex to access shared class MasterTopologyContext
+        {
+#ifdef _MIOSIX
+            miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+            std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
+            topology->unreceivedMessage(address);
+        }
         if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
             print_dbg("  %d\n",address);
     }

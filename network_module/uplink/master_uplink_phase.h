@@ -29,6 +29,11 @@
 
 #include "uplink_phase.h"
 #include "../schedule/schedule_computation.h"
+#ifdef _MIOSIX
+#include <miosix.h>
+#else
+#include <mutex>
+#endif
 
 namespace mxnet {
 
@@ -44,6 +49,12 @@ public:
 
 protected:
     ScheduleComputation& scheduleComputation;
+
+#ifdef _MIOSIX
+    miosix::Mutex sched_mutex;
+#else
+    std::mutex sched_mutex;
+#endif
 };
 } /* namespace mxnet */
 
