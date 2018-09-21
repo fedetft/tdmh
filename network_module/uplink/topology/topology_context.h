@@ -110,9 +110,9 @@ public:
     void unreceivedMessage(unsigned char sender) override;
 
     /**
-     * Returns a copy of the topology map
+     * Returns a reference to the topology map
      */
-    TopologyMap<unsigned char> getTopologyMap() {
+    const TopologyMap<unsigned char>& getTopologyMap() const{
         return topology;
     }
 

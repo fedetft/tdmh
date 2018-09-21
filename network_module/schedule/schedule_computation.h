@@ -29,6 +29,7 @@
 
 
 #include "../uplink/stream_management/stream_management_context.h"
+#include "../uplink/topology/mesh_topology_context.h"
 #ifdef _MIOSIX
 #include <miosix.h>
 #else
@@ -50,7 +51,7 @@ class ScheduleComputation {
     friend class Router;
 public:
     ScheduleComputation(MACContext& mac_ctx, MasterTopologyContext& topology_ctx) : 
-            topology_ctx(topology_ctx), mac_ctx(mac_ctx) {};
+        topology_ctx(topology_ctx), mac_ctx(mac_ctx) {};
 
     virtual ~ScheduleComputation() {};
     
@@ -87,20 +88,20 @@ private:
     // Class containing the current Stream Requests (SME)
     MasterStreamManagementContext stream_mgmt;
     MasterStreamManagementContext stream_snapshot;
+    // Class containing a snapshot of the network topology
+    TopologyMap<unsigned char> topology_map;
 };
 
 class Router {
 public:
-    Router(MasterTopologyContext& topology_ctx, ScheduleComputation& schedule_comp, bool multipath, int more_hops) : 
-    topology_ctx(topology_ctx), schedule_comp(schedule_comp) {};
+    Router(ScheduleComputation& scheduler, bool multipath, int more_hops) : 
+        scheduler(scheduler) {};
     virtual ~Router() {};
-    
+
     void run();
-    
-    std::list<StreamManagementElement> breadthFirstSearch(StreamManagementElement stream);
 
 private:
-
+    std::list<StreamManagementElement> breadthFirstSearch(StreamManagementElement stream);
     std::list<StreamManagementElement> construct_path(unsigned char node, std::map<const unsigned char, unsigned char> parent_of);
     
 protected:
@@ -108,7 +109,6 @@ protected:
     // Expanded stream request after routing
     std::list<StreamManagementElement> routed_streams;
     // References to other classes
-    MasterTopologyContext& topology_ctx;
-    ScheduleComputation& schedule_comp;
+    ScheduleComputation& scheduler;
 };
 }

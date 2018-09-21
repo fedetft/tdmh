@@ -67,8 +67,9 @@ void ScheduleComputation::run() {
           sched_cv.wait(lck);
       }
       // If stream list is not empty
-      // Take snapshot of stream requests
+      // Take snapshot of stream requests and network topology
       stream_snapshot = stream_mgmt;
+      topology_map = topology_ctx.getTopologyMap();
     }
     //TODO: snapshot the Topology Context to avoid inconsistencies
     // From now on use only the snapshot class `stream_snapshot`
@@ -79,7 +80,7 @@ void ScheduleComputation::run() {
     int num_streams = stream_snapshot.getStreamNumber();
 
     // Run router to route multi-hop streams and get multiple paths
-    Router router(topology_ctx, *this, 1, 2);
+    Router router(*this, 1, 2);
     router.run();
     
     //Add scheduler code
@@ -106,17 +107,17 @@ void ScheduleComputation::run() {
 
 
 void Router::run() {
-    int num_streams = schedule_comp.stream_mgmt.getStreamNumber();
+    int num_streams = scheduler.stream_mgmt.getStreamNumber();
     print_dbg("Routing %d stream requests\n", num_streams);
     //Cycle over stream_requests
     for(int i=0; i<num_streams; i++) {
-        StreamManagementElement stream = schedule_comp.stream_snapshot.getStream(i);
+        StreamManagementElement stream = scheduler.stream_snapshot.getStream(i);
         unsigned char src = stream.getSrc();
         unsigned char dst = stream.getDst();
         print_dbg("Routing stream n.%d: %d to %d\n", i, src, dst);
-        
+
         //Check if 1-hop
-        if(topology_ctx.areSuccessors(src, dst)) {
+        if(scheduler.topology_map.hasEdge(src, dst)) {
             //Add stream as is to final List
             print_dbg("Stream n.%d: %d to %d is single hop\n", i, src, dst);
             routed_streams.push_back(stream);
@@ -124,7 +125,8 @@ void Router::run() {
         }
         //Otherwise run BFS
         //TODO Uncomment after implementing nested list
-        //std::list<StreamManagementElement> path = breadthFirstSearch(stream);
+        std::list<StreamManagementElement> path;
+        //path = breadthFirstSearch(stream);
         //Insert routed path in place of multihop stream
         //routed_streams.push_back(path);
         //If redundancy, run DFS
@@ -135,12 +137,13 @@ void Router::run() {
     }
 }
 
+
 std::list<StreamManagementElement> Router::breadthFirstSearch(StreamManagementElement stream) {
     unsigned char root = stream.getSrc();
     unsigned char dest = stream.getDst();
     // V = number of nodes in the network
     //TODO: implement topology_ctx.getnodecount()
-    int V = 6;
+    int V = 32;
     // Mark all the vertices as not visited
     //TODO: Can be turned to a bit-vector to save space
     bool visited[V];
@@ -163,7 +166,7 @@ std::list<StreamManagementElement> Router::breadthFirstSearch(StreamManagementEl
         open_set.pop_front();
         if (subtree_root == dest) return construct_path(subtree_root, parent_of);
         // Get all adjacent vertices of the dequeued vertex
-        std::vector<unsigned char> adjacence = topology_ctx.getNeighbors(subtree_root);
+        std::vector<unsigned char> adjacence = scheduler.topology_map.getEdges(subtree_root);
         for (unsigned char child : adjacence) {
             // If child is already visited, skip.
             if (visited[child] == true) continue;
