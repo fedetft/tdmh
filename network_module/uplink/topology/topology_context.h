@@ -110,24 +110,10 @@ public:
     void unreceivedMessage(unsigned char sender) override;
 
     /**
-     * Checks wether a node is a successor of another node
-     * @param node1 and node2: id of the two nodes
-     * @return if such node is a successor for the current one
+     * Returns a copy of the topology map
      */
-    bool areSuccessors(unsigned char node1, unsigned char node2) {
-        //TODO: check for link in network map
-        return false;
-    }
-
-    /**
-     * Returns a vector of the neighbors in the current topology
-     * @param nodeId the id of the current node
-     * @return a vector containing the neighbors of the node
-     */
-    std::vector<unsigned char> getNeighbors(unsigned char nodeId) {
-        //TODO: get neighbors from network map
-        std::vector<unsigned char> neighbors;
-        return neighbors;
+    TopologyMap<unsigned char> getTopologyMap() {
+        return topology;
     }
 
 protected:

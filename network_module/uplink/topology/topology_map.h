@@ -60,7 +60,7 @@ public:
     std::vector<std::pair<T, T>> getEdges() const;
 
     /**
-     * Returns a list of edges connecting a nodes to others,
+     * Returns a list of edges connecting a node to others,
      * in form of list of connected addresses.
      * @return the list of connected nodes.
      */
