@@ -70,6 +70,7 @@ void ScheduleComputation::run() {
       // Take snapshot of stream requests and network topology
       stream_snapshot = stream_mgmt;
       topology_map = topology_ctx.getTopologyMap();
+      topology_ctx.print();
     }
     //TODO: snapshot the Topology Context to avoid inconsistencies
     // From now on use only the snapshot class `stream_snapshot`

@@ -50,7 +50,7 @@ class MACContext;
 class ScheduleComputation {
     friend class Router;
 public:
-    ScheduleComputation(MACContext& mac_ctx, MasterTopologyContext& topology_ctx) : 
+    ScheduleComputation(MACContext& mac_ctx, MasterMeshTopologyContext& topology_ctx) : 
         topology_ctx(topology_ctx), mac_ctx(mac_ctx) {};
 
     virtual ~ScheduleComputation() {};
@@ -69,7 +69,7 @@ protected:
     
     std::list<StreamManagementElement> scheduled_streams;
     // References to other classes
-    MasterTopologyContext& topology_ctx;
+    MasterMeshTopologyContext& topology_ctx;
     MACContext& mac_ctx; //TODO is really needed?
 #ifdef _MIOSIX
     miosix::Mutex sched_mutex;
