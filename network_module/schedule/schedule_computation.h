@@ -50,11 +50,8 @@ class MACContext;
 class ScheduleComputation {
     friend class Router;
 public:
-    ScheduleComputation(MACContext& mac_ctx, MasterMeshTopologyContext& topology_ctx) : 
-        topology_ctx(topology_ctx), mac_ctx(mac_ctx) {};
+    ScheduleComputation(MACContext& mac_ctx, MasterMeshTopologyContext& topology_ctx);
 
-    virtual ~ScheduleComputation() {};
-    
     void startThread();
     
     void beginScheduling();
@@ -89,7 +86,7 @@ private:
     MasterStreamManagementContext stream_mgmt;
     MasterStreamManagementContext stream_snapshot;
     // Class containing a snapshot of the network topology
-    TopologyMap<unsigned char> topology_map;
+    TopologyMap topology_map;
 };
 
 class Router {

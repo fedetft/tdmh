@@ -44,7 +44,6 @@ class MACContext;
  */
 class TopologyContext {
 public:
-    TopologyContext() = delete;
     TopologyContext(MACContext& ctx) : ctx(ctx) {};
     virtual ~TopologyContext() {}
 
@@ -87,8 +86,7 @@ protected:
 
 class MasterTopologyContext : public TopologyContext {
 public:
-    MasterTopologyContext() = delete;
-    MasterTopologyContext(MACContext& ctx) : TopologyContext(ctx) {};
+    MasterTopologyContext(MACContext& ctx);
     virtual ~MasterTopologyContext() {}
 
     /**
@@ -112,18 +110,17 @@ public:
     /**
      * Returns a reference to the topology map
      */
-    const TopologyMap<unsigned char>& getTopologyMap() const{
+    const TopologyMap& getTopologyMap() const{
         return topology;
     }
 
 protected:
     std::map<unsigned char, unsigned char> neighborsUnseenFor;
-    TopologyMap<unsigned char> topology;
+    TopologyMap topology;
 };
 
 class DynamicTopologyContext : public TopologyContext {
 public:
-    DynamicTopologyContext() = delete;
     DynamicTopologyContext(MACContext& ctx) : TopologyContext(ctx) {};
     virtual ~DynamicTopologyContext() {}
 

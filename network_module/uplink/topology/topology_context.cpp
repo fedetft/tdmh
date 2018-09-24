@@ -107,6 +107,8 @@ void TopologyContext::unreceivedMessage(unsigned char sender) {
         successors.erase(it);
 }
 
+MasterTopologyContext::MasterTopologyContext(MACContext& ctx) : TopologyContext(ctx), topology(ctx.getNetworkConfig().getMaxNodes()) {}
+
 void MasterTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
     if (neighborsUnseenFor.find(sender) == neighborsUnseenFor.end()) {
         topology.addEdge(sender, 0);

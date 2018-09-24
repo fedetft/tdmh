@@ -35,6 +35,9 @@
 
 namespace mxnet {
 
+ScheduleComputation::ScheduleComputation(MACContext& mac_ctx, MasterMeshTopologyContext& topology_ctx) : 
+    topology_ctx(topology_ctx), mac_ctx(mac_ctx), topology_map(mac_ctx.getNetworkConfig().getMaxNodes()) {}
+
 void ScheduleComputation::startThread() {
     if (scthread == NULL)
 #ifdef _MIOSIX
