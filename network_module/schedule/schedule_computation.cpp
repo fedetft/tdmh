@@ -54,41 +54,40 @@ void ScheduleComputation::beginScheduling() {
 }
 
 void ScheduleComputation::run() {
-    // Condition variable to wait for streams to schedule.
-    // Mutex lock to access stream list.
-    {
+    for(;;) {   
+        // Mutex lock to access stream list.
+        {
 #ifdef _MIOSIX
-      miosix::Lock<miosix::Mutex> lck(sched_mutex);
+            miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
-      std::unique_lock<std::mutex> lck(sched_mutex);
+            std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-      while(stream_mgmt.getStreamNumber() == 0) {
-          print_dbg("No stream to schedule, waiting...\n");
-          sched_cv.wait(lck);
-      }
-      // If stream list is not empty
-      // Take snapshot of stream requests and network topology
-      stream_snapshot = stream_mgmt;
-      topology_map = topology_ctx.getTopologyMap();
-      topology_ctx.print();
+            while(stream_mgmt.getStreamNumber() == 0) {
+                print_dbg("No stream to schedule, waiting...\n");
+                // Condition variable to wait for streams to schedule.
+                sched_cv.wait(lck);
+            }
+            // If stream list is not empty
+            // Take snapshot of stream requests and network topology
+            stream_snapshot = stream_mgmt;
+            topology_map = topology_ctx.getTopologyMap();
+            topology_ctx.print();
+        }
+        // From now on use only the snapshot class `stream_snapshot`
+        // Get number of dataslots in current controlsuperframe (to avoid re-computating it)
+        int data_slots = mac_ctx.getDataSlotsInControlSuperframeCount();
+        print_dbg("Begin scheduling for %d dataslots\n", data_slots);
+        int num_streams = stream_snapshot.getStreamNumber();
+
+        // Run router to route multi-hop streams and get multiple paths
+        Router router(*this, 1, 2);
+        router.run();
+
+        //Add scheduler code
     }
-    //TODO: snapshot the Topology Context to avoid inconsistencies
-    // From now on use only the snapshot class `stream_snapshot`
-
-    // Get number of dataslots in current controlsuperframe (to avoid re-computating it)
-    int data_slots = mac_ctx.getDataSlotsInControlSuperframeCount();
-    print_dbg("Begin scheduling for %d dataslots\n", data_slots);
-    int num_streams = stream_snapshot.getStreamNumber();
-
-    // Run router to route multi-hop streams and get multiple paths
-    Router router(*this, 1, 2);
-    router.run();
-    
-    //Add scheduler code
-    
 }
 
-  void ScheduleComputation::addNewStreams(std::vector<StreamManagementElement>& smes) {
+void ScheduleComputation::addNewStreams(std::vector<StreamManagementElement>& smes) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
@@ -97,7 +96,7 @@ void ScheduleComputation::run() {
     stream_mgmt.receive(smes);
 }
 
-  void ScheduleComputation::open(StreamManagementElement sme) {
+void ScheduleComputation::open(StreamManagementElement sme) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
