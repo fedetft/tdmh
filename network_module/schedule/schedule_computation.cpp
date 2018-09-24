@@ -65,12 +65,20 @@ void ScheduleComputation::run() {
 #else
             std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
+            // Wait for beginScheduling()
+            sched_cv.wait(lck);
             while(stream_mgmt.getStreamNumber() == 0) {
                 print_dbg("No stream to schedule, waiting...\n");
                 // Condition variable to wait for streams to schedule.
                 sched_cv.wait(lck);
             }
-            // If stream list is not empty
+            // IF stream list not changed AND topology not changed
+            // Skip to next for loop cycle
+            if(!(topology_ctx.getTopologyMap().wasModified())) {
+                print_dbg("Scheduler: first run or topology not modified, sleeping");
+                continue;
+            }
+            // ELSE we can begin scheduling 
             // Take snapshot of stream requests and network topology
             stream_snapshot = stream_mgmt;
             topology_map = topology_ctx.getTopologyMap();

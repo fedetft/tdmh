@@ -53,6 +53,7 @@ void TopologyMap::addEdge(unsigned char a, unsigned char b) {
     else {
         it->second[a] = true;
     }
+    modified_flag = true;
 }
 
 std::vector<std::pair<unsigned char, unsigned char>> TopologyMap::getEdges() const {
@@ -121,6 +122,7 @@ bool TopologyMap::removeEdge(unsigned char a, unsigned char b) {
     }
     if(empty) edges.erase(it);
 
+    modified_flag = true;
     return true;
 }
 
@@ -140,6 +142,7 @@ bool TopologyMap::removeNode(unsigned char a) {
         }
         if(empty) edges.erase(el.first);
     }
+    modified_flag = true;
     return true;
 }
 

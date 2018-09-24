@@ -88,6 +88,20 @@ public:
     bool hasNode(unsigned char a) const;
 
     /**
+     * Return true if the map was modified since last time the flag was cleared 
+     */
+    bool wasModified() const {
+        return modified_flag;
+    };
+
+    /**
+     * Set the modified_flag to false
+     */
+    void clearModifiedFlag() {
+        modified_flag = false;
+    };
+
+    /**
      * Removes a connection between two nodes.
      * @param a the node of an edge
      * @param b the node of the other edge
@@ -106,6 +120,8 @@ public:
 protected:
     std::size_t bitset_size;
     std::map<unsigned char, RuntimeBitset> edges;
+    //IMPORTANT: this bit must be set to true whenever the data structure is modified
+    bool modified_flag = false;
 };
 
 } /* namespace mxnet */
