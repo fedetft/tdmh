@@ -69,19 +69,35 @@ public:
      */
      //TODO not yet used.
     virtual void open(StreamManagementElement sme);
- 
-    /*
+
+    /**
      * Return SME object of given index
      */
     StreamManagementElement getStream(int index);
-    
-    /*
+
+    /**
      * Return number of stream requests
      */
     int getStreamNumber();
-    
+
+    /**
+     * Return true if the map was modified since last time the flag was cleared 
+     */
+    bool wasModified() const {
+      return modified_flag;
+    };
+
+    /**
+     * Set the modified_flag to false
+     */
+    void clearModifiedFlag() {
+      modified_flag = false;
+    };
+
 protected:
     std::vector<StreamManagementElement> opened;
+    //IMPORTANT: this bit must be set to true whenever the data structure is modified
+    bool modified_flag = false;
 };
 
 class DynamicStreamManagementContext : public StreamManagementContext {

@@ -74,8 +74,10 @@ void ScheduleComputation::run() {
             }
             // IF stream list not changed AND topology not changed
             // Skip to next for loop cycle
-            if(!(topology_ctx.getTopologyMap().wasModified())) {
-                print_dbg("Scheduler: first run or topology not modified, sleeping");
+            //NOTE: debug
+            topology_ctx.print();
+            if(!(topology_ctx.getTopologyMap().wasModified() || stream_mgmt.wasModified())) {
+                print_dbg("Stream list or topology did not change, sleeping");
                 continue;
             }
             // ELSE we can begin scheduling 
@@ -94,7 +96,11 @@ void ScheduleComputation::run() {
         Router router(*this, 1, 2);
         router.run();
 
-        //Add scheduler code
+        // Add scheduler code
+
+        // Clear modified bit to detect changes to topology or streams
+        topology_ctx.clearModifiedFlag();
+        stream_mgmt.clearModifiedFlag();
     }
 }
 

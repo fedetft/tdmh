@@ -114,6 +114,13 @@ public:
         return topology;
     }
 
+    /**
+     * Clear modified flag in TopologyMap
+     */
+    void clearModifiedFlag() {
+        topology.clearModifiedFlag();
+    }
+
 protected:
     std::map<unsigned char, unsigned char> neighborsUnseenFor;
     TopologyMap topology;

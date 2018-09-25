@@ -34,6 +34,8 @@ void MasterStreamManagementContext::receive(std::vector<StreamManagementElement>
     for (auto sme: smes) {
         open(sme);
     }
+    if (!smes.empty())
+        modified_flag = true;
 }
 
 void MasterStreamManagementContext::open(StreamManagementElement sme) {
@@ -44,6 +46,7 @@ void MasterStreamManagementContext::open(StreamManagementElement sme) {
         it = opened.erase(it);
         opened.insert(it, sme);
     }
+    modified_flag = true;
 }
 
 StreamManagementElement MasterStreamManagementContext::getStream(int index) {

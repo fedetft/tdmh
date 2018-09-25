@@ -43,8 +43,13 @@ public:
     MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config);
     MasterMACContext() = delete;
     virtual ~MasterMACContext() {};
-    void startScheduler();
-    
+    void startScheduler() {
+      scheduleComputation->startThread();
+    };
+    void beginScheduling() {
+      scheduleComputation->beginScheduling();
+    };
+
 private:
     ScheduleComputation* scheduleComputation = nullptr;
 };

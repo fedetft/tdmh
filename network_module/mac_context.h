@@ -221,9 +221,11 @@ public:
     void run();
 
     void stop();
-    
+
     virtual void startScheduler() {};
-    
+
+    virtual void beginScheduling() {};
+
 protected:
     MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config);
     

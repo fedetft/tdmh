@@ -55,7 +55,4 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
     scheduleComputation->open(StreamManagementElement(3, 2, 0, 0, Period::P1, 0));
 };
 
-void MasterMACContext::startScheduler() {
-scheduleComputation->startThread();
-};
 } /* namespace mxnet */

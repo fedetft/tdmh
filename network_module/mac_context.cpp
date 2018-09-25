@@ -161,7 +161,7 @@ void MACContext::run()
     transceiver.turnOn();
     timesync->macStartHook();
     startScheduler();
-    
+
     long long currentNextDeadline = 0;
     unsigned int controlSuperframeCounter = 0;
     int tileCounter = 0;
@@ -175,6 +175,7 @@ void MACContext::run()
                 timesync->execute(currentNextDeadline);
                 currentNextDeadline = timesync->getSlotframeStart();
             } else {
+                beginScheduling();
                 scheduleDistribution->run(currentNextDeadline);
             }
             currentNextDeadline += downlinkSlotDuration;
