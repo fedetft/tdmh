@@ -89,7 +89,9 @@ void NetworkConfiguration::validate() const {
     if(clockSyncPeriod % controlSuperframeDuration != 0)
         throwLogicError("control superframe (%lld) does not divide clock sync period (%lld)",
                         controlSuperframeDuration, clockSyncPeriod);
-
+    // maxNodes must be a multiple of 8 because otherwise the RuntimeBitset won't work correctly
+    if((maxNodes % 8) != 0)
+      throwLogicError("Configuration error: maxNodes must be a multiple of 8");
 }
 
 } /* namespace mxnet */
