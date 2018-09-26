@@ -23,7 +23,7 @@ import wandstemmac.RootNode;
 network Line4
 {
     parameters:
-        n*.nodes = 4;
+        n*.nodes = 8;
         n*.hops = 3;
     submodules:
         n0: RootNode {
