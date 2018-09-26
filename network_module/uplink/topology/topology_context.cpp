@@ -110,13 +110,26 @@ void TopologyContext::unreceivedMessage(unsigned char sender) {
 MasterTopologyContext::MasterTopologyContext(MACContext& ctx) : TopologyContext(ctx), topology(ctx.getNetworkConfig().getMaxNodes()) {}
 
 void MasterTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
-    if (neighborsUnseenFor.find(sender) == neighborsUnseenFor.end()) {
-        topology.addEdge(sender, 0);
-    }
-    neighborsUnseenFor[sender] = 0;
+    // Lock mutex because TopologyMap is shared with ScheduleComputation thread
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+        std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
+        if (neighborsUnseenFor.find(sender) == neighborsUnseenFor.end()) {
+            topology.addEdge(sender, 0);
+        }
+        neighborsUnseenFor[sender] = 0;
 }
 
 void MasterTopologyContext::unreceivedMessage(unsigned char sender) {
+    // Lock mutex because TopologyMap is shared with ScheduleComputation thread
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+    std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
+
     if (neighborsUnseenFor.find(sender) == neighborsUnseenFor.end()) return;
     if (++neighborsUnseenFor[sender] > ctx.getNetworkConfig().getMaxRoundsUnavailableBecomesDead())
         topology.removeEdge(sender, 0);

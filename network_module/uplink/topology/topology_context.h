@@ -34,6 +34,12 @@
 #include "topology_map.h"
 #include <list>
 #include <algorithm>
+#ifdef _MIOSIX
+#include <miosix.h>
+#else
+#include <mutex>
+#endif
+
 
 namespace mxnet {
 
@@ -124,6 +130,11 @@ public:
 protected:
     std::map<unsigned char, unsigned char> neighborsUnseenFor;
     TopologyMap topology;
+#ifdef _MIOSIX
+    miosix::Mutex sched_mutex;
+#else
+    std::mutex sched_mutex;
+#endif
 };
 
 class DynamicTopologyContext : public TopologyContext {

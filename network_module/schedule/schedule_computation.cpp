@@ -74,8 +74,6 @@ void ScheduleComputation::run() {
             }
             // IF stream list not changed AND topology not changed
             // Skip to next for loop cycle
-            //NOTE: debug
-            topology_ctx.print();
             if(!(topology_ctx.getTopologyMap().wasModified() || stream_mgmt.wasModified())) {
                 print_dbg("Stream list or topology did not change, sleeping");
                 continue;
@@ -84,7 +82,6 @@ void ScheduleComputation::run() {
             // Take snapshot of stream requests and network topology
             stream_snapshot = stream_mgmt;
             topology_map = topology_ctx.getTopologyMap();
-            topology_ctx.print();
         }
         // From now on use only the snapshot class `stream_snapshot`
         // Get number of dataslots in current controlsuperframe (to avoid re-computating it)
@@ -124,7 +121,7 @@ void ScheduleComputation::open(StreamManagementElement sme) {
 
 
 void Router::run() {
-    int num_streams = scheduler.stream_mgmt.getStreamNumber();
+    int num_streams = scheduler.stream_snapshot.getStreamNumber();
     print_dbg("Routing %d stream requests\n", num_streams);
     // Cycle over stream_requests
     for(int i=0; i<num_streams; i++) {
