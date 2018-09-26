@@ -87,6 +87,8 @@ private:
     MasterStreamManagementContext stream_snapshot;
     // Class containing a snapshot of the network topology
     TopologyMap topology_map;
+    // Expanded stream requests after routing
+    std::list<std::list<StreamManagementElement>> routed_streams;
 };
 
 class Router {
@@ -103,8 +105,6 @@ private:
     
 protected:
     int multipath;
-    // Expanded stream request after routing
-    std::list<StreamManagementElement> routed_streams;
     // References to other classes
     ScheduleComputation& scheduler;
 };

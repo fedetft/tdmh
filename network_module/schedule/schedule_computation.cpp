@@ -100,6 +100,7 @@ void ScheduleComputation::run() {
 
         // Add scheduler code
 
+
         // Clear modified bit to detect changes to topology or streams
         topology_ctx.clearModifiedFlag();
         stream_mgmt.clearModifiedFlag();
@@ -139,7 +140,9 @@ void Router::run() {
         if(scheduler.topology_map.hasEdge(src, dst)) {
             // Add stream as is to final List
             print_dbg("Stream n.%d: %d to %d is single hop\n", i, src, dst);
-            routed_streams.push_back(stream);
+            std::list<StreamManagementElement> single_hop;
+            single_hop.push_back(stream);
+            scheduler.routed_streams.push_back(single_hop);
             continue;
         }
         // Otherwise run BFS
@@ -152,10 +155,9 @@ void Router::run() {
             for(auto s : path) {
                 print_dbg("%d->%d ", s.getSrc(), s.getDst());
             }
-
         }
         // Insert routed path in place of multihop stream
-        // routed_streams.push_back(path);
+        scheduler.routed_streams.push_back(path);
         // If redundancy, run DFS
         if(multipath) {
             //int sol_size = path.size();
