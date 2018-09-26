@@ -89,6 +89,11 @@ void ScheduleComputation::run() {
         print_dbg("Begin scheduling for %d dataslots\n", data_slots);
         int num_streams = stream_snapshot.getStreamNumber();
 
+        // NOTE: Debug topology print
+        print_dbg("Topology:\n");
+        for (auto it : topology_map.getEdges())
+            print_dbg("[%d - %d]\n", it.first, it.second);
+
         // Run router to route multi-hop streams and get multiple paths
         Router router(*this, 1, 2);
         router.run();
@@ -141,9 +146,13 @@ void Router::run() {
         // TODO Uncomment after implementing nested list
         std::list<StreamManagementElement> path;
         path = breadthFirstSearch(stream);
-        // Print routed path
-        for(auto s : path) {
-            print_dbg("%d -> %d\n", s.getSrc(), s.getDst());
+        if(!path.empty()) {
+            // Print routed path
+            print_dbg("Path found: \n");
+            for(auto s : path) {
+                print_dbg("%d->%d ", s.getSrc(), s.getDst());
+            }
+
         }
         // Insert routed path in place of multihop stream
         // routed_streams.push_back(path);
@@ -221,7 +230,7 @@ std::list<StreamManagementElement> Router::construct_path(unsigned char node, st
     // TODO: figure out how to pass other parameters (period...)
     path.push_back(StreamManagementElement(src, dst, 0, 0, Period::P1, 0));
     /* The root node is the only to have itself as predecessor */
-    while(parent_of[dst] != dst) {
+    while(parent_of[src] != src) {
         dst = src;
         src = parent_of[dst];
         path.push_back(StreamManagementElement(src, dst, 0, 0, Period::P1, 0));
