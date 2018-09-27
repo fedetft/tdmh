@@ -98,8 +98,10 @@ void ScheduleComputation::run() {
         Router router(*this, 1, 2);
         router.run();
 
-        // Add scheduler code
+        // Schedule expanded streams, avoiding conflicts
+        scheduleStreams(data_slots);
 
+        print();
 
         // Clear modified bit to detect changes to topology or streams
         topology_ctx.clearModifiedFlag();
@@ -123,8 +125,105 @@ void ScheduleComputation::open(StreamManagementElement sme) {
     std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
     stream_mgmt.open(sme);
-  }
+}
 
+void ScheduleComputation::scheduleStreams(int slots) {
+    for(auto block : routed_streams) {
+        // Counter to last slot: ensures sequentiality
+        int last_ts = 0;
+        // If a stream block cannot be scheduled, undo the whole block
+        bool block_err = false;
+        int block_size = 0;
+        for(auto stream : block) {
+            // If a stream block cannot be scheduled, undo the whole block
+            if(block_err) {
+                print_dbg("Block scheduling failed, removing rest of block\n");
+                for(int i=0; i<block_size; i++) {
+                    scheduled_streams.pop_back();
+                }
+                // Skip to next block
+                break;
+            }
+            // Iterate over available timeslots
+            for(int ts=last_ts; ts<slots; ts++) {
+                unsigned char src = stream.getSrc();
+                unsigned char dst = stream.getDst();
+                print_dbg("Checking stream %d,%d on timeslot %d\n", src, dst, ts);
+                bool conflict = false;
+                bool unreachable_err = false;
+                // Connectivity check
+                if(!topology_map.hasEdge(src,dst)) {
+                    block_err = true;
+                    unreachable_err = true;
+                    print_dbg("%d,%d are not connected in topology, cannot schedule stream\n", src, dst);
+                }
+                /* Conflict checks */
+                // Unicity check: no activity for src or dst node in a given timeslot
+                conflict |= check_unicity_conflict(ts,stream);
+                // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
+                conflict |= check_interference_conflict(ts, stream);
+
+                /* Checks evaluation */
+                if(conflict) {
+                    print_dbg("Cannot schedule stream %d,%d on timeslot %d", src, dst, ts);
+                    //Try to schedule in next timeslot
+                    continue;
+                }
+                else {
+                    last_ts = ts;
+                    block_size++;
+                    // Add stream to schedule
+                    scheduled_streams.push_back(std::make_tuple(ts,stream));
+                    print_dbg("Schedule stream %d,%d on timeslot %d", src, dst, ts);
+                    // Successfully scheduled transmission, break timeslot cycle
+                    break;
+                }
+            }
+            // Next stream in block should start from next timeslot
+            last_ts++;
+            // If we are in the last timeslot and have a conflict,
+            // cannot reschedule on another timeslot
+            if(last_ts == (slots-1))
+                block_err = true;
+        }
+    }
+}
+
+bool ScheduleComputation::check_unicity_conflict(int ts, StreamManagementElement stream) {
+    // Unicity check: no activity for src or dst node on a given timeslot
+    unsigned char src = stream.getSrc();
+    unsigned char dst = stream.getDst();
+    auto res = std::find_if(scheduled_streams.begin(), scheduled_streams.end(),
+                    [ts, src, dst](std::tuple<int,StreamManagementElement> str){
+                        return ((std::get<0>(str) == ts) && (
+                            (std::get<1>(str).getSrc() == src) || (std::get<1>(str).getSrc() == dst) ||
+                            (std::get<1>(str).getDst() == src) || (std::get<1>(str).getSrc() == dst))); });
+    return res != scheduled_streams.end();
+}
+
+bool ScheduleComputation::check_interference_conflict(int ts, StreamManagementElement stream) {
+    // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
+    // Check that neighbors of src (TX) aren't receiving (RX)
+    // And neighbors of dst (RX) aren't transmitting (TX)
+    unsigned char src = stream.getSrc();
+    unsigned char dst = stream.getDst();
+    bool conflict = false;
+    for(auto elem: scheduled_streams) {
+        for(auto n : topology_map.getEdges(src)) {
+            conflict |= (std::get<0>(elem) == ts && std::get<1>(elem).getDst() == n);
+        }
+        for(auto n : topology_map.getEdges(dst)) {
+            conflict |= (std::get<0>(elem) == ts && std::get<1>(elem).getSrc() == n);
+        }
+    }
+}
+
+void ScheduleComputation::print() {
+    print_dbg("TS   SRC->DST\n");
+    for(auto elem : scheduled_streams) {
+        print_dbg("%d   %d->%d\n", std::get<0>(elem), std::get<1>(elem).getSrc(), std::get<1>(elem).getDst());
+    }
+}
 
 void Router::run() {
     int num_streams = scheduler.stream_snapshot.getStreamNumber();
