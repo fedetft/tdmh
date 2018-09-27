@@ -96,9 +96,11 @@ void ScheduleComputation::run() {
 
         // Run router to route multi-hop streams and get multiple paths
         Router router(*this, 1, 2);
+        print_dbg("## Routing ##\n");
         router.run();
 
         // Schedule expanded streams, avoiding conflicts
+        print_dbg("## Scheduling ##\n");
         scheduleStreams(data_slots);
 
         print();
@@ -165,7 +167,7 @@ void ScheduleComputation::scheduleStreams(int slots) {
 
                 /* Checks evaluation */
                 if(conflict) {
-                    print_dbg("Cannot schedule stream %d,%d on timeslot %d", src, dst, ts);
+                    print_dbg("Cannot schedule stream %d,%d on timeslot %d\n", src, dst, ts);
                     //Try to schedule in next timeslot
                     continue;
                 }
@@ -174,7 +176,7 @@ void ScheduleComputation::scheduleStreams(int slots) {
                     block_size++;
                     // Add stream to schedule
                     scheduled_streams.push_back(std::make_tuple(ts,stream));
-                    print_dbg("Schedule stream %d,%d on timeslot %d", src, dst, ts);
+                    print_dbg("Scheduled stream %d,%d on timeslot %d\n", src, dst, ts);
                     // Successfully scheduled transmission, break timeslot cycle
                     break;
                 }
@@ -216,10 +218,11 @@ bool ScheduleComputation::check_interference_conflict(int ts, StreamManagementEl
             conflict |= (std::get<0>(elem) == ts && std::get<1>(elem).getSrc() == n);
         }
     }
+    return conflict;
 }
 
 void ScheduleComputation::print() {
-    print_dbg("TS   SRC->DST\n");
+    print_dbg("TS SRC->DST\n");
     for(auto elem : scheduled_streams) {
         print_dbg("%d   %d->%d\n", std::get<0>(elem), std::get<1>(elem).getSrc(), std::get<1>(elem).getDst());
     }
@@ -233,12 +236,12 @@ void Router::run() {
         StreamManagementElement stream = scheduler.stream_snapshot.getStream(i);
         unsigned char src = stream.getSrc();
         unsigned char dst = stream.getDst();
-        print_dbg("Routing stream n.%d: %d to %d\n", i, src, dst);
+        print_dbg("Routing stream n.%d: %d,%d\n", i, src, dst);
 
         // Check if 1-hop
         if(scheduler.topology_map.hasEdge(src, dst)) {
             // Add stream as is to final List
-            print_dbg("Stream n.%d: %d to %d is single hop\n", i, src, dst);
+            print_dbg("Stream n.%d: %d,%d is single hop\n", i, src, dst);
             std::list<StreamManagementElement> single_hop;
             single_hop.push_back(stream);
             scheduler.routed_streams.push_back(single_hop);
@@ -254,6 +257,7 @@ void Router::run() {
             for(auto s : path) {
                 print_dbg("%d->%d ", s.getSrc(), s.getDst());
             }
+            print_dbg("\n");
         }
         // Insert routed path in place of multihop stream
         scheduler.routed_streams.push_back(path);
