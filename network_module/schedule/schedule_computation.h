@@ -61,18 +61,29 @@ public:
     void addNewStreams(std::vector<StreamManagementElement>& smes);
 
     void open(StreamManagementElement sme);
-    
-protected:
-    
+
+private: 
+    void scheduleStreams();
+
+    // Class containing the current Stream Requests (SME)
+    MasterStreamManagementContext stream_mgmt;
+    MasterStreamManagementContext stream_snapshot;
+    // Class containing a snapshot of the network topology
+    TopologyMap topology_map;
+    // Expanded stream list after routing
+    std::list<std::list<StreamManagementElement>> routed_streams;
+    // Final stream list after scheduling
     std::list<StreamManagementElement> scheduled_streams;
+
     // References to other classes
     MasterMeshTopologyContext& topology_ctx;
-    MACContext& mac_ctx; //TODO is really needed?
+    // Needed to get number of dataslots
+    MACContext& mac_ctx;
+
 #ifdef _MIOSIX
     miosix::Mutex sched_mutex;
     miosix::ConditionVariable sched_cv;
     miosix::Thread* scthread = NULL;
-private:
     static void threadLauncher(void *arg) {
         reinterpret_cast<ScheduleComputation*>(arg)->run();
     }
@@ -80,15 +91,7 @@ private:
     std::mutex sched_mutex;
     std::condition_variable sched_cv;
     std::thread* scthread = NULL;
-private:
 #endif
-    // Class containing the current Stream Requests (SME)
-    MasterStreamManagementContext stream_mgmt;
-    MasterStreamManagementContext stream_snapshot;
-    // Class containing a snapshot of the network topology
-    TopologyMap topology_map;
-    // Expanded stream requests after routing
-    std::list<std::list<StreamManagementElement>> routed_streams;
 };
 
 class Router {
