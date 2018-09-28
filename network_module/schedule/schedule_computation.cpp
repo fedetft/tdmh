@@ -147,7 +147,7 @@ void ScheduleComputation::open(StreamManagementElement sme) {
 void ScheduleComputation::scheduleStreams(int slots) {
     // Start with an empty schedule
     // If scheduling is successful, this vector will be moved to replace the "schedule" field
-    std::vector<std::tuple<int,StreamManagementElement>> scheduled_streams;
+    std::vector<ScheduleElement> scheduled_streams;
     for(auto block : routed_streams) {
         // Counter to last slot: ensures sequentiality
         int last_ts = 0;
@@ -193,7 +193,7 @@ void ScheduleComputation::scheduleStreams(int slots) {
                     last_ts = ts;
                     block_size++;
                     // Add stream to schedule
-                    scheduled_streams.push_back(std::make_tuple(ts,stream));
+                    scheduled_streams.push_back(ScheduleElement(stream, ts));
                     printf("Scheduled stream %d,%d on timeslot %d\n", src, dst, ts);
                     // Successfully scheduled transmission, break timeslot cycle
                     break;
@@ -210,19 +210,19 @@ void ScheduleComputation::scheduleStreams(int slots) {
     schedule = std::move(scheduled_streams);
 }
 
-    bool ScheduleComputation::check_unicity_conflict(std::vector<std::tuple<int,StreamManagementElement>> scheduled_streams, int ts, StreamManagementElement stream) {
+    bool ScheduleComputation::check_unicity_conflict(std::vector<ScheduleElement> scheduled_streams, int ts, StreamManagementElement stream) {
     // Unicity check: no activity for src or dst node on a given timeslot
     unsigned char src = stream.getSrc();
     unsigned char dst = stream.getDst();
     auto res = std::find_if(scheduled_streams.begin(), scheduled_streams.end(),
-                    [ts, src, dst](std::tuple<int,StreamManagementElement> str){
-                        return ((std::get<0>(str) == ts) && (
-                            (std::get<1>(str).getSrc() == src) || (std::get<1>(str).getSrc() == dst) ||
-                            (std::get<1>(str).getDst() == src) || (std::get<1>(str).getSrc() == dst))); });
+                    [ts, src, dst](ScheduleElement str){
+                        return (str.getOffset() == ts) && (
+                            (str.getSrc() == src) || (str.getSrc() == dst) ||
+                            (str.getDst() == src) || (str.getDst() == dst)); });
     return res != scheduled_streams.end();
 }
 
-    bool ScheduleComputation::check_interference_conflict(std::vector<std::tuple<int,StreamManagementElement>> scheduled_streams, int ts, StreamManagementElement stream) {
+    bool ScheduleComputation::check_interference_conflict(std::vector<ScheduleElement> scheduled_streams, int ts, StreamManagementElement stream) {
     // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
     // Check that neighbors of src (TX) aren't receiving (RX)
     // And neighbors of dst (RX) aren't transmitting (TX)
@@ -231,10 +231,10 @@ void ScheduleComputation::scheduleStreams(int slots) {
     bool conflict = false;
     for(auto elem: scheduled_streams) {
         for(auto n : topology_map.getEdges(src)) {
-            conflict |= (std::get<0>(elem) == ts && std::get<1>(elem).getDst() == n);
+            conflict |= (elem.getOffset() == ts && elem.getDst() == n);
         }
         for(auto n : topology_map.getEdges(dst)) {
-            conflict |= (std::get<0>(elem) == ts && std::get<1>(elem).getSrc() == n);
+            conflict |= (elem.getOffset() == ts && elem.getSrc() == n);
         }
     }
     return conflict;
@@ -243,7 +243,7 @@ void ScheduleComputation::scheduleStreams(int slots) {
 void ScheduleComputation::printSchedule() {
     printf("TS SRC->DST\n");
     for(auto elem : schedule) {
-        printf("%d   %d->%d\n", std::get<0>(elem), std::get<1>(elem).getSrc(), std::get<1>(elem).getDst());
+        printf("%d   %d->%d\n", elem.getOffset(), elem.getSrc(), elem.getDst());
     }
 }
 

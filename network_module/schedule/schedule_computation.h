@@ -30,6 +30,7 @@
 
 #include "../uplink/stream_management/stream_management_context.h"
 #include "../uplink/topology/mesh_topology_context.h"
+#include "schedule_element.h"
 #ifdef _MIOSIX
 #include <miosix.h>
 #else
@@ -66,9 +67,9 @@ private:
 
     void scheduleStreams(int slots);
 
-    bool check_unicity_conflict(std::vector<std::tuple<int,StreamManagementElement>> scheduled_streams, int ts, StreamManagementElement stream);
+    bool check_unicity_conflict(std::vector<ScheduleElement> scheduled_streams, int ts, StreamManagementElement stream);
 
-    bool check_interference_conflict(std::vector<std::tuple<int,StreamManagementElement>> scheduled_streams, int ts, StreamManagementElement stream);
+    bool check_interference_conflict(std::vector<ScheduleElement> scheduled_streams, int ts, StreamManagementElement stream);
 
     void printSchedule();
 
@@ -82,7 +83,7 @@ private:
     // Expanded stream list after routing
     std::list<std::list<StreamManagementElement>> routed_streams;
     // Final stream list after scheduling
-    std::vector<std::tuple<int,StreamManagementElement>> schedule;
+    std::vector<ScheduleElement> schedule;
 
     // References to other classes
     MasterMeshTopologyContext& topology_ctx;
