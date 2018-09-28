@@ -66,11 +66,13 @@ private:
 
     void scheduleStreams(int slots);
 
-    bool check_unicity_conflict(int ts, StreamManagementElement stream);
+    bool check_unicity_conflict(std::vector<std::tuple<int,StreamManagementElement>> scheduled_streams, int ts, StreamManagementElement stream);
 
-    bool check_interference_conflict(int ts, StreamManagementElement stream);
+    bool check_interference_conflict(std::vector<std::tuple<int,StreamManagementElement>> scheduled_streams, int ts, StreamManagementElement stream);
 
-    void print();
+    void printSchedule();
+
+    void printStreams();
 
     // Class containing the current Stream Requests (SME)
     MasterStreamManagementContext stream_mgmt;
@@ -80,7 +82,7 @@ private:
     // Expanded stream list after routing
     std::list<std::list<StreamManagementElement>> routed_streams;
     // Final stream list after scheduling
-    std::vector<std::tuple<int,StreamManagementElement>> scheduled_streams;
+    std::vector<std::tuple<int,StreamManagementElement>> schedule;
 
     // References to other classes
     MasterMeshTopologyContext& topology_ctx;

@@ -26,12 +26,19 @@
  ***************************************************************************/
 
 #include <list>
+#include <utility>
+#include <stdio.h>
 #include "../debug_settings.h"
 #include "schedule_computation.h"
 #include "../uplink/stream_management/stream_management_context.h"
 #include "../uplink/stream_management/stream_management_element.h"
 #include "../uplink/topology/topology_context.h"
 #include "../mac_context.h"
+
+/**
+ * The methods of this class run on a separate thread, don't use print_dbg()
+ * to avoid race conditions, use printf() or cout instead.
+ */
 
 namespace mxnet {
 
@@ -68,14 +75,14 @@ void ScheduleComputation::run() {
             // Wait for beginScheduling()
             sched_cv.wait(lck);
             while(stream_mgmt.getStreamNumber() == 0) {
-                print_dbg("No stream to schedule, waiting...\n");
+                printf("No stream to schedule, waiting...\n");
                 // Condition variable to wait for streams to schedule.
                 sched_cv.wait(lck);
             }
             // IF stream list not changed AND topology not changed
             // Skip to next for loop cycle
             if(!(topology_ctx.getTopologyMap().wasModified() || stream_mgmt.wasModified())) {
-                print_dbg("Stream list or topology did not change, sleeping");
+                printf("-");
                 continue;
             }
             // ELSE we can begin scheduling 
@@ -86,24 +93,32 @@ void ScheduleComputation::run() {
         // From now on use only the snapshot class `stream_snapshot`
         // Get number of dataslots in current controlsuperframe (to avoid re-computating it)
         int data_slots = mac_ctx.getDataSlotsInControlSuperframeCount();
-        print_dbg("Begin scheduling for %d dataslots\n", data_slots);
-        int num_streams = stream_snapshot.getStreamNumber();
+        printf("\nBegin scheduling for %d dataslots\n", data_slots);
+
+        printStreams();
 
         // NOTE: Debug topology print
-        print_dbg("Topology:\n");
+        printf("Topology:\n");
         for (auto it : topology_map.getEdges())
-            print_dbg("[%d - %d]\n", it.first, it.second);
+            printf("[%d - %d]\n", it.first, it.second);
 
         // Run router to route multi-hop streams and get multiple paths
+        routed_streams.clear();
         Router router(*this, 1, 2);
-        print_dbg("## Routing ##\n");
+        printf("## Routing ##\n");
         router.run();
 
+        printf("Stream list after routing:\n");
+        for (auto block : routed_streams)
+            for (auto stream : block)
+                printf("%d->%d\n", stream.getSrc(), stream.getDst());
         // Schedule expanded streams, avoiding conflicts
-        print_dbg("## Scheduling ##\n");
+        printf("## Scheduling ##\n");
         scheduleStreams(data_slots);
 
-        print();
+        printSchedule();
+        // To avoid caching of stdout
+        fflush(stdout);
 
         // Clear modified bit to detect changes to topology or streams
         topology_ctx.clearModifiedFlag();
@@ -130,6 +145,9 @@ void ScheduleComputation::open(StreamManagementElement sme) {
 }
 
 void ScheduleComputation::scheduleStreams(int slots) {
+    // Start with an empty schedule
+    // If scheduling is successful, this vector will be moved to replace the "schedule" field
+    std::vector<std::tuple<int,StreamManagementElement>> scheduled_streams;
     for(auto block : routed_streams) {
         // Counter to last slot: ensures sequentiality
         int last_ts = 0;
@@ -139,7 +157,7 @@ void ScheduleComputation::scheduleStreams(int slots) {
         for(auto stream : block) {
             // If a stream block cannot be scheduled, undo the whole block
             if(block_err) {
-                print_dbg("Block scheduling failed, removing rest of block\n");
+                printf("Block scheduling failed, removing rest of block\n");
                 for(int i=0; i<block_size; i++) {
                     scheduled_streams.pop_back();
                 }
@@ -150,24 +168,24 @@ void ScheduleComputation::scheduleStreams(int slots) {
             for(int ts=last_ts; ts<slots; ts++) {
                 unsigned char src = stream.getSrc();
                 unsigned char dst = stream.getDst();
-                print_dbg("Checking stream %d,%d on timeslot %d\n", src, dst, ts);
+                printf("Checking stream %d,%d on timeslot %d\n", src, dst, ts);
                 bool conflict = false;
                 bool unreachable_err = false;
                 // Connectivity check
                 if(!topology_map.hasEdge(src,dst)) {
                     block_err = true;
                     unreachable_err = true;
-                    print_dbg("%d,%d are not connected in topology, cannot schedule stream\n", src, dst);
+                    printf("%d,%d are not connected in topology, cannot schedule stream\n", src, dst);
                 }
                 /* Conflict checks */
                 // Unicity check: no activity for src or dst node in a given timeslot
-                conflict |= check_unicity_conflict(ts,stream);
+                conflict |= check_unicity_conflict(scheduled_streams, ts, stream);
                 // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
-                conflict |= check_interference_conflict(ts, stream);
+                conflict |= check_interference_conflict(scheduled_streams, ts, stream);
 
                 /* Checks evaluation */
                 if(conflict) {
-                    print_dbg("Cannot schedule stream %d,%d on timeslot %d\n", src, dst, ts);
+                    printf("Cannot schedule stream %d,%d on timeslot %d\n", src, dst, ts);
                     //Try to schedule in next timeslot
                     continue;
                 }
@@ -176,7 +194,7 @@ void ScheduleComputation::scheduleStreams(int slots) {
                     block_size++;
                     // Add stream to schedule
                     scheduled_streams.push_back(std::make_tuple(ts,stream));
-                    print_dbg("Scheduled stream %d,%d on timeslot %d\n", src, dst, ts);
+                    printf("Scheduled stream %d,%d on timeslot %d\n", src, dst, ts);
                     // Successfully scheduled transmission, break timeslot cycle
                     break;
                 }
@@ -189,9 +207,10 @@ void ScheduleComputation::scheduleStreams(int slots) {
                 block_err = true;
         }
     }
+    schedule = std::move(scheduled_streams);
 }
 
-bool ScheduleComputation::check_unicity_conflict(int ts, StreamManagementElement stream) {
+    bool ScheduleComputation::check_unicity_conflict(std::vector<std::tuple<int,StreamManagementElement>> scheduled_streams, int ts, StreamManagementElement stream) {
     // Unicity check: no activity for src or dst node on a given timeslot
     unsigned char src = stream.getSrc();
     unsigned char dst = stream.getDst();
@@ -203,7 +222,7 @@ bool ScheduleComputation::check_unicity_conflict(int ts, StreamManagementElement
     return res != scheduled_streams.end();
 }
 
-bool ScheduleComputation::check_interference_conflict(int ts, StreamManagementElement stream) {
+    bool ScheduleComputation::check_interference_conflict(std::vector<std::tuple<int,StreamManagementElement>> scheduled_streams, int ts, StreamManagementElement stream) {
     // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
     // Check that neighbors of src (TX) aren't receiving (RX)
     // And neighbors of dst (RX) aren't transmitting (TX)
@@ -221,27 +240,38 @@ bool ScheduleComputation::check_interference_conflict(int ts, StreamManagementEl
     return conflict;
 }
 
-void ScheduleComputation::print() {
-    print_dbg("TS SRC->DST\n");
-    for(auto elem : scheduled_streams) {
-        print_dbg("%d   %d->%d\n", std::get<0>(elem), std::get<1>(elem).getSrc(), std::get<1>(elem).getDst());
+void ScheduleComputation::printSchedule() {
+    printf("TS SRC->DST\n");
+    for(auto elem : schedule) {
+        printf("%d   %d->%d\n", std::get<0>(elem), std::get<1>(elem).getSrc(), std::get<1>(elem).getDst());
     }
 }
 
+void ScheduleComputation::printStreams() {
+    printf("Stream requests:\n");
+    int num_streams = stream_snapshot.getStreamNumber();
+    // Cycle over stream_requests
+    for(int i=0; i<num_streams; i++) {
+        StreamManagementElement stream = stream_snapshot.getStream(i);
+        printf("%d->%d\n", stream.getSrc(), stream.getDst());
+    }
+}
+
+
 void Router::run() {
     int num_streams = scheduler.stream_snapshot.getStreamNumber();
-    print_dbg("Routing %d stream requests\n", num_streams);
+    printf("Routing %d stream requests\n", num_streams);
     // Cycle over stream_requests
     for(int i=0; i<num_streams; i++) {
         StreamManagementElement stream = scheduler.stream_snapshot.getStream(i);
         unsigned char src = stream.getSrc();
         unsigned char dst = stream.getDst();
-        print_dbg("Routing stream n.%d: %d,%d\n", i, src, dst);
+        printf("Routing stream n.%d: %d,%d\n", i, src, dst);
 
         // Check if 1-hop
         if(scheduler.topology_map.hasEdge(src, dst)) {
             // Add stream as is to final List
-            print_dbg("Stream n.%d: %d,%d is single hop\n", i, src, dst);
+            printf("Stream n.%d: %d,%d is single hop\n", i, src, dst);
             std::list<StreamManagementElement> single_hop;
             single_hop.push_back(stream);
             scheduler.routed_streams.push_back(single_hop);
@@ -253,11 +283,11 @@ void Router::run() {
         path = breadthFirstSearch(stream);
         if(!path.empty()) {
             // Print routed path
-            print_dbg("Path found: \n");
+            printf("Path found: \n");
             for(auto s : path) {
-                print_dbg("%d->%d ", s.getSrc(), s.getDst());
+                printf("%d->%d ", s.getSrc(), s.getDst());
             }
-            print_dbg("\n");
+            printf("\n");
         }
         // Insert routed path in place of multihop stream
         scheduler.routed_streams.push_back(path);
@@ -275,12 +305,12 @@ std::list<StreamManagementElement> Router::breadthFirstSearch(StreamManagementEl
     unsigned char dest = stream.getDst();
     // Check that the source node exists in the graph
     if(!scheduler.topology_map.hasNode(root)) {
-        print_dbg("Error: source node is not present in TopologyMap\n");
+        printf("Error: source node is not present in TopologyMap\n");
         return std::list<StreamManagementElement>();
     }
     // Check that the destination node exists in the graph
     if(!scheduler.topology_map.hasNode(dest)) {
-        print_dbg("Error: destination node is not present in TopologyMap\n");
+        printf("Error: destination node is not present in TopologyMap\n");
         return std::list<StreamManagementElement>();
     }
     // V = number of nodes in the network
@@ -323,7 +353,7 @@ std::list<StreamManagementElement> Router::breadthFirstSearch(StreamManagementEl
         visited[subtree_root] = true;
     }
     // If the execution ends here, src and dst are not connected in the graph
-    print_dbg("Error: source and destination node are not connected in TopologyMap\n");
+    printf("Error: source and destination node are not connected in TopologyMap\n");
     return std::list<StreamManagementElement>();
 }
 
