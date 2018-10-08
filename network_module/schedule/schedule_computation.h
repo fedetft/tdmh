@@ -30,6 +30,7 @@
 
 #include "../uplink/stream_management/stream_management_context.h"
 #include "../uplink/topology/mesh_topology_context.h"
+#include "../network_configuration.h"
 #include "schedule_element.h"
 #ifdef _MIOSIX
 #include <miosix.h>
@@ -65,15 +66,33 @@ public:
 private: 
     void run();
 
-    void scheduleStreams(int slots);
+    void scheduleStreams(unsigned long long tile_duration, ControlSuperframeStructure superframe);
 
-    bool check_unicity_conflict(std::vector<ScheduleElement> scheduled_streams, int ts, StreamManagementElement stream);
+    bool slotConflictPossible(StreamManagementElement newtransm, ScheduleElement oldtransm, int offset, int tile_duration);
 
-    bool check_interference_conflict(std::vector<ScheduleElement> scheduled_streams, int ts, StreamManagementElement stream);
+    bool checkSlotConflict(StreamManagementElement newtransm, ScheduleElement oldtransm, int offset_a, int tile_duration, int schedule_size);
+
+    bool checkUnicityConflict(StreamManagementElement new_transmission, ScheduleElement old_transmission);
+
+    bool checkInterferenceConflict(StreamManagementElement new_transmission, ScheduleElement old_transmission);
 
     void printSchedule();
 
     void printStreams();
+
+    int gcd(int a, int b) {
+        for (;;) {
+            if (a == 0) return b;
+            b %= a;
+            if (b == 0) return a;
+            a %= b;
+        }
+    };
+
+    int lcm(int a, int b) {
+        int temp = gcd(a, b);
+        return temp ? (a / temp * b) : 0;
+    };
 
     // Class containing the current Stream Requests (SME)
     MasterStreamManagementContext stream_mgmt;

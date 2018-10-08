@@ -90,10 +90,12 @@ void ScheduleComputation::run() {
             stream_snapshot = stream_mgmt;
             topology_map = topology_ctx.getTopologyMap();
         }
-        // From now on use only the snapshot class `stream_snapshot`
-        // Get number of dataslots in current controlsuperframe (to avoid re-computating it)
-        int data_slots = mac_ctx.getDataSlotsInControlSuperframeCount();
-        printf("\nBegin scheduling for %d dataslots\n", data_slots);
+        /* From now on use only the snapshot class `stream_snapshot` */
+        // Retrieve information about the tile and superframe structure
+        // Get current controlsuperframe configuration
+        ControlSuperframeStructure superframe = mac_ctx.getNetworkConfig().getControlSuperframeStructure();
+        // Get tile duration
+        unsigned long long tile_duration = mac_ctx.getNetworkConfig().getTileDuration();
 
         printStreams();
 
@@ -114,7 +116,7 @@ void ScheduleComputation::run() {
                 printf("%d->%d\n", stream.getSrc(), stream.getDst());
         // Schedule expanded streams, avoiding conflicts
         printf("## Scheduling ##\n");
-        scheduleStreams(data_slots);
+        scheduleStreams(tile_duration, superframe);
 
         printSchedule();
         // To avoid caching of stdout
@@ -144,99 +146,136 @@ void ScheduleComputation::open(StreamManagementElement sme) {
     stream_mgmt.open(sme);
 }
 
-void ScheduleComputation::scheduleStreams(int slots) {
+void ScheduleComputation::scheduleStreams(unsigned long long tile_duration, ControlSuperframeStructure superframe) {
     // Start with an empty schedule
     // If scheduling is successful, this vector will be moved to replace the "schedule" field
-    std::vector<ScheduleElement> scheduled_streams;
-    for(auto block : routed_streams) {
-        // Counter to last slot: ensures sequentiality
-        int last_ts = 0;
-        // If a stream block cannot be scheduled, undo the whole block
-        bool block_err = false;
+    std::vector<ScheduleElement> scheduled_transmissions;
+    // Schedulesize value is equal to lcm(p1,p2,...,pn) or p1 for a single stream
+    int schedule_size = 0;
+
+    for(auto stream : routed_streams) {
         int block_size = 0;
-        for(auto stream : block) {
-            // If a stream block cannot be scheduled, undo the whole block
-            if(block_err) {
-                printf("Block scheduling failed, removing rest of block\n");
+        bool stream_err = false;
+        // Counter to last slot offset: ensures sequentiality
+        int last_offset = 0;
+        for(auto transmission : stream) {
+            unsigned char src = transmission.getSrc();
+            unsigned char dst = transmission.getDst();
+            // Connectivity check
+            if(!topology_map.hasEdge(src,dst)) {
+                stream_err = true;
+                printf("%d,%d are not connected in topology, cannot schedule stream\n", src, dst);
+            }
+            // If a transmission cannot be scheduled, undo the whole stream
+            if(stream_err) {
+                printf("Transmission scheduling failed, removing rest of the stream\n");
                 for(int i=0; i<block_size; i++) {
-                    scheduled_streams.pop_back();
+                    scheduled_transmissions.pop_back();
                 }
+                //TODO recalculate schedule size without new stream
                 // Skip to next block
                 break;
-            }
-            // Iterate over available timeslots
-            for(int ts=last_ts; ts<slots; ts++) {
-                unsigned char src = stream.getSrc();
-                unsigned char dst = stream.getDst();
-                printf("Checking stream %d,%d on timeslot %d\n", src, dst, ts);
+                }
+            // The offset must be smaller than (stream period * minimum period size)-1
+            // with minimum period size being equal to the tile lenght (by design)
+            int max_offset = (toInt(transmission.getPeriod()) * tile_duration) - 1;
+            for(int offset = last_offset; offset < max_offset; offset++) {
+                // Cycle over already scheduled transmissions to check for conflicts
                 bool conflict = false;
-                bool unreachable_err = false;
-                // Connectivity check
-                if(!topology_map.hasEdge(src,dst)) {
-                    block_err = true;
-                    unreachable_err = true;
-                    printf("%d,%d are not connected in topology, cannot schedule stream\n", src, dst);
+                for(auto elem : scheduled_transmissions) {
+                    // conflictPossible is a simple condition used to reduce number of conflict checks
+                    if(slotConflictPossible(transmission, elem, offset, tile_duration)) {
+                        if(checkSlotConflict(transmission, elem, offset, tile_duration, schedule_size)) {
+                            /* Conflict checks */
+                            // Unicity check: no activity for src or dst node in a given timeslot
+                            conflict |= checkUnicityConflict(transmission, elem);
+                            // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
+                            conflict |= checkInterferenceConflict(transmission, elem);
+                        }
+                    }
+                    // else conflict is not possible
                 }
-                /* Conflict checks */
-                // Unicity check: no activity for src or dst node in a given timeslot
-                conflict |= check_unicity_conflict(scheduled_streams, ts, stream);
-                // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
-                conflict |= check_interference_conflict(scheduled_streams, ts, stream);
-
-                /* Checks evaluation */
-                if(conflict) {
-                    printf("Cannot schedule stream %d,%d on timeslot %d\n", src, dst, ts);
-                    //Try to schedule in next timeslot
-                    continue;
-                }
-                else {
-                    last_ts = ts;
+                if(!conflict) {
+                    last_offset = offset;
                     block_size++;
+                    // Calculate new schedule size
+                    int period = toInt(transmission.getPeriod());
+                    if(schedule_size == 0)
+                        schedule_size = period;
+                    else
+                        schedule_size = lcm(schedule_size, period);
                     // Add stream to schedule
-                    scheduled_streams.push_back(ScheduleElement(stream, ts));
-                    printf("Scheduled stream %d,%d on timeslot %d\n", src, dst, ts);
+                    scheduled_transmissions.push_back(ScheduleElement(transmission, offset));
+                    printf("Scheduled stream %d,%d on timeslot %d\n", src, dst, offset);
                     // Successfully scheduled transmission, break timeslot cycle
                     break;
+                    }
+                else {
+                    printf("Cannot schedule stream %d,%d on timeslot %d\n", src, dst, offset);
+                    //Try to schedule in next timeslot
+
                 }
             }
-            // Next stream in block should start from next timeslot
-            last_ts++;
+            // Next transmission of stream should start from next timeslot
+            // to guarantee sequentiality in transmissions of the same stream
+            last_offset++;
             // If we are in the last timeslot and have a conflict,
             // cannot reschedule on another timeslot
-            if(last_ts == (slots-1))
-                block_err = true;
+            if(last_offset == max_offset)
+                stream_err = true;
         }
     }
-    schedule = std::move(scheduled_streams);
+    printf("Final schedule size: %d\n", schedule_size);
+    schedule = std::move(scheduled_transmissions);
 }
 
-    bool ScheduleComputation::check_unicity_conflict(std::vector<ScheduleElement> scheduled_streams, int ts, StreamManagementElement stream) {
+
+
+// This easy check is a necessary condition for a slot conflict,
+// if the result is false, then a conflict cannot happen
+// It can be used to avoid nested loops
+bool ScheduleComputation::slotConflictPossible(StreamManagementElement newtransm, ScheduleElement oldtransm, int offset, int tile_duration) {
+    // Compare offsets relative to current tile of two transmissions
+    return ((offset % tile_duration) == (oldtransm.getOffset() % tile_duration));
+}
+
+// Extensive check to be used when slotConflictPossible returns true
+bool ScheduleComputation::checkSlotConflict(StreamManagementElement newtransm, ScheduleElement oldtransm, int offset_a, int tile_duration, int schedule_size) {
+    // Calculate slots used by the two transmissions and see if there is any common value
+    int periodslots_a = toInt(newtransm.getPeriod()) * tile_duration;
+    int periodslots_b = toInt(oldtransm.getPeriod()) * tile_duration;
+
+    for(int slot_a=offset_a; slot_a < schedule_size; slot_a += periodslots_a) {
+        for(int slot_b=oldtransm.getOffset(); slot_b < schedule_size; slot_b += periodslots_b) {
+            if(slot_a == slot_b)
+                return true;
+        }
+    }
+    return false;
+}
+
+bool ScheduleComputation::checkUnicityConflict(StreamManagementElement new_transmission, ScheduleElement old_transmission) {
     // Unicity check: no activity for src or dst node on a given timeslot
-    unsigned char src = stream.getSrc();
-    unsigned char dst = stream.getDst();
-    auto res = std::find_if(scheduled_streams.begin(), scheduled_streams.end(),
-                    [ts, src, dst](ScheduleElement str){
-                        return (str.getOffset() == ts) && (
-                            (str.getSrc() == src) || (str.getSrc() == dst) ||
-                            (str.getDst() == src) || (str.getDst() == dst)); });
-    return res != scheduled_streams.end();
+    unsigned char src_a = new_transmission.getSrc();
+    unsigned char dst_a = new_transmission.getDst();
+    unsigned char src_b = old_transmission.getSrc();
+    unsigned char dst_b = old_transmission.getDst();
+
+    return (src_a == src_b) || (src_a == dst_b) || (dst_a == src_b) || (dst_a == dst_b);
 }
 
-    bool ScheduleComputation::check_interference_conflict(std::vector<ScheduleElement> scheduled_streams, int ts, StreamManagementElement stream) {
+bool ScheduleComputation::checkInterferenceConflict(StreamManagementElement new_transmission, ScheduleElement old_transmission) {
     // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
     // Check that neighbors of src (TX) aren't receiving (RX)
     // And neighbors of dst (RX) aren't transmitting (TX)
-    unsigned char src = stream.getSrc();
-    unsigned char dst = stream.getDst();
+    unsigned char src_a = new_transmission.getSrc();
+    unsigned char dst_a = new_transmission.getDst();
+    unsigned char src_b = old_transmission.getSrc();
+    unsigned char dst_b = old_transmission.getDst();
+
     bool conflict = false;
-    for(auto elem: scheduled_streams) {
-        for(auto n : topology_map.getEdges(src)) {
-            conflict |= (elem.getOffset() == ts && elem.getDst() == n);
-        }
-        for(auto n : topology_map.getEdges(dst)) {
-            conflict |= (elem.getOffset() == ts && elem.getSrc() == n);
-        }
-    }
+    conflict |= topology_map.hasEdge(src_a, dst_b);
+    conflict |= topology_map.hasEdge(dst_a, src_b);
     return conflict;
 }
 

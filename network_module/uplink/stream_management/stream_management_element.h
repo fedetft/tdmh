@@ -35,23 +35,28 @@ namespace mxnet {
 
 enum class Period
 {
-    P0dot1, //  0.1*tileDuration (currently unsupported)
-    P0dot2, //  0.2*tileDuration (currently unsupported)
-    P0dot5, //  0.5*tileDuration (currently unsupported)
-    P1,     //    1*tileDuration
-    P2,     //    2*tileDuration
-    P5,     //    5*tileDuration
-    P10,    //   10*tileDuration
-    P20,    //   20*tileDuration
-    P50,    //   50*tileDuration
-    P100,   //  100*tileDuration
-    P200,   //  200*tileDuration (currently unsupported)
-    P500,   //  500*tileDuration (currently unsupported)
-    P1000,  // 1000*tileDuration (currently unsupported)
-    P2000,  // 2000*tileDuration (currently unsupported)
-    P5000,  // 5000*tileDuration (currently unsupported)
-    P10000  //10000*tileDuration (currently unsupported)
+    P0dot1,        //  0.1*tileDuration (currently unsupported)
+    P0dot2,        //  0.2*tileDuration (currently unsupported)
+    P0dot5,        //  0.5*tileDuration (currently unsupported)
+    P1     =1,     //    1*tileDuration
+    P2     =2,     //    2*tileDuration
+    P5     =5,     //    5*tileDuration
+    P10    =10,    //   10*tileDuration
+    P20    =20,    //   20*tileDuration
+    P50    =50,    //   50*tileDuration
+    P100   =100,   //  100*tileDuration
+    P200   =200,   //  200*tileDuration (currently unsupported)
+    P500   =500,   //  500*tileDuration (currently unsupported)
+    P1000  =1000,  // 1000*tileDuration (currently unsupported)
+    P2000  =2000,  // 2000*tileDuration (currently unsupported)
+    P5000  =5000,  // 5000*tileDuration (currently unsupported)
+    P10000 =10000, //10000*tileDuration (currently unsupported)
 };
+
+inline int toInt(Period x)
+{
+    return static_cast<int>(x);
+}
 
 enum class Redundancy
 {
