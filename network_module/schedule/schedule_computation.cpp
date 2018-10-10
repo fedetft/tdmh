@@ -179,6 +179,7 @@ void ScheduleComputation::scheduleStreams(unsigned long long tile_duration, Cont
                 }
             // The offset must be smaller than (stream period * minimum period size)-1
             // with minimum period size being equal to the tile lenght (by design)
+            // Otherwise the resulting stream won't be periodic
             int max_offset = (toInt(transmission.getPeriod()) * tile_duration) - 1;
             for(int offset = last_offset; offset < max_offset; offset++) {
                 printf("Checking offset %d\n", offset);
