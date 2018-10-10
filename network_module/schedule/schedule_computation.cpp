@@ -161,6 +161,7 @@ void ScheduleComputation::scheduleStreams(unsigned long long tile_duration, Cont
         for(auto transmission : stream) {
             unsigned char src = transmission.getSrc();
             unsigned char dst = transmission.getDst();
+            printf("Scheduling transmission %d,%d\n", src, dst);
             // Connectivity check
             if(!topology_map.hasEdge(src,dst)) {
                 stream_err = true;
@@ -180,17 +181,28 @@ void ScheduleComputation::scheduleStreams(unsigned long long tile_duration, Cont
             // with minimum period size being equal to the tile lenght (by design)
             int max_offset = (toInt(transmission.getPeriod()) * tile_duration) - 1;
             for(int offset = last_offset; offset < max_offset; offset++) {
+                printf("Checking offset %d\n", offset);
                 // Cycle over already scheduled transmissions to check for conflicts
                 bool conflict = false;
                 for(auto elem : scheduled_transmissions) {
                     // conflictPossible is a simple condition used to reduce number of conflict checks
                     if(slotConflictPossible(transmission, elem, offset, tile_duration)) {
                         if(checkSlotConflict(transmission, elem, offset, tile_duration, schedule_size)) {
+                            printf("Other transmissions have timeslots in common\n", offset);
                             /* Conflict checks */
                             // Unicity check: no activity for src or dst node in a given timeslot
-                            conflict |= checkUnicityConflict(transmission, elem);
+                            if(checkUnicityConflict(transmission, elem)) {                                    
+                                conflict |= true;
+                                printf("Unicity conflict!\n");
+                            }
                             // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
-                            conflict |= checkInterferenceConflict(transmission, elem);
+                            if(checkInterferenceConflict(transmission, elem)) {
+                                conflict |= true;
+                                printf("Interference conflict!\n");
+                            }
+                            if(conflict)
+                                // Avoid checking other streams when a conflict is found
+                                break;
                         }
                     }
                     // else conflict is not possible
@@ -206,12 +218,12 @@ void ScheduleComputation::scheduleStreams(unsigned long long tile_duration, Cont
                         schedule_size = lcm(schedule_size, period);
                     // Add stream to schedule
                     scheduled_transmissions.push_back(ScheduleElement(transmission, offset));
-                    printf("Scheduled stream %d,%d on timeslot %d\n", src, dst, offset);
+                    printf("Scheduled transmission %d,%d with offset %d\n", src, dst, offset);
                     // Successfully scheduled transmission, break timeslot cycle
                     break;
                     }
                 else {
-                    printf("Cannot schedule stream %d,%d on timeslot %d\n", src, dst, offset);
+                    printf("Cannot schedule stream %d,%d with offset %d\n", src, dst, offset);
                     //Try to schedule in next timeslot
 
                 }
@@ -287,7 +299,7 @@ void ScheduleComputation::printSchedule() {
 }
 
 void ScheduleComputation::printStreams() {
-    printf("Stream requests:\n");
+    printf("\nStream requests:\n");
     int num_streams = stream_snapshot.getStreamNumber();
     // Cycle over stream_requests
     for(int i=0; i<num_streams; i++) {
