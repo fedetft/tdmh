@@ -109,15 +109,12 @@ void ScheduleComputation::run() {
         Router router(*this, 1, 2);
         printf("## Routing ##\n");
         router.run();
-
         printf("Stream list after routing:\n");
-        for (auto block : routed_streams)
-            for (auto stream : block)
-                printf("%d->%d\n", stream.getSrc(), stream.getDst());
+        printStreamList(routed_streams);
+
         // Schedule expanded streams, avoiding conflicts
         printf("## Scheduling ##\n");
         scheduleStreams(tile_duration, superframe);
-
         printSchedule();
         // To avoid caching of stdout
         fflush(stdout);
@@ -192,7 +189,7 @@ void ScheduleComputation::scheduleStreams(unsigned long long tile_duration, Cont
                             printf("Other transmissions have timeslots in common\n", offset);
                             /* Conflict checks */
                             // Unicity check: no activity for src or dst node in a given timeslot
-                            if(checkUnicityConflict(transmission, elem)) {                                    
+                            if(checkUnicityConflict(transmission, elem)) {
                                 conflict |= true;
                                 printf("Unicity conflict!\n");
                             }
@@ -301,14 +298,21 @@ void ScheduleComputation::printSchedule() {
 
 void ScheduleComputation::printStreams() {
     printf("\nStream requests:\n");
+    printf("ID  SRC DST PER\n");
     int num_streams = stream_snapshot.getStreamNumber();
     // Cycle over stream_requests
     for(int i=0; i<num_streams; i++) {
         StreamManagementElement stream = stream_snapshot.getStream(i);
-        printf("%d->%d\n", stream.getSrc(), stream.getDst());
+        printf("%d  %d-->%d   %d\n", stream.getKey(), stream.getSrc(), stream.getDst(), toInt(stream.getPeriod()));
     }
 }
 
+void ScheduleComputation::printStreamList(std::list<std::list<StreamManagementElement>> stream_list) {
+    printf("ID  SRC DST PER\n");
+    for (auto block : stream_list)
+        for (auto stream : block)
+            printf("%d  %d-->%d   %d\n", stream.getKey(), stream.getSrc(), stream.getDst(), toInt(stream.getPeriod()));
+}
 
 void Router::run() {
     int num_streams = scheduler.stream_snapshot.getStreamNumber();
@@ -388,7 +392,7 @@ std::list<StreamManagementElement> Router::breadthFirstSearch(StreamManagementEl
         //Get and remove first element of open set
         unsigned char subtree_root = open_set.front();
         open_set.pop_front();
-        if (subtree_root == dest) return construct_path(subtree_root, parent_of);
+        if (subtree_root == dest) return construct_path(stream, subtree_root, parent_of);
         // Get all adjacent vertices of the dequeued vertex
         std::vector<unsigned char> adjacence = scheduler.topology_map.getEdges(subtree_root);
         for (unsigned char child : adjacence) {
@@ -409,13 +413,13 @@ std::list<StreamManagementElement> Router::breadthFirstSearch(StreamManagementEl
     return std::list<StreamManagementElement>();
 }
 
-std::list<StreamManagementElement> Router::construct_path(unsigned char node, std::map<const unsigned char, unsigned char> parent_of) {
+std::list<StreamManagementElement> Router::construct_path(StreamManagementElement stream, unsigned char node, std::map<const unsigned char, unsigned char> parent_of) {
     /* Construct path by following the parent-of relation to the root node */
     std::list<StreamManagementElement> path;
     unsigned char dst = node;
     unsigned char src = parent_of[node];
-    // TODO: figure out how to pass other parameters (period...)
-    path.push_back(StreamManagementElement(src, dst, 0, 0, Period::P1, 0));
+    // Copy over period, ports, ecc... from original multi-hop stream
+    path.push_back(StreamManagementElement(src, dst, stream.getSrcPort(), stream.getDstPort(), stream.getPeriod(), stream.getPayloadSize(), stream.getRedundancy()));
     /* The root node is the only to have itself as predecessor */
     while(parent_of[src] != src) {
         dst = src;

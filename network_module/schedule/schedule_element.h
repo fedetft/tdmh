@@ -35,12 +35,15 @@ class ScheduleElement {
 public:
     ScheduleElement() {}
     
-    ScheduleElement(unsigned char src, unsigned char dst,
-                    Period period, int offset) : src(src), dst(dst),
+    ScheduleElement(unsigned int id, unsigned char src, unsigned char dst,
+                    unsigned char srcPort, unsigned char dstPort,
+                    Period period, int offset) : id(id), src(src), dst(dst),
+                                                 srcPort(srcPort), dstPort(dstPort),
                                                  period(period), offset(offset) {};
 
     // Constructor copying data from StreamManagementElement
     ScheduleElement(StreamManagementElement stream, int off) {
+        id = stream.getKey();
         src = stream.getSrc();
         dst = stream.getDst();
         srcPort = stream.getSrcPort();
@@ -55,6 +58,7 @@ public:
     int getOffset() const { return offset; }
 
 private:
+    unsigned int id;
     unsigned char src;
     unsigned char dst;
     unsigned char srcPort;

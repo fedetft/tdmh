@@ -80,6 +80,8 @@ private:
 
     void printStreams();
 
+    void printStreamList(std::list<std::list<StreamManagementElement>> stream_list);        
+
     int gcd(int a, int b) {
         for (;;) {
             if (a == 0) return b;
@@ -133,7 +135,7 @@ public:
 
 private:
     std::list<StreamManagementElement> breadthFirstSearch(StreamManagementElement stream);
-    std::list<StreamManagementElement> construct_path(unsigned char node, std::map<const unsigned char, unsigned char> parent_of);
+    std::list<StreamManagementElement> construct_path(StreamManagementElement stream, unsigned char node, std::map<const unsigned char, unsigned char> parent_of);
     
 protected:
     int multipath;
