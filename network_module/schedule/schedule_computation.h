@@ -68,19 +68,19 @@ private:
 
     void scheduleStreams(unsigned long long tile_duration, ControlSuperframeStructure superframe);
 
-    bool slotConflictPossible(StreamManagementElement newtransm, ScheduleElement oldtransm, int offset, int tile_duration);
+    bool slotConflictPossible(ScheduleElement newtransm, ScheduleElement oldtransm, int offset, int tile_duration);
 
-    bool checkSlotConflict(StreamManagementElement newtransm, ScheduleElement oldtransm, int offset_a, int tile_duration, int schedule_size);
+    bool checkSlotConflict(ScheduleElement newtransm, ScheduleElement oldtransm, int offset_a, int tile_duration, int schedule_size);
 
-    bool checkUnicityConflict(StreamManagementElement new_transmission, ScheduleElement old_transmission);
+    bool checkUnicityConflict(ScheduleElement new_transmission, ScheduleElement old_transmission);
 
-    bool checkInterferenceConflict(StreamManagementElement new_transmission, ScheduleElement old_transmission);
+    bool checkInterferenceConflict(ScheduleElement new_transmission, ScheduleElement old_transmission);
 
     void printSchedule();
 
     void printStreams();
 
-    void printStreamList(std::list<std::list<StreamManagementElement>> stream_list);        
+    void printStreamList(std::list<std::list<ScheduleElement>> stream_list);        
 
     int gcd(int a, int b) {
         for (;;) {
@@ -102,7 +102,7 @@ private:
     // Class containing a snapshot of the network topology
     TopologyMap topology_map;
     // Expanded stream list after routing
-    std::list<std::list<StreamManagementElement>> routed_streams;
+    std::list<std::list<ScheduleElement>> routed_streams;
     // Final stream list after scheduling
     std::vector<ScheduleElement> schedule;
 
@@ -134,8 +134,8 @@ public:
     void run();
 
 private:
-    std::list<StreamManagementElement> breadthFirstSearch(StreamManagementElement stream);
-    std::list<StreamManagementElement> construct_path(StreamManagementElement stream, unsigned char node, std::map<const unsigned char, unsigned char> parent_of);
+    std::list<ScheduleElement> breadthFirstSearch(StreamManagementElement stream);
+    std::list<ScheduleElement> construct_path(StreamManagementElement stream, unsigned char node, std::map<const unsigned char, unsigned char> parent_of);
     
 protected:
     int multipath;

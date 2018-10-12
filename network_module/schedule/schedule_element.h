@@ -37,25 +37,37 @@ public:
     
     ScheduleElement(unsigned int id, unsigned char src, unsigned char dst,
                     unsigned char srcPort, unsigned char dstPort,
-                    Period period, int offset) : id(id), src(src), dst(dst),
+                    Redundancy redundancy, Period period,
+                    unsigned short payloadSize, int offset=0) : id(id), src(src), dst(dst),
                                                  srcPort(srcPort), dstPort(dstPort),
-                                                 period(period), offset(offset) {};
+                                                 redundancy(redundancy), period(period),
+                                                 payloadSize(payloadSize), offset(offset) {};
 
     // Constructor copying data from StreamManagementElement
-    ScheduleElement(StreamManagementElement stream, int off) {
+    ScheduleElement(StreamManagementElement stream, int off=0) {
         id = stream.getKey();
         src = stream.getSrc();
         dst = stream.getDst();
         srcPort = stream.getSrcPort();
         dstPort = stream.getDstPort();
+        redundancy = stream.getRedundancy();
         period = stream.getPeriod();
+        payloadSize = stream.getPayloadSize();
         offset = off;
     };
 
+    unsigned int getKey() const { return id; }
     unsigned char getSrc() const { return src; }
     unsigned char getDst() const { return dst; }
     Period getPeriod() const { return period; }
     int getOffset() const { return offset; }
+
+    void setOffset(unsigned int off) { offset = off; }
+
+    inline int toInt(Period x)
+    {
+        return static_cast<int>(x);
+    }
 
 private:
     unsigned int id;
@@ -63,8 +75,10 @@ private:
     unsigned char dst;
     unsigned char srcPort;
     unsigned char dstPort;
+    Redundancy redundancy;
     Period period;
-    int offset;
+    unsigned short payloadSize;
+    unsigned int offset;
 };
 
 
