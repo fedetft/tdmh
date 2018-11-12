@@ -67,13 +67,21 @@ enum class Redundancy
     TRIPLE_SPATIAL   //Triple redundancy, packets follow more than one path
 };
 
+enum class StreamStatus
+{
+    NEW,
+    ESTABLISHED,
+    REJECTED,
+    CLOSED
+};
+
 class StreamManagementElement : public SerializableMessage {
 public:
     StreamManagementElement() {}
     
     StreamManagementElement(unsigned char src, unsigned char dst, unsigned char srcPort,
                             unsigned char dstPort, Period period, unsigned char payloadSize,
-                            Redundancy redundancy=Redundancy::NONE)
+                            Redundancy redundancy=Redundancy::NONE, StreamStatus status=StreamStatus::NEW)
     {
         content.src=src;
         content.dst=dst;
@@ -82,6 +90,7 @@ public:
         content.period=static_cast<int>(period);
         content.payloadSize=payloadSize;
         content.redundancy=static_cast<int>(redundancy);
+        status=status;
     }
 
     void serialize(unsigned char* pkt) const override;
@@ -94,6 +103,9 @@ public:
     Redundancy getRedundancy() const { return static_cast<Redundancy>(content.redundancy); }
     Period getPeriod() const { return static_cast<Period>(content.period); }
     unsigned short getPayloadSize() const { return content.payloadSize; }
+    StreamStatus getStatus() const { return status; }
+
+    void setStatus(StreamStatus s) { status=s; }
 
     bool operator ==(const StreamManagementElement& other) const {
         return memcmp(&content,&other.content,sizeof(StreamManagementElementPkt))==0;
@@ -125,7 +137,7 @@ protected:
         unsigned int payloadSize:9;
     };
     StreamManagementElementPkt content;
+    StreamStatus status;
 };
-
 
 } /* namespace mxnet */

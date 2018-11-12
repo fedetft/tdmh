@@ -66,6 +66,10 @@ public:
 private: 
     void run();
 
+    void routeAndScheduleStreams(std::vector<StreamManagementElement> stream_list, unsigned long long tile_duration, ControlSuperframeStructure superframe);
+    
+    void copyEstablishedSchedule();
+
     void scheduleStreams(unsigned long long tile_duration, ControlSuperframeStructure superframe);
 
     bool slotConflictPossible(ScheduleElement newtransm, ScheduleElement oldtransm, int offset, int tile_duration);

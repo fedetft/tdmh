@@ -101,20 +101,28 @@ void ScheduleComputation::run() {
 
         // NOTE: Debug topology print
         printf("Topology:\n");
-        for (auto it : topology_map.getEdges())
+        for(auto it : topology_map.getEdges())
             printf("[%d - %d]\n", it.first, it.second);
 
-        // Run router to route multi-hop streams and get multiple paths
-        routed_streams.clear();
-        Router router(*this, 1, 2);
-        printf("## Routing ##\n");
-        router.run();
-        printf("Stream list after routing:\n");
-        printStreamList(routed_streams);
+        /* Here we prioritize established streams over new ones,
+           also we try to avoid unnecessary work like re-scheduling or
+           re-routing when topology or stream list did not change. */
 
-        // Schedule expanded streams, avoiding conflicts
-        printf("## Scheduling ##\n");
-        scheduleStreams(tile_duration, superframe);
+        // If topology changed or a stream was removed, reroute and reschedule established streams
+        if(topology_map.wasModified() || stream_mgmt.wasRemoved()) {
+            printf("Topology changed or a stream was removed, Re-scheduling all streams\n");
+            routeAndScheduleStreams(stream_snapshot.getEstablishedStreams(), tile_duration, superframe);
+        }
+        else {
+            printf("Topology did not change, Keep current schedule\n");
+            copyEstablishedSchedule();
+        }
+        // If there are new streams, route and schedule them
+        if(stream_mgmt.wasAdded()) {
+            printf("New stream added, scheduling new stream\n");
+            routeAndScheduleStreams(stream_snapshot.getNewStreams(), tile_duration, superframe);
+        }
+
         printSchedule();
         // To avoid caching of stdout
         fflush(stdout);
@@ -123,6 +131,25 @@ void ScheduleComputation::run() {
         topology_ctx.clearModifiedFlag();
         stream_mgmt.clearModifiedFlag();
     }
+}
+
+void ScheduleComputation::routeAndScheduleStreams(std::vector<StreamManagementElement> stream_list, unsigned long long tile_duration, ControlSuperframeStructure superframe) {
+    routed_streams.clear();
+    Router router(*this, 1, 2);
+    printf("## Routing ##\n");
+    // Run router to route multi-hop streams and get multiple paths
+    router.run();
+    printf("Stream list after routing:\n");
+    printStreamList(routed_streams);
+
+    // Schedule expanded streams, avoiding conflicts
+    printf("## Scheduling ##\n");
+    scheduleStreams(tile_duration, superframe);
+
+}
+
+void ScheduleComputation::copyEstablishedSchedule() {
+    //TODO: check that no copy is needed
 }
 
 void ScheduleComputation::addNewStreams(std::vector<StreamManagementElement>& smes) {

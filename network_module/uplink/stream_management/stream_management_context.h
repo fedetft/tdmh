@@ -81,23 +81,59 @@ public:
     int getStreamNumber();
 
     /**
-     * Return true if the map was modified since last time the flag was cleared 
+     * Return vector of stream elements marked as established
+     */
+    std::vector<StreamManagementElement> getEstablishedStreams();
+
+    /**
+     * Return vector of stream elements marked as new
+     */
+    std::vector<StreamManagementElement> getNewStreams();
+
+    /**
+     * Return true if the stream list was modified since last time the flag was cleared 
      */
     bool wasModified() const {
       return modified_flag;
     };
 
     /**
+     * Return true if any stream was removed since last time the flag was cleared 
+     */
+    bool wasRemoved() const {
+        return removed_flag;
+    };
+
+    /**
+     * Return true if any stream was added since last time the flag was cleared 
+     */
+    bool wasAdded() const {
+        return added_flag;
+    };
+
+    /**
+     * Set all flags to false
+     */
+    void clearFlags() {
+        modified_flag = false;
+        removed_flag = false;
+        added_flag = false;
+    };
+
+    /**
      * Set the modified_flag to false
      */
     void clearModifiedFlag() {
-      modified_flag = false;
+        modified_flag = false;
     };
+
 
 protected:
     std::vector<StreamManagementElement> opened;
     //IMPORTANT: this bit must be set to true whenever the data structure is modified
     bool modified_flag = false;
+    bool removed_flag = false;
+    bool added_flag = false;
 };
 
 class DynamicStreamManagementContext : public StreamManagementContext {

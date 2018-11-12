@@ -34,14 +34,14 @@ void MasterStreamManagementContext::receive(std::vector<StreamManagementElement>
     for (auto sme: smes) {
         open(sme);
     }
-    if (!smes.empty())
-        modified_flag = true;
 }
 
 void MasterStreamManagementContext::open(StreamManagementElement sme) {
     auto it = std::find_if(opened.begin(), opened.end(), [sme](StreamManagementElement el){return sme.getKey() == el.getKey(); });
-    if (it == opened.end())
+    if (it == opened.end()) {
         opened.push_back(sme);
+        added_flag = true;
+    }
     else {
         it = opened.erase(it);
         opened.insert(it, sme);
@@ -55,6 +55,22 @@ StreamManagementElement MasterStreamManagementContext::getStream(int index) {
 
 int MasterStreamManagementContext::getStreamNumber() {
     return opened.size();
+}
+
+std::vector<StreamManagementElement> MasterStreamManagementContext::getEstablishedStreams() {
+    std::vector<StreamManagementElement> established (opened.size());
+    auto it = std::copy_if (opened.begin(), opened.end(), established.begin(),
+                            [](StreamManagementElement el){return el.getStatus() == StreamStatus::ESTABLISHED; });
+    established.resize(std::distance(established.begin(),it));  // shrink container to new size
+    return established;
+}
+
+std::vector<StreamManagementElement> MasterStreamManagementContext::getNewStreams() {
+    std::vector<StreamManagementElement> new_streams (opened.size());
+    auto it = std::copy_if (opened.begin(), opened.end(), new_streams.begin(),
+                            [](StreamManagementElement el){return el.getStatus() == StreamStatus::NEW; });
+    new_streams.resize(std::distance(new_streams.begin(),it));  // shrink container to new size
+    return new_streams;
 }
 
 void DynamicStreamManagementContext::receive(std::vector<StreamManagementElement>& smes) {
