@@ -120,14 +120,6 @@ public:
         added_flag = false;
     };
 
-    /**
-     * Set the modified_flag to false
-     */
-    void clearModifiedFlag() {
-        modified_flag = false;
-    };
-
-
 protected:
     std::vector<StreamManagementElement> opened;
     //IMPORTANT: this bit must be set to true whenever the data structure is modified

@@ -134,7 +134,7 @@ void ScheduleComputation::run() {
 
         // Clear modified bit to detect changes to topology or streams
         topology_ctx.clearModifiedFlag();
-        stream_mgmt.clearModifiedFlag();
+        stream_mgmt.clearFlags();
     }
 }
 
