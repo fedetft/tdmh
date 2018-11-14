@@ -90,12 +90,10 @@ void ScheduleComputation::run() {
             stream_snapshot = stream_mgmt;
             topology_map = topology_ctx.getTopologyMap();
         }
-        /* From now on use only the snapshot class `stream_snapshot` */
-        // Retrieve information about the tile and superframe structure
-        // Get current controlsuperframe configuration
-        ControlSuperframeStructure superframe = mac_ctx.getNetworkConfig().getControlSuperframeStructure();
-        // Get tile duration
-        unsigned long long tile_duration = mac_ctx.getNetworkConfig().getTileDuration();
+        /* IMPORTANT!: From now on use only the snapshot class `stream_snapshot` */
+        // Get network config to get info about the tile and superframe structure
+        // used to get: tile_duration, controlsuperframestructure, numuplinkpackets, numdownlinkpackets
+        NetworkConfiguration netconfig = mac_ctx.getNetworkConfig();
 
         printf("\n#### Starting schedule computation ####\n\n");
         printStreams();
@@ -114,7 +112,7 @@ void ScheduleComputation::run() {
         if(topology_map.wasModified() || stream_mgmt.wasRemoved()) {
             printf("Topology changed or a stream was removed, Re-scheduling all streams\n");
             routed_streams.clear();
-            routeAndScheduleStreams(stream_snapshot.getEstablishedStreams(), tile_duration, superframe);
+            routeAndScheduleStreams(stream_snapshot.getEstablishedStreams(), netconfig);
         }
         else {
             printf("Topology did not change, Keep current schedule\n");
@@ -125,7 +123,7 @@ void ScheduleComputation::run() {
            route + schedule them and add them to existing schedule */
         if(stream_mgmt.wasAdded()) {
             printf("New stream added, scheduling new stream\n");
-            routeAndScheduleStreams(stream_snapshot.getNewStreams(), tile_duration, superframe);
+            routeAndScheduleStreams(stream_snapshot.getNewStreams(), netconfig);
         }
 
         printSchedule();
@@ -138,7 +136,8 @@ void ScheduleComputation::run() {
     }
 }
 
-void ScheduleComputation::routeAndScheduleStreams(std::vector<StreamManagementElement> stream_list, unsigned long long tile_duration, ControlSuperframeStructure superframe) {
+void ScheduleComputation::routeAndScheduleStreams(std::vector<StreamManagementElement> stream_list,
+                                                  NetworkConfiguration netconfig) {
     Router router(*this, 1, 2);
     printf("## Routing ##\n");
     // Run router to route multi-hop streams and get multiple paths
@@ -148,7 +147,7 @@ void ScheduleComputation::routeAndScheduleStreams(std::vector<StreamManagementEl
 
     // Schedule expanded streams, avoiding conflicts
     printf("## Scheduling ##\n");
-    scheduleStreams(tile_duration, superframe);
+    scheduleStreams(netconfig);
 }
 
 void ScheduleComputation::addNewStreams(std::vector<StreamManagementElement>& smes) {
@@ -169,7 +168,14 @@ void ScheduleComputation::open(StreamManagementElement sme) {
     stream_mgmt.open(sme);
 }
 
-void ScheduleComputation::scheduleStreams(unsigned long long tile_duration, ControlSuperframeStructure superframe) {
+void ScheduleComputation::scheduleStreams(NetworkConfiguration netconfig) {
+
+    // Get needed information from NetworkConfiguration
+    unsigned long long tile_duration = netconfig.getTileDuration();
+    ControlSuperframeStructure superframe = netconfig.getControlSuperframeStructure();
+    unsigned char uplink_size = netconfig.getNumUplinkPackets();
+    unsigned char downlink_size = 2; //netconfig.getNumDownlinkPackets();
+
     // Start with an empty schedule
     // If scheduling is successful, this vector will be moved to replace the "schedule" field
     std::vector<ScheduleElement> scheduled_transmissions;
@@ -205,6 +211,8 @@ void ScheduleComputation::scheduleStreams(unsigned long long tile_duration, Cont
             // Otherwise the resulting stream won't be periodic
             unsigned int max_offset = (toInt(transmission.getPeriod()) * tile_duration) - 1;
             for(unsigned int offset = last_offset; offset < max_offset; offset++) {
+                if(!checkDataSlot(offset, tile_duration, superframe, downlink_size, uplink_size))
+                    continue;
                 printf("Checking offset %d\n", offset);
                 // Cycle over already scheduled transmissions to check for conflicts
                 bool conflict = false;
@@ -266,7 +274,20 @@ void ScheduleComputation::scheduleStreams(unsigned long long tile_duration, Cont
     schedule = std::move(scheduled_transmissions);
 }
 
-
+// This check makes sure that data is not scheduled in control slots (Downlink, Uplink)
+bool ScheduleComputation::checkDataSlot(int offset, unsigned long long tile_duration,
+                                        ControlSuperframeStructure superframe,
+                                        unsigned char downlink_size,
+                                        unsigned char uplink_size) {
+    // Calculate current tile number
+    unsigned long long tile = offset / tile_duration; 
+    // Calculate position in current tile
+    unsigned long long slot = offset % tile_duration;
+    if((superframe.isControlDownlink(tile)) && (slot <= downlink_size) ||
+       superframe.isControlUplink(tile) && (slot <= uplink_size))
+        return false;
+    else return true;
+}
 
 // This easy check is a necessary condition for a slot conflict,
 // if the result is false, then a conflict cannot happen
@@ -373,7 +394,7 @@ void Router::run() {
         }
         // Insert routed path in place of multihop stream
         scheduler.routed_streams.push_back(path);
-        // If redundancy, run DFS
+        // TODO: If redundancy, run DFS
         if(multipath) {
             //int sol_size = path.size();
 

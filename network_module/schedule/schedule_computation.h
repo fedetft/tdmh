@@ -66,9 +66,11 @@ public:
 private: 
     void run();
 
-    void routeAndScheduleStreams(std::vector<StreamManagementElement> stream_list, unsigned long long tile_duration, ControlSuperframeStructure superframe);
+    void routeAndScheduleStreams(std::vector<StreamManagementElement> stream_list, NetworkConfiguration netconfig);
     
-    void scheduleStreams(unsigned long long tile_duration, ControlSuperframeStructure superframe);
+    void scheduleStreams(NetworkConfiguration netconfig);
+
+    bool checkDataSlot(int offset, unsigned long long tile_duration, ControlSuperframeStructure superframe, unsigned char downlink_size, unsigned char uplink_size);
 
     bool slotConflictPossible(ScheduleElement newtransm, ScheduleElement oldtransm, int offset, int tile_duration);
 
