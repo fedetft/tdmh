@@ -186,6 +186,11 @@ public:
     DataPhase* const getDataPhase() const { return data; }
 
     /**
+     * @return the number of slots (of data slot size) in a generic tile
+     */
+    unsigned getSlotsInTileCount() const { return numSlotInTile; }
+
+    /**
      * @return the number of data slots in an uplink tile
      */
     unsigned getDataSlotsInUplinkTileCount() const { return numDataSlotInUplinkTile; }
@@ -254,7 +259,8 @@ private:
     miosix::Transceiver& transceiver;
     miosix::PowerManager& pm;
     ControlSuperframeStructure controlSuperframe;
-    
+
+    unsigned numSlotInTile;
     unsigned numDataSlotInDownlinkTile;
     unsigned numDataSlotInUplinkTile;
 

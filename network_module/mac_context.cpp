@@ -64,9 +64,11 @@ StreamManagementContext* MACContext::getStreamManagementContext() const { return
 void MACContext::calculateDurations() {
     dataSlotDuration = DataPhase::getDuration();
     uplinkSlotDuration = UplinkPhase::getDuration(networkConfig.getNumUplinkPackets());
+    /* Align the Uplink slot duration is a multiple of the Data slot duration */
     if (uplinkSlotDuration % dataSlotDuration != 0)
         uplinkSlotDuration = (uplinkSlotDuration / dataSlotDuration + 1) * dataSlotDuration;
     auto downlinkMaxDuration = std::max(ScheduleDownlinkPhase::getDuration(networkConfig.getMaxHops()), TimesyncDownlink::getDuration(networkConfig.getMaxHops()));
+    /* Align the Downlink slot duration is a multiple of the Data slot duration */
     if (downlinkMaxDuration % dataSlotDuration == 0)
         downlinkSlotDuration = downlinkMaxDuration;
     else
@@ -138,7 +140,9 @@ RecvResult MACContext::recv(void *pkt, int size, long long timeout, std::functio
 void MACContext::warmUp() {
 
     auto tileDuration = networkConfig.getTileDuration();
-    if(tileDuration - downlinkSlotDuration < dataSlotDuration)
+    /* Tile size in number of data slots, needed for the scheduler */
+    numSlotInTile = tileDuration / dataSlotDuration;
+   if(tileDuration - downlinkSlotDuration < dataSlotDuration)
         throwLogicError("downlink slot (%lld) too large for tile (%lld)", downlinkSlotDuration, tileDuration);
 
     if(tileDuration - uplinkSlotDuration < dataSlotDuration)

@@ -70,11 +70,11 @@ private:
     
     void scheduleStreams(NetworkConfiguration netconfig);
 
-    bool checkDataSlot(int offset, unsigned long long tile_duration, ControlSuperframeStructure superframe, unsigned char downlink_size, unsigned char uplink_size);
+    bool checkDataSlot(unsigned offset, unsigned tile_size, ControlSuperframeStructure superframe, unsigned downlink_size, unsigned uplink_size);
 
-    bool slotConflictPossible(ScheduleElement newtransm, ScheduleElement oldtransm, int offset, int tile_duration);
+    bool slotConflictPossible(ScheduleElement newtransm, ScheduleElement oldtransm, unsigned offset, unsigned tile_size);
 
-    bool checkSlotConflict(ScheduleElement newtransm, ScheduleElement oldtransm, int offset_a, int tile_duration, int schedule_size);
+    bool checkSlotConflict(ScheduleElement newtransm, ScheduleElement oldtransm, unsigned offset_a, unsigned tile_size, unsigned schedule_size);
 
     bool checkUnicityConflict(ScheduleElement new_transmission, ScheduleElement old_transmission);
 
@@ -132,7 +132,7 @@ private:
 class Router {
 public:
     Router(ScheduleComputation& scheduler, bool multipath, int more_hops) : 
-        scheduler(scheduler) {};
+        scheduler(scheduler), multipath(multipath), more_hops(more_hops) {};
     virtual ~Router() {};
 
     void run();
@@ -142,7 +142,8 @@ private:
     std::list<ScheduleElement> construct_path(StreamManagementElement stream, unsigned char node, std::map<const unsigned char, unsigned char> parent_of);
     
 protected:
-    int multipath;
+    bool multipath;
+    int more_hops;
     // References to other classes
     ScheduleComputation& scheduler;
 };

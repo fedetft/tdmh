@@ -92,7 +92,7 @@ void ScheduleComputation::run() {
         }
         /* IMPORTANT!: From now on use only the snapshot class `stream_snapshot` */
         // Get network config to get info about the tile and superframe structure
-        // used to get: tile_duration, controlsuperframestructure, numuplinkpackets, numdownlinkpackets
+        // used to get controlsuperframestructure
         NetworkConfiguration netconfig = mac_ctx.getNetworkConfig();
 
         printf("\n#### Starting schedule computation ####\n\n");
@@ -170,11 +170,16 @@ void ScheduleComputation::open(StreamManagementElement sme) {
 
 void ScheduleComputation::scheduleStreams(NetworkConfiguration netconfig) {
 
-    // Get needed information from NetworkConfiguration
-    unsigned long long tile_duration = netconfig.getTileDuration();
+    // Get network tile/superframe information
     ControlSuperframeStructure superframe = netconfig.getControlSuperframeStructure();
-    unsigned char uplink_size = netconfig.getNumUplinkPackets();
-    unsigned char downlink_size = 2; //netconfig.getNumDownlinkPackets();
+    unsigned tile_size = mac_ctx.getSlotsInTileCount();
+    unsigned dataslots_downlinktile = mac_ctx.getDataSlotsInDownlinkTileCount();
+    unsigned dataslots_uplinktile = mac_ctx.getDataSlotsInUplinkTileCount();
+    unsigned downlink_size = tile_size - dataslots_downlinktile;
+    unsigned uplink_size = tile_size - dataslots_uplinktile;
+
+    printf("Network configuration:\n- tile_size: %d\n- downlink_size: %d\n- uplink_size: %d\n",
+           tile_size, downlink_size, uplink_size);
 
     // Start with an empty schedule
     // If scheduling is successful, this vector will be moved to replace the "schedule" field
@@ -209,17 +214,17 @@ void ScheduleComputation::scheduleStreams(NetworkConfiguration netconfig) {
             // The offset must be smaller than (stream period * minimum period size)-1
             // with minimum period size being equal to the tile lenght (by design)
             // Otherwise the resulting stream won't be periodic
-            unsigned int max_offset = (toInt(transmission.getPeriod()) * tile_duration) - 1;
-            for(unsigned int offset = last_offset; offset < max_offset; offset++) {
-                if(!checkDataSlot(offset, tile_duration, superframe, downlink_size, uplink_size))
+            unsigned max_offset = (toInt(transmission.getPeriod()) * tile_size) - 1;
+            for(unsigned offset = last_offset; offset < max_offset; offset++) {
+                if(!checkDataSlot(offset, tile_size, superframe, downlink_size, uplink_size))
                     continue;
                 printf("Checking offset %d\n", offset);
                 // Cycle over already scheduled transmissions to check for conflicts
                 bool conflict = false;
                 for(auto elem : scheduled_transmissions) {
                     // conflictPossible is a simple condition used to reduce number of conflict checks
-                    if(slotConflictPossible(transmission, elem, offset, tile_duration)) {
-                        if(checkSlotConflict(transmission, elem, offset, tile_duration, schedule_size)) {
+                    if(slotConflictPossible(transmission, elem, offset, tile_size)) {
+                        if(checkSlotConflict(transmission, elem, offset, tile_size, schedule_size)) {
                             printf("Other transmissions have timeslots in common\n");
                             /* Conflict checks */
                             // Unicity check: no activity for src or dst node in a given timeslot
@@ -243,7 +248,7 @@ void ScheduleComputation::scheduleStreams(NetworkConfiguration netconfig) {
                     last_offset = offset;
                     block_size++;
                     // Calculate new schedule size
-                    int period = toInt(transmission.getPeriod());
+                    unsigned period = toInt(transmission.getPeriod());
                     if(schedule_size == 0)
                         schedule_size = period;
                     else
@@ -275,14 +280,14 @@ void ScheduleComputation::scheduleStreams(NetworkConfiguration netconfig) {
 }
 
 // This check makes sure that data is not scheduled in control slots (Downlink, Uplink)
-bool ScheduleComputation::checkDataSlot(int offset, unsigned long long tile_duration,
+bool ScheduleComputation::checkDataSlot(unsigned offset, unsigned tile_size,
                                         ControlSuperframeStructure superframe,
-                                        unsigned char downlink_size,
-                                        unsigned char uplink_size) {
+                                        unsigned downlink_size,
+                                        unsigned uplink_size) {
     // Calculate current tile number
-    unsigned long long tile = offset / tile_duration; 
+    unsigned tile = offset / tile_size; 
     // Calculate position in current tile
-    unsigned long long slot = offset % tile_duration;
+    unsigned slot = offset % tile_size;
     if((superframe.isControlDownlink(tile)) && (slot <= downlink_size) ||
        superframe.isControlUplink(tile) && (slot <= uplink_size))
         return false;
@@ -292,19 +297,19 @@ bool ScheduleComputation::checkDataSlot(int offset, unsigned long long tile_dura
 // This easy check is a necessary condition for a slot conflict,
 // if the result is false, then a conflict cannot happen
 // It can be used to avoid nested loops
-bool ScheduleComputation::slotConflictPossible(ScheduleElement newtransm, ScheduleElement oldtransm, int offset, int tile_duration) {
+bool ScheduleComputation::slotConflictPossible(ScheduleElement newtransm, ScheduleElement oldtransm, unsigned offset, unsigned tile_size) {
     // Compare offsets relative to current tile of two transmissions
-    return ((offset % tile_duration) == (oldtransm.getOffset() % tile_duration));
+    return ((offset % tile_size) == (oldtransm.getOffset() % tile_size));
 }
 
 // Extensive check to be used when slotConflictPossible returns true
-bool ScheduleComputation::checkSlotConflict(ScheduleElement newtransm, ScheduleElement oldtransm, int offset_a, int tile_duration, int schedule_size) {
+bool ScheduleComputation::checkSlotConflict(ScheduleElement newtransm, ScheduleElement oldtransm, unsigned offset_a, unsigned tile_size, unsigned schedule_size) {
     // Calculate slots used by the two transmissions and see if there is any common value
-    int periodslots_a = toInt(newtransm.getPeriod()) * tile_duration;
-    int periodslots_b = toInt(oldtransm.getPeriod()) * tile_duration;
+    unsigned periodslots_a = toInt(newtransm.getPeriod()) * tile_size;
+    unsigned periodslots_b = toInt(oldtransm.getPeriod()) * tile_size;
 
-    for(int slot_a=offset_a; slot_a < schedule_size; slot_a += periodslots_a) {
-        for(int slot_b=oldtransm.getOffset(); slot_b < schedule_size; slot_b += periodslots_b) {
+    for(unsigned slot_a=offset_a; slot_a < schedule_size; slot_a += periodslots_a) {
+        for(unsigned slot_b=oldtransm.getOffset(); slot_b < schedule_size; slot_b += periodslots_b) {
             if(slot_a == slot_b)
                 return true;
         }
