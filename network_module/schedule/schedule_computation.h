@@ -66,9 +66,9 @@ public:
 private: 
     void run();
 
-    void routeAndScheduleStreams(std::vector<StreamManagementElement> stream_list, NetworkConfiguration netconfig);
+    std::vector<ScheduleElement> routeAndScheduleStreams(std::vector<StreamManagementElement> stream_list, NetworkConfiguration netconfig);
     
-    void scheduleStreams(NetworkConfiguration netconfig);
+    std::vector<ScheduleElement> scheduleStreams(std::list<std::list<ScheduleElement>> routed_streams, NetworkConfiguration netconfig);
 
     bool checkDataSlot(unsigned offset, unsigned tile_size, ControlSuperframeStructure superframe, unsigned downlink_size, unsigned uplink_size);
 
@@ -82,7 +82,7 @@ private:
 
     void printSchedule();
 
-    void printStreams();
+    void printStreams(std::vector<StreamManagementElement> stream_list);
 
     void printStreamList(std::list<std::list<ScheduleElement>> stream_list);        
 
@@ -105,8 +105,6 @@ private:
     MasterStreamManagementContext stream_snapshot;
     // Class containing a snapshot of the network topology
     TopologyMap topology_map;
-    // Expanded stream list after routing
-    std::list<std::list<ScheduleElement>> routed_streams;
     // Final stream list after scheduling
     std::vector<ScheduleElement> schedule;
 
@@ -135,7 +133,7 @@ public:
         scheduler(scheduler), multipath(multipath), more_hops(more_hops) {};
     virtual ~Router() {};
 
-    void run();
+    std::list<std::list<ScheduleElement>> run(std::vector<StreamManagementElement> stream_list);
 
 private:
     std::list<ScheduleElement> breadthFirstSearch(StreamManagementElement stream);

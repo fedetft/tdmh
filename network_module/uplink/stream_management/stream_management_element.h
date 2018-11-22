@@ -81,16 +81,16 @@ public:
     
     StreamManagementElement(unsigned char src, unsigned char dst, unsigned char srcPort,
                             unsigned char dstPort, Period period, unsigned char payloadSize,
-                            Redundancy redundancy=Redundancy::NONE, StreamStatus status=StreamStatus::NEW)
+                            Redundancy redundancy=Redundancy::NONE, StreamStatus st=StreamStatus::NEW)
     {
         content.src=src;
         content.dst=dst;
         content.srcPort=srcPort;
         content.dstPort=dstPort;
-        content.period=static_cast<int>(period);
+        content.period=static_cast<unsigned int>(period);
         content.payloadSize=payloadSize;
-        content.redundancy=static_cast<int>(redundancy);
-        status=status;
+        content.redundancy=static_cast<unsigned int>(redundancy);
+        status=static_cast<unsigned int>(st);
     }
 
     void serialize(unsigned char* pkt) const override;
@@ -103,9 +103,9 @@ public:
     Redundancy getRedundancy() const { return static_cast<Redundancy>(content.redundancy); }
     Period getPeriod() const { return static_cast<Period>(content.period); }
     unsigned short getPayloadSize() const { return content.payloadSize; }
-    StreamStatus getStatus() const { return status; }
+    StreamStatus getStatus() const { return static_cast<StreamStatus>(status); }
 
-    void setStatus(StreamStatus s) { status=s; }
+    void setStatus(StreamStatus s) { status=static_cast<unsigned int>(s); }
 
     bool operator ==(const StreamManagementElement& other) const {
         return memcmp(&content,&other.content,sizeof(StreamManagementElementPkt))==0;
@@ -137,7 +137,7 @@ protected:
         unsigned int payloadSize:9;
     };
     StreamManagementElementPkt content;
-    StreamStatus status;
+    unsigned int status;
 };
 
 } /* namespace mxnet */

@@ -95,8 +95,7 @@ void ScheduleComputation::run() {
         // used to get controlsuperframestructure
         NetworkConfiguration netconfig = mac_ctx.getNetworkConfig();
 
-        printf("\n#### Starting schedule computation ####\n\n");
-        printStreams();
+        printf("\n#### Starting schedule computation ####\n");
 
         // NOTE: Debug topology print
         printf("Topology:\n");
@@ -107,15 +106,24 @@ void ScheduleComputation::run() {
            also we try to avoid unnecessary work like re-scheduling or
            re-routing when topology or stream list did not change. */
 
+        printf("Total streams: %d\n", stream_snapshot.getStreamNumber());
+        auto established_streams = stream_snapshot.getEstablishedStreams();
+        auto new_streams = stream_snapshot.getNewStreams();
+        printf("Established streams: %d\n", established_streams.size());
+        printStreams(established_streams);
+        printf("New streams: %d\n", new_streams.size());
+        printStreams(new_streams);
+
         /* If topology changed or a stream was removed:
            clear current schedule and reroute + reschedule established streams */
         if(topology_map.wasModified() || stream_mgmt.wasRemoved()) {
             printf("Topology changed or a stream was removed, Re-scheduling all streams\n");
-            routed_streams.clear();
-            routeAndScheduleStreams(stream_snapshot.getEstablishedStreams(), netconfig);
+            schedule.clear();
+            auto new_schedule = routeAndScheduleStreams(established_streams, netconfig);
+            schedule = std::move(new_schedule);
         }
         else {
-            printf("Topology did not change, Keep current schedule\n");
+            printf("Topology and current streams did not change, Keep established schedule\n");
             /* No action is needed since the old schedule is kept unless
                it is explicitly removed with routed_streams.clear() */
         }
@@ -123,7 +131,19 @@ void ScheduleComputation::run() {
            route + schedule them and add them to existing schedule */
         if(stream_mgmt.wasAdded()) {
             printf("New stream added, scheduling new stream\n");
-            routeAndScheduleStreams(stream_snapshot.getNewStreams(), netconfig);
+            //Sort new streams based on highest period first
+            std::sort(new_streams.begin(), new_streams.end(),
+                      [](StreamManagementElement a, StreamManagementElement b) {
+                          return toInt(a.getPeriod()) > toInt(b.getPeriod());});
+            printf("New streams after sorting:\n");
+            printStreams(new_streams);
+            auto new_schedule = routeAndScheduleStreams(new_streams, netconfig);
+            schedule.insert(schedule.end(), new_schedule.begin(), new_schedule.end());
+            //Mark new streams as established
+            for(auto stream: new_streams)
+                stream.setStatus(StreamStatus::ESTABLISHED);
+            //Update stream queue
+            stream_mgmt.receive(new_streams);
         }
 
         printSchedule();
@@ -136,18 +156,20 @@ void ScheduleComputation::run() {
     }
 }
 
-void ScheduleComputation::routeAndScheduleStreams(std::vector<StreamManagementElement> stream_list,
+std::vector<ScheduleElement> ScheduleComputation::routeAndScheduleStreams(
+                                                  std::vector<StreamManagementElement> stream_list,
                                                   NetworkConfiguration netconfig) {
     Router router(*this, 1, 2);
     printf("## Routing ##\n");
     // Run router to route multi-hop streams and get multiple paths
-    router.run();
+    auto routed_streams = router.run(stream_list);
     printf("Stream list after routing:\n");
     printStreamList(routed_streams);
 
     // Schedule expanded streams, avoiding conflicts
     printf("## Scheduling ##\n");
-    scheduleStreams(netconfig);
+    auto new_schedule = scheduleStreams(routed_streams, netconfig);
+    return new_schedule;
 }
 
 void ScheduleComputation::addNewStreams(std::vector<StreamManagementElement>& smes) {
@@ -168,7 +190,8 @@ void ScheduleComputation::open(StreamManagementElement sme) {
     stream_mgmt.open(sme);
 }
 
-void ScheduleComputation::scheduleStreams(NetworkConfiguration netconfig) {
+std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(std::list<std::list<ScheduleElement>> routed_streams,
+                                          NetworkConfiguration netconfig) {
 
     // Get network tile/superframe information
     ControlSuperframeStructure superframe = netconfig.getControlSuperframeStructure();
@@ -191,7 +214,7 @@ void ScheduleComputation::scheduleStreams(NetworkConfiguration netconfig) {
         int block_size = 0;
         bool stream_err = false;
         // Counter to last slot offset: ensures sequentiality
-        int last_offset = 0;
+        unsigned last_offset = 0;
         for(auto transmission : stream) {
             unsigned char src = transmission.getSrc();
             unsigned char dst = transmission.getDst();
@@ -276,7 +299,7 @@ void ScheduleComputation::scheduleStreams(NetworkConfiguration netconfig) {
         }
     }
     printf("Final schedule size: %d\n", schedule_size);
-    schedule = std::move(scheduled_transmissions);
+    return scheduled_transmissions;
 }
 
 // This check makes sure that data is not scheduled in control slots (Downlink, Uplink)
@@ -297,13 +320,18 @@ bool ScheduleComputation::checkDataSlot(unsigned offset, unsigned tile_size,
 // This easy check is a necessary condition for a slot conflict,
 // if the result is false, then a conflict cannot happen
 // It can be used to avoid nested loops
-bool ScheduleComputation::slotConflictPossible(ScheduleElement newtransm, ScheduleElement oldtransm, unsigned offset, unsigned tile_size) {
+bool ScheduleComputation::slotConflictPossible(ScheduleElement newtransm,
+                                               ScheduleElement oldtransm,
+                                               unsigned offset, unsigned tile_size) {
     // Compare offsets relative to current tile of two transmissions
     return ((offset % tile_size) == (oldtransm.getOffset() % tile_size));
 }
 
 // Extensive check to be used when slotConflictPossible returns true
-bool ScheduleComputation::checkSlotConflict(ScheduleElement newtransm, ScheduleElement oldtransm, unsigned offset_a, unsigned tile_size, unsigned schedule_size) {
+bool ScheduleComputation::checkSlotConflict(ScheduleElement newtransm,
+                                            ScheduleElement oldtransm,
+                                            unsigned offset_a, unsigned tile_size,
+                                            unsigned schedule_size) {
     // Calculate slots used by the two transmissions and see if there is any common value
     unsigned periodslots_a = toInt(newtransm.getPeriod()) * tile_size;
     unsigned periodslots_b = toInt(oldtransm.getPeriod()) * tile_size;
@@ -317,7 +345,8 @@ bool ScheduleComputation::checkSlotConflict(ScheduleElement newtransm, ScheduleE
     return false;
 }
 
-bool ScheduleComputation::checkUnicityConflict(ScheduleElement new_transmission, ScheduleElement old_transmission) {
+bool ScheduleComputation::checkUnicityConflict(ScheduleElement new_transmission,
+                                               ScheduleElement old_transmission) {
     // Unicity check: no activity for src or dst node on a given timeslot
     unsigned char src_a = new_transmission.getSrc();
     unsigned char dst_a = new_transmission.getDst();
@@ -327,7 +356,8 @@ bool ScheduleComputation::checkUnicityConflict(ScheduleElement new_transmission,
     return (src_a == src_b) || (src_a == dst_b) || (dst_a == src_b) || (dst_a == dst_b);
 }
 
-bool ScheduleComputation::checkInterferenceConflict(ScheduleElement new_transmission, ScheduleElement old_transmission) {
+bool ScheduleComputation::checkInterferenceConflict(ScheduleElement new_transmission,
+                                                    ScheduleElement old_transmission) {
     // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
     // Check that neighbors of src (TX) aren't receiving (RX)
     // And neighbors of dst (RX) aren't transmitting (TX)
@@ -350,14 +380,11 @@ void ScheduleComputation::printSchedule() {
     }
 }
 
-void ScheduleComputation::printStreams() {
-    printf("Stream requests:\n");
+void ScheduleComputation::printStreams(std::vector<StreamManagementElement> stream_list) {
     printf("ID  SRC DST PER\n");
-    int num_streams = stream_snapshot.getStreamNumber();
-    // Cycle over stream_requests
-    for(int i=0; i<num_streams; i++) {
-        StreamManagementElement stream = stream_snapshot.getStream(i);
-        printf("%d  %d-->%d   %d\n", stream.getKey(), stream.getSrc(), stream.getDst(), toInt(stream.getPeriod()));
+    for(auto stream : stream_list) {
+        printf("%d  %d-->%d   %d\n", stream.getKey(), stream.getSrc(),
+                                     stream.getDst(), toInt(stream.getPeriod()));
     }
 }
 
@@ -365,26 +392,26 @@ void ScheduleComputation::printStreamList(std::list<std::list<ScheduleElement>> 
     printf("ID  SRC DST PER\n");
     for (auto block : stream_list)
         for (auto stream : block)
-            printf("%d  %d-->%d   %d\n", stream.getKey(), stream.getSrc(), stream.getDst(), toInt(stream.getPeriod()));
+            printf("%d  %d-->%d   %d\n", stream.getKey(), stream.getSrc(),
+                                       stream.getDst(), toInt(stream.getPeriod()));
 }
 
-void Router::run() {
-    int num_streams = scheduler.stream_snapshot.getStreamNumber();
-    printf("Routing %d stream requests\n", num_streams);
+std::list<std::list<ScheduleElement>> Router::run(std::vector<StreamManagementElement> stream_list) {
+    std::list<std::list<ScheduleElement>> routed_streams;
+    printf("Routing %d stream requests\n", stream_list.size());
     // Cycle over stream_requests
-    for(int i=0; i<num_streams; i++) {
-        StreamManagementElement stream = scheduler.stream_snapshot.getStream(i);
+    for(auto stream: stream_list) {
         unsigned char src = stream.getSrc();
         unsigned char dst = stream.getDst();
-        printf("Routing stream n.%d: %d,%d\n", i, src, dst);
+        printf("Routing stream %d->%d\n", src, dst);
 
         // Check if 1-hop
         if(scheduler.topology_map.hasEdge(src, dst)) {
             // Add stream as is to final List
-            printf("Stream n.%d: %d,%d is single hop\n", i, src, dst);
+            printf("Stream %d->%d is single hop\n", src, dst);
             std::list<ScheduleElement> single_hop;
             single_hop.push_back(ScheduleElement(stream));
-            scheduler.routed_streams.push_back(single_hop);
+            routed_streams.push_back(single_hop);
             continue;
         }
         // Otherwise run BFS
@@ -398,15 +425,15 @@ void Router::run() {
             printf("\n");
         }
         // Insert routed path in place of multihop stream
-        scheduler.routed_streams.push_back(path);
+        routed_streams.push_back(path);
         // TODO: If redundancy, run DFS
         if(multipath) {
             //int sol_size = path.size();
 
         }
     }
+    return routed_streams;
 }
-
 
 std::list<ScheduleElement> Router::breadthFirstSearch(StreamManagementElement stream) {
     unsigned char root = stream.getSrc();
