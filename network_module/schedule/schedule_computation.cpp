@@ -110,8 +110,8 @@ void ScheduleComputation::run() {
         auto established_streams = stream_snapshot.getEstablishedStreams();
         auto new_streams = stream_snapshot.getNewStreams();
         printf("Established streams: %d\n", established_streams.size());
-        printStreams(established_streams);
         printf("New streams: %d\n", new_streams.size());
+        printStreams(established_streams);
         printStreams(new_streams);
 
         /* If topology changed or a stream was removed:
@@ -140,8 +140,10 @@ void ScheduleComputation::run() {
             auto new_schedule = routeAndScheduleStreams(new_streams, netconfig);
             schedule.insert(schedule.end(), new_schedule.begin(), new_schedule.end());
             //Mark new streams as established
-            for(auto stream: new_streams)
+            for(auto& stream: new_streams)
                 stream.setStatus(StreamStatus::ESTABLISHED);
+            printf("NEW STREAM LIST\n");
+            printStreams(new_streams);
             //Update stream queue
             stream_mgmt.receive(new_streams);
         }
@@ -210,12 +212,12 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(std::list<std:
     // Schedulesize value is equal to lcm(p1,p2,...,pn) or p1 for a single stream
     int schedule_size = 0;
 
-    for(auto stream : routed_streams) {
+    for(auto& stream : routed_streams) {
         int block_size = 0;
         bool stream_err = false;
         // Counter to last slot offset: ensures sequentiality
         unsigned last_offset = 0;
-        for(auto transmission : stream) {
+        for(auto& transmission : stream) {
             unsigned char src = transmission.getSrc();
             unsigned char dst = transmission.getDst();
             printf("Scheduling transmission %d,%d\n", src, dst);
@@ -244,7 +246,7 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(std::list<std:
                 printf("Checking offset %d\n", offset);
                 // Cycle over already scheduled transmissions to check for conflicts
                 bool conflict = false;
-                for(auto elem : scheduled_transmissions) {
+                for(auto& elem : scheduled_transmissions) {
                     // conflictPossible is a simple condition used to reduce number of conflict checks
                     if(slotConflictPossible(transmission, elem, offset, tile_size)) {
                         if(checkSlotConflict(transmission, elem, offset, tile_size, schedule_size)) {
@@ -374,17 +376,32 @@ bool ScheduleComputation::checkInterferenceConflict(ScheduleElement new_transmis
 
 void ScheduleComputation::printSchedule() {
     printf("ID  SRC DST PER OFF\n");
-    for(auto elem : schedule) {
+    for(auto& elem : schedule) {
         printf("%d  %d-->%d   %d   %d\n", elem.getKey(), elem.getSrc(), elem.getDst(),
                                         toInt(elem.getPeriod()), elem.getOffset());
     }
 }
 
 void ScheduleComputation::printStreams(std::vector<StreamManagementElement> stream_list) {
-    printf("ID  SRC DST PER\n");
-    for(auto stream : stream_list) {
-        printf("%d  %d-->%d   %d\n", stream.getKey(), stream.getSrc(),
-                                     stream.getDst(), toInt(stream.getPeriod()));
+    printf("ID  SRC DST PER STS\n");
+    for(auto& stream : stream_list) {
+        printf("%d  %d-->%d   %d  ", stream.getKey(), stream.getSrc(),
+               stream.getDst(), toInt(stream.getPeriod()));
+        switch(stream.getStatus()){
+        case StreamStatus::NEW:
+            printf("NEW");
+            break;
+        case StreamStatus::ESTABLISHED:
+            printf("EST");
+            break;
+        case StreamStatus::REJECTED:
+            printf("REJ");
+            break;
+        case StreamStatus::CLOSED:
+            printf("CLO");
+            break;
+        }
+        printf("\n");
     }
 }
 
@@ -400,7 +417,7 @@ std::list<std::list<ScheduleElement>> Router::run(std::vector<StreamManagementEl
     std::list<std::list<ScheduleElement>> routed_streams;
     printf("Routing %d stream requests\n", stream_list.size());
     // Cycle over stream_requests
-    for(auto stream: stream_list) {
+    for(auto& stream: stream_list) {
         unsigned char src = stream.getSrc();
         unsigned char dst = stream.getDst();
         printf("Routing stream %d->%d\n", src, dst);
@@ -419,7 +436,7 @@ std::list<std::list<ScheduleElement>> Router::run(std::vector<StreamManagementEl
         if(!path.empty()) {
             // Print routed path
             printf("Path found: \n");
-            for(auto s : path) {
+            for(auto& s : path) {
                 printf("%d->%d ", s.getSrc(), s.getDst());
             }
             printf("\n");
