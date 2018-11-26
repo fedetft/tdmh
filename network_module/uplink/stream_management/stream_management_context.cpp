@@ -57,6 +57,11 @@ int MasterStreamManagementContext::getStreamNumber() {
     return opened.size();
 }
 
+std::vector<StreamManagementElement> MasterStreamManagementContext::getStreams() {
+    auto streams = opened;
+    return streams;
+}
+
 std::vector<StreamManagementElement> MasterStreamManagementContext::getEstablishedStreams() {
     std::vector<StreamManagementElement> established (opened.size());
     auto it = std::copy_if (opened.begin(), opened.end(), established.begin(),
@@ -71,6 +76,24 @@ std::vector<StreamManagementElement> MasterStreamManagementContext::getNewStream
                             [](StreamManagementElement el){return el.getStatus() == StreamStatus::NEW; });
     new_streams.resize(std::distance(new_streams.begin(),it));  // shrink container to new size
     return new_streams;
+}
+
+bool MasterStreamManagementContext::hasNewStreams() const {
+    auto it = std::find_if(opened.begin(), opened.end(),
+                            [](StreamManagementElement el){return el.getStatus() == StreamStatus::NEW; });
+    if (it == opened.end())
+        return false;
+    else
+        return true;
+}
+
+
+void MasterStreamManagementContext::setStreamStatus(unsigned int key, StreamStatus status) {
+    auto it = std::find_if(opened.begin(), opened.end(), [key](StreamManagementElement el){return key == el.getKey(); });
+    if (it != opened.end()) {
+        it->setStatus(status);
+    }
+    //TODO: Manage the case in which the stream we want to modify is not present
 }
 
 void DynamicStreamManagementContext::receive(std::vector<StreamManagementElement>& smes) {

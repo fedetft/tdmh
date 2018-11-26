@@ -81,6 +81,11 @@ public:
     int getStreamNumber();
 
     /**
+     * Return vector containing all the streams
+     */
+    std::vector<StreamManagementElement> getStreams();
+
+    /**
      * Return vector of stream elements marked as established
      */
     std::vector<StreamManagementElement> getEstablishedStreams();
@@ -91,10 +96,15 @@ public:
     std::vector<StreamManagementElement> getNewStreams();
 
     /**
+     * Return true if there are streams not yet scheduled
+     */
+    bool hasNewStreams() const;
+
+    /**
      * Return true if the stream list was modified since last time the flag was cleared 
      */
     bool wasModified() const {
-      return modified_flag;
+        return modified_flag;
     };
 
     /**
@@ -110,6 +120,11 @@ public:
     bool wasAdded() const {
         return added_flag;
     };
+
+    /**
+     * Set the status field of a stream
+     */
+    void setStreamStatus(unsigned int key, StreamStatus status);
 
     /**
      * Set all flags to false

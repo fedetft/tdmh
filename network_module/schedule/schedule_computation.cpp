@@ -129,26 +129,29 @@ void ScheduleComputation::run() {
         }
         /* If there are new streams:
            route + schedule them and add them to existing schedule */
-        if(stream_mgmt.wasAdded()) {
-            printf("New stream added, scheduling new stream\n");
+        if(stream_mgmt.hasNewStreams()) {
+            printf("Scheduling new stream\n");
             //Sort new streams based on highest period first
             std::sort(new_streams.begin(), new_streams.end(),
                       [](StreamManagementElement a, StreamManagementElement b) {
                           return toInt(a.getPeriod()) > toInt(b.getPeriod());});
-            printf("New streams after sorting:\n");
-            printStreams(new_streams);
+            //printf("New streams after sorting:\n");
+            //printStreams(new_streams);
             auto new_schedule = routeAndScheduleStreams(new_streams, netconfig);
             schedule.insert(schedule.end(), new_schedule.begin(), new_schedule.end());
-            //Mark new streams as established
-            for(auto& stream: new_streams)
-                stream.setStatus(StreamStatus::ESTABLISHED);
-            printf("NEW STREAM LIST\n");
-            printStreams(new_streams);
-            //Update stream queue
-            stream_mgmt.receive(new_streams);
+            //Mark successfully scheduled streams as established
+            for(auto& stream: new_schedule) {
+                printf("Setting stream %d to ESTABLISHED\n", stream.getKey());
+                stream_mgmt.setStreamStatus(stream.getKey(), StreamStatus::ESTABLISHED);
+            }
         }
 
+        printf("Final schedule\n");
         printSchedule();
+
+        printf("Stream list after scheduling\n");
+        printStreams(stream_mgmt.getStreams());
+
         // To avoid caching of stdout
         fflush(stdout);
 

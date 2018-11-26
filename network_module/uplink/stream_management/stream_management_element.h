@@ -75,6 +75,16 @@ enum class StreamStatus
     CLOSED
 };
 
+struct StreamManagementElementPkt {
+    unsigned int src:8;
+    unsigned int dst:8;
+    unsigned int srcPort:4;
+    unsigned int dstPort:4;
+    unsigned int redundancy:3;
+    unsigned int period:4;
+    unsigned int payloadSize:9;
+};
+
 class StreamManagementElement : public SerializableMessage {
 public:
     StreamManagementElement() {}
@@ -127,15 +137,6 @@ public:
     }
 
 protected:
-    struct StreamManagementElementPkt {
-        unsigned int src:8;
-        unsigned int dst:8;
-        unsigned int srcPort:4;
-        unsigned int dstPort:4;
-        unsigned int redundancy:3;
-        unsigned int period:4;
-        unsigned int payloadSize:9;
-    };
     StreamManagementElementPkt content;
     unsigned int status;
 };

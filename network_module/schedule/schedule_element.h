@@ -35,33 +35,40 @@ class ScheduleElement {
 public:
     ScheduleElement() {}
     
-    ScheduleElement(unsigned int id, unsigned char src, unsigned char dst,
+    ScheduleElement(unsigned int key, unsigned char src, unsigned char dst,
                     unsigned char srcPort, unsigned char dstPort,
                     Redundancy redundancy, Period period,
-                    unsigned short payloadSize, int offset=0) : id(id), src(src), dst(dst),
-                                                 srcPort(srcPort), dstPort(dstPort),
-                                                 redundancy(redundancy), period(period),
-                                                 payloadSize(payloadSize), offset(offset) {};
+                    unsigned short payloadSize, unsigned int off=0)
+    {
+        id = key;
+        offset = off;
+        content.src = src;
+        content.dst = dst;
+        content.srcPort = srcPort;
+        content.dstPort = dstPort;
+        content.period=static_cast<unsigned int>(period);
+        content.payloadSize=payloadSize;
+        content.redundancy=static_cast<unsigned int>(redundancy);
+    }
 
     // Constructor copying data from StreamManagementElement
-    ScheduleElement(StreamManagementElement stream, int off=0) {
+    ScheduleElement(StreamManagementElement stream, unsigned int off=0) {
         id = stream.getKey();
-        src = stream.getSrc();
-        dst = stream.getDst();
-        srcPort = stream.getSrcPort();
-        dstPort = stream.getDstPort();
-        redundancy = stream.getRedundancy();
-        period = stream.getPeriod();
-        payloadSize = stream.getPayloadSize();
+        content.src = stream.getSrc();
+        content.dst = stream.getDst();
+        content.srcPort = stream.getSrcPort();
+        content.dstPort = stream.getDstPort();
+        content.redundancy = static_cast<unsigned int>(stream.getRedundancy());
+        content.period = static_cast<unsigned int>(stream.getPeriod());
+        content.payloadSize = stream.getPayloadSize();
         offset = off;
     };
 
     unsigned int getKey() const { return id; }
-    unsigned char getSrc() const { return src; }
-    unsigned char getDst() const { return dst; }
-    Period getPeriod() const { return period; }
-    int getOffset() const { return offset; }
-
+    unsigned char getSrc() const { return content.src; }
+    unsigned char getDst() const { return content.dst; }
+    Period getPeriod() const { return static_cast<Period>(content.period); }
+    unsigned int getOffset() const { return offset; }
     void setOffset(unsigned int off) { offset = off; }
 
     inline int toInt(Period x)
@@ -70,16 +77,9 @@ public:
     }
 
 private:
+    StreamManagementElementPkt content;
     unsigned int id;
-    unsigned char src;
-    unsigned char dst;
-    unsigned char srcPort;
-    unsigned char dstPort;
-    Redundancy redundancy;
-    Period period;
-    unsigned short payloadSize;
     unsigned int offset;
 };
-
 
 } /* namespace mxnet */
