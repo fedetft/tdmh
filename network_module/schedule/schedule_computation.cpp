@@ -81,7 +81,9 @@ void ScheduleComputation::run() {
             }
             // IF stream list not changed AND topology not changed
             // Skip to next for loop cycle
-            if(!(topology_ctx.getTopologyMap().wasModified() || stream_mgmt.wasModified())) {
+            if(topology_ctx.getTopologyMap().isEmpty() ||
+               !(topology_ctx.getTopologyMap().wasModified() ||
+                 stream_mgmt.wasModified())) {
                 printf("-");
                 continue;
             }
@@ -117,7 +119,7 @@ void ScheduleComputation::run() {
         /* If topology changed or a stream was removed:
            clear current schedule and reroute + reschedule established streams */
         if(topology_map.wasModified() || stream_mgmt.wasRemoved()) {
-            printf("Topology changed or a stream was removed, Re-scheduling all streams\n");
+            printf("Topology changed or a stream was removed, Re-scheduling established streams\n");
             schedule.clear();
             auto new_schedule = routeAndScheduleStreams(established_streams, netconfig);
             schedule = std::move(new_schedule);
@@ -130,7 +132,7 @@ void ScheduleComputation::run() {
         /* If there are new streams:
            route + schedule them and add them to existing schedule */
         if(stream_mgmt.hasNewStreams()) {
-            printf("Scheduling new stream\n");
+            printf("Scheduling new streams\n");
             //Sort new streams based on highest period first
             std::sort(new_streams.begin(), new_streams.end(),
                       [](StreamManagementElement a, StreamManagementElement b) {
@@ -164,17 +166,25 @@ void ScheduleComputation::run() {
 std::vector<ScheduleElement> ScheduleComputation::routeAndScheduleStreams(
                                                   std::vector<StreamManagementElement> stream_list,
                                                   NetworkConfiguration netconfig) {
-    Router router(*this, 1, 2);
-    printf("## Routing ##\n");
-    // Run router to route multi-hop streams and get multiple paths
-    auto routed_streams = router.run(stream_list);
-    printf("Stream list after routing:\n");
-    printStreamList(routed_streams);
+    if(!stream_list.empty()) {
+        Router router(*this, 1, 2);
+        printf("## Routing ##\n");
+        // Run router to route multi-hop streams and get multiple paths
+        auto routed_streams = router.run(stream_list);
+        printf("Stream list after routing:\n");
+        printStreamList(routed_streams);
 
-    // Schedule expanded streams, avoiding conflicts
-    printf("## Scheduling ##\n");
-    auto new_schedule = scheduleStreams(routed_streams, netconfig);
-    return new_schedule;
+        // Schedule expanded streams, avoiding conflicts
+        printf("## Scheduling ##\n");
+        auto new_schedule = scheduleStreams(routed_streams, netconfig);
+        return new_schedule;
+    }
+    else {
+        printf("Stream list empty, scheduling done.\n");
+        std::vector<ScheduleElement> empty;
+        return empty;
+    }
+
 }
 
 void ScheduleComputation::addNewStreams(std::vector<StreamManagementElement>& smes) {

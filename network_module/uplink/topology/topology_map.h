@@ -88,6 +88,13 @@ public:
     bool hasNode(unsigned char a) const;
 
     /**
+     * Returns true if the map doesn't contain any node
+     */
+    bool isEmpty() const {
+        return edges.empty();  
+    };
+
+    /**
      * Return true if the map was modified since last time the flag was cleared 
      */
     bool wasModified() const {
