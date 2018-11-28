@@ -75,7 +75,7 @@ void NeighborTable::setNeighbors(std::vector<bool>& neighbors) {
         this->neighbors[i] = neighbors[i];
 }
 
-void NeighborTable::serialize(unsigned char* pkt) const {
+void NeighborTable::serializeImpl(unsigned char* pkt) const {
     memcpy(pkt, neighbors.data(), neighbors.size());
 }
 
@@ -128,9 +128,9 @@ std::size_t ForwardedNeighborMessage::size() const {
     return neighbors.size() + 1;
 }
 
-void ForwardedNeighborMessage::serialize(unsigned char* pkt) const {
+void ForwardedNeighborMessage::serializeImpl(unsigned char* pkt) const {
     pkt[0] = nodeId;
-    neighbors.serialize(pkt + 1);
+    neighbors.serializeImpl(pkt + 1);
 }
 
 ForwardedNeighborMessage* ForwardedNeighborMessage::deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration& config) {
@@ -162,12 +162,12 @@ NeighborMessage::NeighborMessage(NeighborTable neighbors,
                     TopologyMessage(config), neighbors(neighbors), forwardedTopologies(forwarded) {
 }
 
-void NeighborMessage::serialize(unsigned char* pkt) const {
-    neighbors.serialize(pkt);
+void NeighborMessage::serializeImpl(unsigned char* pkt) const {
+    neighbors.serializeImpl(pkt);
     auto curSize = neighbors.size();
     pkt[curSize++] = forwardedTopologies.size();
     for (auto t: forwardedTopologies) {
-        t->serialize(pkt + curSize);
+        t->serializeImpl(pkt + curSize);
         curSize += t->size();
     }
 }
@@ -195,7 +195,7 @@ bool RoutingLink::operator ==(const RoutingLink& b) const {
     return memcmp(&content, &b.content, sizeof(RoutingLinkPkt)) == 0;
 }
 
-void RoutingLink::serialize(unsigned char* pkt) const {
+void RoutingLink::serializeImpl(unsigned char* pkt) const {
     memcpy(pkt, &content, sizeof(RoutingLinkPkt));
 }
 
@@ -210,11 +210,11 @@ RoutingLink* RoutingLink::deserialize(unsigned char* pkt, const NetworkConfigura
     return retval;
 }
 
-void RoutingVector::serialize(unsigned char* pkt) const {
+void RoutingVector::serializeImpl(unsigned char* pkt) const {
     auto linkSize = RoutingLink::maxSize();
     auto it = links.begin();
     for (int i = 0; it != links.end(); i += linkSize, it++)
-        memcpy(pkt + i, links[i]->serialize().data(), linkSize);
+        links[i]->serializeImpl(pkt+i);
 }
 
 RoutingVector* RoutingVector::deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration& config) {

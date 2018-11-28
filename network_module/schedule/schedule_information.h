@@ -50,8 +50,7 @@ public:
      * @return the network id of the receiver node
      */
     unsigned char getNodeId() { return content.nodeId; }
-    using BitSerializableMessage::serialize;
-    void serialize(unsigned char* pkt, unsigned short startBit) const override;
+    void serializeImpl(unsigned char* pkt, unsigned short startBit) const override;
     static ScheduleTransition deserialize(std::vector<unsigned char>& pkt, unsigned short startBit);
     static ScheduleTransition deserialize(unsigned char* pkt, unsigned short startBit);
 
@@ -122,8 +121,7 @@ public:
      * @return the transitions included in the schedule
      */
     std::vector<ScheduleTransition>& getTransitions() { return transitions; }
-    using ScheduleDeltaElement::serialize;
-    void serialize(unsigned char* pkt, unsigned short startBit) const override;
+    void serializeImpl(unsigned char* pkt, unsigned short startBit) const override;
     static ScheduleAddition* deserialize(std::vector<unsigned char>& pkt, unsigned short startBit);
     static ScheduleAddition* deserialize(unsigned char* pkt, unsigned short startBit);
     std::size_t size() const override {
@@ -156,8 +154,7 @@ public:
     ScheduleDeletion(unsigned short scheduleId) : ScheduleDeltaElement(DELETION), scheduleId(scheduleId) {};
     virtual ~ScheduleDeletion() {};
     unsigned short getScheduleId() override { return scheduleId; }
-    using ScheduleDeltaElement::serialize;
-    void serialize(unsigned char* pkt, unsigned short startBit) const override;
+    void serializeImpl(unsigned char* pkt, unsigned short startBit) const override;
     static ScheduleDeletion* deserialize(std::vector<unsigned char>& pkt, unsigned short startBit);
     static ScheduleDeletion* deserialize(unsigned char* pkt, unsigned short startBit);
     std::size_t size() const override { return 1; }
@@ -179,8 +176,7 @@ public:
     virtual ~ScheduleDelta() {};
     std::vector<ScheduleAddition*>& getAdditions() { return additions; }
     std::vector<ScheduleDeletion*>& getDeletions() { return deletions; }
-    using BitSerializableMessage::serialize;
-    void serialize(unsigned char* pkt, unsigned short startBit) const override;
+    void serializeImpl(unsigned char* pkt, unsigned short startBit) const override;
     static ScheduleDelta deserialize(std::vector<unsigned char>& pkt);
     std::size_t size() const override;
     std::size_t bitSize() const override;

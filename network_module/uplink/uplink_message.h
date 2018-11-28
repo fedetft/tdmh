@@ -44,7 +44,7 @@ public:
 
     virtual ~UplinkMessage() {};
 
-    void serialize(unsigned char* pkt) const override;
+    void serializeImpl(unsigned char* pkt) const override;
 
     static UplinkMessage deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration& config);
 

@@ -30,13 +30,13 @@
 
 namespace mxnet {
 
-void UplinkMessage::serialize(unsigned char* pkt) const {
+void UplinkMessage::serializeImpl(unsigned char* pkt) const {
     memcpy(pkt, reinterpret_cast<unsigned char*>(const_cast<UplinkMessagePkt*>(&content)), sizeof(UplinkMessagePkt));
     pkt += sizeof(UplinkMessagePkt);
-    topology->serialize(pkt);
+    topology->serializeImpl(pkt);
     pkt += topology->size();
     for (StreamManagementElement sme : smes) {
-        sme.serialize(pkt);
+        sme.serializeImpl(pkt);
         pkt += sme.size();
     }
 }

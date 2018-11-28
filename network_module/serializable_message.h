@@ -29,6 +29,7 @@
 
 #include <vector>
 #include <cassert>
+#include <array>
 
 namespace mxnet {
 
@@ -50,7 +51,7 @@ public:
      */
     virtual std::vector<unsigned char> serialize() const {
         std::vector<unsigned char> retval(size());
-        serialize(retval);
+        serializeImpl(retval.data());
         return retval;
     }
 
@@ -60,7 +61,17 @@ public:
      */
     virtual void serialize(std::vector<unsigned char>& pkt) const {
         assert(pkt.size() >= size());
-        serialize(pkt.data());
+        serializeImpl(pkt.data());
+    }
+
+    /**
+     * Serializes the structure into the provided array of bytes.
+     * @param pkt the buffer in which the data will be serialized.
+     */
+    template<unsigned int N>
+    void serialize(std::array<unsigned char, N>& pkt) const {
+        assert(pkt.size() >= size());
+        serializeImpl(pkt.data());
     }
 
     /**
@@ -68,7 +79,7 @@ public:
      * The pointer must reference a memory area of at least `size()` bytes
      * @param pkt the buffer in which the data will be serialized.
      */
-    virtual void serialize(unsigned char* pkt) const = 0;
+    virtual void serializeImpl(unsigned char* pkt) const = 0;
 
     //static SerializableMessage deserialize(std::vector<unsigned char>& pkt);
     //static SerializableMessage deserialize(unsigned char* pkt);
@@ -102,7 +113,7 @@ public:
      */
     virtual std::vector<unsigned char> serialize() const {
         std::vector<unsigned char> retval(size());
-        serialize(retval.data(), 0);
+        serializeImpl(retval.data(), 0);
         return retval;
     }
 
@@ -111,7 +122,17 @@ public:
      * @param pkt the buffer in which the data will be serialized.
      */
     virtual void serialize(std::vector<unsigned char>& pkt, unsigned short startBit) const {
-        serialize(pkt.data(), startBit);
+        serializeImpl(pkt.data(), startBit);
+    }
+
+    /**
+     * Serializes the structure into the provided array of bytes.
+     * @param pkt the buffer in which the data will be serialized.
+     */
+    template<unsigned int N>
+    void serialize(std::array<unsigned char, N>& pkt, unsigned short startBit) const {
+        assert(pkt.size() >= size());
+        serializeImpl(pkt.data(), startBit);
     }
 
     /**
@@ -120,7 +141,7 @@ public:
      * @param pkt the buffer in which the data will be serialized.
      * @param startBit the offset in bits, starting from 0, at which the data starts to be positioned.
      */
-    virtual void serialize(unsigned char* pkt, unsigned short startBit) const = 0;
+    virtual void serializeImpl(unsigned char* pkt, unsigned short startBit) const = 0;
     //static SerializableMessage deserialize(std::vector<unsigned char>& pkt, const unsigned char startBit);
     //static SerializableMessage deserialize(unsigned char* pkt, const unsigned char startBit);
 

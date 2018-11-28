@@ -33,7 +33,7 @@
 
 namespace mxnet {
 
-void ScheduleTransition::serialize(unsigned char* pkt, unsigned short startBit) const {
+void ScheduleTransition::serializeImpl(unsigned char* pkt, unsigned short startBit) const {
     BitwiseOps::bitwisePopulateBitArrTop<unsigned char>(
             pkt, sizeof(ScheduleTransitionPkt), reinterpret_cast<unsigned char*>(const_cast<ScheduleTransitionPkt*>(&content)), sizeof(ScheduleTransitionPkt) + 1, startBit, bitSize());
 }
@@ -53,12 +53,12 @@ ScheduleTransition ScheduleTransition::deserialize(unsigned char* pkt, unsigned 
     return ScheduleTransition(content);
 }
 
-void ScheduleAddition::serialize(unsigned char* pkt, unsigned short startBit) const {
+void ScheduleAddition::serializeImpl(unsigned char* pkt, unsigned short startBit) const {
     auto bitCount = 33;
     BitwiseOps::bitwisePopulateBitArrTop<unsigned char>(
             pkt, sizeof(ScheduleAdditionPkt) + 1, reinterpret_cast<unsigned char*>(const_cast<ScheduleAdditionPkt*>(&content)), sizeof(ScheduleAdditionPkt) + 1, startBit, bitCount);
     for (auto st : transitions) {
-        st.serialize(pkt, bitCount);
+        st.serializeImpl(pkt, bitCount);
         bitCount += st.bitSize();
     }
 }
@@ -84,7 +84,7 @@ ScheduleAddition* ScheduleAddition::deserialize(unsigned char* pkt, unsigned sho
     return new ScheduleAddition(content, std::move(transitions));
 }
 
-void ScheduleDeletion::serialize(unsigned char* pkt, unsigned short startBit) const {
+void ScheduleDeletion::serializeImpl(unsigned char* pkt, unsigned short startBit) const {
     auto idx = startBit / std::numeric_limits<unsigned char>::digits;
     auto msbShift = startBit % std::numeric_limits<unsigned char>::digits;
     auto lsbShift = std::numeric_limits<unsigned char>::digits - msbShift;
@@ -111,11 +111,11 @@ ScheduleDeletion* ScheduleDeletion::deserialize(unsigned char* pkt, unsigned sho
     return new ScheduleDeletion(pkt[idx] << msbShift | (msbShift == 0? 0 : pkt[idx + 1] >> lsbShift));
 }
 
-void ScheduleDelta::serialize(unsigned char* pkt, unsigned short startBit) const {
+void ScheduleDelta::serializeImpl(unsigned char* pkt, unsigned short startBit) const {
     pkt[0] = additions.size();
     auto bitCount = std::numeric_limits<unsigned char>::digits;
     for (auto sa : additions) {
-        sa->serialize(pkt, bitCount);
+        sa->serializeImpl(pkt, bitCount);
         bitCount += sa->bitSize();
     }
 

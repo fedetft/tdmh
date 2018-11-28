@@ -105,7 +105,7 @@ public:
      */
     void setNeighbors(std::vector<bool>& neighbors);
 
-    void serialize(unsigned char* pkt) const override;
+    void serializeImpl(unsigned char* pkt) const override;
 
     static NeighborTable deserialize(std::vector<unsigned char>& pkt, unsigned short nodeCount);
 
@@ -161,7 +161,7 @@ public:
      */
     NeighborTable getNeighbors() const { return neighbors; }
 
-    void serialize(unsigned char* pkt) const override;
+    void serializeImpl(unsigned char* pkt) const override;
     static ForwardedNeighborMessage* deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration& config);
     static ForwardedNeighborMessage* deserialize(unsigned char* pkt, const NetworkConfiguration& config);
     std::size_t size() const override;
@@ -205,7 +205,7 @@ public:
      */
     std::vector<ForwardedNeighborMessage*> getForwardedTopologies() const { return forwardedTopologies; }
 
-    void serialize(unsigned char* pkt) const override;
+    void serializeImpl(unsigned char* pkt) const override;
     static NeighborMessage* deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration& config);
     static NeighborMessage* deserialize(unsigned char* pkt, const NetworkConfiguration& config);
     std::size_t size() const override {
@@ -257,8 +257,7 @@ public:
      */
     static unsigned short maxSize() { return sizeof(RoutingLinkPkt); }
 
-    using TopologyElement::serialize;
-    void serialize(unsigned char* pkt) const override;
+    void serializeImpl(unsigned char* pkt) const override;
     static RoutingLink* deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration& config);
     static RoutingLink* deserialize(unsigned char* pkt, const NetworkConfiguration& config);
     std::size_t size() const override { return maxSize(); }
@@ -301,8 +300,7 @@ public:
     static std::size_t size(unsigned char forwardedTopologies) {
         return forwardedTopologies * RoutingLink::maxSize();
     }
-    using TopologyMessage::serialize;
-    void serialize(unsigned char* pkt) const override;
+    void serializeImpl(unsigned char* pkt) const override;
     static RoutingVector* deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration& config);
     static RoutingVector* deserialize(unsigned char* pkt, const NetworkConfiguration& config);
     std::size_t size() const override { return size(links.size()); }

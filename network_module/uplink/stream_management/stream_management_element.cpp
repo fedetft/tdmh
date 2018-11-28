@@ -30,7 +30,7 @@
 
 namespace mxnet {
 
-void StreamManagementElement::serialize(unsigned char* pkt) const {
+void StreamManagementElement::serializeImpl(unsigned char* pkt) const {
     memcpy(pkt, &content, size());
 }
 

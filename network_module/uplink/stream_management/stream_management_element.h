@@ -103,7 +103,7 @@ public:
         status=static_cast<unsigned int>(st);
     }
 
-    void serialize(unsigned char* pkt) const override;
+    void serializeImpl(unsigned char* pkt) const override;
     static std::vector<StreamManagementElement> deserialize(std::vector<unsigned char>& pkt);
     static std::vector<StreamManagementElement> deserialize(unsigned char* pkt, std::size_t size);
     unsigned char getSrc() const { return content.src; }
