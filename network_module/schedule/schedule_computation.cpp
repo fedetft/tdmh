@@ -231,13 +231,13 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(std::list<std:
         // Counter to last slot offset: ensures sequentiality
         unsigned last_offset = 0;
         for(auto& transmission : stream) {
-            unsigned char src = transmission.getSrc();
-            unsigned char dst = transmission.getDst();
-            printf("Scheduling transmission %d,%d\n", src, dst);
+            unsigned char tx = transmission.getTx();
+            unsigned char rx = transmission.getRx();
+            printf("Scheduling transmission %d,%d\n", tx, rx);
             // Connectivity check
-            if(!topology_map.hasEdge(src,dst)) {
+            if(!topology_map.hasEdge(tx, rx)) {
                 stream_err = true;
-                printf("%d,%d are not connected in topology, cannot schedule stream\n", src, dst);
+                printf("%d,%d are not connected in topology, cannot schedule stream\n", tx, rx);
             }
             // If a transmission cannot be scheduled, undo the whole stream
             if(stream_err) {
@@ -294,12 +294,12 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(std::list<std:
                     // Add transmission to schedule, and set schedule offset
                     scheduled_transmissions.push_back(transmission);
                     scheduled_transmissions.back().setOffset(offset);
-                    printf("Scheduled transmission %d,%d with offset %d\n", src, dst, offset);
+                    printf("Scheduled transmission %d,%d with offset %d\n", tx, rx, offset);
                     // Successfully scheduled transmission, break timeslot cycle
                     break;
                     }
                 else {
-                    printf("Cannot schedule stream %d,%d with offset %d\n", src, dst, offset);
+                    printf("Cannot schedule transmission %d,%d with offset %d\n", tx, rx, offset);
                     //Try to schedule in next timeslot
 
                 }
@@ -326,8 +326,8 @@ bool ScheduleComputation::checkDataSlot(unsigned offset, unsigned tile_size,
     unsigned tile = offset / tile_size; 
     // Calculate position in current tile
     unsigned slot = offset % tile_size;
-    if((superframe.isControlDownlink(tile)) && (slot <= downlink_size) ||
-       superframe.isControlUplink(tile) && (slot <= uplink_size))
+    if((superframe.isControlDownlink(tile) && (slot <= downlink_size)) ||
+       (superframe.isControlUplink(tile) && (slot <= uplink_size)))
         return false;
     else return true;
 }
@@ -362,35 +362,35 @@ bool ScheduleComputation::checkSlotConflict(ScheduleElement newtransm,
 
 bool ScheduleComputation::checkUnicityConflict(ScheduleElement new_transmission,
                                                ScheduleElement old_transmission) {
-    // Unicity check: no activity for src or dst node on a given timeslot
-    unsigned char src_a = new_transmission.getSrc();
-    unsigned char dst_a = new_transmission.getDst();
-    unsigned char src_b = old_transmission.getSrc();
-    unsigned char dst_b = old_transmission.getDst();
+    // Unicity check: no activity for TX or RX node on a given timeslot
+    unsigned char tx_a = new_transmission.getTx();
+    unsigned char rx_a = new_transmission.getRx();
+    unsigned char tx_b = old_transmission.getTx();
+    unsigned char rx_b = old_transmission.getRx();
 
-    return (src_a == src_b) || (src_a == dst_b) || (dst_a == src_b) || (dst_a == dst_b);
+    return (tx_a == tx_b) || (tx_a == rx_b) || (rx_a == tx_b) || (rx_a == rx_b);
 }
 
 bool ScheduleComputation::checkInterferenceConflict(ScheduleElement new_transmission,
                                                     ScheduleElement old_transmission) {
     // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
-    // Check that neighbors of src (TX) aren't receiving (RX)
-    // And neighbors of dst (RX) aren't transmitting (TX)
-    unsigned char src_a = new_transmission.getSrc();
-    unsigned char dst_a = new_transmission.getDst();
-    unsigned char src_b = old_transmission.getSrc();
-    unsigned char dst_b = old_transmission.getDst();
+    // Check that neighbors of transmitting node (TX) aren't receiving (RX)
+    // And neighbors of receiving node (RX) aren't transmitting (TX)
+    unsigned char tx_a = new_transmission.getTx();
+    unsigned char rx_a = new_transmission.getRx();
+    unsigned char tx_b = old_transmission.getTx();
+    unsigned char rx_b = old_transmission.getRx();
 
     bool conflict = false;
-    conflict |= topology_map.hasEdge(src_a, dst_b);
-    conflict |= topology_map.hasEdge(dst_a, src_b);
+    conflict |= topology_map.hasEdge(tx_a, rx_b);
+    conflict |= topology_map.hasEdge(rx_a, tx_b);
     return conflict;
 }
 
 void ScheduleComputation::printSchedule() {
-    printf("ID  SRC DST PER OFF\n");
+    printf("ID   TX  RX  PER OFF\n");
     for(auto& elem : schedule) {
-        printf("%d  %d-->%d   %d   %d\n", elem.getKey(), elem.getSrc(), elem.getDst(),
+        printf("%d  %d-->%d   %d   %d\n", elem.getKey(), elem.getTx(), elem.getRx(),
                                         toInt(elem.getPeriod()), elem.getOffset());
     }
 }
@@ -419,11 +419,11 @@ void ScheduleComputation::printStreams(std::vector<StreamManagementElement> stre
 }
 
 void ScheduleComputation::printStreamList(std::list<std::list<ScheduleElement>> stream_list) {
-    printf("ID  SRC DST PER\n");
+    printf("ID  TX  RX  PER\n");
     for (auto block : stream_list)
         for (auto stream : block)
-            printf("%d  %d-->%d   %d\n", stream.getKey(), stream.getSrc(),
-                                       stream.getDst(), toInt(stream.getPeriod()));
+            printf("%d  %d-->%d   %d\n", stream.getKey(), stream.getTx(),
+                                       stream.getRx(), toInt(stream.getPeriod()));
 }
 
 std::list<std::list<ScheduleElement>> Router::run(std::vector<StreamManagementElement> stream_list) {
@@ -450,7 +450,7 @@ std::list<std::list<ScheduleElement>> Router::run(std::vector<StreamManagementEl
             // Print routed path
             printf("Path found: \n");
             for(auto& s : path) {
-                printf("%d->%d ", s.getSrc(), s.getDst());
+                printf("%d->%d ", s.getTx(), s.getRx());
             }
             printf("\n");
         }
@@ -528,16 +528,14 @@ std::list<ScheduleElement> Router::construct_path(StreamManagementElement stream
     unsigned char dst = node;
     unsigned char src = parent_of[node];
     // Copy over period, ports, ecc... from original multi-hop stream
-    path.push_back(ScheduleElement(stream.getKey(), src, dst, stream.getSrcPort(),
-                                   stream.getDstPort(), stream.getRedundancy(),
-                                   stream.getPeriod(), stream.getPayloadSize()));
+    path.push_back(ScheduleElement(stream.getSrc(), stream.getDst(), stream.getSrcPort(),
+                                   stream.getDstPort(), src, dst, stream.getPeriod()));
     /* The root node is the only to have itself as predecessor */
     while(parent_of[src] != src) {
         dst = src;
         src = parent_of[dst];
-        path.push_back(ScheduleElement(stream.getKey(), src, dst, stream.getSrcPort(),
-                                       stream.getDstPort(), stream.getRedundancy(),
-                                       stream.getPeriod(), stream.getPayloadSize()));
+        path.push_back(ScheduleElement(stream.getSrc(), stream.getDst(), stream.getSrcPort(),
+                                       stream.getDstPort(), src, dst, stream.getPeriod()));
     }
     path.reverse();
     return path;

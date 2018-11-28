@@ -26,60 +26,96 @@
  ***************************************************************************/
 
 #pragma once
-
+#include "../serializable_message.h"
 #include "../uplink/stream_management/stream_management_element.h"
 
 namespace mxnet {
 
+struct ScheduleElementHeader {
+    unsigned int totalPacket:16;
+    unsigned int currentPacket:16;
+    unsigned int scheduleID:32;
+    unsigned int currentRepetition:2;
+    unsigned int countdown:6;
+};
+
+struct ScheduleElementPkt {
+    unsigned int src:8;
+    unsigned int dst:8;
+    unsigned int srcPort:4;
+    unsigned int dstPort:4;
+    unsigned int tx:8;
+    unsigned int rx:8;
+    unsigned int period:4;
+    unsigned int offset:20;
+};
+
+/* TODO: add or remove completely the following info to ScheduleElementPkt
+   unsigned int redundancy:3;
+   unsigned int payloadSize:9?; */
+
 class ScheduleElement {
 public:
     ScheduleElement() {}
-    
-    ScheduleElement(unsigned int key, unsigned char src, unsigned char dst,
-                    unsigned char srcPort, unsigned char dstPort,
-                    Redundancy redundancy, Period period,
-                    unsigned short payloadSize, unsigned int off=0)
+
+    ScheduleElement(unsigned char src, unsigned char dst, unsigned char srcPort,
+                    unsigned char dstPort, unsigned char tx, unsigned char rx,
+                    Period period, unsigned int off=0)
     {
-        id = key;
-        offset = off;
         content.src = src;
         content.dst = dst;
         content.srcPort = srcPort;
         content.dstPort = dstPort;
+        content.tx = tx;
+        content.rx = rx;
         content.period=static_cast<unsigned int>(period);
-        content.payloadSize=payloadSize;
-        content.redundancy=static_cast<unsigned int>(redundancy);
+        //content.payloadSize=payloadSize;
+        //content.redundancy=static_cast<unsigned int>(redundancy);
+        content.offset = off;
     }
 
     // Constructor copying data from StreamManagementElement
     ScheduleElement(StreamManagementElement stream, unsigned int off=0) {
-        id = stream.getKey();
         content.src = stream.getSrc();
         content.dst = stream.getDst();
         content.srcPort = stream.getSrcPort();
         content.dstPort = stream.getDstPort();
-        content.redundancy = static_cast<unsigned int>(stream.getRedundancy());
+        // If a ScheduleElement is created from a stream, then tx=src, rx=dst
+        // because it is a single-hop transmission
+        content.tx = stream.getSrc();
+        content.rx = stream.getDst();
         content.period = static_cast<unsigned int>(stream.getPeriod());
-        content.payloadSize = stream.getPayloadSize();
-        offset = off;
+        //content.redundancy = static_cast<unsigned int>(stream.getRedundancy());
+        //content.payloadSize = stream.getPayloadSize();
+        content.offset = off;
     };
 
-    unsigned int getKey() const { return id; }
+    void serializeImpl(unsigned char* pkt) const;
+    static std::vector<ScheduleElement> deserialize(std::vector<unsigned char>& pkt);
+    static std::vector<ScheduleElement> deserialize(unsigned char* pkt, std::size_t size);
     unsigned char getSrc() const { return content.src; }
     unsigned char getDst() const { return content.dst; }
+    unsigned char getTx() const { return content.tx; }
+    unsigned char getRx() const { return content.rx; }
     Period getPeriod() const { return static_cast<Period>(content.period); }
-    unsigned int getOffset() const { return offset; }
-    void setOffset(unsigned int off) { offset = off; }
+    unsigned int getOffset() const { return content.offset; }
+    void setOffset(unsigned int off) { content.offset = off; }
 
-    inline int toInt(Period x)
+    static unsigned short headerSize() { return sizeof(ScheduleElementHeader); }
+    static unsigned short contentSize() { return sizeof(ScheduleElementPkt); }
+    static unsigned short maxSize() { return headerSize() + contentSize(); }
+
+    /**
+     * \return an unique key for each stream
+     */
+    unsigned int getKey() const
     {
-        return static_cast<int>(x);
+        return content.src | content.dst<<8 | content.srcPort<<16 | content.dstPort<<20;
     }
 
 private:
-    StreamManagementElementPkt content;
-    unsigned int id;
-    unsigned int offset;
+    ScheduleElementHeader header;
+    ScheduleElementPkt content;
 };
 
 } /* namespace mxnet */
