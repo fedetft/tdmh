@@ -36,7 +36,7 @@ using namespace miosix;
 namespace mxnet {
 
 void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
-    auto arrivalTime = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
+    /*auto arrivalTime = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
     auto wakeupTimeout = timesync->getWakeupAndTimeout(arrivalTime);
     if (ENABLE_SCHEDULE_DL_INFO_DBG)
         print_dbg("[S] WU=%lld TO=%lld\n", wakeupTimeout.first, wakeupTimeout.second);
@@ -69,7 +69,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     //Rebroadcast the sync packet
     rebroadcast(rcvResult.timestamp);
     ctx.transceiverIdle();
-    parseSchedule();
+    parseSchedule();*/
 }
 
 void DynamicScheduleDownlinkPhase::rebroadcast(long long rcvTime) {

@@ -52,6 +52,7 @@ class MACContext;
 
 class ScheduleComputation {
     friend class Router;
+    friend class MasterScheduleDownlinkPhase;
 public:
     ScheduleComputation(MACContext& mac_ctx, MasterMeshTopologyContext& topology_ctx);
 
@@ -81,6 +82,10 @@ private:
     bool checkInterferenceConflict(ScheduleElement new_transmission, ScheduleElement old_transmission);
 
     void printSchedule();
+
+    std::vector<ScheduleElement> getSchedule() {
+        return schedule;
+    }
 
     void printStreams(std::vector<StreamManagementElement> stream_list);
 

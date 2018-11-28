@@ -103,6 +103,8 @@ public:
         status=static_cast<unsigned int>(st);
     }
 
+    virtual ~StreamManagementElement() {};
+
     void serializeImpl(unsigned char* pkt) const override;
     static std::vector<StreamManagementElement> deserialize(std::vector<unsigned char>& pkt);
     static std::vector<StreamManagementElement> deserialize(unsigned char* pkt, std::size_t size);
@@ -126,7 +128,7 @@ public:
 
     static unsigned short maxSize() { return sizeof(StreamManagementElementPkt); }
     
-    std::size_t size() const { return maxSize(); }
+    std::size_t size() const override { return maxSize(); }
     
     /**
      * \return an unique key for each stream

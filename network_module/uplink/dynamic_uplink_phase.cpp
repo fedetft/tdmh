@@ -81,7 +81,7 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart) {
     unsigned char maxSMEs = (MediumAccessController::maxPktSize - UplinkMessage::getSizeWithoutSMEs(tMsg)) / StreamManagementElement::maxSize();
     auto smes = dSMContext->dequeue(maxSMEs);
     UplinkMessage msg(ctx.getHop(), dTopology->getBestPredecessor(), tMsg, smes);
-    msg.serialize(packet);
+    msg.serializeImpl(packet.data());
     if (ENABLE_UPLINK_INFO_DBG)
         print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), slotStart);
     auto wuTime = timesync->getSenderWakeup(slotStart);

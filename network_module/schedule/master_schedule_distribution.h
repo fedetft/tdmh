@@ -29,20 +29,25 @@
 
 #include "schedule_distribution.h"
 #include "master_schedule_information.h"
+#include "schedule_element.h"
 
 namespace mxnet {
     class MasterScheduleDownlinkPhase : public ScheduleDownlinkPhase {
     public:
-        explicit MasterScheduleDownlinkPhase(MACContext& ctx) :
-                ScheduleDownlinkPhase(ctx) {};
+        explicit MasterScheduleDownlinkPhase(MACContext& ctx, ScheduleComputation& sch) :
+                ScheduleDownlinkPhase(ctx),schedule_comp(sch) {};
         MasterScheduleDownlinkPhase() = delete;
         MasterScheduleDownlinkPhase(const MasterScheduleDownlinkPhase& orig) = delete;
         virtual ~MasterScheduleDownlinkPhase() {};
         void execute(long long slotStart) override;
-        std::pair<std::vector<ScheduleAddition*>, std::vector<unsigned char>> getScheduleToDistribute(unsigned short bytes);
-    protected:
-        std::set<MasterScheduleElement> currentSchedule;
-        std::deque<ScheduleDeltaElement*> deltaToDistribute;
+        void getCurrentSchedule();
+        void sendSchedulePkt(long long slotstart);
+
+    private:
+        // Copy of last computed schedule
+        std::vector<ScheduleElement> currentSchedule;
+        // Reference to ScheduleComputation class to get current schedule
+        ScheduleComputation& schedule_comp;
     };
 }
 

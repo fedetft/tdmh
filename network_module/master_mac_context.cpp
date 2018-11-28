@@ -33,7 +33,6 @@ namespace mxnet {
 MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
     MACContext(mac, transceiver, config) {
     timesync = new MasterTimesyncDownlink(*this);
-    scheduleDistribution = new MasterScheduleDownlinkPhase(*this);
     if (config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION) {
         auto* topology_ctx = new MasterMeshTopologyContext(*this);
         scheduleComputation = new ScheduleComputation(*this, *topology_ctx);
@@ -45,6 +44,7 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
         topologyContext = topology_ctx;
         uplink = new MasterUplinkPhase(*this, topology_ctx, *scheduleComputation);
     }
+    scheduleDistribution = new MasterScheduleDownlinkPhase(*this, *scheduleComputation);
     data = new DataPhase(*this);
     /* Stream list hardcoding */
     /* parameters:
