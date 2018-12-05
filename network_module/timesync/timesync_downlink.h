@@ -48,7 +48,7 @@ public:
         return phaseStartupTime + hops * rebroadcastInterval + RoundtripSubphase::getDuration();
     }
     static const int phaseStartupTime = 450000;
-    static const int syncPacketSize = 11;
+    static const unsigned int syncPacketSize = 11;
     static const int rebroadcastInterval = (syncPacketSize+8)*32000 + 536000; //32us per-byte + 536us total delta
 
     /**
@@ -86,7 +86,7 @@ public:
      * @return the delay to the master node as calculated with the roundtrip time estimation and
      * ReverseFlooding calculation
      */
-    virtual long long getDelayToMaster() const = 0;
+    //virtual long long getDelayToMaster() const = 0;
 
     /**
      * Returns the slotframe start time as calculated by the FLOPSYNC-2 controller after the synchronization
@@ -97,11 +97,8 @@ public:
      * \return the timesync packet counter used for slave nodes to know the
      * absolute network time
      */
-    unsigned int getTimesyncPacketCounter() const
-    {
-        return *reinterpret_cast<const unsigned int*>(packet.data()+7);
-    }
-    
+    unsigned int getTimesyncPacketCounter() const { return packetCounter; }
+
     bool macCanOperate() {
         return internalStatus == IN_SYNC && receiverWindow <= networkConfig.getMaxAdmittedRcvWindow();
     }
@@ -114,13 +111,15 @@ protected:
     TimesyncDownlink(MACContext& ctx, MacroStatus initStatus, unsigned receivingWindow) :
             MACPhase(ctx),
             networkConfig(ctx.getNetworkConfig()),
-            listeningRTP(ctx), internalStatus(initStatus),
+            //listeningRTP(ctx),
+            internalStatus(initStatus),
             receiverWindow(receivingWindow), error(0) {}
     
     TimesyncDownlink(MACContext& ctx, MacroStatus initStatus) :
             MACPhase(ctx),
             networkConfig(ctx.getNetworkConfig()),
-            listeningRTP(ctx), internalStatus(initStatus),
+            //listeningRTP(ctx),
+            internalStatus(initStatus),
             receiverWindow(networkConfig.getMaxAdmittedRcvWindow()), error(0) {}
 
     virtual void next()=0;
@@ -128,10 +127,11 @@ protected:
     unsigned char missedPacket();
 
     const NetworkConfiguration& networkConfig;
-    ListeningRoundtripPhase listeningRTP;
+    //ListeningRoundtripPhase listeningRTP;
     MacroStatus internalStatus;
     unsigned receiverWindow;
     long long error;
+    unsigned int packetCounter;
 };
 
 }

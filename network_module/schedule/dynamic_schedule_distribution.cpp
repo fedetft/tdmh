@@ -73,11 +73,13 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
 }
 
 void DynamicScheduleDownlinkPhase::rebroadcast(long long rcvTime) {
+    /*
     if(ctx.getHop() >= networkConfig.getMaxHops()) return;
     ctx.sendAt(packet.data(), rcvResult.size, rcvTime + rebroadcastInterval);
+    */
 }
 
-void DynamicScheduleDownlinkPhase::addSchedule(DynamicScheduleElement* element) {
+void DynamicScheduleDownlinkPhase::addSchedule(DynamicScheduleElement* element) {    
     nodeSchedule.insert(element);
     scheduleById[element->getId()] = element;
     if (element->getRole() == DynamicScheduleElement::FORWARDEE) {
@@ -102,6 +104,7 @@ void DynamicScheduleDownlinkPhase::deleteSchedule(unsigned char id) {
 }
 
 void DynamicScheduleDownlinkPhase::parseSchedule() {
+    /*
     auto addCount = packet[0];
     auto myId = ctx.getNetworkId();
     auto bitsRead = std::numeric_limits<unsigned char>::digits;
@@ -127,6 +130,7 @@ void DynamicScheduleDownlinkPhase::parseSchedule() {
         bitsRead += std::numeric_limits<unsigned char>::digits;
         delete sd;
     }
+    */
 }
 
 }

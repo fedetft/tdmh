@@ -54,7 +54,7 @@ struct ScheduleElementPkt {
    unsigned int redundancy:3;
    unsigned int payloadSize:9?; */
 
-class ScheduleElement {
+    class ScheduleElement : public SerializableMessage {
 public:
     ScheduleElement() {}
 
@@ -90,9 +90,8 @@ public:
         content.offset = off;
     };
 
-    void serializeImpl(unsigned char* pkt) const;
-    static std::vector<ScheduleElement> deserialize(std::vector<unsigned char>& pkt);
-    static std::vector<ScheduleElement> deserialize(unsigned char* pkt, std::size_t size);
+    void serialize(Packet& pkt) const;
+    static std::vector<ScheduleElement> deserialize(Packet& pkt, std::size_t size);
     unsigned char getSrc() const { return content.src; }
     unsigned char getDst() const { return content.dst; }
     unsigned char getTx() const { return content.tx; }
@@ -103,7 +102,8 @@ public:
 
     static unsigned short headerSize() { return sizeof(ScheduleElementHeader); }
     static unsigned short contentSize() { return sizeof(ScheduleElementPkt); }
-    static unsigned short maxSize() { return headerSize() + contentSize(); }
+    static unsigned short packetSize() { return headerSize() + contentSize(); }
+    std::size_t size() const override { return packetSize(); }
 
     /**
      * \return an unique key for each stream

@@ -31,6 +31,7 @@
 #include "schedule_distribution.h"
 #include "schedule_information.h"
 #include "../timesync/timesync_downlink.h"
+#include "../packet.h"
 #include <algorithm>
 #include <limits>
 
@@ -47,18 +48,12 @@ namespace mxnet {
     }
 
     void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
-        // Add header to packet
-
-        // Add Schedule element
-
-        // Begin radio sequence
+        Packet pkt;
+        // Add schedule element to packet
+        //currentSchedule[0].serialize(pkt);
+        // Send schedule element packet
         ctx.configureTransceiver(ctx.getTransceiverConfig());
-        auto wakeUp = slotStart - MediumAccessController::sendingNodeWakeupAdvance;
-        if(getTime() < wakeUp)
-            ctx.sleepUntil(wakeUp);
-        ctx.sendAt(packet.data(), MediumAccessController::maxPktSize, slotStart);
-        if (ENABLE_SCHEDULE_DL_INFO_DBG)
-            print_dbg("[SC] ST=%lld\n", slotStart);
+        pkt.send(ctx, slotStart);
         ctx.transceiverIdle();
     }
 

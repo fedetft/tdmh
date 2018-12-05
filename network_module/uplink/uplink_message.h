@@ -30,6 +30,7 @@
 #include "../serializable_message.h"
 #include "topology/topology_message.h"
 #include "stream_management/stream_management_element.h"
+#include "../packet.h"
 #include <vector>
 
 namespace mxnet {
@@ -44,11 +45,9 @@ public:
 
     virtual ~UplinkMessage() {};
 
-    void serializeImpl(unsigned char* pkt) const override;
+    void serialize(Packet& pkt) const override;
 
-    static UplinkMessage deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration& config);
-
-    static UplinkMessage deserialize(unsigned char*, std::size_t size, const NetworkConfiguration& config);
+    static UplinkMessage deserialize(Packet& pkt, const NetworkConfiguration& config);
 
     /**
      * @return the size of the message, if no SME needs to be sent.

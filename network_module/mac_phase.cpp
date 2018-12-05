@@ -31,7 +31,7 @@
 
 namespace mxnet {
 
-MACPhase::MACPhase(MACContext& ctx) : ctx(ctx), timesync(ctx.getTimesync()) {}
+MACPhase::MACPhase(MACContext& ctx) : ctx(ctx)/*, timesync(ctx.getTimesync())*/ {}
 
 void MACPhase::run(long long slotStart)
 {

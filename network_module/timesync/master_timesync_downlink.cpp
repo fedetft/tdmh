@@ -37,7 +37,7 @@ namespace mxnet {
 MasterTimesyncDownlink::MasterTimesyncDownlink(MACContext& ctx) : TimesyncDownlink(ctx, MacroStatus::IN_SYNC)
 {    
     auto panId = networkConfig.getPanId();
-    packet = {{
+    unsigned char timesyncPkt[] = {
             0x46, //frame type 0b110 (reserved), intra pan
             0x08, //no source addressing, short destination addressing
             0x00, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
@@ -45,31 +45,31 @@ MasterTimesyncDownlink::MasterTimesyncDownlink(MACContext& ctx) : TimesyncDownli
             static_cast<unsigned char>(panId & 0xff), //destination pan ID
             0xff, 0xff,                               //destination addr (broadcast)
             0,0,0,0                                   //32bit timesync packet counter for absolute network time
-        }};
+    };
+    packet.put(&timesyncPkt, sizeof(timesyncPkt));
 }
 
 void MasterTimesyncDownlink::execute(long long slotStart)
 {
     next();
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    auto deepsleepDeadline = getSenderWakeup(slotframeTime);
-    if(getTime() < deepsleepDeadline)
-        ctx.sleepUntil(deepsleepDeadline);
     //Sending synchronization start packet
-    ctx.sendAt(packet.data(), syncPacketSize, slotframeTime);
+    packet.send(ctx, slotframeTime);
     ctx.transceiverIdle();
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[T] ST=%lld\n", slotframeTime);
     if (false)
-        listeningRTP.execute(slotframeTime + RoundtripSubphase::senderDelay);
+        //listeningRTP.execute(slotframeTime + RoundtripSubphase::senderDelay);
     ctx.transceiverIdle();
 }
 
 std::pair<long long, long long> MasterTimesyncDownlink::getWakeupAndTimeout(long long tExpected) {
     return std::make_pair(
-        tExpected - (MediumAccessController::receivingNodeWakeupAdvance + networkConfig.getMaxAdmittedRcvWindow()),
-        tExpected + networkConfig.getMaxAdmittedRcvWindow() + MediumAccessController::packetPreambleTime +
-        MediumAccessController::maxPropagationDelay
+        tExpected - (MediumAccessController::receivingNodeWakeupAdvance +
+                     networkConfig.getMaxAdmittedRcvWindow()),
+        tExpected + networkConfig.getMaxAdmittedRcvWindow() +
+                    MediumAccessController::packetPreambleTime +
+                    MediumAccessController::maxPropagationDelay
     );
 }
 

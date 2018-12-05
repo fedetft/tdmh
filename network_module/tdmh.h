@@ -58,7 +58,6 @@ public:
     static const unsigned int receivingNodeWakeupAdvance = 450000;
     //Minimum ~550us, 200us of slack added
     static const unsigned int sendingNodeWakeupAdvance = 500000; //500 us TODO fine tune, it was guessed, used to be 750
-    static const unsigned int maxAdmittableResyncReceivingWindow = 150000; //150 us
     static const unsigned char maxPktSize = 125;
     static const unsigned char maxPktSizeNoCRC = 127;
 protected:

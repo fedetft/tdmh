@@ -30,35 +30,31 @@
 
 namespace mxnet {
 
-void UplinkMessage::serializeImpl(unsigned char* pkt) const {
-    memcpy(pkt, reinterpret_cast<unsigned char*>(const_cast<UplinkMessagePkt*>(&content)), sizeof(UplinkMessagePkt));
-    pkt += sizeof(UplinkMessagePkt);
-    topology->serializeImpl(pkt);
-    pkt += topology->size();
+void UplinkMessage::serialize(Packet& pkt) const {
+    pkt.put(&content, sizeof(UplinkMessagePkt));
+    topology->serialize(pkt);
     for (StreamManagementElement sme : smes) {
-        sme.serializeImpl(pkt);
-        pkt += sme.size();
+        sme.serialize(pkt);
     }
 }
 
-UplinkMessage UplinkMessage::deserialize(std::vector<unsigned char>& pkt, const NetworkConfiguration& config) {
-    return deserialize(pkt.data(), pkt.size(), config);
-}
-
-UplinkMessage UplinkMessage::deserialize(unsigned char* pkt, std::size_t size, const NetworkConfiguration& config) {
+    UplinkMessage UplinkMessage::deserialize(Packet& pkt, const NetworkConfiguration& config) {
     TopologyMessage* topology;
+    Packet pktCopy = pkt;
     switch (config.getTopologyMode()) {
     case NetworkConfiguration::NEIGHBOR_COLLECTION:
-        topology = NeighborMessage::deserialize(pkt + sizeof(UplinkMessagePkt), config);
+        topology = NeighborMessage::deserialize(pkt, config);
         break;
     case NetworkConfiguration::ROUTING_VECTOR:
-        topology = RoutingVector::deserialize(pkt + sizeof(UplinkMessagePkt), config);
+        topology = RoutingVector::deserialize(pkt, config);
         break;
     }
     UplinkMessage retval(topology);
-    memcpy(reinterpret_cast<unsigned char*>(&retval.content), pkt, sizeof(UplinkMessagePkt));
-    auto noSMESize = getSizeWithoutSMEs(retval.topology);
-    retval.smes = StreamManagementElement::deserialize(pkt + noSMESize, size - noSMESize);
+    //TODO: NeighborMessage::deserialize destroys the content of the packet
+    // So we need to take a copy to save the packet body.
+    // Refactor so that we don't need to save the packet body.
+    pktCopy.get(&retval.content, sizeof(UplinkMessagePkt));
+    retval.smes = StreamManagementElement::deserialize(pktCopy, pktCopy.size());
     return retval;
 }
 

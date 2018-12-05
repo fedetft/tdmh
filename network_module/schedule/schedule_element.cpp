@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2018 by Polidori Paolo                                 *
+ *   Copyright (C)  2018 by Federico Amedeo Izzo                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,25 +25,28 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "stream_management_element.h"
-#include <cstring>
+#include "schedule_element.h"
 
 namespace mxnet {
 
-void StreamManagementElement::serialize(Packet& pkt) const {
-    pkt.put(&content, size());
+void ScheduleElement::serialize(Packet& pkt) const {
+    pkt.put(&header, headerSize());
+    pkt.put(&content, contentSize());
 }
 
-std::vector<StreamManagementElement> StreamManagementElement::deserialize(Packet& pkt, std::size_t size) {
-    auto count = size / maxSize();
-    std::vector<StreamManagementElement> result;
+std::vector<ScheduleElement> ScheduleElement::deserialize(Packet& pkt, std::size_t size) {
+    auto count = size / packetSize();
+    std::vector<ScheduleElement> result;
     result.reserve(count);
-    for (unsigned i = 0; i < count; i++) {
-        StreamManagementElement val;
-        pkt.get(&val.content, maxSize());
+    /*
+    for (unsigned i = 0, bytes = 0; i < count; i++, bytes += maxSize()) {
+        ScheduleElement val;
+        memcpy(&val.header, pkt + bytes, headerSize());
+        memcpy(&val.content, pkt + bytes + headerSize(), contentSize());
         result.push_back(val);
     }
+    */
     return result;
-}
+    }
 
 } /* namespace mxnet */

@@ -38,10 +38,13 @@ using namespace miosix;
 namespace mxnet {
 
 void ListeningRoundtripPhase::execute(long long slotStart) {
-    //maybe with a different class for the master node?
+    throw std::runtime_error("ListeningRoundtripPhase::execute: This code should never be called");
+
+/*    //maybe with a different class for the master node?
     long long timeoutTime = slotStart + receiverWindow + MediumAccessController::maxPropagationDelay + MediumAccessController::packetPreambleTime;
     
     bool success = false;
+    Packet pkt;
     for(; !(success || rcvResult.error == miosix::RecvResult::TIMEOUT); success = isRoundtripAskPacket()) {
         rcvResult = ctx.recv(packet.data(), replyPacketSize, timeoutTime);
         if (ENABLE_PKT_INFO_DBG) {
@@ -64,7 +67,7 @@ void ListeningRoundtripPhase::execute(long long slotStart) {
         print_dbg("[T/R] tr=null\n");
     }
     
-    ctx.transceiverIdle();
+    ctx.transceiverIdle(); */
 }
 }
 

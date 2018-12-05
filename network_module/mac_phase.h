@@ -70,9 +70,9 @@ public:
 
 protected:
     MACContext& ctx;
-    TimesyncDownlink* const timesync;
-    std::array<unsigned char, MediumAccessController::maxPktSize> packet;
-    miosix::RecvResult rcvResult;
+    //TimesyncDownlink* const timesync;
+    //std::array<unsigned char, MediumAccessController::maxPktSize> packet;
+    //miosix::RecvResult rcvResult;
 };
 }
 

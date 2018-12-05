@@ -37,7 +37,8 @@ using namespace miosix;
 namespace mxnet {
 
     void AskingRoundtripPhase::execute(long long slotStart) {
-        //Sending led bar request to the previous hop
+    throw std::runtime_error("AskingRoundtripPhase::execute: This code should never be called");
+    /*  //Sending led bar request to the previous hop
         //Transceiver configured with non strict timeout
         //TODO deepsleep missing
         getRoundtripAskPacket();
@@ -72,7 +73,8 @@ namespace mxnet {
                 print_dbg("[T/R] d=%lld d_h=%lld\n", prevDelay, hopDelay);
         } else if (ENABLE_ROUNDTRIP_INFO_DBG) {
             print_dbg("No roundtrip reply received\n");
-        }
+            }*/
     }
 }
+
 

@@ -39,8 +39,11 @@ public:
     ListeningRoundtripPhase(const ListeningRoundtripPhase& orig) = delete;
     virtual ~ListeningRoundtripPhase() {};
     void execute(long long slotStart) override;
+    /*
 private:
-    bool isRoundtripAskPacket() {
+    bool isRoundtripAskPacket(const Packet& packet, miosix::RecvResult rcvResult) {
+        throw std::runtime_error("ListeningRoundtripPhase::execute: This code should never be called");
+        
         auto panId = ctx.getNetworkConfig().getPanId();
         return rcvResult.error == miosix::RecvResult::OK && rcvResult.timestampValid
                 && rcvResult.size == askPacketSize
@@ -49,7 +52,8 @@ private:
                 && packet[3] == static_cast<unsigned char> (panId >> 8)
                 && packet[4] == static_cast<unsigned char> (panId & 0xff)
                 && packet[5] == 0xff && packet[6] == 0xff;
-    }
+        
+    }*/
 
 };
 }

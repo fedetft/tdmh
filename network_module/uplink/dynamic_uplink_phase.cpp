@@ -30,6 +30,7 @@
 #include "../timesync/timesync_downlink.h"
 #include "../timesync/networktime.h"
 #include "topology/topology_context.h"
+#include "../packet.h"
 #include <limits>
 #include <cassert>
 
@@ -38,24 +39,10 @@ using namespace miosix;
 namespace mxnet {
 
 void DynamicUplinkPhase::receiveByNode(long long slotStart, unsigned char currentNode) {
-    auto wakeUpTimeout = timesync->getWakeupAndTimeout(slotStart);
-    auto now = getTime();
-    if (now + timesync->getReceiverWindow() >= slotStart)
-        print_dbg("[U] start late\n");
-    if (now < wakeUpTimeout.first)
-        ctx.sleepUntil(wakeUpTimeout.first);
-    do {
-        rcvResult = ctx.recv(packet.data(), packet.size(), wakeUpTimeout.second);
-        if (ENABLE_PKT_INFO_DBG) {
-            if(rcvResult.size) {
-                print_dbg("Received packet, error %d, size %d, timestampValid %d: ", rcvResult.error, rcvResult.size, rcvResult.timestampValid);
-                if (ENABLE_PKT_DUMP_DBG)
-                    memDump(packet.data(), rcvResult.size);
-            } else print_dbg("No packet received, timeout reached\n");
-        }
-    } while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK);
+    Packet pkt;
+    RecvResult rcvResult = pkt.recv(ctx, slotStart);
     if (rcvResult.error == RecvResult::ErrorCode::OK) {
-        auto msg = UplinkMessage::deserialize(packet.data(), rcvResult.size, ctx.getNetworkConfig());
+        auto msg = UplinkMessage::deserialize(pkt, ctx.getNetworkConfig());
         topology->receivedMessage(msg, currentNode, rcvResult.rssi);
         if(msg.getAssignee() == ctx.getNetworkId())
         {
@@ -81,16 +68,11 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart) {
     unsigned char maxSMEs = (MediumAccessController::maxPktSize - UplinkMessage::getSizeWithoutSMEs(tMsg)) / StreamManagementElement::maxSize();
     auto smes = dSMContext->dequeue(maxSMEs);
     UplinkMessage msg(ctx.getHop(), dTopology->getBestPredecessor(), tMsg, smes);
-    msg.serializeImpl(packet.data());
+    Packet pkt;
+    msg.serialize(pkt);
     if (ENABLE_UPLINK_INFO_DBG)
         print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), slotStart);
-    auto wuTime = timesync->getSenderWakeup(slotStart);
-    auto now = getTime();
-    if (now >= slotStart)
-        print_dbg("[U] start late\n");
-    if (now < wuTime)
-        ctx.sleepUntil(wuTime);
-    ctx.sendAt(packet.data(), msg.size(), slotStart);
+    pkt.send(ctx, slotStart);
     tMsg->deleteForwarded();
     delete tMsg;
     smes.clear();

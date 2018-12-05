@@ -38,30 +38,14 @@ void MasterUplinkPhase::execute(long long slotStart) {
     auto address = currentNode();
     if (ENABLE_UPLINK_VERB_DBG)
         print_dbg("[U] N=%u T=%lld\n", address, slotStart);
+
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    auto wuTime = slotStart - MediumAccessController::receivingNodeWakeupAdvance;
-    auto timeout = slotStart + MediumAccessController::maxPropagationDelay +
-            MediumAccessController::maxAdmittableResyncReceivingWindow + MediumAccessController::packetPreambleTime;
-    auto now = getTime();
-    if (now >= slotStart)
-        print_dbg("[U] start late\n");
-    if (now < wuTime)
-        ctx.sleepUntil(wuTime);
-    do {
-        rcvResult = ctx.recv(packet.data(), MediumAccessController::maxPktSize, timeout);
-        if (ENABLE_PKT_INFO_DBG) {
-            if(rcvResult.size) {
-                print_dbg("Received packet, error %d, size %d, timestampValid %d: ",
-                        rcvResult.error, rcvResult.size, rcvResult.timestampValid);
-                if (ENABLE_PKT_DUMP_DBG)
-                    memDump(packet.data(), rcvResult.size);
-            } else print_dbg("No packet received, timeout reached\n");
-        }
-    } while (rcvResult.error != miosix::RecvResult::TIMEOUT && rcvResult.error != miosix::RecvResult::OK);
+    Packet pkt;
+    auto rcvResult = pkt.recv(ctx, slotStart);
     ctx.transceiverIdle();
+
     if (rcvResult.error == RecvResult::ErrorCode::OK) {
-        auto data = std::vector<unsigned char>(packet.begin(), packet.begin() + rcvResult.size);
-        auto msg = UplinkMessage::deserialize(data, ctx.getNetworkConfig());
+        auto msg = UplinkMessage::deserialize(pkt, ctx.getNetworkConfig());
         // Mutex to access shared class MasterTopologyContext
         {
 #ifdef _MIOSIX

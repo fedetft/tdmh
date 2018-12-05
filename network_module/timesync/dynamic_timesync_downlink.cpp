@@ -38,44 +38,30 @@ using namespace miosix;
 namespace mxnet {
 
 void DynamicTimesyncDownlink::periodicSync() {
+    greenLed::high();
     //slotStart = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
     auto correctedStart = correct(computedFrameStart);
-    auto wakeupTimeout = getWakeupAndTimeout(correctedStart);
-    if (ENABLE_TIMESYNC_DL_INFO_DBG)
-        print_dbg("[T] WU=%lld TO=%lld\n", wakeupTimeout.first, wakeupTimeout.second);
-    auto now = getTime();//TODO look for uncorrected getTime to perform correct comparisons
-    //check if we missed the deadline for the synchronization time
-    if (now + receiverWindow >= correctedStart){
-        if (ENABLE_TIMESYNC_ERROR_DBG)
-            print_dbg("[T] 2 l8\n");
-        missedPacket();
-        return;
-    }
-    //sleep, if we have time
-    if(now < wakeupTimeout.first)
-        ctx.sleepUntil(wakeupTimeout.first);
-    greenLed::high();
-    do {
-        rcvResult = ctx.recv(packet.data(), syncPacketSize, wakeupTimeout.second, Transceiver::Correct::UNCORR);
-        if (ENABLE_PKT_INFO_DBG) {
-            if(rcvResult.size){
-                print_dbg("[T] err=%d D=%d", rcvResult.error, rcvResult.size);
-                if (ENABLE_PKT_DUMP_DBG)
-                    memDump(packet.data(), rcvResult.size);
-            } else print_dbg("[T] TO!\n");
+    Packet pkt;
+    using namespace std::placeholders;
+    auto pred = std::bind(&DynamicTimesyncDownlink::isSyncPacket, this, _1, _2, true);
+    auto rcvResult = pkt.recv(ctx, correctedStart, pred, Transceiver::Correct::UNCORR);
+    if(rcvResult.error != RecvResult::ErrorCode::OK) {
+        auto n = missedPacket();
+        if (ENABLE_TIMESYNC_DL_INFO_DBG) {
+            print_dbg("[T] miss u=%d w=%d\n", clockCorrection, receiverWindow);
+            if (n >= networkConfig.getMaxMissedTimesyncs())
+                print_dbg("[T] lost sync\n");
         }
-    } while(!isSyncPacket(true) && rcvResult.error != RecvResult::ErrorCode::TIMEOUT);
-    greenLed::low();
-
-    ctx.transceiverIdle(); //Save power waiting for rebroadcast time
-
-    if (rcvResult.error != RecvResult::ErrorCode::TIMEOUT) {
+    }
+    else {
         //corrected time in NS, to pass to transceiver
-        packet[2]++;
+        pkt[2]++;
         //Rebroadcast the sync packet
         measuredFrameStart = correct(rcvResult.timestamp);
-        rebroadcast(measuredFrameStart);
+        rebroadcast(pkt, measuredFrameStart);
         ctx.transceiverIdle();
+        // TODO: make a struct containing the packetCounter
+        packetCounter = static_cast<unsigned int>(pkt[7]);
         error = rcvResult.timestamp - computedFrameStart;
         std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->computeCorrection(error);
         missedPackets = 0;
@@ -84,22 +70,18 @@ void DynamicTimesyncDownlink::periodicSync() {
         updateVt();
         if (ENABLE_TIMESYNC_DL_INFO_DBG) {
             print_dbg("[T] hop=%u ets=%lld ats=%lld e=%lld u=%d w=%d Mts=%lld rssi=%d\n",
-                    packet[2],
+                    pkt[2],
                     correctedStart,
                     rcvResult.timestamp,
                     error,
                     clockCorrection,
                     receiverWindow,
-                    measuredFrameStart - packet[2] * rebroadcastInterval,
+                    measuredFrameStart - pkt[2] * rebroadcastInterval,
                    rcvResult.rssi);
         }
-    } else {
-        if (ENABLE_TIMESYNC_DL_INFO_DBG) {
-            print_dbg("[T] miss u=%d w=%d\n", clockCorrection, receiverWindow);
-            if (missedPacket() >= networkConfig.getMaxMissedTimesyncs())
-                print_dbg("[T] lost sync\n");
-        }
     }
+    greenLed::low();
+    ctx.transceiverIdle(); //Save power waiting for rebroadcast time
 }
 
 std::pair<long long, long long> DynamicTimesyncDownlink::getWakeupAndTimeout(long long tExpected) {
@@ -117,27 +99,23 @@ void DynamicTimesyncDownlink::resync() {
     //TODO: attach to strongest signal, not just to the first received packet
 
     greenLed::high();
-    for (bool success = false; !success; success = isSyncPacket(false) && rcvResult.rssi>=networkConfig.getMinNeighborRSSI()) {
-        rcvResult = ctx.recv(packet.data(), syncPacketSize, infiniteTimeout, Transceiver::Correct::UNCORR);
-        if (ENABLE_PKT_INFO_DBG) {
-            if(rcvResult.size){
-                print_dbg("Received packet, error %d, size %d, timestampValid %d: ",
-                        rcvResult.error, rcvResult.size, rcvResult.timestampValid
-                );
-                if (ENABLE_PKT_DUMP_DBG)
-                    memDump(packet.data(), rcvResult.size);
-            } else print_dbg("No packet received, timeout reached\n");
-        }
-    }
+
+    Packet pkt;
+    using namespace std::placeholders;
+    auto pred = std::bind(&DynamicTimesyncDownlink::isSyncPacket, this, _1, _2, false);
+    auto rcvResult = pkt.recv(ctx, infiniteTimeout, pred, Transceiver::Correct::UNCORR);
+
     greenLed::low();
-    auto start = rcvResult.timestamp - packet[2] * rebroadcastInterval;
-    ++packet[2];
+    auto start = rcvResult.timestamp - pkt[2] * rebroadcastInterval;
+    ++pkt[2];
     reset(rcvResult.timestamp);
-    ctx.setHop(packet[2]);
-    rebroadcast(correct(rcvResult.timestamp));
+    ctx.setHop(pkt[2]);
+    rebroadcast(pkt, correct(rcvResult.timestamp));
 
     ctx.transceiverIdle();
-    
+
+    // TODO: make a struct containing the packetCounter
+    packetCounter = static_cast<unsigned int>(pkt[7]);
     NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() * networkConfig.getClockSyncPeriod() - correct(start));
     auto ntNow = NetworkTime::now();
     ctx.getUplink()->alignToNetworkTime(ntNow);
@@ -145,10 +123,10 @@ void DynamicTimesyncDownlink::resync() {
 
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[F] hop=%d ats=%lld w=%d mst=%lld rssi=%d\n",
-                packet[2], rcvResult.timestamp, receiverWindow, start, rcvResult.rssi
+                pkt[2], rcvResult.timestamp, receiverWindow, start, rcvResult.rssi
         );
 
-    static_cast<DynamicTopologyContext*>(ctx.getTopologyContext())->changeHop(packet[2]);
+    static_cast<DynamicTopologyContext*>(ctx.getTopologyContext())->changeHop(pkt[2]);
 }
 
 inline void DynamicTimesyncDownlink::execute(long long slotStart)
@@ -161,19 +139,19 @@ inline void DynamicTimesyncDownlink::execute(long long slotStart)
     } else {
         periodicSync();
         //TODO implement roundtrip nodes list
-        if (false && static_cast<DynamicTopologyContext*>(ctx.getTopologyContext())->hasSuccessor(0))
+        //if (false && static_cast<DynamicTopologyContext*>(ctx.getTopologyContext())->hasSuccessor(0))
             //a successor of the current node needs to perform RTT estimation
-            listeningRTP.execute(slotStart + RoundtripSubphase::senderDelay);
-        else if (false)
+            //listeningRTP.execute(slotStart + RoundtripSubphase::senderDelay);
+        //else if (false)
             //i can perform RTT estimation
-            askingRTP.execute(slotStart + RoundtripSubphase::senderDelay);
+            //askingRTP.execute(slotStart + RoundtripSubphase::senderDelay);
     }
     ctx.transceiverIdle();
 }
 
-void DynamicTimesyncDownlink::rebroadcast(long long arrivalTs){
-    if(packet[2] == networkConfig.getMaxHops()) return;
-    ctx.sendAt(packet.data(), syncPacketSize, arrivalTs + rebroadcastInterval);
+void DynamicTimesyncDownlink::rebroadcast(const Packet& pkt, long long arrivalTs){
+    if(pkt[2] == networkConfig.getMaxHops()) return;
+    pkt.send(ctx, arrivalTs + rebroadcastInterval);
 }
 
 void DynamicTimesyncDownlink::reset(long long hookPktTime) {

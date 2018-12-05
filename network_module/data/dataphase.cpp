@@ -36,6 +36,7 @@ using namespace miosix;
 namespace mxnet {
 
 void DataPhase::execute(long long slotStart) {
+    /*
     nextSlot();
     if (scheduleDownlink->isScheduleEnd(curSched) || (*curSched)->getDataslot() != dataSlot) return;
     ctx.configureTransceiver(ctx.getTransceiverConfig());
@@ -149,6 +150,7 @@ void DataPhase::execute(long long slotStart) {
     }
     }
     ctx.transceiverIdle();
+    */
 }
 
 void DataPhase::advance(long long int slotStart) {

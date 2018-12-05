@@ -31,6 +31,7 @@
 #include <array>
 #include "timesync_downlink.h"
 #include "../uplink/uplink_phase.h"
+#include "../packet.h"
 
 namespace mxnet {
 class MasterTimesyncDownlink : public TimesyncDownlink {
@@ -42,7 +43,7 @@ public:
     virtual ~MasterTimesyncDownlink() {};
     void execute(long long slotStart) override;
     std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
-    long long getDelayToMaster() const override { return 0; }
+    //long long getDelayToMaster() const override { return 0; }
     virtual long long getSlotframeStart() const { return slotframeTime; }
     
     void macStartHook() override;
@@ -55,8 +56,13 @@ protected:
      */
     void setTimesyncPacketCounter(unsigned int value)
     {
-        auto ptr=reinterpret_cast<unsigned int*>(packet.data()+7);
-        *ptr=value;
+        // TODO: make a struct containing the packetCounter
+        std::array<unsigned char, MediumAccessController::maxPktSize> packetdata;
+        packet.get(packetdata.data(), packet.size());
+        // Write the int (4 bytes) to the array
+        *reinterpret_cast<unsigned int*>(&packetdata[7])=value;
+        packetdata[7] = value;
+        packet.put(packetdata.data(), packet.size());
     }
     
     /**
@@ -65,8 +71,13 @@ protected:
      */
     void incrementTimesyncPacketCounter()
     {
-        auto ptr=reinterpret_cast<unsigned int*>(packet.data()+7);
-        (*ptr)++;
+        // TODO: make a struct containing the packetCounter
+        std::array<unsigned char, MediumAccessController::maxPktSize> packetdata;
+        packet.get(packetdata.data(), packet.size());
+        unsigned int value = *reinterpret_cast<unsigned int*>(&packetdata[7]);
+        // Write the int (4 bytes) to the array
+        *reinterpret_cast<unsigned int*>(&packetdata[7]) = value + 1;
+        packet.put(packetdata.data(), packet.size());
     }
     
     void next() override;
@@ -74,6 +85,7 @@ protected:
 private:
     long long slotframeTime;
     static const long long initializationDelay = 1000000;
+    Packet packet;
 };
 
 }

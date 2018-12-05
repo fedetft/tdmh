@@ -33,6 +33,7 @@
 #include "roundtrip/asking_roundtrip.h"
 #include "interfaces-impl/virtual_clock.h"
 #include "kernel/timeconversion.h"
+#include "../packet.h"
 #include <limits>
 
 namespace mxnet {
@@ -41,7 +42,7 @@ public:
     DynamicTimesyncDownlink() = delete;
     explicit DynamicTimesyncDownlink(MACContext& ctx) :
             TimesyncDownlink(ctx, DESYNCHRONIZED, std::numeric_limits<unsigned>::max()),
-            askingRTP(ctx),
+            //askingRTP(ctx),
             tc(new miosix::TimeConversion(EFM32_HFXO_FREQ)),
             vt(miosix::VirtualClock::instance()),
             synchronizer(new Flopsync2()),
@@ -59,14 +60,16 @@ public:
     };
     inline void execute(long long slotStart) override;
     std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
-    long long getDelayToMaster() const override { return askingRTP.getDelayToMaster(); }
+    //    long long getDelayToMaster() const override { return askingRTP.getDelayToMaster(); }
     virtual long long getSlotframeStart() const { return measuredFrameStart - (ctx.getHop() - 1) * rebroadcastInterval; }
 protected:
-    void rebroadcast(long long arrivalTs);
-    bool isSyncPacket(bool synchronized) {
+    void rebroadcast(const Packet& pkt, long long arrivalTs);
+    bool isSyncPacket(const Packet& packet, miosix::RecvResult r, bool synchronized) {
         auto panId = networkConfig.getPanId();
-        return rcvResult.error == miosix::RecvResult::OK
-                && rcvResult.timestampValid && rcvResult.size == syncPacketSize
+        // Ignore low RSSI packets if not syncronyzed
+        if(synchronized == false && r.rssi<networkConfig.getMinNeighborRSSI())
+            return false;
+        return  r.timestampValid && packet.size() == syncPacketSize
                 && packet[0] == 0x46 && packet[1] == 0x08
                 && (synchronized?
                         ctx.getHop() == packet[2] + 1:
@@ -75,7 +78,7 @@ protected:
                 && packet[4] == static_cast<unsigned char>(panId & 0xff)
                 && packet[5] == 0xff && packet[6] == 0xff;
     }
-
+    
     /**
      * Since the node is synchronized, it performs the step in the FLOPSYNC-2 controller
      */
@@ -109,7 +112,7 @@ protected:
         );
     }
 
-    AskingRoundtripPhase askingRTP;
+    //AskingRoundtripPhase askingRTP;
     miosix::TimeConversion* const tc;
     miosix::VirtualClock& vt;
     Synchronizer* const synchronizer;

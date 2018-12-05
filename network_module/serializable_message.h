@@ -30,6 +30,7 @@
 #include <vector>
 #include <cassert>
 #include <array>
+#include "packet.h"
 
 namespace mxnet {
 
@@ -46,40 +47,10 @@ namespace mxnet {
 class SerializableMessage {
 public:
     /**
-     * Serializes the structure into a vector of `size()` bytes created on purpose.
-     * @return the serialized structure.
+     * Serializes the structure into the provided Packet object.
+     * @param pkt the object in which the data will be serialized.
      */
-    virtual std::vector<unsigned char> serialize() const {
-        std::vector<unsigned char> retval(size());
-        serializeImpl(retval.data());
-        return retval;
-    }
-
-    /**
-     * Serializes the structure into the provided vector of bytes.
-     * @param pkt the buffer in which the data will be serialized.
-     */
-    virtual void serialize(std::vector<unsigned char>& pkt) const {
-        assert(pkt.size() >= size());
-        serializeImpl(pkt.data());
-    }
-
-    /**
-     * Serializes the structure into the provided array of bytes.
-     * @param pkt the buffer in which the data will be serialized.
-     */
-    template<unsigned int N>
-    void serialize(std::array<unsigned char, N>& pkt) const {
-        assert(pkt.size() >= size());
-        serializeImpl(pkt.data());
-    }
-
-    /**
-     * Serializes the structure into the provided vector of bytes.
-     * The pointer must reference a memory area of at least `size()` bytes
-     * @param pkt the buffer in which the data will be serialized.
-     */
-    virtual void serializeImpl(unsigned char* pkt) const = 0;
+    virtual void serialize(Packet& pkt) const {}
 
     //static SerializableMessage deserialize(std::vector<unsigned char>& pkt);
     //static SerializableMessage deserialize(unsigned char* pkt);
