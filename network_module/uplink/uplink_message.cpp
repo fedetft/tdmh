@@ -38,23 +38,22 @@ void UplinkMessage::serialize(Packet& pkt) const {
     }
 }
 
-    UplinkMessage UplinkMessage::deserialize(Packet& pkt, const NetworkConfiguration& config) {
-    TopologyMessage* topology;
-    Packet pktCopy = pkt;
+UplinkMessage UplinkMessage::deserialize(Packet& pkt, const NetworkConfiguration& config) {
+    TopologyMessage* msg;
+    // Extract assignee and hop
+    UplinkMessagePkt header;
+    pkt.get(&header, sizeof(UplinkMessagePkt));
     switch (config.getTopologyMode()) {
     case NetworkConfiguration::NEIGHBOR_COLLECTION:
-        topology = NeighborMessage::deserialize(pkt, config);
+        msg = NeighborMessage::deserialize(pkt, config);
         break;
     case NetworkConfiguration::ROUTING_VECTOR:
-        topology = RoutingVector::deserialize(pkt, config);
+        msg = RoutingVector::deserialize(pkt, config);
         break;
     }
-    UplinkMessage retval(topology);
-    //TODO: NeighborMessage::deserialize destroys the content of the packet
-    // So we need to take a copy to save the packet body.
-    // Refactor so that we don't need to save the packet body.
-    pktCopy.get(&retval.content, sizeof(UplinkMessagePkt));
-    retval.smes = StreamManagementElement::deserialize(pktCopy, pktCopy.size());
+    UplinkMessage retval(msg);
+    retval.content = header;
+    retval.smes = StreamManagementElement::deserialize(pkt, pkt.size());
     return retval;
 }
 
