@@ -127,7 +127,6 @@ void ForwardedNeighborMessage::serialize(Packet& pkt) const {
 }
 
 ForwardedNeighborMessage* ForwardedNeighborMessage::deserialize(Packet& pkt, const NetworkConfiguration& config) {
-    assert(static_cast<unsigned>(config.getMaxNodes() + 1) <= pkt.size());
     char nodeId;
     pkt.get(&nodeId,1);
     return new ForwardedNeighborMessage(nodeId, NeighborTable::deserialize(pkt, config.getMaxNodes()));
