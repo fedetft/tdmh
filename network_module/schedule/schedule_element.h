@@ -31,11 +31,11 @@
 
 namespace mxnet {
 
-struct ScheduleElementHeader {
+struct ScheduleHeaderPkt {
     unsigned int totalPacket:16;
     unsigned int currentPacket:16;
     unsigned int scheduleID:32;
-    unsigned int currentRepetition:2;
+    unsigned int repetition:2;
     unsigned int countdown:6;
 };
 
@@ -50,11 +50,37 @@ struct ScheduleElementPkt {
     unsigned int offset:20;
 };
 
-/* TODO: add or remove completely the following info to ScheduleElementPkt
-   unsigned int redundancy:3;
-   unsigned int payloadSize:9?; */
+class ScheduleHeader : public SerializableMessage {
+public:
+    ScheduleHeader() {}
 
-    class ScheduleElement : public SerializableMessage {
+    ScheduleHeader(unsigned int totalPacket, unsigned int currentPacket,
+                   unsigned long scheduleID=0, unsigned char repetition=1,
+                   unsigned char countdown=63)
+    {
+        header.totalPacket = totalPacket;
+        header.currentPacket = currentPacket;
+        header.scheduleID = scheduleID;
+        header.repetition=repetition;
+        header.countdown=countdown;
+    }
+
+    void serialize(Packet& pkt) const;
+    static ScheduleHeader deserialize(Packet& pkt);
+    std::size_t size() const override { return sizeof(ScheduleHeaderPkt); }
+    unsigned int getTotalPacket() const { return header.totalPacket; }
+    unsigned int getPacketCounter() const { return header.currentPacket; }
+    unsigned long getScheduleID() const { return header.scheduleID; }
+    unsigned char getRepetition() const { return header.repetition; }
+    void incrementPacketCounter() { header.currentPacket++; }
+    void incrementRepetition() { header.repetition++; }
+    void resetRepetition() { header.repetition = 1; }
+
+private:
+    ScheduleHeaderPkt header;
+};
+
+class ScheduleElement : public SerializableMessage {
 public:
     ScheduleElement() {}
 
@@ -69,8 +95,6 @@ public:
         content.tx = tx;
         content.rx = rx;
         content.period=static_cast<unsigned int>(period);
-        //content.payloadSize=payloadSize;
-        //content.redundancy=static_cast<unsigned int>(redundancy);
         content.offset = off;
     }
 
@@ -85,13 +109,12 @@ public:
         content.tx = stream.getSrc();
         content.rx = stream.getDst();
         content.period = static_cast<unsigned int>(stream.getPeriod());
-        //content.redundancy = static_cast<unsigned int>(stream.getRedundancy());
-        //content.payloadSize = stream.getPayloadSize();
         content.offset = off;
     };
 
     void serialize(Packet& pkt) const;
-    static std::vector<ScheduleElement> deserialize(Packet& pkt, std::size_t size);
+    static ScheduleElement deserialize(Packet& pkt);
+    std::size_t size() const override { return sizeof(ScheduleElementPkt); }
     unsigned char getSrc() const { return content.src; }
     unsigned char getDst() const { return content.dst; }
     unsigned char getTx() const { return content.tx; }
@@ -99,11 +122,6 @@ public:
     Period getPeriod() const { return static_cast<Period>(content.period); }
     unsigned int getOffset() const { return content.offset; }
     void setOffset(unsigned int off) { content.offset = off; }
-
-    static unsigned short headerSize() { return sizeof(ScheduleElementHeader); }
-    static unsigned short contentSize() { return sizeof(ScheduleElementPkt); }
-    static unsigned short packetSize() { return headerSize() + contentSize(); }
-    std::size_t size() const override { return packetSize(); }
 
     /**
      * \return an unique key for each stream
@@ -114,8 +132,24 @@ public:
     }
 
 private:
-    ScheduleElementHeader header;
     ScheduleElementPkt content;
+};
+
+class SchedulePacket : public SerializableMessage {
+
+public:
+    SchedulePacket() {}
+
+    SchedulePacket(ScheduleHeader hdr, std::vector<ScheduleElement> elms) :
+        header(hdr), elements(elms) {}
+
+    void serialize(Packet& pkt) const;
+    static SchedulePacket deserialize(Packet& pkt);
+    std::size_t size() const override { return header.size() + elements.size(); }
+
+private:
+    ScheduleHeader header;
+    std::vector<ScheduleElement> elements;
 };
 
 } /* namespace mxnet */

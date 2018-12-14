@@ -38,24 +38,46 @@
 using namespace miosix;
 
 namespace mxnet {
-    void MasterScheduleDownlinkPhase::execute(long long slotStart) {
+
+void MasterScheduleDownlinkPhase::execute(long long slotStart) {
+    // Getting initial schedule
+    if(header.getScheduleID() == 0)
         getCurrentSchedule();
-        sendSchedulePkt(slotStart);
+    // Prepare to send new packet
+    header.incrementPacketCounter();
+    if(header.getPacketCounter() >= header.getTotalPacket()) {
+        header.incrementRepetition();
+        // TODO make maxScheduleRepetitions configurable
+        if(header.getRepetition() >= 3) {
+            header.resetRepetition();
+            beginCountdown = true;
+        }
     }
+    sendSchedulePkt(slotStart);
+}
 
-    void MasterScheduleDownlinkPhase::getCurrentSchedule() {
-        currentSchedule = schedule_comp.getSchedule();
-    }
+void MasterScheduleDownlinkPhase::getCurrentSchedule() {
+    currentSchedule = schedule_comp.getSchedule();
+    // Build a header for the new schedule
+    unsigned long oldID = header.getScheduleID();
+    ScheduleHeader newheader(
+        currentSchedule.size(), // totalPacket
+        0,                      // currentPacket
+        oldID + 1);             // scheduleID
+    header = newheader;
+}
 
-    void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
-        Packet pkt;
-        // Add schedule element to packet
-        //currentSchedule[0].serialize(pkt);
-        // Send schedule element packet
-        ctx.configureTransceiver(ctx.getTransceiverConfig());
-        pkt.send(ctx, slotStart);
-        ctx.transceiverIdle();
-    }
+void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
+    Packet pkt;
+    // Add schedule distribution header
+    header.serialize(pkt);
+    // Add schedule element to packet
+    currentSchedule[header.getPacketCounter()].serialize(pkt);
+    // Send schedule element packet
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    pkt.send(ctx, slotStart);
+    ctx.transceiverIdle();
+}
 
 }
 

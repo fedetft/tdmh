@@ -29,24 +29,43 @@
 
 namespace mxnet {
 
-void ScheduleElement::serialize(Packet& pkt) const {
-    pkt.put(&header, headerSize());
-    pkt.put(&content, contentSize());
+void ScheduleHeader::serialize(Packet& pkt) const {
+    pkt.put(&header, sizeof(ScheduleHeaderPkt));
 }
 
-std::vector<ScheduleElement> ScheduleElement::deserialize(Packet& pkt, std::size_t size) {
-    auto count = size / packetSize();
-    std::vector<ScheduleElement> result;
-    result.reserve(count);
-    /*
-    for (unsigned i = 0, bytes = 0; i < count; i++, bytes += maxSize()) {
-        ScheduleElement val;
-        memcpy(&val.header, pkt + bytes, headerSize());
-        memcpy(&val.content, pkt + bytes + headerSize(), contentSize());
-        result.push_back(val);
-    }
-    */
+ScheduleHeader ScheduleHeader::deserialize(Packet& pkt) {
+    ScheduleHeader result;
+    pkt.get(&result.header, sizeof(ScheduleHeaderPkt));
     return result;
+}
+
+
+void ScheduleElement::serialize(Packet& pkt) const {
+    pkt.put(&content, sizeof(ScheduleElementPkt));
+}
+
+ScheduleElement ScheduleElement::deserialize(Packet& pkt) {
+    ScheduleElement result;
+    pkt.get(&result.content, sizeof(ScheduleElementPkt));
+    return result;
+}
+
+void SchedulePacket::serialize(Packet& pkt) const {
+    header.serialize(pkt);
+    for(auto e : elements)
+        e.serialize(pkt);
+}
+
+SchedulePacket SchedulePacket::deserialize(Packet& pkt) {
+    ScheduleHeader header = ScheduleHeader::deserialize(pkt);
+    auto count = pkt.size() / sizeof(ScheduleHeaderPkt);
+    std::vector<ScheduleElement> elements;
+    elements.reserve(count);
+    for(int i=0; i < count; i++) {
+        elements[i] = ScheduleElement::deserialize(pkt);
     }
+    SchedulePacket result(header, elements);
+    return result;
+}
 
 } /* namespace mxnet */

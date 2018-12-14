@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo,             *
+ *                          Federico Amedeo Izzo                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -31,6 +32,7 @@
 #include "../mac_phase.h"
 #include "../mac_context.h"
 #include "../timesync/networktime.h"
+#include "../packet.h"
 #include "interfaces-impl/transceiver.h"
 #include "interfaces-impl/power_manager.h"
 #include <utility>
@@ -38,9 +40,8 @@
 #include <map>
 
 /**
- * Represents the phase in which the schedule is flooded, in order to reach all
- * the nodes and make it available for all of them,
- * so they start operating it when configured.
+ * Represents the phase in which the schedule is distributed to the entire network,
+ * in order to reach all the nodes so they can playback it when it becomes active.
  *
  * Contains information about:
  * Master Node:

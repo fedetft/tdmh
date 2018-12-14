@@ -46,6 +46,9 @@ namespace mxnet {
     private:
         // Copy of last computed schedule
         std::vector<ScheduleElement> currentSchedule;
+        // Schedule header with information on schedule distribution
+        ScheduleHeader header;
+        bool beginCountdown = false;
         // Reference to ScheduleComputation class to get current schedule
         ScheduleComputation& schedule_comp;
     };
