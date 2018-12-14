@@ -60,26 +60,26 @@ public:
     
     void beginScheduling();
     
-    void addNewStreams(std::vector<StreamManagementElement>& smes);
+    void addNewStreams(const std::vector<StreamManagementElement>& smes);
 
-    void open(StreamManagementElement sme);
+    void open(const StreamManagementElement& sme);
 
 private: 
     void run();
 
-    std::vector<ScheduleElement> routeAndScheduleStreams(std::vector<StreamManagementElement> stream_list, NetworkConfiguration netconfig);
+    std::vector<ScheduleElement> routeAndScheduleStreams(const std::vector<StreamManagementElement>& stream_list, const NetworkConfiguration& netconfig);
     
-    std::vector<ScheduleElement> scheduleStreams(std::list<std::list<ScheduleElement>> routed_streams, NetworkConfiguration netconfig);
+    std::vector<ScheduleElement> scheduleStreams(const std::list<std::list<ScheduleElement>>& routed_streams, const NetworkConfiguration& netconfig);
 
-    bool checkDataSlot(unsigned offset, unsigned tile_size, ControlSuperframeStructure superframe, unsigned downlink_size, unsigned uplink_size);
+    bool checkDataSlot(unsigned offset, unsigned tile_size, const ControlSuperframeStructure& superframe, unsigned downlink_size, unsigned uplink_size);
 
-    bool slotConflictPossible(ScheduleElement newtransm, ScheduleElement oldtransm, unsigned offset, unsigned tile_size);
+    bool slotConflictPossible(const ScheduleElement& newtransm, const ScheduleElement& oldtransm, unsigned offset, unsigned tile_size);
 
-    bool checkSlotConflict(ScheduleElement newtransm, ScheduleElement oldtransm, unsigned offset_a, unsigned tile_size, unsigned schedule_size);
+    bool checkSlotConflict(const ScheduleElement& newtransm, const ScheduleElement& oldtransm, unsigned offset_a, unsigned tile_size, unsigned schedule_size);
 
-    bool checkUnicityConflict(ScheduleElement new_transmission, ScheduleElement old_transmission);
+    bool checkUnicityConflict(const ScheduleElement& new_transmission, const ScheduleElement& old_transmission);
 
-    bool checkInterferenceConflict(ScheduleElement new_transmission, ScheduleElement old_transmission);
+    bool checkInterferenceConflict(const ScheduleElement& new_transmission, const ScheduleElement& old_transmission);
 
     void printSchedule();
 
@@ -87,9 +87,9 @@ private:
         return schedule;
     }
 
-    void printStreams(std::vector<StreamManagementElement> stream_list);
+    void printStreams(const std::vector<StreamManagementElement>& stream_list);
 
-    void printStreamList(std::list<std::list<ScheduleElement>> stream_list);        
+    void printStreamList(const std::list<std::list<ScheduleElement>>& stream_list);        
 
     int gcd(int a, int b) {
         for (;;) {
@@ -138,11 +138,11 @@ public:
         scheduler(scheduler), multipath(multipath), more_hops(more_hops) {};
     virtual ~Router() {};
 
-    std::list<std::list<ScheduleElement>> run(std::vector<StreamManagementElement> stream_list);
+    std::list<std::list<ScheduleElement>> run(const std::vector<StreamManagementElement>& stream_list);
 
 private:
     std::list<ScheduleElement> breadthFirstSearch(StreamManagementElement stream);
-    std::list<ScheduleElement> construct_path(StreamManagementElement stream, unsigned char node, std::map<const unsigned char, unsigned char> parent_of);
+    std::list<ScheduleElement> construct_path(StreamManagementElement stream, unsigned char node, std::map<const unsigned char, unsigned char>& parent_of);
     
 protected:
     bool multipath;

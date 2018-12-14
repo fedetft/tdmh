@@ -44,7 +44,7 @@ public:
     /**
      * Receives a list of SME.
      */
-    virtual void receive(std::vector<StreamManagementElement>& smes)=0;
+    virtual void receive(const std::vector<StreamManagementElement>& smes)=0;
 
     /**
      * Opens a new stream.
@@ -60,7 +60,7 @@ public:
     /**
      * Just opens all the received streams.
      */
-    virtual void receive(std::vector<StreamManagementElement>& smes);
+    virtual void receive(const std::vector<StreamManagementElement>& smes);
 
     /**
      * Adds the stream, if missing.
@@ -151,7 +151,7 @@ public:
     /**
      * Adds the received stream to the queue, or updates the existing if corresponding.
      */
-    virtual void receive(std::vector<StreamManagementElement>& smes);
+    virtual void receive(const std::vector<StreamManagementElement>& smes);
 
     /**
      * Adds the stream to the queue to be send and stores it in a pending list,

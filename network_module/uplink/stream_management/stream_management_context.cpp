@@ -30,7 +30,7 @@
 
 namespace mxnet {
 
-void MasterStreamManagementContext::receive(std::vector<StreamManagementElement>& smes) {
+void MasterStreamManagementContext::receive(const std::vector<StreamManagementElement>& smes) {
     for (auto sme: smes) {
         open(sme);
     }
@@ -96,7 +96,7 @@ void MasterStreamManagementContext::setStreamStatus(unsigned int key, StreamStat
     //TODO: Manage the case in which the stream we want to modify is not present
 }
 
-void DynamicStreamManagementContext::receive(std::vector<StreamManagementElement>& smes) {
+void DynamicStreamManagementContext::receive(const std::vector<StreamManagementElement>& smes) {
     for (auto sme : smes) {
         auto key = sme.getKey();
         if (queue.hasKey(key)) {

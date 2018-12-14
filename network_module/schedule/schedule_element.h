@@ -65,7 +65,7 @@ public:
         header.countdown=countdown;
     }
 
-    void serialize(Packet& pkt) const;
+    void serialize(Packet& pkt) const override;
     static ScheduleHeader deserialize(Packet& pkt);
     std::size_t size() const override { return sizeof(ScheduleHeaderPkt); }
     unsigned int getTotalPacket() const { return header.totalPacket; }
@@ -112,7 +112,7 @@ public:
         content.offset = off;
     };
 
-    void serialize(Packet& pkt) const;
+    void serialize(Packet& pkt) const override;
     static ScheduleElement deserialize(Packet& pkt);
     std::size_t size() const override { return sizeof(ScheduleElementPkt); }
     unsigned char getSrc() const { return content.src; }
@@ -143,7 +143,7 @@ public:
     SchedulePacket(ScheduleHeader hdr, std::vector<ScheduleElement> elms) :
         header(hdr), elements(elms) {}
 
-    void serialize(Packet& pkt) const;
+    void serialize(Packet& pkt) const override;
     static SchedulePacket deserialize(Packet& pkt);
     std::size_t size() const override { return header.size() + elements.size(); }
 

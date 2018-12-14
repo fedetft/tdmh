@@ -164,8 +164,8 @@ void ScheduleComputation::run() {
 }
 
 std::vector<ScheduleElement> ScheduleComputation::routeAndScheduleStreams(
-                                                  std::vector<StreamManagementElement> stream_list,
-                                                  NetworkConfiguration netconfig) {
+                                                  const std::vector<StreamManagementElement>& stream_list,
+                                                  const NetworkConfiguration& netconfig) {
     if(!stream_list.empty()) {
         Router router(*this, 1, 2);
         printf("## Routing ##\n");
@@ -187,7 +187,7 @@ std::vector<ScheduleElement> ScheduleComputation::routeAndScheduleStreams(
 
 }
 
-void ScheduleComputation::addNewStreams(std::vector<StreamManagementElement>& smes) {
+void ScheduleComputation::addNewStreams(const std::vector<StreamManagementElement>& smes) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
@@ -196,7 +196,7 @@ void ScheduleComputation::addNewStreams(std::vector<StreamManagementElement>& sm
     stream_mgmt.receive(smes);
 }
 
-void ScheduleComputation::open(StreamManagementElement sme) {
+void ScheduleComputation::open(const StreamManagementElement& sme) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
@@ -205,8 +205,9 @@ void ScheduleComputation::open(StreamManagementElement sme) {
     stream_mgmt.open(sme);
 }
 
-std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(std::list<std::list<ScheduleElement>> routed_streams,
-                                          NetworkConfiguration netconfig) {
+std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
+                                                  const std::list<std::list<ScheduleElement>>& routed_streams,
+                                                  const NetworkConfiguration& netconfig) {
 
     // Get network tile/superframe information
     ControlSuperframeStructure superframe = netconfig.getControlSuperframeStructure();
@@ -319,7 +320,7 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(std::list<std:
 
 // This check makes sure that data is not scheduled in control slots (Downlink, Uplink)
 bool ScheduleComputation::checkDataSlot(unsigned offset, unsigned tile_size,
-                                        ControlSuperframeStructure superframe,
+                                        const ControlSuperframeStructure& superframe,
                                         unsigned downlink_size,
                                         unsigned uplink_size) {
     // Calculate current tile number
@@ -335,16 +336,16 @@ bool ScheduleComputation::checkDataSlot(unsigned offset, unsigned tile_size,
 // This easy check is a necessary condition for a slot conflict,
 // if the result is false, then a conflict cannot happen
 // It can be used to avoid nested loops
-bool ScheduleComputation::slotConflictPossible(ScheduleElement newtransm,
-                                               ScheduleElement oldtransm,
+bool ScheduleComputation::slotConflictPossible(const ScheduleElement& newtransm,
+                                               const ScheduleElement& oldtransm,
                                                unsigned offset, unsigned tile_size) {
     // Compare offsets relative to current tile of two transmissions
     return ((offset % tile_size) == (oldtransm.getOffset() % tile_size));
 }
 
 // Extensive check to be used when slotConflictPossible returns true
-bool ScheduleComputation::checkSlotConflict(ScheduleElement newtransm,
-                                            ScheduleElement oldtransm,
+bool ScheduleComputation::checkSlotConflict(const ScheduleElement& newtransm,
+                                            const ScheduleElement& oldtransm,
                                             unsigned offset_a, unsigned tile_size,
                                             unsigned schedule_size) {
     // Calculate slots used by the two transmissions and see if there is any common value
@@ -360,8 +361,8 @@ bool ScheduleComputation::checkSlotConflict(ScheduleElement newtransm,
     return false;
 }
 
-bool ScheduleComputation::checkUnicityConflict(ScheduleElement new_transmission,
-                                               ScheduleElement old_transmission) {
+bool ScheduleComputation::checkUnicityConflict(const ScheduleElement& new_transmission,
+                                               const ScheduleElement& old_transmission) {
     // Unicity check: no activity for TX or RX node on a given timeslot
     unsigned char tx_a = new_transmission.getTx();
     unsigned char rx_a = new_transmission.getRx();
@@ -371,8 +372,8 @@ bool ScheduleComputation::checkUnicityConflict(ScheduleElement new_transmission,
     return (tx_a == tx_b) || (tx_a == rx_b) || (rx_a == tx_b) || (rx_a == rx_b);
 }
 
-bool ScheduleComputation::checkInterferenceConflict(ScheduleElement new_transmission,
-                                                    ScheduleElement old_transmission) {
+bool ScheduleComputation::checkInterferenceConflict(const ScheduleElement& new_transmission,
+                                                    const ScheduleElement& old_transmission) {
     // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
     // Check that neighbors of transmitting node (TX) aren't receiving (RX)
     // And neighbors of receiving node (RX) aren't transmitting (TX)
@@ -395,7 +396,7 @@ void ScheduleComputation::printSchedule() {
     }
 }
 
-void ScheduleComputation::printStreams(std::vector<StreamManagementElement> stream_list) {
+void ScheduleComputation::printStreams(const std::vector<StreamManagementElement>& stream_list) {
     printf("ID  SRC DST PER STS\n");
     for(auto& stream : stream_list) {
         printf("%d  %d-->%d   %d  ", stream.getKey(), stream.getSrc(),
@@ -418,7 +419,7 @@ void ScheduleComputation::printStreams(std::vector<StreamManagementElement> stre
     }
 }
 
-void ScheduleComputation::printStreamList(std::list<std::list<ScheduleElement>> stream_list) {
+void ScheduleComputation::printStreamList(const std::list<std::list<ScheduleElement>>& stream_list) {
     printf("ID  TX  RX  PER\n");
     for (auto block : stream_list)
         for (auto stream : block)
@@ -426,7 +427,7 @@ void ScheduleComputation::printStreamList(std::list<std::list<ScheduleElement>> 
                                        stream.getRx(), toInt(stream.getPeriod()));
 }
 
-std::list<std::list<ScheduleElement>> Router::run(std::vector<StreamManagementElement> stream_list) {
+std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamManagementElement>& stream_list) {
     std::list<std::list<ScheduleElement>> routed_streams;
     printf("Routing %d stream requests\n", stream_list.size());
     // Cycle over stream_requests
@@ -522,7 +523,9 @@ std::list<ScheduleElement> Router::breadthFirstSearch(StreamManagementElement st
     return std::list<ScheduleElement>();
 }
 
-std::list<ScheduleElement> Router::construct_path(StreamManagementElement stream, unsigned char node, std::map<const unsigned char, unsigned char> parent_of) {
+std::list<ScheduleElement> Router::construct_path(StreamManagementElement stream,
+                                                  unsigned char node,
+                                                  std::map<const unsigned char, unsigned char>& parent_of) {
     /* Construct path by following the parent-of relation to the root node */
     std::list<ScheduleElement> path;
     unsigned char dst = node;
