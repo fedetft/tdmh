@@ -28,7 +28,6 @@
 #include "../debug_settings.h"
 #include "dynamic_schedule_distribution.h"
 #include "schedule_distribution.h"
-#include "schedule_information.h"
 #include "../timesync/timesync_downlink.h"
 
 using namespace miosix;
@@ -79,58 +78,8 @@ void DynamicScheduleDownlinkPhase::rebroadcast(long long rcvTime) {
     */
 }
 
-void DynamicScheduleDownlinkPhase::addSchedule(DynamicScheduleElement* element) {    
-    nodeSchedule.insert(element);
-    scheduleById[element->getId()] = element;
-    if (element->getRole() == DynamicScheduleElement::FORWARDEE) {
-        forwardQueues[element->getId()] = std::queue<std::vector<unsigned char>>();
-    }
-    //TODO notify of opened stream in reception/sending, if needed.
-}
-
-void DynamicScheduleDownlinkPhase::deleteSchedule(unsigned char id) {
-    auto elem = scheduleById.find(id);
-    if (elem == scheduleById.end()) return;
-    if (elem->second->getRole() == DynamicScheduleElement::FORWARDEE) {
-        auto* forwarderSched = static_cast<ForwardeeScheduleElement*>(elem->second)->getNext();
-        nodeSchedule.erase(forwarderSched);
-        forwardQueues.erase(elem->second->getId());
-        delete forwarderSched;
-    }
-    nodeSchedule.erase(elem->second);
-    scheduleById.erase(id);
-    delete elem->second;
-    //TODO notify successful stream close, if needed
-}
 
 void DynamicScheduleDownlinkPhase::parseSchedule() {
-    /*
-    auto addCount = packet[0];
-    auto myId = ctx.getNetworkId();
-    auto bitsRead = std::numeric_limits<unsigned char>::digits;
-    for (int i = 0; i < addCount; i++) {
-        auto* sa = ScheduleAddition::deserialize(packet.data(), bitsRead);
-        bitsRead += sa->bitSize();
-        auto transitions = sa->getTransitions();
-        auto t = sa->getTransitionForNode(myId);
-        if (t.first == nullptr)
-            addSchedule(new SenderScheduleElement(sa->getScheduleId(), t.second->getDataslot(), transitions.rbegin()->getNodeId()));
-        else if (t.second == nullptr)
-            addSchedule(new ReceiverScheduleElement(sa->getScheduleId(), t.second->getDataslot(), sa->getNodeId()));
-        else {
-            auto* fwd = new ForwarderScheduleElement(sa->getScheduleId(), t.second->getDataslot());
-            addSchedule(fwd);
-            addSchedule(new ForwardeeScheduleElement(sa->getScheduleId(), t.first->getDataslot(), fwd));
-        }
-        delete sa;
-    }
-    for (int i = rcvResult.size * std::numeric_limits<unsigned char>::digits - bitsRead; i > 0; i-= std::numeric_limits<unsigned char>::digits) {
-        auto* sd = ScheduleDeletion::deserialize(packet.data(), bitsRead);
-        deleteSchedule(sd->getScheduleId());
-        bitsRead += std::numeric_limits<unsigned char>::digits;
-        delete sd;
-    }
-    */
 }
 
 }

@@ -28,13 +28,10 @@
 
 #pragma once
 
-#include "dynamic_schedule_information.h"
 #include "../mac_phase.h"
 #include "../mac_context.h"
 #include "../timesync/networktime.h"
 #include "../packet.h"
-#include "interfaces-impl/transceiver.h"
-#include "interfaces-impl/power_manager.h"
 #include <utility>
 #include <set>
 #include <map>
@@ -42,53 +39,32 @@
 /**
  * Represents the phase in which the schedule is distributed to the entire network,
  * in order to reach all the nodes so they can playback it when it becomes active.
- *
- * Contains information about:
- * Master Node:
- * - "stream requests" from the nodes
- * - "stream list" from multihop routing
- * - "final schedule" from scheduling
- * Dynamic Node:
- * - "received schedule" from schedule distribution
  */
 
 namespace mxnet {
 
-//TODO Remove old class ScheduleDownlinkPhase
-//TODO refactor to support incremental schedule (schedule taking effect after N downlinks)
 class ScheduleDownlinkPhase : public MACPhase {
 public:
     ScheduleDownlinkPhase() = delete;
     ScheduleDownlinkPhase(const ScheduleDownlinkPhase& orig) = delete;
+    ScheduleDownlinkPhase(MACContext& ctx) :
+        MACPhase(ctx),
+        networkConfig(ctx.getNetworkConfig()) {}
     virtual ~ScheduleDownlinkPhase() {};
+
     static unsigned long long getDuration(unsigned short hops) {
+        // TODO rewrite getDuration to send correct duration
         return phaseStartupTime + hops * rebroadcastInterval;
     }
 
     void advance(long long slotStart) override {} //TODO
 
-    bool isScheduleEnd(std::set<DynamicScheduleElement*>::iterator it) const { return nodeSchedule.empty() || nodeSchedule.end() == it; }
-    std::set<DynamicScheduleElement*>::iterator getFirstSchedule() { return nodeSchedule.begin(); };
-    std::set<DynamicScheduleElement*>::iterator getScheduleForOrBeforeSlot(unsigned short slot);
-    std::queue<std::vector<unsigned char>>* getQueueForId(unsigned short id) {
-        std::map<unsigned short, std::queue<std::vector<unsigned char>>>::iterator retval = forwardQueues.find(id);
-        if (retval == forwardQueues.end()) return nullptr;
-        return &(retval->second);
-    }
     static const int phaseStartupTime = 450000;
     static const int rebroadcastInterval = 5000000; //32us per-byte + 600us total delta
     
-protected:
-    ScheduleDownlinkPhase(MACContext& ctx);
-    
+private:
     const NetworkConfiguration& networkConfig;
-    struct DynamicScheduleComp {
-        bool operator()(const DynamicScheduleElement* lhs, const DynamicScheduleElement* rhs) const {
-            return *lhs < *rhs;
-        }
-    };
-    std::set<DynamicScheduleElement*, DynamicScheduleComp> nodeSchedule;
-    std::map<unsigned short, std::queue<std::vector<unsigned char>>> forwardQueues;
 };
+
 }
 

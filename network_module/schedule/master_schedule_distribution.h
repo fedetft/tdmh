@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo,             *
+ *                          Federico Amedeo Izzo                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -28,7 +29,6 @@
 #pragma once
 
 #include "schedule_distribution.h"
-#include "master_schedule_information.h"
 #include "schedule_element.h"
 
 namespace mxnet {

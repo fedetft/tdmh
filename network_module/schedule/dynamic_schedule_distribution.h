@@ -28,6 +28,7 @@
 #pragma once
 
 #include "schedule_distribution.h"
+#include "schedule_element.h"
 
 namespace mxnet {
 class DynamicScheduleDownlinkPhase : public ScheduleDownlinkPhase {
@@ -39,15 +40,12 @@ public:
     virtual ~DynamicScheduleDownlinkPhase() {};
 protected:
     void rebroadcast(long long slotStart);
-    void addSchedule(DynamicScheduleElement* element);
-    void deleteSchedule(unsigned char id);
     void parseSchedule();
     /**
      * Not containing forwarder elements, only sender, receiver and forwardee.
      * Forwarder will be accessible as `forwardee.next`.
      * Useful for deleting a schedule, being able to obtain timestamps and access the nodeSchedule for their removal.
      */
-    std::map<unsigned short, DynamicScheduleElement*> scheduleById;
 };
 }
 

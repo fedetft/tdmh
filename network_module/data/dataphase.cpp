@@ -190,10 +190,10 @@ void DataPhase::alignToNetworkTime(NetworkTime nt) {
     if (timeWithinTile > 0)
         phase += timeWithinTile / ctx.getDataSlotDuration();
     dataSlot = phase;
-    curSched = scheduleDownlink->getScheduleForOrBeforeSlot(phase);
+    //curSched = scheduleDownlink->getScheduleForOrBeforeSlot(phase);
     // TODO remove porchettona
     dataSlot = -1;
-    curSched = scheduleDownlink->getFirstSchedule();
+    //curSched = scheduleDownlink->getFirstSchedule();
 }
 
 }

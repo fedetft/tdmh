@@ -40,7 +40,7 @@ class DataPhase : public MACPhase {
 public:
     DataPhase(MACContext& ctx) :
         MACPhase(ctx), slotsInFrame(0), dataSlot(std::numeric_limits<unsigned short>::max() - 1),
-        scheduleDownlink(ctx.getScheduleDownlink()), curSched(scheduleDownlink->getFirstSchedule()),
+        scheduleDownlink(ctx.getScheduleDownlink()),
         queues({{10, std::vector<unsigned char>(0)}, {11, std::vector<unsigned char>(0)}, {100, std::vector<unsigned char>(0)},
         {101, std::vector<unsigned char>(0)}, {20, std::vector<unsigned char>(0)}, {21, std::vector<unsigned char>(0)},
         {30, std::vector<unsigned char>(0)}, {31, std::vector<unsigned char>(0)}}) {}
@@ -75,13 +75,13 @@ private:
     void nextSlot() {
         if (++dataSlot >= slotsInFrame) {
             dataSlot = 0;
-            curSched = scheduleDownlink->getFirstSchedule();
+            //curSched = scheduleDownlink->getFirstSchedule();
         }
     }
     unsigned slotsInFrame;
     unsigned short dataSlot;
     ScheduleDownlinkPhase* const scheduleDownlink;
-    std::set<DynamicScheduleElement*>::iterator curSched;
+    //std::set<DynamicScheduleElement*>::iterator curSched;
     //TODO remove
     std::map<unsigned short, std::vector<unsigned char>> queues;
 };

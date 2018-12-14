@@ -26,10 +26,8 @@
  ***************************************************************************/
 
 #include "schedule_computation.h"
-#include "../debug_settings.h"
 #include "master_schedule_distribution.h"
 #include "schedule_distribution.h"
-#include "schedule_information.h"
 #include "../timesync/timesync_downlink.h"
 #include "../packet.h"
 #include <algorithm>
