@@ -52,16 +52,15 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
         print_dbg("[D] no schedule to send\n");
         return;
     }
-    // Prepare to send new packet
-    if(header.getPacketCounter() >= header.getTotalPacket()) {
+    if(header.getPacketCounter() > header.getTotalPacket()) {
         header.resetPacketCounter();
         header.incrementRepetition();
-        // TODO make maxScheduleRepetitions configurable
-        if(header.getRepetition() >= 3) {
-            header.resetRepetition();
-            beginCountdown = true;
-        }
     }
+    // repetition is a 2 bit value {0,3},
+    // overflow is prevented in ScheduleHeader::incrementRepetition()
+    if(header.getRepetition() == 3)
+        beginCountdown = true;
+
     print_dbg("[D] sending schedule %u/%u/%lu/%d/%d\n",
               header.getTotalPacket(),
               header.getPacketCounter(),

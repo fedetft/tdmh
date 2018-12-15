@@ -74,7 +74,13 @@ public:
     unsigned char getRepetition() const { return header.repetition; }
     unsigned char getCountdown() const { return header.countdown; }
     void incrementPacketCounter() { header.currentPacket++; }
-    void incrementRepetition() { header.repetition++; }
+    void incrementRepetition() {
+        // Prevent overflow (2 bit number)
+        if(header.repetition == 3)
+            header.repetition = 1;
+        else
+            header.repetition++;
+    }
     void resetPacketCounter() { header.currentPacket = 1; }
     void resetRepetition() { header.repetition = 1; }
 
