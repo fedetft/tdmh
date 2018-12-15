@@ -28,8 +28,10 @@
 #pragma once
 
 #include "../mac_phase.h"
-#include "../schedule/schedule_distribution.h"
 #include "../mac_context.h"
+#include "../schedule/schedule_distribution.h"
+#include "../timesync/networktime.h"
+#include <map>
 
 namespace mxnet {
 /**

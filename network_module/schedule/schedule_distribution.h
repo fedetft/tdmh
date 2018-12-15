@@ -30,11 +30,6 @@
 
 #include "../mac_phase.h"
 #include "../mac_context.h"
-#include "../timesync/networktime.h"
-#include "../packet.h"
-#include <utility>
-#include <set>
-#include <map>
 
 /**
  * Represents the phase in which the schedule is distributed to the entire network,
@@ -48,8 +43,7 @@ public:
     ScheduleDownlinkPhase() = delete;
     ScheduleDownlinkPhase(const ScheduleDownlinkPhase& orig) = delete;
     ScheduleDownlinkPhase(MACContext& ctx) :
-        MACPhase(ctx),
-        networkConfig(ctx.getNetworkConfig()) {}
+        MACPhase(ctx) {}
     virtual ~ScheduleDownlinkPhase() {};
 
     static unsigned long long getDuration(unsigned short hops) {
@@ -62,8 +56,6 @@ public:
     static const int phaseStartupTime = 450000;
     static const int rebroadcastInterval = 5000000; //32us per-byte + 600us total delta
     
-private:
-    const NetworkConfiguration& networkConfig;
 };
 
 }
