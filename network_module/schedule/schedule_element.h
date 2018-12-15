@@ -154,6 +154,8 @@ public:
     void serialize(Packet& pkt) const override;
     static SchedulePacket deserialize(Packet& pkt);
     std::size_t size() const override { return header.size() + elements.size(); }
+    ScheduleHeader getHeader() const { return header; }
+    std::vector<ScheduleElement> getElements() const { return elements; }
 
 private:
     ScheduleHeader header;

@@ -29,6 +29,7 @@
 #include "master_schedule_distribution.h"
 #include "../tdmh.h"
 #include "../packet.h"
+#include "../debug_settings.h"
 
 using namespace miosix;
 

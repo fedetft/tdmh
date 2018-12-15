@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C)  2017 by Federico Amedeo Izzo                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,61 +25,44 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "../debug_settings.h"
 #include "dynamic_schedule_distribution.h"
-#include "schedule_distribution.h"
-#include "../timesync/timesync_downlink.h"
+#include "../tdmh.h"
+#include "../packet.h"
+#include "../debug_settings.h"
 
 using namespace miosix;
 
 namespace mxnet {
 
 void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
-    /*auto arrivalTime = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
-    auto wakeupTimeout = timesync->getWakeupAndTimeout(arrivalTime);
-    if (ENABLE_SCHEDULE_DL_INFO_DBG)
-        print_dbg("[S] WU=%lld TO=%lld\n", wakeupTimeout.first, wakeupTimeout.second);
-    //Transceiver configured with non strict timeout
+    Packet pkt;
+    // Receive the schedule packet
+    //TODO: check that the calculated arrivaltime is correct
+    auto arrivalTime = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    auto now = getTime();
-    //check if we skipped the synchronization time
-    if (now + timesync->getReceiverWindow() >= arrivalTime) {
-        if (ENABLE_TIMESYNC_ERROR_DBG)
-            print_dbg("[S] started too late\n");
-        return;
-    }
-    if(now < wakeupTimeout.first)
-        ctx.sleepUntil(wakeupTimeout.first);
-    do {
-            rcvResult = ctx.recv(packet.data(), MediumAccessController::maxPktSize, wakeupTimeout.second);
-        if (ENABLE_PKT_INFO_DBG) {
-            if(rcvResult.size) {
-                print_dbg("Received packet, error %d, size %d, timestampValid %d: ", rcvResult.error, rcvResult.size, rcvResult.timestampValid);
-                if (ENABLE_PKT_DUMP_DBG)
-                    memDump(packet.data(), rcvResult.size);
-            } else print_dbg("No packet received, timeout reached\n");
-        }
-    } while (rcvResult.error != miosix::RecvResult::OK && rcvResult.error != miosix::RecvResult::TIMEOUT);
-    
+    auto rcvResult = pkt.recv(ctx, arrivalTime);
     ctx.transceiverIdle(); //Save power waiting for rebroadcast time
     
     if (rcvResult.error == miosix::RecvResult::TIMEOUT) return;
 
-    //Rebroadcast the sync packet
-    rebroadcast(rcvResult.timestamp);
+    // Rebroadcast the schedule packet
+    if(ctx.getHop() >= ctx.getNetworkConfig().getMaxHops()) return;
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    pkt.send(ctx, rcvResult.timestamp + rebroadcastInterval);
     ctx.transceiverIdle();
-    parseSchedule();*/
-}
 
-void DynamicScheduleDownlinkPhase::rebroadcast(long long rcvTime) {
-    /*
-    if(ctx.getHop() >= networkConfig.getMaxHops()) return;
-    ctx.sendAt(packet.data(), rcvResult.size, rcvTime + rebroadcastInterval);
-    */
-}
+    // Parse the schedule packet
+    schedule = SchedulePacket::deserialize(pkt);
 
+    print_dbg("[D] node %d, hop %d, received schedule %u/%u/%lu/%d/%d\n",
+              ctx.getNetworkId(),
+              ctx.getHop(),
+              schedule.getHeader().getTotalPacket(),
+              schedule.getHeader().getPacketCounter(),
+              schedule.getHeader().getScheduleID(),
+              schedule.getHeader().getRepetition(),
+              schedule.getHeader().getCountdown());
 
-void DynamicScheduleDownlinkPhase::parseSchedule() {
 }
 
 }
