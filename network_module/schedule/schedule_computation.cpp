@@ -99,6 +99,8 @@ void ScheduleComputation::run() {
 
         printf("\n#### Starting schedule computation ####\n");
 
+        // Used to check if the schedule has been modified or not
+        bool changed = false;
         // NOTE: Debug topology print
         printf("Topology:\n");
         for(auto it : topology_map.getEdges())
@@ -123,6 +125,7 @@ void ScheduleComputation::run() {
             schedule.clear();
             auto new_schedule = routeAndScheduleStreams(established_streams, netconfig);
             schedule = std::move(new_schedule);
+            changed = true;
         }
         else {
             printf("Topology and current streams did not change, Keep established schedule\n");
@@ -141,6 +144,7 @@ void ScheduleComputation::run() {
             //printStreams(new_streams);
             auto new_schedule = routeAndScheduleStreams(new_streams, netconfig);
             schedule.insert(schedule.end(), new_schedule.begin(), new_schedule.end());
+            changed = true;
             //Mark successfully scheduled streams as established
             for(auto& stream: new_schedule) {
                 printf("Setting stream %d to ESTABLISHED\n", stream.getKey());
@@ -157,6 +161,8 @@ void ScheduleComputation::run() {
         // To avoid caching of stdout
         fflush(stdout);
 
+        if(changed == true)
+            scheduleID++;
         // Clear modified bit to detect changes to topology or streams
         topology_ctx.clearModifiedFlag();
         stream_mgmt.clearFlags();

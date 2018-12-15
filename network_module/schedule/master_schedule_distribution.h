@@ -34,8 +34,7 @@
 namespace mxnet {
     class MasterScheduleDownlinkPhase : public ScheduleDownlinkPhase {
     public:
-        explicit MasterScheduleDownlinkPhase(MACContext& ctx, ScheduleComputation& sch) :
-                ScheduleDownlinkPhase(ctx),schedule_comp(sch) {};
+        MasterScheduleDownlinkPhase(MACContext& ctx, ScheduleComputation& sch);
         MasterScheduleDownlinkPhase() = delete;
         MasterScheduleDownlinkPhase(const MasterScheduleDownlinkPhase& orig) = delete;
         virtual ~MasterScheduleDownlinkPhase() {};
@@ -44,13 +43,16 @@ namespace mxnet {
         void sendSchedulePkt(long long slotstart);
 
     private:
+        // Reference to ScheduleComputation class to get current schedule
+        ScheduleComputation& schedule_comp;
         // Copy of last computed schedule
         std::vector<ScheduleElement> currentSchedule;
+        // Last schedule element sent
+        unsigned position = 0;
         // Schedule header with information on schedule distribution
         ScheduleHeader header;
         bool beginCountdown = false;
-        // Reference to ScheduleComputation class to get current schedule
-        ScheduleComputation& schedule_comp;
+        unsigned downlink_slots = 0;
     };
 }
 

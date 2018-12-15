@@ -72,8 +72,10 @@ public:
     unsigned int getPacketCounter() const { return header.currentPacket; }
     unsigned long getScheduleID() const { return header.scheduleID; }
     unsigned char getRepetition() const { return header.repetition; }
+    unsigned char getCountdown() const { return header.countdown; }
     void incrementPacketCounter() { header.currentPacket++; }
     void incrementRepetition() { header.repetition++; }
+    void resetPacketCounter() { header.currentPacket = 0; }
     void resetRepetition() { header.repetition = 1; }
 
 private:

@@ -87,6 +87,10 @@ private:
         return schedule;
     }
 
+    unsigned long getScheduleID() {
+        return scheduleID;
+    }
+
     void printStreams(const std::vector<StreamManagementElement>& stream_list);
 
     void printStreamList(const std::list<std::list<ScheduleElement>>& stream_list);        
@@ -112,6 +116,8 @@ private:
     TopologyMap topology_map;
     // Final stream list after scheduling
     std::vector<ScheduleElement> schedule;
+    // Used to check if a (new) schedule is available
+    unsigned long scheduleID = 0;
 
     // References to other classes
     MasterMeshTopologyContext& topology_ctx;
