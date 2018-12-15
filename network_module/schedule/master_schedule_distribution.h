@@ -47,12 +47,13 @@ namespace mxnet {
         ScheduleComputation& schedule_comp;
         // Copy of last computed schedule
         std::vector<ScheduleElement> currentSchedule;
-        // Last schedule element sent
-        unsigned position = 0;
         // Schedule header with information on schedule distribution
         ScheduleHeader header;
+        // Last schedule element sent
+        unsigned position = 0;
         bool beginCountdown = false;
-        unsigned downlink_slots = 0;
+        unsigned downlinkSlots = 0;
+        unsigned packetCapacity = 0;
     };
 }
 

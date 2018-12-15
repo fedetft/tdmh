@@ -151,8 +151,11 @@ void ScheduleComputation::run() {
                 stream_mgmt.setStreamStatus(stream.getKey(), StreamStatus::ESTABLISHED);
             }
         }
+        if(changed == true)
+            scheduleID++;
 
-        printf("Final schedule\n");
+        printf("## Results ##\n");
+        printf("Final schedule, ID:%d\n", scheduleID);
         printSchedule();
 
         printf("Stream list after scheduling\n");
@@ -161,8 +164,6 @@ void ScheduleComputation::run() {
         // To avoid caching of stdout
         fflush(stdout);
 
-        if(changed == true)
-            scheduleID++;
         // Clear modified bit to detect changes to topology or streams
         topology_ctx.clearModifiedFlag();
         stream_mgmt.clearFlags();
@@ -320,7 +321,7 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
                 stream_err = true;
         }
     }
-    printf("Final schedule size: %d\n", schedule_size);
+    printf("Final schedule length: %d\n", schedule_size);
     return scheduled_transmissions;
 }
 

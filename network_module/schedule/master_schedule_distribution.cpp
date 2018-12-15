@@ -27,6 +27,7 @@
 
 #include "schedule_computation.h"
 #include "master_schedule_distribution.h"
+#include "../tdmh.h"
 #include "../packet.h"
 
 using namespace miosix;
@@ -36,47 +37,49 @@ namespace mxnet {
 MasterScheduleDownlinkPhase::MasterScheduleDownlinkPhase(MACContext& ctx, ScheduleComputation& sch) :
         ScheduleDownlinkPhase(ctx),schedule_comp(sch) {
     // Get number of downlink slots
-    unsigned tile_size = ctx.getSlotsInTileCount();
-    unsigned dataslots_downlinktile = ctx.getDataSlotsInDownlinkTileCount();
-    downlink_slots = tile_size - dataslots_downlinktile;
+    unsigned tileSize = ctx.getSlotsInTileCount();
+    unsigned dataslotsDownlinktile = ctx.getDataSlotsInDownlinkTileCount();
+    downlinkSlots = tileSize - dataslotsDownlinktile;
+    unsigned pktSize = MediumAccessController::maxPktSize;
+    packetCapacity = (pktSize - sizeof(ScheduleHeaderPkt)) / sizeof(ScheduleElementPkt);
 }
 
 void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     // Check for new schedule
     if(schedule_comp.getScheduleID() != header.getScheduleID())
         getCurrentSchedule();
-    // Prepare to send new packet
-    if(header.getScheduleID() == 0)
+    if(header.getScheduleID() == 0) {
         print_dbg("[D] no schedule to send\n");
-    else {
-        header.incrementPacketCounter();
-        if(header.getPacketCounter() > header.getTotalPacket()) {
-            header.resetPacketCounter();
-            header.incrementRepetition();
-            // TODO make maxScheduleRepetitions configurable
-            if(header.getRepetition() >= 3) {
-                header.resetRepetition();
-                beginCountdown = true;
-            }
-        }
-        print_dbg("[D] sending schedule %u/%u/%lu/%d/%d\n",
-               header.getTotalPacket(),
-               header.getPacketCounter(),
-               header.getScheduleID(),
-               header.getRepetition(),
-               header.getCountdown());
-        // To avoid caching of stdout
-        fflush(stdout);
-        sendSchedulePkt(slotStart);
+        return;
     }
+    // Prepare to send new packet
+    if(header.getPacketCounter() >= header.getTotalPacket()) {
+        header.resetPacketCounter();
+        header.incrementRepetition();
+        // TODO make maxScheduleRepetitions configurable
+        if(header.getRepetition() >= 3) {
+            header.resetRepetition();
+            beginCountdown = true;
+        }
+    }
+    print_dbg("[D] sending schedule %u/%u/%lu/%d/%d\n",
+              header.getTotalPacket(),
+              header.getPacketCounter(),
+              header.getScheduleID(),
+              header.getRepetition(),
+              header.getCountdown());
+
+    sendSchedulePkt(slotStart);
+    header.incrementPacketCounter();
 }
 
 void MasterScheduleDownlinkPhase::getCurrentSchedule() {
     currentSchedule = schedule_comp.getSchedule();
     // Build a header for the new schedule
+    unsigned numPackets = (currentSchedule.size() / packetCapacity) + 1;
     ScheduleHeader newheader(
-        currentSchedule.size(), // totalPacket
-        0,                      // currentPacket
+        numPackets,                     // totalPacket
+        1,                              // currentPacket
         schedule_comp.getScheduleID()); // scheduleID
     header = newheader;
 }
@@ -85,7 +88,7 @@ void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
     Packet pkt;
     // Add schedule distribution header
     header.serialize(pkt);
-    for(unsigned int i = 0; (i < downlink_slots) && (position < currentSchedule.size()); i++) {
+    for(unsigned int i = 0; (i < packetCapacity) && (position < currentSchedule.size()); i++) {
         // Add schedule element to packet
         currentSchedule[position].serialize(pkt);
         position++;

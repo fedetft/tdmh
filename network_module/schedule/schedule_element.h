@@ -75,7 +75,7 @@ public:
     unsigned char getCountdown() const { return header.countdown; }
     void incrementPacketCounter() { header.currentPacket++; }
     void incrementRepetition() { header.repetition++; }
-    void resetPacketCounter() { header.currentPacket = 0; }
+    void resetPacketCounter() { header.currentPacket = 1; }
     void resetRepetition() { header.repetition = 1; }
 
 private:
