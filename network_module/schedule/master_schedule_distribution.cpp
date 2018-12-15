@@ -47,30 +47,55 @@ MasterScheduleDownlinkPhase::MasterScheduleDownlinkPhase(MACContext& ctx, Schedu
 
 void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     // Check for new schedule
-    if(schedule_comp.getScheduleID() != header.getScheduleID())
+    if(schedule_comp.getScheduleID() != header.getScheduleID()) { 
         getCurrentSchedule();
-    if(header.getScheduleID() == 0) {
-        print_dbg("[D] no schedule to send\n");
-        return;
+        beginCountdown = false;
     }
-    if(header.getPacketCounter() > header.getTotalPacket()) {
-        header.resetPacketCounter();
-        header.incrementRepetition();
+    // Send new schedule mode
+    if(beginCountdown == false) {
+        if(header.getScheduleID() == 0) {
+            print_dbg("[D] no schedule to send\n");
+            return;
+        }
+        if(header.getPacketCounter() > header.getTotalPacket()) {
+            header.resetPacketCounter();
+            header.incrementRepetition();
+        }
+        // repetition is a 2 bit value {0,3},
+        // overflow is prevented in ScheduleHeader::incrementRepetition()
+        if(header.getRepetition() == 3){ 
+            beginCountdown = true;
+            prepareCountdownHeader();
+        }
+
+        print_dbg("[D] sending schedule %u/%u/%lu/%d/%d\n",
+                  header.getTotalPacket(),
+                  header.getPacketCounter(),
+                  header.getScheduleID(),
+                  header.getRepetition(),
+                  header.getCountdown());
+
+        sendSchedulePkt(slotStart);
+        header.incrementPacketCounter();
     }
-    // repetition is a 2 bit value {0,3},
-    // overflow is prevented in ScheduleHeader::incrementRepetition()
-    if(header.getRepetition() == 3)
-        beginCountdown = true;
-
-    print_dbg("[D] sending schedule %u/%u/%lu/%d/%d\n",
-              header.getTotalPacket(),
-              header.getPacketCounter(),
-              header.getScheduleID(),
-              header.getRepetition(),
-              header.getCountdown());
-
-    sendSchedulePkt(slotStart);
-    header.incrementPacketCounter();
+    // Countdown mode
+    else {
+        if(countdownHeader.getCountdown() == 0)
+            {
+                // If countdown ended, wait for new schedule.
+                return;
+            }
+        else{
+            print_dbg("[D] sending schedule %u/%u/%lu/%d/%d\n",
+                      countdownHeader.getTotalPacket(),
+                      countdownHeader.getPacketCounter(),
+                      countdownHeader.getScheduleID(),
+                      countdownHeader.getRepetition(),
+                      countdownHeader.getCountdown());
+            sendCountdownPkt(slotStart);
+            countdownHeader.decrementCountdown();
+        }
+    }
 }
 
 void MasterScheduleDownlinkPhase::getCurrentSchedule() {
@@ -84,6 +109,16 @@ void MasterScheduleDownlinkPhase::getCurrentSchedule() {
     header = newheader;
 }
 
+void MasterScheduleDownlinkPhase::prepareCountdownHeader() {
+    ScheduleHeader cdHeader(
+                            0,                        // totalPacket
+                            0,                        // currentPacket
+                            header.getScheduleID(),   // scheduleID
+                            0);                       // repetition
+    countdownHeader = cdHeader;
+}
+
+
 void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
     Packet pkt;
     // Add schedule distribution header
@@ -94,6 +129,16 @@ void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
         position++;
     }
     // Send schedule downlink packet
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    pkt.send(ctx, slotStart);
+    ctx.transceiverIdle();
+}
+
+void MasterScheduleDownlinkPhase::sendCountdownPkt(long long slotStart) {
+    Packet pkt;
+    // Add schedule countdown header
+    countdownHeader.serialize(pkt);
+    // Send schedule countdown packet
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     pkt.send(ctx, slotStart);
     ctx.transceiverIdle();

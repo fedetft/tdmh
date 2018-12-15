@@ -81,6 +81,13 @@ public:
         else
             header.repetition++;
     }
+    void decrementCountdown() {
+        // Prevent overflow (6 bit number)
+        if(header.countdown == 0)
+            header.countdown = 63;
+        else
+            header.countdown--;
+    }
     void resetPacketCounter() { header.currentPacket = 1; }
     void resetRepetition() { header.repetition = 1; }
 
