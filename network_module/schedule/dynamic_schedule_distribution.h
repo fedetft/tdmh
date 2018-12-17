@@ -33,7 +33,7 @@
 namespace mxnet {
 class DynamicScheduleDownlinkPhase : public ScheduleDownlinkPhase {
 public:
-    explicit DynamicScheduleDownlinkPhase(MACContext& ctx) : ScheduleDownlinkPhase(ctx) {};
+    DynamicScheduleDownlinkPhase(MACContext& ctx) : ScheduleDownlinkPhase(ctx) {};
     DynamicScheduleDownlinkPhase() = delete;
     DynamicScheduleDownlinkPhase(const DynamicScheduleDownlinkPhase& orig) = delete;
     void execute(long long slotStart) override;

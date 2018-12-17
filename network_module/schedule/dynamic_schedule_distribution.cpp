@@ -62,21 +62,18 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     if(replaceCountdown == 1)
         replaceRunningSchedule();
 
-    printStatus();
+    //printStatus();
 }
 
 void DynamicScheduleDownlinkPhase::decodePacket(SchedulePacket& spkt) {
     ScheduleHeader newHeader = spkt.getHeader();
     // We received a new schedule, replace currently received
-    printf("newHeader ID %d, nextHeader ID %d", newHeader.getScheduleID(), nextHeader.getScheduleID());
     if((newHeader.getScheduleID() > nextHeader.getScheduleID())) {
         nextHeader = newHeader;
         nextSchedule = spkt.getElements();
         // Resize the received bool vector to the size of the new schedule
-        // NOTE: getCurrentPacket starts from 1
-        printf("[D] new_size = %d\n", newHeader.getTotalPacket()+1);
         received.clear();
-        received.resize(newHeader.getTotalPacket() + 1, false);
+        received.resize(newHeader.getTotalPacket(), false);
         // Set current packet as received
         received.at(newHeader.getCurrentPacket()) = true;
         // Reset the schedule replacement countdown;
@@ -104,20 +101,19 @@ void DynamicScheduleDownlinkPhase::decodePacket(SchedulePacket& spkt) {
 }
 
 void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
-    printf("[D] node %d, hop %d, received schedule %u/%u/%lu/%d/%d\n",
+    print_dbg("[D] node %d, hop %d, received schedule %u/%u/%lu/%d\n",
               ctx.getNetworkId(),
               ctx.getHop(),
               header.getTotalPacket(),
               header.getCurrentPacket(),
               header.getScheduleID(),
-              header.getRepetition(),
-              header.getCountdown());
+              header.getRepetition());
 }
 
 void DynamicScheduleDownlinkPhase::calculateCountdown(ScheduleHeader& newHeader) {
     // If we received a complete schedule, calculate activation time
     bool complete = true;
-    for(int i=1; i < received.size(); i++) complete &= received[i];
+    for(int i=0; i < received.size(); i++) complete &= received[i];
     if(complete) {
         // Becomes 1 with 3rd repetition (1 = replace schedule)
         replaceCountdown = 4 - newHeader.getRepetition();
@@ -130,11 +126,11 @@ void DynamicScheduleDownlinkPhase::replaceRunningSchedule() {
 }
 
 void DynamicScheduleDownlinkPhase::printStatus() {
-    printf("[D] node:%d, countdown:%d, received:%d[",
+    print_dbg("[D] node:%d, countdown:%d, received:%d[",
            ctx.getNetworkId(),
            replaceCountdown,
            received.size());
-    for (int i=1; i < received.size(); i++) printf("%d", static_cast<bool>(received[i]));
+    for (int i=0; i < received.size(); i++) printf("%d", static_cast<bool>(received[i]));
     printf("]\n");
 }
 

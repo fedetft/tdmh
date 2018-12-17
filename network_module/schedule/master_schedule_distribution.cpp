@@ -55,15 +55,13 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
         print_dbg("[D] no schedule to send\n");
         return;
     }
-    if(header.getCurrentPacket() > header.getTotalPacket()) {
-        header.resetPacketCounter();
-        header.incrementRepetition();
-    }
-    // repetition is a 2 bit value {0,3},
-    // overflow is prevented in ScheduleHeader::incrementRepetition()
-    if(header.getRepetition() == 3){
+    if(header.getRepetition() >= 3){
         // Stop after sending third schedule repetition
         return;
+    }
+    if(header.getCurrentPacket() >= header.getTotalPacket()) {
+        header.resetPacketCounter();
+        header.incrementRepetition();
     }
     printHeader(header);
     sendSchedulePkt(slotStart);
@@ -76,7 +74,7 @@ void MasterScheduleDownlinkPhase::getCurrentSchedule() {
     unsigned numPackets = (currentSchedule.size() / packetCapacity) + 1;
     ScheduleHeader newheader(
         numPackets,                     // totalPacket
-        1,                              // currentPacket
+        0,                              // currentPacket
         schedule_comp.getScheduleID()); // scheduleID
     header = newheader;
 }
@@ -97,12 +95,11 @@ void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
 }
 
 void MasterScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
-    print_dbg("[D] sending schedule %u/%u/%lu/%d/%d\n",
+    print_dbg("[D] sending schedule %u/%u/%lu/%d\n",
               header.getTotalPacket(),
               header.getCurrentPacket(),
               header.getScheduleID(),
-              header.getRepetition(),
-              header.getCountdown());
+              header.getRepetition());
 }
 
 }

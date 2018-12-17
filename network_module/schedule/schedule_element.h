@@ -28,6 +28,8 @@
 #pragma once
 #include "../serializable_message.h"
 #include "../uplink/stream_management/stream_management_element.h"
+#include <cstring>
+#include <iostream>
 
 namespace mxnet {
 
@@ -35,8 +37,7 @@ struct ScheduleHeaderPkt {
     unsigned int totalPacket:16;
     unsigned int currentPacket:16;
     unsigned int scheduleID:32;
-    unsigned int repetition:2;
-    unsigned int countdown:6;
+    unsigned int repetition:8;
 };
 
 struct ScheduleElementPkt {
@@ -52,17 +53,17 @@ struct ScheduleElementPkt {
 
 class ScheduleHeader : public SerializableMessage {
 public:
-    ScheduleHeader() {}
+    ScheduleHeader() {
+        std::memset(&header, 0, sizeof(ScheduleHeaderPkt));
+    }
 
     ScheduleHeader(unsigned int totalPacket, unsigned int currentPacket,
-                   unsigned long scheduleID=0, unsigned char repetition=1,
-                   unsigned char countdown=63)
+                   unsigned long scheduleID=0, unsigned char repetition=1)
     {
         header.totalPacket = totalPacket;
         header.currentPacket = currentPacket;
         header.scheduleID = scheduleID;
-        header.repetition=repetition;
-        header.countdown=countdown;
+        header.repetition = repetition;
     }
 
     void serialize(Packet& pkt) const override;
@@ -73,7 +74,6 @@ public:
     // NOTE: schedule with ScheduleID=0 are not sent in MasterScheduleDistribution
     unsigned long getScheduleID() const { return header.scheduleID; }
     unsigned char getRepetition() const { return header.repetition; }
-    unsigned char getCountdown() const { return header.countdown; }
     void incrementPacketCounter() { header.currentPacket++; }
     void incrementRepetition() {
         // Prevent overflow (2 bit number)
@@ -82,14 +82,7 @@ public:
         else
             header.repetition++;
     }
-    void decrementCountdown() {
-        // Prevent overflow (6 bit number)
-        if(header.countdown == 0)
-            header.countdown = 63;
-        else
-            header.countdown--;
-    }
-    void resetPacketCounter() { header.currentPacket = 1; }
+    void resetPacketCounter() { header.currentPacket = 0; }
     void resetRepetition() { header.repetition = 1; }
 
 private:
@@ -98,7 +91,9 @@ private:
 
 class ScheduleElement : public SerializableMessage {
 public:
-    ScheduleElement() {}
+    ScheduleElement() {
+        std::memset(&content, 0, sizeof(ScheduleElementPkt));
+    }
 
     ScheduleElement(unsigned char src, unsigned char dst, unsigned char srcPort,
                     unsigned char dstPort, unsigned char tx, unsigned char rx,
