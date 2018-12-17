@@ -35,9 +35,9 @@ using namespace miosix;
 namespace mxnet {
 
 void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
+    replaceCountdown--;
     Packet pkt;
     // Receive the schedule packet
-    //TODO: check that the calculated arrivaltime is correct
     auto arrivalTime = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     auto rcvResult = pkt.recv(ctx, arrivalTime);
@@ -52,17 +52,90 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     ctx.transceiverIdle();
 
     // Parse the schedule packet
-    schedule = SchedulePacket::deserialize(pkt);
+    SchedulePacket spkt = SchedulePacket::deserialize(pkt);
+    decodePacket(spkt);
 
-    print_dbg("[D] node %d, hop %d, received schedule %u/%u/%lu/%d/%d\n",
+    auto header = spkt.getHeader();
+    printHeader(header);
+    calculateCountdown(header);
+    // Check replaceCountdown
+    if(replaceCountdown == 1)
+        replaceRunningSchedule();
+
+    printStatus();
+}
+
+void DynamicScheduleDownlinkPhase::decodePacket(SchedulePacket& spkt) {
+    ScheduleHeader newHeader = spkt.getHeader();
+    // We received a new schedule, replace currently received
+    printf("newHeader ID %d, nextHeader ID %d", newHeader.getScheduleID(), nextHeader.getScheduleID());
+    if((newHeader.getScheduleID() > nextHeader.getScheduleID())) {
+        nextHeader = newHeader;
+        nextSchedule = spkt.getElements();
+        // Resize the received bool vector to the size of the new schedule
+        // NOTE: getCurrentPacket starts from 1
+        printf("[D] new_size = %d\n", newHeader.getTotalPacket()+1);
+        received.clear();
+        received.resize(newHeader.getTotalPacket() + 1, false);
+        // Set current packet as received
+        received.at(newHeader.getCurrentPacket()) = true;
+        // Reset the schedule replacement countdown;
+        replaceCountdown = 0;
+    }
+    // We are receiving another part of the same schedule, we accept it if:
+    // - repetition number is higher or equal than the saved one
+    // - packet has not been already received (avoid duplicates)
+    else if((newHeader.getScheduleID() == nextHeader.getScheduleID()) &&
+            (newHeader.getRepetition() >= nextHeader.getRepetition()) &&
+            (!received.at(newHeader.getCurrentPacket()))) {
+        // Set current packet as received
+        received.at(newHeader.getCurrentPacket()) = true;
+        nextHeader = newHeader;
+        // Add elements from received packet to new schedule
+        nextSchedule.insert(nextSchedule.begin(), spkt.getElements().begin(), spkt.getElements().end());
+    }
+    // If we receive an header with ID less of what we have, discard it
+    // scheduleID overflow handling
+    else if((newHeader.getScheduleID() < 10) &&
+            (nextHeader.getScheduleID() > std::numeric_limits<unsigned long>::max() - 10)) {
+        nextHeader = newHeader;
+        decodePacket(spkt);
+    }
+}
+
+void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
+    printf("[D] node %d, hop %d, received schedule %u/%u/%lu/%d/%d\n",
               ctx.getNetworkId(),
               ctx.getHop(),
-              schedule.getHeader().getTotalPacket(),
-              schedule.getHeader().getPacketCounter(),
-              schedule.getHeader().getScheduleID(),
-              schedule.getHeader().getRepetition(),
-              schedule.getHeader().getCountdown());
+              header.getTotalPacket(),
+              header.getCurrentPacket(),
+              header.getScheduleID(),
+              header.getRepetition(),
+              header.getCountdown());
+}
 
+void DynamicScheduleDownlinkPhase::calculateCountdown(ScheduleHeader& newHeader) {
+    // If we received a complete schedule, calculate activation time
+    bool complete = true;
+    for(int i=1; i < received.size(); i++) complete &= received[i];
+    if(complete) {
+        // Becomes 1 with 3rd repetition (1 = replace schedule)
+        replaceCountdown = 4 - newHeader.getRepetition();
+    }
+}
+
+void DynamicScheduleDownlinkPhase::replaceRunningSchedule() {
+    runningHeader = nextHeader;
+    runningSchedule = nextSchedule;
+}
+
+void DynamicScheduleDownlinkPhase::printStatus() {
+    printf("[D] node:%d, countdown:%d, received:%d[",
+           ctx.getNetworkId(),
+           replaceCountdown,
+           received.size());
+    for (int i=1; i < received.size(); i++) printf("%d", static_cast<bool>(received[i]));
+    printf("]\n");
 }
 
 }

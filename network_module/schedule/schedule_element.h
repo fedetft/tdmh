@@ -69,7 +69,8 @@ public:
     static ScheduleHeader deserialize(Packet& pkt);
     std::size_t size() const override { return sizeof(ScheduleHeaderPkt); }
     unsigned int getTotalPacket() const { return header.totalPacket; }
-    unsigned int getPacketCounter() const { return header.currentPacket; }
+    unsigned int getCurrentPacket() const { return header.currentPacket; }
+    // NOTE: schedule with ScheduleID=0 are not sent in MasterScheduleDistribution
     unsigned long getScheduleID() const { return header.scheduleID; }
     unsigned char getRepetition() const { return header.repetition; }
     unsigned char getCountdown() const { return header.countdown; }

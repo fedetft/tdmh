@@ -38,9 +38,25 @@ public:
     DynamicScheduleDownlinkPhase(const DynamicScheduleDownlinkPhase& orig) = delete;
     void execute(long long slotStart) override;
     virtual ~DynamicScheduleDownlinkPhase() {};
+    void decodePacket(SchedulePacket& spkt);
+    void printHeader(ScheduleHeader& header);
+    void calculateCountdown(ScheduleHeader& newHeader);
+    void replaceRunningSchedule();
+    void printStatus();
 
 private:
-    SchedulePacket schedule;
+    // Vector of bool with size = total packets of a schedule
+    // To check if all the schedule packets are received
+    std::vector<bool> received;
+    // Countdown for replacing current schedule
+    // Initial value = 0, Replaced if = 1
+    unsigned int replaceCountdown = 0;
+    // Next schedule being received
+    ScheduleHeader nextHeader;
+    std::vector<ScheduleElement> nextSchedule;
+    // Currently running schedule
+    ScheduleHeader runningHeader;
+    std::vector<ScheduleElement> runningSchedule;
 };
 }
 

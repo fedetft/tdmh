@@ -151,8 +151,13 @@ void ScheduleComputation::run() {
                 stream_mgmt.setStreamStatus(stream.getKey(), StreamStatus::ESTABLISHED);
             }
         }
-        if(changed == true)
-            scheduleID++;
+        if(changed == true) {
+            // NOTE: schedule with ScheduleID=0 are not sent in MasterScheduleDistribution
+            if(scheduleID == std::numeric_limits<unsigned long>::max())
+                scheduleID = 1;
+            else
+                scheduleID++;
+        }
 
         printf("## Results ##\n");
         printf("Final schedule, ID:%d\n", scheduleID);

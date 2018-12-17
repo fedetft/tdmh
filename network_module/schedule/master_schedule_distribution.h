@@ -39,9 +39,8 @@ namespace mxnet {
         virtual ~MasterScheduleDownlinkPhase() {};
         void execute(long long slotStart) override;
         void getCurrentSchedule();
-        void prepareCountdownHeader();
         void sendSchedulePkt(long long slotstart);
-        void sendCountdownPkt(long long slotStart);
+        void printHeader(ScheduleHeader& header); 
 
     private:
         // Reference to ScheduleComputation class to get current schedule
@@ -50,10 +49,8 @@ namespace mxnet {
         std::vector<ScheduleElement> currentSchedule;
         // Schedule header with information on schedule distribution
         ScheduleHeader header;
-        ScheduleHeader countdownHeader;
         // Last schedule element sent
         unsigned position = 0;
-        bool beginCountdown = false;
         unsigned downlinkSlots = 0;
         unsigned packetCapacity = 0;
     };

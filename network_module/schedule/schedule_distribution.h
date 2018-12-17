@@ -47,7 +47,6 @@ public:
     virtual ~ScheduleDownlinkPhase() {};
 
     static unsigned long long getDuration(unsigned short hops) {
-        // TODO rewrite getDuration to send correct duration
         return phaseStartupTime + hops * rebroadcastInterval;
     }
 
