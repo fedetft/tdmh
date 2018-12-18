@@ -38,6 +38,21 @@
 
 namespace mxnet {
 
+    /* Possible actions to do in a dataphase slot */
+    enum class Action
+        {
+         SLEEP      =0,    // Sleep to save energy 
+         SENDSTREAM =1,    // Send packet of a stream opened from this node
+         RECVSTREAM =2,    // Receive packet of a stream opened to this node
+         SENDBUFFER =3,    // Send a saved packet from a multihop stream
+         RECVBUFFER =4,    // Receive and save packet from a multihop stream
+        };
+
+    struct ExplicitScheduleElement {
+        unsigned int action:3;
+        unsigned int port:4;
+    }
+
 class ScheduleDownlinkPhase : public MACPhase {
 public:
     ScheduleDownlinkPhase() = delete;
@@ -54,7 +69,21 @@ public:
 
     static const int phaseStartupTime = 450000;
     static const int rebroadcastInterval = 5000000; //32us per-byte + 600us total delta
-    
+    unsigned long getScheduleID() {
+        return header.getScheduleID();
+    }
+    std::vector<ScheduleElement> getSchedule() {
+        return currentSchedule;
+    }
+
+
+private:
+    // Schedule header with information on schedule distribution
+    ScheduleHeader header;
+    // Copy of last computed/received schedule
+    std::vector<ScheduleElement> schedule;
+
+    std::vector<ExplicitScheduleElement> explicitSchedule;
 };
 
 }

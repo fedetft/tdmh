@@ -69,9 +69,9 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
 }
 
 void MasterScheduleDownlinkPhase::getCurrentSchedule() {
-    currentSchedule = schedule_comp.getSchedule();
+    schedule = schedule_comp.getSchedule();
     // Build a header for the new schedule
-    unsigned numPackets = (currentSchedule.size() / packetCapacity) + 1;
+    unsigned numPackets = (schedule.size() / packetCapacity) + 1;
     ScheduleHeader newheader(
         numPackets,                     // totalPacket
         0,                              // currentPacket
@@ -83,9 +83,9 @@ void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
     Packet pkt;
     // Add schedule distribution header
     header.serialize(pkt);
-    for(unsigned int i = 0; (i < packetCapacity) && (position < currentSchedule.size()); i++) {
+    for(unsigned int i = 0; (i < packetCapacity) && (position < schedule.size()); i++) {
         // Add schedule element to packet
-        currentSchedule[position].serialize(pkt);
+        schedule[position].serialize(pkt);
         position++;
     }
     // Send schedule downlink packet

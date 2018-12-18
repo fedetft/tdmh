@@ -115,8 +115,8 @@ void DynamicScheduleDownlinkPhase::calculateCountdown(ScheduleHeader& newHeader)
 }
 
 void DynamicScheduleDownlinkPhase::replaceRunningSchedule() {
-    runningHeader = nextHeader;
-    runningSchedule = nextSchedule;
+    header = nextHeader;
+    schedule = nextSchedule;
 }
 
 void DynamicScheduleDownlinkPhase::printStatus() {

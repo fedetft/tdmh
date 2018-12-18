@@ -31,28 +31,26 @@
 #include "schedule_element.h"
 
 namespace mxnet {
-    class MasterScheduleDownlinkPhase : public ScheduleDownlinkPhase {
-    public:
-        MasterScheduleDownlinkPhase(MACContext& ctx, ScheduleComputation& sch);
-        MasterScheduleDownlinkPhase() = delete;
-        MasterScheduleDownlinkPhase(const MasterScheduleDownlinkPhase& orig) = delete;
-        virtual ~MasterScheduleDownlinkPhase() {};
-        void execute(long long slotStart) override;
-        void getCurrentSchedule();
-        void sendSchedulePkt(long long slotstart);
-        void printHeader(ScheduleHeader& header); 
 
-    private:
-        // Reference to ScheduleComputation class to get current schedule
-        ScheduleComputation& schedule_comp;
-        // Copy of last computed schedule
-        std::vector<ScheduleElement> currentSchedule;
-        // Schedule header with information on schedule distribution
-        ScheduleHeader header;
-        // Last schedule element sent
-        unsigned position = 0;
-        unsigned downlinkSlots = 0;
-        unsigned packetCapacity = 0;
-    };
+class MasterScheduleDownlinkPhase : public ScheduleDownlinkPhase {
+public:
+    MasterScheduleDownlinkPhase(MACContext& ctx, ScheduleComputation& sch);
+    MasterScheduleDownlinkPhase() = delete;
+    MasterScheduleDownlinkPhase(const MasterScheduleDownlinkPhase& orig) = delete;
+    virtual ~MasterScheduleDownlinkPhase() {};
+    void execute(long long slotStart) override;
+    void getCurrentSchedule();
+    void sendSchedulePkt(long long slotstart);
+    void printHeader(ScheduleHeader& header);
+
+private:
+    // Reference to ScheduleComputation class to get current schedule
+    ScheduleComputation& schedule_comp;
+    // Last schedule element sent
+    unsigned position = 0;
+    unsigned downlinkSlots = 0;
+    unsigned packetCapacity = 0;
+};
+
 }
 

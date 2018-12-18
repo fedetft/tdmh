@@ -31,6 +31,7 @@
 #include "schedule_element.h"
 
 namespace mxnet {
+
 class DynamicScheduleDownlinkPhase : public ScheduleDownlinkPhase {
 public:
     DynamicScheduleDownlinkPhase(MACContext& ctx) : ScheduleDownlinkPhase(ctx) {};
@@ -54,9 +55,6 @@ private:
     // Next schedule being received
     ScheduleHeader nextHeader;
     std::vector<ScheduleElement> nextSchedule;
-    // Currently running schedule
-    ScheduleHeader runningHeader;
-    std::vector<ScheduleElement> runningSchedule;
 };
-}
 
+}
