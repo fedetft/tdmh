@@ -68,7 +68,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
 void DynamicScheduleDownlinkPhase::decodePacket(SchedulePacket& spkt) {
     ScheduleHeader newHeader = spkt.getHeader();
     // We received a new schedule, replace currently received
-    if((newHeader.getScheduleID() > nextHeader.getScheduleID())) {
+    if((newHeader.getScheduleID() != nextHeader.getScheduleID())) {
         nextHeader = newHeader;
         nextSchedule = spkt.getElements();
         // Resize the received bool vector to the size of the new schedule
@@ -92,12 +92,6 @@ void DynamicScheduleDownlinkPhase::decodePacket(SchedulePacket& spkt) {
         nextSchedule.insert(nextSchedule.begin(), spkt.getElements().begin(), spkt.getElements().end());
     }
     // If we receive an header with ID less of what we have, discard it
-    // scheduleID overflow handling
-    else if((newHeader.getScheduleID() < 10) &&
-            (nextHeader.getScheduleID() > std::numeric_limits<unsigned long>::max() - 10)) {
-        nextHeader = newHeader;
-        decodePacket(spkt);
-    }
 }
 
 void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
