@@ -39,21 +39,6 @@
 
 namespace mxnet {
 
-    /* Possible actions to do in a dataphase slot */
-    enum class Action
-        {
-         SLEEP      =0,    // Sleep to save energy 
-         SENDSTREAM =1,    // Send packet of a stream opened from this node
-         RECVSTREAM =2,    // Receive packet of a stream opened to this node
-         SENDBUFFER =3,    // Send a saved packet from a multihop stream
-         RECVBUFFER =4,    // Receive and save packet from a multihop stream
-        };
-
-    struct ExplicitScheduleElement {
-        unsigned int action:3;
-        unsigned int port:4;
-    };
-
 class ScheduleDownlinkPhase : public MACPhase {
 public:
     ScheduleDownlinkPhase() = delete;
@@ -73,7 +58,8 @@ public:
 
     /* Called after receiving a complete schedule,
      * it converts the schedule from implicit form (list of streams)
-     * to explicit form (action to do on every timeslot) */
+     * to explicit form (action to do on every timeslot)
+     * keeping only the actions that involve this node */
     void expandSchedule();
     /* The new schedule must be set in the first downlink tile after the old schedule is over.
        This function calculates the tilesPassedTotal time indicator,
@@ -87,11 +73,9 @@ protected:
     std::vector<ScheduleElement> schedule;
     // Current schedule lenght in tiles
     unsigned long explicitScheduleID;
-    unsigned long scheduleLength;
     std::vector<ExplicitScheduleElement> explicitSchedule;
 private:
     DataPhase* const dataPhase;
 };
 
 }
-

@@ -69,8 +69,10 @@ public:
     }
     /* Called from ScheduleDownlinkPhase class on the first downlink slot
      * of the new schedule, to set the schedule lenght or DataSuperframeSize */
-    void setScheduleLength(unsigned long newScheduleLength) {
-        scheduleLength = newScheduleLength;
+    void setScheduleTiles(unsigned int newScheduleTiles) {
+        scheduleTiles = newScheduleTiles;
+        auto slotsInTile = ctx.getSlotsInTileCount();
+        scheduleSlots = scheduleTiles * slotsInTile;
     }
     /* Called from ScheduleDownlinkPhase class on the first downlink slot
      * of the new schedule, to set the global time number when the scedule
@@ -86,14 +88,15 @@ public:
 
 private:
     void nextSlot() {
-        if (++dataSlot >= scheduleLength) {
+        if (++dataSlot >= scheduleSlots) {
             dataSlot = 0;
         }
     }
     unsigned short dataSlot = 0;
 
     unsigned long scheduleID = 0;
-    unsigned long scheduleLength = 0;
+    unsigned long scheduleTiles = 0;
+    unsigned long scheduleSlots = 0;
     unsigned long scheduleActivationTile = 0;
     std::vector<ExplicitScheduleElement> currentSchedule;
     Packet buffer;

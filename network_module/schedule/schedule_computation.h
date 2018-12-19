@@ -91,7 +91,7 @@ private:
         return scheduleID;
     }
 
-    int getScheduleLength() {
+    unsigned int getScheduleTiles() {
         return schedule_size;
     }
 

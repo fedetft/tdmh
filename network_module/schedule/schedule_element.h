@@ -33,11 +33,22 @@
 
 namespace mxnet {
 
+/* Possible actions to do in a dataphase slot */
+enum class Action
+{
+    SLEEP      =0,    // Sleep to save energy
+    SENDSTREAM =1,    // Send packet of a stream opened from this node
+    RECVSTREAM =2,    // Receive packet of a stream opened to this node
+    SENDBUFFER =3,    // Send a saved packet from a multihop stream
+    RECVBUFFER =4,    // Receive and save packet from a multihop stream
+};
+
 struct ScheduleHeaderPkt {
     unsigned int totalPacket:16;
     unsigned int currentPacket:16;
     unsigned int scheduleID:32;
     unsigned int activationTile:32;
+    unsigned int scheduleTiles:16;
     unsigned int repetition:2;
 };
 
@@ -52,6 +63,11 @@ struct ScheduleElementPkt {
     unsigned int offset:20;
 };
 
+struct ExplicitScheduleElementStruct {
+    unsigned int action:3;
+    unsigned int port:4;
+};
+
 class ScheduleHeader : public SerializableMessage {
 public:
     ScheduleHeader() {
@@ -60,12 +76,13 @@ public:
 
     ScheduleHeader(unsigned int totalPacket, unsigned int currentPacket,
                    unsigned long scheduleID=0, unsigned long activationTile=0,
-                   unsigned char repetition=1)
+                   unsigned int scheduleTiles=0, unsigned char repetition=1)
     {
         header.totalPacket = totalPacket;
         header.currentPacket = currentPacket;
         header.scheduleID = scheduleID;
         header.activationTile = activationTile;
+        header.scheduleTiles = scheduleTiles;
         header.repetition = repetition;
     }
 
@@ -77,6 +94,7 @@ public:
     // NOTE: schedule with ScheduleID=0 are not sent in MasterScheduleDistribution
     unsigned long getScheduleID() const { return header.scheduleID; }
     unsigned long getActivationTile() const { return header.activationTile; }
+    unsigned int getScheduleTiles() const { return header.scheduleTiles; }
     unsigned char getRepetition() const { return header.repetition; }
     void incrementPacketCounter() { header.currentPacket++; }
     void incrementRepetition() {
@@ -110,7 +128,7 @@ public:
         content.dstPort = dstPort;
         content.tx = tx;
         content.rx = rx;
-        content.period=static_cast<unsigned int>(period);
+        content.period = static_cast<unsigned int>(period);
         content.offset = off;
     }
 
@@ -133,6 +151,8 @@ public:
     std::size_t size() const override { return sizeof(ScheduleElementPkt); }
     unsigned char getSrc() const { return content.src; }
     unsigned char getDst() const { return content.dst; }
+    unsigned char getSrcPort() const { return content.srcPort; }
+    unsigned char getDstPort() const { return content.dstPort; }
     unsigned char getTx() const { return content.tx; }
     unsigned char getRx() const { return content.rx; }
     Period getPeriod() const { return static_cast<Period>(content.period); }
@@ -169,5 +189,22 @@ private:
     ScheduleHeader header;
     std::vector<ScheduleElement> elements;
 };
+
+class ExplicitScheduleElement {
+public:
+    ExplicitScheduleElement() {
+        std::memset(&content, 0, sizeof(ExplicitScheduleElementStruct));
+    }
+    ExplicitScheduleElement(Action action, unsigned char port)
+    {
+        content.action = static_cast<unsigned int>(action);
+        content.port = port;
+    }
+    Action getAction() const { return static_cast<Action>(content.action); }
+    unsigned char getPort() const { return content.port; }
+private:
+    ExplicitScheduleElementStruct content;
+};
+
 
 } /* namespace mxnet */

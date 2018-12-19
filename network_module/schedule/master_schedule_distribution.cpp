@@ -86,23 +86,25 @@ void MasterScheduleDownlinkPhase::getCurrentSchedule() {
         activationTile = currentTile + tilesToDistributeSchedule;
     // Subsequent schedules activation time
     else {
-        auto currentSchedulePosition = (currentTile - header.getActivationTile()) % scheduleLength;
-        auto remainingScheduleTiles = scheduleLength - currentSchedulePosition;
+        auto scheduleTiles = header.getScheduleTiles();
+        auto currentScheduleTile = (currentTile - header.getActivationTile()) %
+                                   scheduleTiles;
+        auto remainingScheduleTiles = scheduleTiles - currentScheduleTile;
         activationTile = currentTile + remainingScheduleTiles;
-        // Add multiples of schedule lenght to allow schedule distribution
+        // Add multiples of scheduleTiles to allow schedule distribution
         while((activationTile - currentTile) < tilesToDistributeSchedule) {
-            activationTile += scheduleLength;
+            activationTile += scheduleTiles;
         }
     }
     // Build a header for the new schedule
     unsigned numPackets = (schedule.size() / packetCapacity) + 1;
     ScheduleHeader newheader(
-        numPackets,                     // totalPacket
-        0,                              // currentPacket
-        schedule_comp.getScheduleID(),
-        activationTile); // scheduleID
+        numPackets,                         // totalPacket
+        0,                                  // currentPacket
+        schedule_comp.getScheduleID(),      // scheduleID
+        activationTile,                     // activationTile
+        schedule_comp.getScheduleTiles());  // scheduleTiles
     header = newheader;
-    scheduleLength = schedule_comp.getScheduleLength();
 }
 
 void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
