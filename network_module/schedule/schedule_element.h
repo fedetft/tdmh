@@ -37,7 +37,8 @@ struct ScheduleHeaderPkt {
     unsigned int totalPacket:16;
     unsigned int currentPacket:16;
     unsigned int scheduleID:32;
-    unsigned int repetition:8;
+    unsigned int activationTile:32;
+    unsigned int repetition:2;
 };
 
 struct ScheduleElementPkt {
@@ -58,11 +59,13 @@ public:
     }
 
     ScheduleHeader(unsigned int totalPacket, unsigned int currentPacket,
-                   unsigned long scheduleID=0, unsigned char repetition=1)
+                   unsigned long scheduleID=0, unsigned long activationTile=0,
+                   unsigned char repetition=1)
     {
         header.totalPacket = totalPacket;
         header.currentPacket = currentPacket;
         header.scheduleID = scheduleID;
+        header.activationTile = activationTile;
         header.repetition = repetition;
     }
 
@@ -73,6 +76,7 @@ public:
     unsigned int getCurrentPacket() const { return header.currentPacket; }
     // NOTE: schedule with ScheduleID=0 are not sent in MasterScheduleDistribution
     unsigned long getScheduleID() const { return header.scheduleID; }
+    unsigned long getActivationTile() const { return header.activationTile; }
     unsigned char getRepetition() const { return header.repetition; }
     void incrementPacketCounter() { header.currentPacket++; }
     void incrementRepetition() {
@@ -84,6 +88,7 @@ public:
     }
     void resetPacketCounter() { header.currentPacket = 0; }
     void resetRepetition() { header.repetition = 1; }
+    void setActivationTile(unsigned long tilenum) { header.activationTile = tilenum; }
 
 private:
     ScheduleHeaderPkt header;

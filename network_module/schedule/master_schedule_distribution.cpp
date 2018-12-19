@@ -30,6 +30,7 @@
 #include "../tdmh.h"
 #include "../packet.h"
 #include "../debug_settings.h"
+#include "../timesync/networktime.h"
 
 using namespace miosix;
 
@@ -57,6 +58,12 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     }
     if(header.getRepetition() >= 3){
         // Stop after sending third schedule repetition
+        // Then calculate the explicit schedule
+        if(explicitScheduleID != header.getScheduleID()) {
+            expandSchedule();
+            explicitScheduleID = header.getScheduleID();
+        }
+        checkTimeSetSchedule();
         return;
     }
     if(header.getCurrentPacket() >= header.getTotalPacket()) {
@@ -70,13 +77,32 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
 
 void MasterScheduleDownlinkPhase::getCurrentSchedule() {
     schedule = schedule_comp.getSchedule();
+    auto nt = NetworkTime::now();
+    auto tileDuration = ctx.getNetworkConfig().getTileDuration();
+    auto currentTile = nt.get() / tileDuration;
+    auto activationTile = 0;
+    // First schedule activation time
+    if(schedule_comp.getScheduleID() == 1)
+        activationTile = currentTile + tilesToDistributeSchedule;
+    // Subsequent schedules activation time
+    else {
+        auto currentSchedulePosition = (currentTile - header.getActivationTile()) % scheduleLength;
+        auto remainingScheduleTiles = scheduleLength - currentSchedulePosition;
+        activationTile = currentTile + remainingScheduleTiles;
+        // Add multiples of schedule lenght to allow schedule distribution
+        while((activationTile - currentTile) < tilesToDistributeSchedule) {
+            activationTile += scheduleLength;
+        }
+    }
     // Build a header for the new schedule
     unsigned numPackets = (schedule.size() / packetCapacity) + 1;
     ScheduleHeader newheader(
         numPackets,                     // totalPacket
         0,                              // currentPacket
-        schedule_comp.getScheduleID()); // scheduleID
+        schedule_comp.getScheduleID(),
+        activationTile); // scheduleID
     header = newheader;
+    scheduleLength = schedule_comp.getScheduleLength();
 }
 
 void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {

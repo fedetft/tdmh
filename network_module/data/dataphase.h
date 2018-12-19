@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2018 by Polidori Paolo                                 *
+ *   Copyright (C)  2018 by Federico Amedeo Izzo                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -31,61 +31,73 @@
 #include "../mac_context.h"
 #include "../schedule/schedule_distribution.h"
 #include "../timesync/networktime.h"
-#include <map>
 
 namespace mxnet {
 /**
- * Represents the data phase, which, divided by slots, is used to move the upper layer data among the nodes,
- * as a previously received schedule devises.
+ * Represents the data phase, which transfers data from the streams among the nodes
+ * in a TDMA way, by following the schedule that has been distributed.
  */
+
+
 class DataPhase : public MACPhase {
 public:
-    DataPhase(MACContext& ctx) :
-        MACPhase(ctx), slotsInFrame(0), dataSlot(std::numeric_limits<unsigned short>::max() - 1),
-        scheduleDownlink(ctx.getScheduleDownlink()),
-        queues({{10, std::vector<unsigned char>(0)}, {11, std::vector<unsigned char>(0)}, {100, std::vector<unsigned char>(0)},
-        {101, std::vector<unsigned char>(0)}, {20, std::vector<unsigned char>(0)}, {21, std::vector<unsigned char>(0)},
-        {30, std::vector<unsigned char>(0)}, {31, std::vector<unsigned char>(0)}}) {}
+    DataPhase(MACContext& ctx) : MACPhase(ctx) {};
     
     virtual ~DataPhase() {}
 
-    void setDataSuperframeSize(unsigned short slotsInFrame) {
-        this->slotsInFrame = slotsInFrame;
-    }
-
-    /**
-     * Align data phase to the network time
-     */
-    void alignToNetworkTime(NetworkTime nt);
-    
     virtual void execute(long long slotStart) override;
 
-    void advance(long long slotStart) override;
-
+    void advance(long long slotStart) override {
+        nextSlot();
+    }
     static unsigned long long getDuration() {
         return packetArrivalAndProcessingTime + transmissionInterval;
     }
-
     static const int transmissionInterval = 1000000; //1ms
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
     static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
+    void sleep();
+    void sendFromStream(unsigned int SrcPort);
+    void receiveToStream(unsigned int DstPort);
+    void sendFromBuffer();
+    void receiveToBuffer();
+    /* Called from ScheduleDownlinkPhase class on the first downlink slot
+     * of the new schedule, to replace the currentSchedule,
+     * taking effect in the next dataphase */
+    void setSchedule(const std::vector<ExplicitScheduleElement>& newSchedule) { 
+        currentSchedule = newSchedule;
+    }
+    /* Called from ScheduleDownlinkPhase class on the first downlink slot
+     * of the new schedule, to set the schedule lenght or DataSuperframeSize */
+    void setScheduleLength(unsigned long newScheduleLength) {
+        scheduleLength = newScheduleLength;
+    }
+    /* Called from ScheduleDownlinkPhase class on the first downlink slot
+     * of the new schedule, to set the global time number when the scedule
+     * becomes active, useful to know the current dataslot after resync */
+    void setScheduleActivationTile(unsigned long newScheduleActivationTile) {
+        scheduleActivationTile = newScheduleActivationTile;
+    }
+
+    /**
+     * Calculates slot number in current schedule (dataSlot) after resyncing
+     */
+    void alignToNetworkTime(NetworkTime nt);
 
 private:
-    DataPhase(const DataPhase& orig) = delete;
-    DataPhase& operator= (const DataPhase& orig) = delete;
-    
     void nextSlot() {
-        if (++dataSlot >= slotsInFrame) {
+        if (++dataSlot >= scheduleLength) {
             dataSlot = 0;
-            //curSched = scheduleDownlink->getFirstSchedule();
         }
     }
-    unsigned slotsInFrame;
-    unsigned short dataSlot;
-    ScheduleDownlinkPhase* const scheduleDownlink;
-    //std::set<DynamicScheduleElement*>::iterator curSched;
-    //TODO remove
-    std::map<unsigned short, std::vector<unsigned char>> queues;
+    unsigned short dataSlot = 0;
+
+    unsigned long scheduleID = 0;
+    unsigned long scheduleLength = 0;
+    unsigned long scheduleActivationTile = 0;
+    std::vector<ExplicitScheduleElement> currentSchedule;
+    Packet buffer;
 };
+
 }
 

@@ -59,8 +59,14 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     printHeader(header);
     calculateCountdown(header);
     // Check replaceCountdown
-    if(replaceCountdown == 1)
+    if(replaceCountdown == 1) { 
         replaceRunningSchedule();
+        if(explicitScheduleID != header.getScheduleID()) {
+            expandSchedule();
+            explicitScheduleID = header.getScheduleID();
+        }
+        checkTimeSetSchedule();
+    }
 
     //printStatus();
 }

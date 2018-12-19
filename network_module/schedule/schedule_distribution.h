@@ -30,6 +30,7 @@
 
 #include "../mac_phase.h"
 #include "../mac_context.h"
+#include "schedule_element.h"
 
 /**
  * Represents the phase in which the schedule is distributed to the entire network,
@@ -51,14 +52,13 @@ namespace mxnet {
     struct ExplicitScheduleElement {
         unsigned int action:3;
         unsigned int port:4;
-    }
+    };
 
 class ScheduleDownlinkPhase : public MACPhase {
 public:
     ScheduleDownlinkPhase() = delete;
     ScheduleDownlinkPhase(const ScheduleDownlinkPhase& orig) = delete;
-    ScheduleDownlinkPhase(MACContext& ctx) :
-        MACPhase(ctx) {}
+    ScheduleDownlinkPhase(MACContext& ctx) : MACPhase(ctx), dataPhase(ctx.getDataPhase()) {}
     virtual ~ScheduleDownlinkPhase() {};
 
     static unsigned long long getDuration(unsigned short hops) {
@@ -69,21 +69,28 @@ public:
 
     static const int phaseStartupTime = 450000;
     static const int rebroadcastInterval = 5000000; //32us per-byte + 600us total delta
-    unsigned long getScheduleID() {
-        return header.getScheduleID();
-    }
-    std::vector<ScheduleElement> getSchedule() {
-        return currentSchedule;
-    }
+    static const unsigned int tilesToDistributeSchedule = 3; //32us per-byte + 600us total delta
 
-
-private:
+    /* Called after receiving a complete schedule,
+     * it converts the schedule from implicit form (list of streams)
+     * to explicit form (action to do on every timeslot) */
+    void expandSchedule();
+    /* The new schedule must be set in the first downlink tile after the old schedule is over.
+       This function calculates the tilesPassedTotal time indicator,
+       if it is equal to the one in the schedule header,
+       replace expanded schedule in the dataphase with the new one */
+    void checkTimeSetSchedule();
+protected:
     // Schedule header with information on schedule distribution
     ScheduleHeader header;
     // Copy of last computed/received schedule
     std::vector<ScheduleElement> schedule;
-
+    // Current schedule lenght in tiles
+    unsigned long explicitScheduleID;
+    unsigned long scheduleLength;
     std::vector<ExplicitScheduleElement> explicitSchedule;
+private:
+    DataPhase* const dataPhase;
 };
 
 }

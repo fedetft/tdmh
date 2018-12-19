@@ -28,7 +28,6 @@
 #pragma once
 
 #include "schedule_distribution.h"
-#include "schedule_element.h"
 
 namespace mxnet {
 

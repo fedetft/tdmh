@@ -91,6 +91,10 @@ private:
         return scheduleID;
     }
 
+    int getScheduleLength() {
+        return schedule_size;
+    }
+
     void printStreams(const std::vector<StreamManagementElement>& stream_list);
 
     void printStreamList(const std::list<std::list<ScheduleElement>>& stream_list);        
@@ -118,6 +122,8 @@ private:
     std::vector<ScheduleElement> schedule;
     // Used to check if a (new) schedule is available
     unsigned long scheduleID = 0;
+    // Schedulesize value is equal to lcm(p1,p2,...,pn) or p1 for a single stream
+    unsigned int schedule_size = 0;
 
     // References to other classes
     MasterMeshTopologyContext& topology_ctx;

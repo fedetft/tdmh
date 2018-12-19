@@ -236,7 +236,7 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
     // If scheduling is successful, this vector will be moved to replace the "schedule" field
     std::vector<ScheduleElement> scheduled_transmissions;
     // Schedulesize value is equal to lcm(p1,p2,...,pn) or p1 for a single stream
-    int schedule_size = 0;
+    schedule_size = 0;
 
     for(auto& stream : routed_streams) {
         int block_size = 0;
