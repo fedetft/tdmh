@@ -35,7 +35,8 @@ using namespace miosix;
 namespace mxnet {
 
 void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
-    replaceCountdown--;
+    if(replaceCountdown != 0)
+        replaceCountdown--;
     Packet pkt;
     // Receive the schedule packet
     auto arrivalTime = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
@@ -75,8 +76,10 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
 
 void DynamicScheduleDownlinkPhase::decodePacket(SchedulePacket& spkt) {
     ScheduleHeader newHeader = spkt.getHeader();
+    auto myID = ctx.getNetworkId();
     // We received a new schedule, replace currently received
     if((newHeader.getScheduleID() != nextHeader.getScheduleID())) {
+        printf("Node:%d New schedule received!\n", myID);
         nextHeader = newHeader;
         nextSchedule = spkt.getElements();
         // Resize the received bool vector to the size of the new schedule
@@ -93,6 +96,7 @@ void DynamicScheduleDownlinkPhase::decodePacket(SchedulePacket& spkt) {
     else if((newHeader.getScheduleID() == nextHeader.getScheduleID()) &&
             (newHeader.getRepetition() >= nextHeader.getRepetition()) &&
             (!received.at(newHeader.getCurrentPacket()))) {
+        printf("Node:%d Piece %d of schedule received!\n", myID, newHeader.getCurrentPacket());
         // Set current packet as received
         received.at(newHeader.getCurrentPacket()) = true;
         nextHeader = newHeader;
@@ -103,7 +107,7 @@ void DynamicScheduleDownlinkPhase::decodePacket(SchedulePacket& spkt) {
 }
 
 void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
-    print_dbg("[D] node %d, hop %d, received schedule %u/%u/%lu/%d\n",
+    printf("[D] node %d, hop %d, received schedule %u/%u/%lu/%d\n",
               ctx.getNetworkId(),
               ctx.getHop(),
               header.getTotalPacket(),
@@ -123,6 +127,7 @@ void DynamicScheduleDownlinkPhase::calculateCountdown(ScheduleHeader& newHeader)
 }
 
 void DynamicScheduleDownlinkPhase::replaceRunningSchedule() {
+    printf("Countdown: %d, replacing old schedule\n", replaceCountdown);
     header = nextHeader;
     schedule = nextSchedule;
 }

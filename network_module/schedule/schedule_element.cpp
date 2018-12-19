@@ -58,11 +58,12 @@ void SchedulePacket::serialize(Packet& pkt) const {
 
 SchedulePacket SchedulePacket::deserialize(Packet& pkt) {
     ScheduleHeader header = ScheduleHeader::deserialize(pkt);
-    auto count = pkt.size() / sizeof(ScheduleHeaderPkt);
+    auto count = pkt.size() / sizeof(ScheduleElementPkt);
     std::vector<ScheduleElement> elements;
+    elements.clear();
     elements.reserve(count);
     for(int i=0; i < count; i++) {
-        elements[i] = ScheduleElement::deserialize(pkt);
+        elements.push_back(ScheduleElement::deserialize(pkt));
     }
     SchedulePacket result(header, elements);
     return result;
