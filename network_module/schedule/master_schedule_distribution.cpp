@@ -60,8 +60,10 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
         // Stop after sending third schedule repetition
         // Then calculate the explicit schedule
         if(explicitScheduleID != header.getScheduleID()) {
+            printSchedule();
             expandSchedule();
             explicitScheduleID = header.getScheduleID();
+            printExplicitSchedule();
         }
         checkTimeSetSchedule();
         return;

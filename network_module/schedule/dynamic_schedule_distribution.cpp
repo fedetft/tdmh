@@ -62,8 +62,10 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     if(replaceCountdown == 1) { 
         replaceRunningSchedule();
         if(explicitScheduleID != header.getScheduleID()) {
+            printSchedule();
             expandSchedule();
             explicitScheduleID = header.getScheduleID();
+            printExplicitSchedule();
         }
         checkTimeSetSchedule();
     }

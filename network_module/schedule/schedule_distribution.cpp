@@ -37,10 +37,7 @@ void ScheduleDownlinkPhase::expandSchedule() {
     auto myID = ctx.getNetworkId();
     // Resize explicitSchedule and fill with default value (sleep)
     auto slotsInTile = ctx.getSlotsInTileCount();
-    printf("[D] ID:%d slotsInTile = %d\n", myID, slotsInTile);
-    printf("[D] ID:%d scheduleTiles = %d\n", myID, header.getScheduleTiles());
     auto scheduleSlots = header.getScheduleTiles() * slotsInTile;
-    printf("[D] ID:%d scheduleslots = %d\n", myID, scheduleSlots);
     explicitSchedule.clear();
     explicitSchedule.resize(scheduleSlots,
                             ExplicitScheduleElement(Action::SLEEP, 0));
@@ -79,6 +76,50 @@ void ScheduleDownlinkPhase::expandSchedule() {
             }
         }
     }
+}
+
+void ScheduleDownlinkPhase::printSchedule() {
+    auto myID = ctx.getNetworkId();
+    printf("Node: %d, implicit schedule\n", myID);
+    printf("ID   TX  RX  PER OFF\n");
+    for(auto& elem : schedule) {
+        printf("%d  %d-->%d   %d   %d\n", elem.getKey(), elem.getTx(), elem.getRx(),
+               toInt(elem.getPeriod()), elem.getOffset());
+    }
+}
+
+void ScheduleDownlinkPhase::printExplicitSchedule() {
+    auto myID = ctx.getNetworkId();
+    auto slotsInTile = ctx.getSlotsInTileCount();
+    printf("Node: %d, explicit schedule\n", myID);
+    for(int i=0; i<explicitSchedule.size(); i++) {
+        printf("%2d ", i);
+        if(((i+1) % slotsInTile) == 0)
+            printf("|");
+    }
+    printf("\n");
+    for(int i=0; i<explicitSchedule.size(); i++) {
+        switch(explicitSchedule[i].getAction()) {
+        case Action::SLEEP:
+            printf(" _ ");
+            break;
+        case Action::SENDSTREAM:
+            printf(" SS");
+            break;
+        case Action::RECVSTREAM:
+            printf(" RS");
+            break;
+        case Action::SENDBUFFER:
+            printf(" SB");
+            break;
+        case Action::RECVBUFFER:
+            printf(" RB");
+            break;
+        }
+        if(((i+1) % slotsInTile) == 0)
+            printf("|");
+    }
+    printf("\n");
 }
 
 void ScheduleDownlinkPhase::checkTimeSetSchedule() {

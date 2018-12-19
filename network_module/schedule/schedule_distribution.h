@@ -61,6 +61,8 @@ public:
      * to explicit form (action to do on every timeslot)
      * keeping only the actions that involve this node */
     void expandSchedule();
+    void printSchedule();
+    void printExplicitSchedule();
     /* The new schedule must be set in the first downlink tile after the old schedule is over.
        This function calculates the tilesPassedTotal time indicator,
        if it is equal to the one in the schedule header,
