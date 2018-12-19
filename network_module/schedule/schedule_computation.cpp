@@ -123,6 +123,7 @@ void ScheduleComputation::run() {
         if(topology_map.wasModified() || stream_mgmt.wasRemoved()) {
             printf("Topology changed or a stream was removed, Re-scheduling established streams\n");
             schedule.clear();
+            schedule_size = 0;
             auto new_schedule = routeAndScheduleStreams(established_streams, netconfig);
             schedule = std::move(new_schedule);
             changed = true;
@@ -235,9 +236,6 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
     // Start with an empty schedule
     // If scheduling is successful, this vector will be moved to replace the "schedule" field
     std::vector<ScheduleElement> scheduled_transmissions;
-    // Schedulesize value is equal to lcm(p1,p2,...,pn) or p1 for a single stream
-    schedule_size = 0;
-
     for(auto& stream : routed_streams) {
         int block_size = 0;
         bool stream_err = false;
@@ -300,10 +298,12 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
                     block_size++;
                     // Calculate new schedule size
                     unsigned period = toInt(transmission.getPeriod());
+                    printf("Schedule size, before:%d ", schedule_size);
                     if(schedule_size == 0)
                         schedule_size = period;
                     else
                         schedule_size = lcm(schedule_size, period);
+                    printf("after:%d \n", schedule_size);
                     // Add transmission to schedule, and set schedule offset
                     scheduled_transmissions.push_back(transmission);
                     scheduled_transmissions.back().setOffset(offset);
