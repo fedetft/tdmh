@@ -91,11 +91,11 @@ void ScheduleDownlinkPhase::printSchedule() {
 void ScheduleDownlinkPhase::printExplicitSchedule() {
     auto myID = ctx.getNetworkId();
     auto slotsInTile = ctx.getSlotsInTileCount();
-    printf("Node: %d, explicit schedule\n", myID);
+    printf("Node: %d, explicit schedule\n ", myID);
     for(int i=0; i<explicitSchedule.size(); i++) {
         printf("%2d ", i);
         if(((i+1) % slotsInTile) == 0)
-            printf("|");
+            printf("| ");
     }
     printf("\n");
     for(int i=0; i<explicitSchedule.size(); i++) {
@@ -117,7 +117,7 @@ void ScheduleDownlinkPhase::printExplicitSchedule() {
             break;
         }
         if(((i+1) % slotsInTile) == 0)
-            printf("|");
+            printf(" |");
     }
     printf("\n");
 }

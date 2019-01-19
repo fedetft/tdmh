@@ -50,8 +50,10 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     // Check for new schedule
     if(schedule_comp.getScheduleID() != header.getScheduleID()) { 
         getCurrentSchedule();
+        // Reset variable for splitting schedule in packets
+        position = 0;
     }
-    // Send new schedule
+    // ScheduleID = 0 means the first schedule is not ready
     if(header.getScheduleID() == 0) {
         print_dbg("[D] no schedule to send\n");
         return;
