@@ -193,7 +193,7 @@ private:
 class ExplicitScheduleElement {
 public:
     ExplicitScheduleElement() {
-        std::memset(&content, 0, sizeof(ExplicitScheduleElementStruct));
+        content = {0,0};
     }
     ExplicitScheduleElement(Action action, unsigned char port)
     {

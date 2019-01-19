@@ -45,8 +45,13 @@ public:
     
     virtual ~DataPhase() {}
 
+    /* Called during data slots, it does the schedule playback,
+       in fact, it executes the action written in the explicit schedule slot
+       corresponding to the current tile slot */
     virtual void execute(long long slotStart) override;
-
+    /* Needs to be called at every tile slot, when DataPhase::execute() is not
+       called, must me called every tile slot even when the node
+       is not synchronized, to keep track with the current tile slot */
     void advance(long long slotStart) override {
         nextSlot();
     }
@@ -88,11 +93,11 @@ public:
 
 private:
     void nextSlot() {
-        if (++dataSlot >= scheduleSlots) {
-            dataSlot = 0;
+        if (++tileSlot >= scheduleSlots) {
+            tileSlot = 0;
         }
     }
-    unsigned short dataSlot = 0;
+    unsigned short tileSlot = 0;
 
     unsigned long scheduleID = 0;
     unsigned long scheduleTiles = 0;

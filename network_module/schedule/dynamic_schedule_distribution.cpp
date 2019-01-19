@@ -58,9 +58,11 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
 
     auto header = spkt.getHeader();
     printHeader(header);
-    calculateCountdown(header);
+    // If we received a complete schedule, calculate activation time
+    if(isScheduleComplete())
+        calculateCountdown(header);
     // Check replaceCountdown
-    if(replaceCountdown == 1) { 
+    if(replaceCountdown == 1 && isScheduleComplete()) { 
         replaceRunningSchedule();
         if(explicitScheduleID != header.getScheduleID()) {
             printSchedule();
@@ -117,13 +119,14 @@ void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
 }
 
 void DynamicScheduleDownlinkPhase::calculateCountdown(ScheduleHeader& newHeader) {
-    // If we received a complete schedule, calculate activation time
+    // Becomes 1 with 3rd repetition (1 = replace schedule)
+    replaceCountdown = 4 - newHeader.getRepetition();
+}
+
+bool DynamicScheduleDownlinkPhase::isScheduleComplete() {
     bool complete = true;
-    for(int i=0; i < received.size(); i++) complete &= received[i];
-    if(complete) {
-        // Becomes 1 with 3rd repetition (1 = replace schedule)
-        replaceCountdown = 4 - newHeader.getRepetition();
-    }
+    for(int i=0; i< received.size(); i++) complete &= received[i];
+    return complete;
 }
 
 void DynamicScheduleDownlinkPhase::replaceRunningSchedule() {

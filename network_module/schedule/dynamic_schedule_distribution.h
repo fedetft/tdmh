@@ -41,6 +41,7 @@ public:
     void decodePacket(SchedulePacket& spkt);
     void printHeader(ScheduleHeader& header);
     void calculateCountdown(ScheduleHeader& newHeader);
+    bool isScheduleComplete();
     void replaceRunningSchedule();
     void printStatus();
 

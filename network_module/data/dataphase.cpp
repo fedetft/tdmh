@@ -34,7 +34,30 @@ using namespace miosix;
 namespace mxnet {
 
 void DataPhase::execute(long long slotStart) {
-    
+    // Schedule not received yet
+    if(tileSlot >= currentSchedule.size()) {
+        sleep();
+        return;
+    }
+    // Schedule playback
+    switch(currentSchedule[tileSlot].getAction()){
+    case Action::SLEEP:
+        sleep();
+        break;
+    case Action::SENDSTREAM:
+        sendFromStream(currentSchedule[tileSlot].getPort());
+        break;
+    case Action::RECVSTREAM:
+        receiveToStream(currentSchedule[tileSlot].getPort());
+        break;
+    case Action::SENDBUFFER:
+        sendFromBuffer();
+        break;
+    case Action::RECVBUFFER:
+        receiveToBuffer();
+        break;
+    }
+    nextSlot();
 }
 void DataPhase::sleep() {
 
@@ -60,7 +83,7 @@ void DataPhase::alignToNetworkTime(NetworkTime nt) {
     // current tile in current Schedule (DataSuperFrame)
     auto scheduleTile = tilesPassedTotal - scheduleActivationTile;
     auto slotsInTile = ctx.getSlotsInTileCount();
-    dataSlot = (scheduleTile * slotsInTile) + slotInCurrentTile;
+    tileSlot = (scheduleTile * slotsInTile) + slotInCurrentTile;
 }
 }
 
