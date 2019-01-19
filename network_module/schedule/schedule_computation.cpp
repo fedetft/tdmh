@@ -268,9 +268,9 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
                 if(!checkDataSlot(offset, tile_size, superframe, downlink_size, uplink_size))
                     continue;
                 printf("Checking offset %d\n", offset);
-                // Cycle over already scheduled transmissions to check for conflicts
+                // Cycle over already scheduled elements to find conflicts
                 bool conflict = false;
-                for(auto& elem : scheduled_transmissions) {
+                for(auto& elem : schedule) {
                     // conflictPossible is a simple condition used to reduce number of conflict checks
                     if(slotConflictPossible(transmission, elem, offset, tile_size)) {
                         if(checkSlotConflict(transmission, elem, offset, tile_size, schedule_size)) {
