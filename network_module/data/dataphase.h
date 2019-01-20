@@ -61,11 +61,12 @@ public:
     static const int transmissionInterval = 1000000; //1ms
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
     static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
-    void sleep();
-    void sendFromStream(unsigned int SrcPort);
-    void receiveToStream(unsigned int DstPort);
-    void sendFromBuffer();
-    void receiveToBuffer();
+    /* Five possible actions, as described by the explicit schedule */
+    void sleep(long long slotStart);
+    void sendFromStream(long long slotStart, unsigned int SrcPort);
+    void receiveToStream(long long slotStart, unsigned int DstPort);
+    void sendFromBuffer(long long slotStart);
+    void receiveToBuffer(long long slotStart);
     /* Called from ScheduleDownlinkPhase class on the first downlink slot
      * of the new schedule, to replace the currentSchedule,
      * taking effect in the next dataphase */
@@ -98,7 +99,6 @@ private:
         }
     }
     unsigned short tileSlot = 0;
-
     unsigned long scheduleID = 0;
     unsigned long scheduleTiles = 0;
     unsigned long scheduleSlots = 0;

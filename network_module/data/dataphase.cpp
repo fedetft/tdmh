@@ -36,43 +36,50 @@ namespace mxnet {
 void DataPhase::execute(long long slotStart) {
     // Schedule not received yet
     if(tileSlot >= currentSchedule.size()) {
-        sleep();
+        sleep(slotStart);
         return;
     }
     // Schedule playback
     switch(currentSchedule[tileSlot].getAction()){
     case Action::SLEEP:
-        sleep();
+        sleep(slotStart);
         break;
     case Action::SENDSTREAM:
-        sendFromStream(currentSchedule[tileSlot].getPort());
+        sendFromStream(slotStart, currentSchedule[tileSlot].getPort());
         break;
     case Action::RECVSTREAM:
-        receiveToStream(currentSchedule[tileSlot].getPort());
+        receiveToStream(slotStart, currentSchedule[tileSlot].getPort());
         break;
     case Action::SENDBUFFER:
-        sendFromBuffer();
+        sendFromBuffer(slotStart);
         break;
     case Action::RECVBUFFER:
-        receiveToBuffer();
+        receiveToBuffer(slotStart);
         break;
     }
     nextSlot();
 }
-void DataPhase::sleep() {
+void DataPhase::sleep(long long slotStart) {
+    ctx.sleepUntil(slotStart);
+}
+void DataPhase::sendFromStream(long long slotStart, unsigned int SrcPort) {
 
 }
-void DataPhase::sendFromStream(unsigned int SrcPort) {
+void DataPhase::receiveToStream(long long slotStart, unsigned int DstPort) {
 
 }
-void DataPhase::receiveToStream(unsigned int DstPort) {
-
+void DataPhase::sendFromBuffer(long long slotStart) {
+    Packet pkt;
+    pkt.put(&buffer, sizeof(buffer));
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    pkt.send(ctx, slotStart);
+    ctx.transceiverIdle();
 }
-void DataPhase::sendFromBuffer() {
-
-}
-void DataPhase::receiveToBuffer() {
-
+void DataPhase::receiveToBuffer(long long slotStart) {
+    Packet pkt;
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    auto rcvResult = pkt.recv(ctx, slotStart);
+    ctx.transceiverIdle();
 }
 void DataPhase::alignToNetworkTime(NetworkTime nt) {
     auto tileDuration = ctx.getNetworkConfig().getTileDuration();
