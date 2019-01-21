@@ -78,7 +78,7 @@ void ScheduleDownlinkPhase::expandSchedule(unsigned char nodeID) {
 }
 
 void ScheduleDownlinkPhase::printSchedule(unsigned char nodeID) {
-    printf("Node: %d, implicit schedule n. %d\n", nodeID, header.getScheduleID());
+    printf("Node: %d, implicit schedule n. %lu\n", nodeID, header.getScheduleID());
     printf("ID   TX  RX  PER OFF\n");
     for(auto& elem : schedule) {
         printf("%d  %d-->%d   %d   %d\n", elem.getKey(), elem.getTx(), elem.getRx(),
@@ -86,44 +86,58 @@ void ScheduleDownlinkPhase::printSchedule(unsigned char nodeID) {
     }
 }
 
-void ScheduleDownlinkPhase::printExplicitSchedule(unsigned char nodeID) {
+void ScheduleDownlinkPhase::printExplicitSchedule(unsigned char nodeID, bool printHeader) {
     auto slotsInTile = ctx.getSlotsInTileCount();
-    printf("Node: %2d| ", nodeID);
-    for(int i=0; i<explicitSchedule.size(); i++) {
-        printf("%2d ", i);
-        if(((i+1) % slotsInTile) == 0)
-            printf("| ");
+    // print header
+    if(printHeader) {
+        printf("        | ");
+        for(unsigned int i=0; i<explicitSchedule.size(); i++) {
+            printf("%2d ", i);
+            if(((i+1) % slotsInTile) == 0)
+                printf("| ");
+        }
+        printf("\n");
     }
+    // print schedule line
+    printf("Node: %2d|", nodeID);
+    for(unsigned int i=0; i<explicitSchedule.size(); i++)
+        {
+            switch(explicitSchedule[i].getAction()) {
+            case Action::SLEEP:
+                printf(" _ ");
+                break;
+            case Action::SENDSTREAM:
+                printf(" SS");
+                break;
+            case Action::RECVSTREAM:
+                printf(" RS");
+                break;
+            case Action::SENDBUFFER:
+                printf(" SB");
+                break;
+            case Action::RECVBUFFER:
+                printf(" RB");
+                break;
+            }
+            if(((i+1) % slotsInTile) == 0)
+                printf(" |");
+        }
     printf("\n");
-    printExplicitScheduleLine();
 }
 
-void ScheduleDownlinkPhase::printExplicitScheduleLine() {
-    auto slotsInTile = ctx.getSlotsInTileCount();
-    printf("        |");
-    for(int i=0; i<explicitSchedule.size(); i++)
+void ScheduleDownlinkPhase::printCompleteSchedule() {
+    auto myID = ctx.getNetworkId();
+    if(myID == 0)
+        printf("### Schedule distribution, Master node\n");
+    auto maxNodes = ctx.getNetworkConfig().getMaxNodes();
+    printSchedule(myID);
+    printf("### Explicit Schedule for all nodes\n");
+    for(unsigned char node = 0; node < maxNodes; node++)
     {
-        switch(explicitSchedule[i].getAction()) {
-        case Action::SLEEP:
-            printf(" _ ");
-            break;
-        case Action::SENDSTREAM:
-            printf(" SS");
-            break;
-        case Action::RECVSTREAM:
-            printf(" RS");
-            break;
-        case Action::SENDBUFFER:
-            printf(" SB");
-            break;
-        case Action::RECVBUFFER:
-            printf(" RB");
-            break;
-        }
-        if(((i+1) % slotsInTile) == 0)
-            printf(" |");
-    }
-    printf("\n");
+        expandSchedule(node);
+        // Print schedule header only for first line
+        printExplicitSchedule(node, (node == 0));
+    } 
 }
 
 void ScheduleDownlinkPhase::checkTimeSetSchedule() {
@@ -131,6 +145,8 @@ void ScheduleDownlinkPhase::checkTimeSetSchedule() {
     auto tileDuration = ctx.getNetworkConfig().getTileDuration();
     auto tilesPassedTotal = nt.get() / tileDuration;
     if (tilesPassedTotal == header.getActivationTile()) {
+        if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
+            print_dbg("[D] Activating schedule n.%2d", explicitScheduleID);
         dataPhase->setSchedule(explicitSchedule);
         dataPhase->setScheduleTiles(header.getScheduleTiles());
         dataPhase->setScheduleActivationTile(header.getActivationTile());

@@ -50,11 +50,14 @@ public:
        in fact, it executes the action written in the explicit schedule slot
        corresponding to the current tile slot */
     virtual void execute(long long slotStart) override;
-    /* Needs to be called at every tile slot, when DataPhase::execute() is not
-       called, must me called every tile slot even when the node
+    /* Called instead of DataPhase::execute() when the node
        is not synchronized, to keep track with the current tile slot */
     void advance(long long slotStart) override {
-        nextSlot();
+        incrementSlot();
+    }
+    /* Called after Downlink and Uplink phases to update the tileSlot counter */
+    void advanceBy(unsigned int slots) {
+        incrementSlot(slots);
     }
     static unsigned long long getDuration() {
         return packetArrivalAndProcessingTime + transmissionInterval;
@@ -94,10 +97,10 @@ public:
     void alignToNetworkTime(NetworkTime nt);
 
 private:
-    void nextSlot() {
-        if (++tileSlot >= scheduleSlots) {
-            tileSlot = 0;
-        }
+    void incrementSlot(unsigned int n = 1) {
+        // Make sure that tileSlot is always in range {0;scheduleSlots}
+        if(scheduleSlots != 0)
+            tileSlot = (tileSlot + n) % scheduleSlots;
     }
     // Reference to Stream class, to get packets from stream buffers
     //Stream& stream;

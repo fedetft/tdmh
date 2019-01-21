@@ -57,7 +57,7 @@ void DataPhase::execute(long long slotStart) {
         receiveToBuffer(slotStart);
         break;
     }
-    nextSlot();
+    incrementSlot();
 }
 void DataPhase::sleep(long long slotStart) {
     ctx.sleepUntil(slotStart);

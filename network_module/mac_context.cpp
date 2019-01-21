@@ -68,7 +68,7 @@ void MACContext::calculateDurations() {
     /* Align the Uplink slot duration is a multiple of the Data slot duration */
     if (uplinkSlotDuration % dataSlotDuration != 0)
         uplinkSlotDuration = (uplinkSlotDuration / dataSlotDuration + 1) * dataSlotDuration;
-    printf("####DEBUG####\n- maxhops: %d\n- scheduledownlinkphase: %d\n- timesyncdownlinkphase: %d\n",
+    printf("####DEBUG####\n- maxhops: %d\n- scheduledownlinkphase: %llu\n- timesyncdownlinkphase: %llu\n",
            networkConfig.getMaxHops(), ScheduleDownlinkPhase::getDuration(networkConfig.getMaxHops()),
            TimesyncDownlink::getDuration(networkConfig.getMaxHops()));
     auto downlinkMaxDuration = std::max(ScheduleDownlinkPhase::getDuration(networkConfig.getMaxHops()), TimesyncDownlink::getDuration(networkConfig.getMaxHops()));
@@ -169,7 +169,12 @@ void MACContext::run()
 
     long long currentNextDeadline = 0;
     unsigned int controlSuperframeCounter = 0;
-    int tileCounter = 0;
+    int tileCounter = 0; 
+    unsigned tile_size = getSlotsInTileCount();
+    unsigned dataslots_downlinktile = getDataSlotsInDownlinkTileCount();
+    unsigned dataslots_uplinktile = getDataSlotsInUplinkTileCount();
+    unsigned downlink_slots = tile_size - dataslots_downlinktile;
+    unsigned uplink_slots = tile_size - dataslots_uplinktile;
     for(running = true; running; )
     {
         unsigned dataSlots;
@@ -185,12 +190,16 @@ void MACContext::run()
             }
             currentNextDeadline += downlinkSlotDuration;
             dataSlots = numDataSlotInDownlinkTile;
+            /* DataPhase needs track of current tile slot */
+            data->advanceBy(downlink_slots);
         } else {
             uplink->run(currentNextDeadline);
             currentNextDeadline += uplinkSlotDuration;
             dataSlots = numDataSlotInUplinkTile;
+            /* DataPhase needs track of current tile slot */
+            data->advanceBy(uplink_slots);
         }
-            
+
         for(unsigned i = 0; i < dataSlots; i++)
         {
             data->run(currentNextDeadline);

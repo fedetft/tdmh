@@ -53,31 +53,25 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
         // Reset variable for splitting schedule in packets
         position = 0;
         // Print explicit schedule of every node
-        auto myID = ctx.getNetworkId();
-        auto maxNodes = ctx.getNetworkConfig().getMaxNodes();
-        printSchedule(myID);
-        print_dbg("### Explicit Schedule for all nodes\n");
-        for(unsigned char node = 0; node < maxNodes; node++)
-            {
-                expandSchedule(node);
-                printExplicitSchedule(node);
-            }
+        if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)
+            printCompleteSchedule();
     }
     // ScheduleID = 0 means the first schedule is not ready
     if(header.getScheduleID() == 0) {
-        print_dbg("[D] no schedule to send\n");
+        if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)
+            print_dbg("[D] no schedule to send\n");
         return;
     }
     if(header.getRepetition() >= 3){
         // Stop after sending third schedule repetition
         // Then calculate the explicit schedule
         if(explicitScheduleID != header.getScheduleID()) {
-
+            // Apply newest schedule by expanding it            
             auto myID = ctx.getNetworkId();
-            printSchedule(myID);
             expandSchedule(myID);
             explicitScheduleID = header.getScheduleID();
-            printExplicitSchedule(myID);
+            if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)
+                print_dbg("[D] Calculated explicit schedule n.%2d", explicitScheduleID);
         }
         checkTimeSetSchedule();
         return;
@@ -86,7 +80,8 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
         header.resetPacketCounter();
         header.incrementRepetition();
     }
-    printHeader(header);
+    if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)
+        printHeader(header);
     sendSchedulePkt(slotStart);
     header.incrementPacketCounter();
 }

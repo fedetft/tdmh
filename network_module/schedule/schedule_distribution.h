@@ -31,6 +31,7 @@
 #include "../mac_phase.h"
 #include "../mac_context.h"
 #include "schedule_element.h"
+#include "../debug_settings.h"
 
 /**
  * Represents the phase in which the schedule is distributed to the entire network,
@@ -62,8 +63,8 @@ public:
      * keeping only the actions that involve this node */
     void expandSchedule(unsigned char nodeID);
     void printSchedule(unsigned char nodeID);
-    void printExplicitSchedule(unsigned char nodeID);
-    void printExplicitScheduleLine();
+    void printExplicitSchedule(unsigned char nodeID, bool printHeader);
+    void printCompleteSchedule();
     /* The new schedule must be set in the first downlink tile after the old schedule is over.
        This function calculates the tilesPassedTotal time indicator,
        if it is equal to the one in the schedule header,
