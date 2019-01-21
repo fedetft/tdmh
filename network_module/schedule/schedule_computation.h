@@ -67,11 +67,11 @@ public:
 private: 
     void run();
 
-    std::vector<ScheduleElement> routeAndScheduleStreams(const std::vector<StreamManagementElement>& stream_list, const NetworkConfiguration& netconfig);
+    std::vector<ScheduleElement> routeAndScheduleStreams(const std::vector<StreamManagementElement>& stream_list);
     
-    std::vector<ScheduleElement> scheduleStreams(const std::list<std::list<ScheduleElement>>& routed_streams, const NetworkConfiguration& netconfig);
+    std::vector<ScheduleElement> scheduleStreams(const std::list<std::list<ScheduleElement>>& routed_streams);
 
-    bool checkDataSlot(unsigned offset, unsigned tile_size, const ControlSuperframeStructure& superframe, unsigned downlink_size, unsigned uplink_size);
+    bool checkDataSlot(unsigned offset, unsigned tile_size, unsigned downlink_size, unsigned uplink_size);
 
     bool slotConflictPossible(const ScheduleElement& newtransm, const ScheduleElement& oldtransm, unsigned offset, unsigned tile_size);
 
@@ -116,19 +116,24 @@ private:
     // Class containing the current Stream Requests (SME)
     MasterStreamManagementContext stream_mgmt;
     MasterStreamManagementContext stream_snapshot;
-    // Class containing a snapshot of the network topology
-    TopologyMap topology_map;
     // Final stream list after scheduling
     std::vector<ScheduleElement> schedule;
     // Used to check if a (new) schedule is available
     unsigned long scheduleID = 0;
     // Schedulesize value is equal to lcm(p1,p2,...,pn) or p1 for a single stream
-    unsigned int schedule_size = 0;
+    unsigned int schedule_size;
 
     // References to other classes
     MasterMeshTopologyContext& topology_ctx;
     // Needed to get number of dataslots
     MACContext& mac_ctx;
+    // Used to get controlsuperframestructure
+    const NetworkConfiguration& netconfig;
+    // Get network tile/superframe information
+    const ControlSuperframeStructure superframe;
+    // Class containing a snapshot of the network topology
+    TopologyMap topology_map;
+
 
 #ifdef _MIOSIX
     miosix::Mutex sched_mutex;
@@ -157,9 +162,10 @@ private:
     std::list<ScheduleElement> construct_path(StreamManagementElement stream, unsigned char node, std::map<const unsigned char, unsigned char>& parent_of);
     
 protected:
-    bool multipath;
-    int more_hops;
     // References to other classes
     ScheduleComputation& scheduler;
+
+    bool multipath;
+    int more_hops;
 };
 }

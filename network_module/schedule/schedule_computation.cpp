@@ -43,7 +43,12 @@
 namespace mxnet {
 
 ScheduleComputation::ScheduleComputation(MACContext& mac_ctx, MasterMeshTopologyContext& topology_ctx) : 
-    topology_ctx(topology_ctx), mac_ctx(mac_ctx), topology_map(mac_ctx.getNetworkConfig().getMaxNodes()) {}
+    topology_ctx(topology_ctx), mac_ctx(mac_ctx), netconfig(mac_ctx.getNetworkConfig()),
+    superframe(netconfig.getControlSuperframeStructure()),
+    topology_map(mac_ctx.getNetworkConfig().getMaxNodes()) {
+    // schedule_size must always be initialized to the number of tiles in superframe
+    schedule_size = superframe.size();
+}
 
 void ScheduleComputation::startThread() {
     if (scthread == NULL)
@@ -93,9 +98,6 @@ void ScheduleComputation::run() {
             topology_map = topology_ctx.getTopologyMap();
         }
         /* IMPORTANT!: From now on use only the snapshot class `stream_snapshot` */
-        // Get network config to get info about the tile and superframe structure
-        // used to get controlsuperframestructure
-        NetworkConfiguration netconfig = mac_ctx.getNetworkConfig();
 
         printf("\n#### Starting schedule computation ####\n");
 
@@ -123,8 +125,9 @@ void ScheduleComputation::run() {
         if(topology_map.wasModified() || stream_mgmt.wasRemoved()) {
             printf("Topology changed or a stream was removed, Re-scheduling established streams\n");
             schedule.clear();
-            schedule_size = 0;
-            auto new_schedule = routeAndScheduleStreams(established_streams, netconfig);
+            // schedule_size must always be initialized to the number of tiles in superframe
+            schedule_size = superframe.size();
+            auto new_schedule = routeAndScheduleStreams(established_streams);
             schedule = std::move(new_schedule);
             changed = true;
         }
@@ -143,7 +146,7 @@ void ScheduleComputation::run() {
                           return toInt(a.getPeriod()) > toInt(b.getPeriod());});
             //printf("New streams after sorting:\n");
             //printStreams(new_streams);
-            auto new_schedule = routeAndScheduleStreams(new_streams, netconfig);
+            auto new_schedule = routeAndScheduleStreams(new_streams);
             schedule.insert(schedule.end(), new_schedule.begin(), new_schedule.end());
             changed = true;
             //Mark successfully scheduled streams as established
@@ -161,7 +164,7 @@ void ScheduleComputation::run() {
         }
 
         printf("## Results ##\n");
-        printf("Final schedule, ID:%d\n", scheduleID);
+        printf("Final schedule, ID:%lu\n", scheduleID);
         printSchedule();
 
         printf("Stream list after scheduling\n");
@@ -177,8 +180,7 @@ void ScheduleComputation::run() {
 }
 
 std::vector<ScheduleElement> ScheduleComputation::routeAndScheduleStreams(
-                                                  const std::vector<StreamManagementElement>& stream_list,
-                                                  const NetworkConfiguration& netconfig) {
+                                                  const std::vector<StreamManagementElement>& stream_list) {
     if(!stream_list.empty()) {
         Router router(*this, 1, 2);
         printf("## Routing ##\n");
@@ -189,7 +191,7 @@ std::vector<ScheduleElement> ScheduleComputation::routeAndScheduleStreams(
 
         // Schedule expanded streams, avoiding conflicts
         printf("## Scheduling ##\n");
-        auto new_schedule = scheduleStreams(routed_streams, netconfig);
+        auto new_schedule = scheduleStreams(routed_streams);
         return new_schedule;
     }
     else {
@@ -219,11 +221,8 @@ void ScheduleComputation::open(const StreamManagementElement& sme) {
 }
 
 std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
-                                                  const std::list<std::list<ScheduleElement>>& routed_streams,
-                                                  const NetworkConfiguration& netconfig) {
+                                                  const std::list<std::list<ScheduleElement>>& routed_streams) {
 
-    // Get network tile/superframe information
-    ControlSuperframeStructure superframe = netconfig.getControlSuperframeStructure();
     unsigned tile_size = mac_ctx.getSlotsInTileCount();
     unsigned dataslots_downlinktile = mac_ctx.getDataSlotsInDownlinkTileCount();
     unsigned dataslots_uplinktile = mac_ctx.getDataSlotsInUplinkTileCount();
@@ -265,7 +264,7 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
             // Otherwise the resulting stream won't be periodic
             unsigned max_offset = (toInt(transmission.getPeriod()) * tile_size) - 1;
             for(unsigned offset = last_offset; offset < max_offset; offset++) {
-                if(!checkDataSlot(offset, tile_size, superframe, downlink_size, uplink_size))
+                if(!checkDataSlot(offset, tile_size, downlink_size, uplink_size))
                     continue;
                 printf("Checking offset %d\n", offset);
                 // Cycle over already scheduled elements to find conflicts
@@ -299,10 +298,7 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
                     // Calculate new schedule size
                     unsigned period = toInt(transmission.getPeriod());
                     printf("Schedule size, before:%d ", schedule_size);
-                    if(schedule_size == 0)
-                        schedule_size = period;
-                    else
-                        schedule_size = lcm(schedule_size, period);
+                    schedule_size = lcm(schedule_size, period);
                     printf("after:%d \n", schedule_size);
                     // Add transmission to schedule, and set schedule offset
                     scheduled_transmissions.push_back(transmission);
@@ -332,7 +328,6 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
 
 // This check makes sure that data is not scheduled in control slots (Downlink, Uplink)
 bool ScheduleComputation::checkDataSlot(unsigned offset, unsigned tile_size,
-                                        const ControlSuperframeStructure& superframe,
                                         unsigned downlink_size,
                                         unsigned uplink_size) {
     // Calculate current tile number

@@ -33,8 +33,7 @@ using namespace miosix;
 
 namespace mxnet {
 
-void ScheduleDownlinkPhase::expandSchedule() {
-    auto myID = ctx.getNetworkId();
+void ScheduleDownlinkPhase::expandSchedule(unsigned char nodeID) {
     // Resize explicitSchedule and fill with default value (sleep)
     auto slotsInTile = ctx.getSlotsInTileCount();
     auto scheduleSlots = header.getScheduleTiles() * slotsInTile;
@@ -44,7 +43,7 @@ void ScheduleDownlinkPhase::expandSchedule() {
     // Scan implicit schedule for element that imply the node action
     for(auto e : schedule) {
         // Send from stream case
-        if(e.getSrc() == myID && e.getTx() == myID) {
+        if(e.getSrc() == nodeID && e.getTx() == nodeID) {
             // Period is normally expressed in tiles, get period in slots
             auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
@@ -52,7 +51,7 @@ void ScheduleDownlinkPhase::expandSchedule() {
             }
         }
         // Receive to stream case
-        if(e.getDst() == myID && e.getRx() == myID) {
+        if(e.getDst() == nodeID && e.getRx() == nodeID) {
             // Period is normally expressed in tiles, get period in slots
             auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
@@ -60,7 +59,7 @@ void ScheduleDownlinkPhase::expandSchedule() {
             }
         }
         // Send from buffer case (send saved multi-hop packet)
-        if(e.getSrc() != myID && e.getTx() == myID) {
+        if(e.getSrc() != nodeID && e.getTx() == nodeID) {
             // Period is normally expressed in tiles, get period in slots
             auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
@@ -68,7 +67,7 @@ void ScheduleDownlinkPhase::expandSchedule() {
             }
         }
         // Receive to buffer case (receive and save multi-hop packet)
-        if(e.getDst() != myID && e.getRx() == myID) {
+        if(e.getDst() != nodeID && e.getRx() == nodeID) {
             // Period is normally expressed in tiles, get period in slots
             auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
@@ -78,9 +77,8 @@ void ScheduleDownlinkPhase::expandSchedule() {
     }
 }
 
-void ScheduleDownlinkPhase::printSchedule() {
-    auto myID = ctx.getNetworkId();
-    printf("Node: %d, implicit schedule\n", myID);
+void ScheduleDownlinkPhase::printSchedule(unsigned char nodeID) {
+    printf("Node: %d, implicit schedule n. %d\n", nodeID, header.getScheduleID());
     printf("ID   TX  RX  PER OFF\n");
     for(auto& elem : schedule) {
         printf("%d  %d-->%d   %d   %d\n", elem.getKey(), elem.getTx(), elem.getRx(),
@@ -88,17 +86,23 @@ void ScheduleDownlinkPhase::printSchedule() {
     }
 }
 
-void ScheduleDownlinkPhase::printExplicitSchedule() {
-    auto myID = ctx.getNetworkId();
+void ScheduleDownlinkPhase::printExplicitSchedule(unsigned char nodeID) {
     auto slotsInTile = ctx.getSlotsInTileCount();
-    printf("Node: %d, explicit schedule\n ", myID);
+    printf("Node: %2d| ", nodeID);
     for(int i=0; i<explicitSchedule.size(); i++) {
         printf("%2d ", i);
         if(((i+1) % slotsInTile) == 0)
             printf("| ");
     }
     printf("\n");
-    for(int i=0; i<explicitSchedule.size(); i++) {
+    printExplicitScheduleLine();
+}
+
+void ScheduleDownlinkPhase::printExplicitScheduleLine() {
+    auto slotsInTile = ctx.getSlotsInTileCount();
+    printf("        |");
+    for(int i=0; i<explicitSchedule.size(); i++)
+    {
         switch(explicitSchedule[i].getAction()) {
         case Action::SLEEP:
             printf(" _ ");

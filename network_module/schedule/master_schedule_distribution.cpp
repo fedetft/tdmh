@@ -52,6 +52,16 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
         getCurrentSchedule();
         // Reset variable for splitting schedule in packets
         position = 0;
+        // Print explicit schedule of every node
+        auto myID = ctx.getNetworkId();
+        auto maxNodes = ctx.getNetworkConfig().getMaxNodes();
+        printSchedule(myID);
+        print_dbg("### Explicit Schedule for all nodes\n");
+        for(unsigned char node = 0; node < maxNodes; node++)
+            {
+                expandSchedule(node);
+                printExplicitSchedule(node);
+            }
     }
     // ScheduleID = 0 means the first schedule is not ready
     if(header.getScheduleID() == 0) {
@@ -62,10 +72,12 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
         // Stop after sending third schedule repetition
         // Then calculate the explicit schedule
         if(explicitScheduleID != header.getScheduleID()) {
-            printSchedule();
-            expandSchedule();
+
+            auto myID = ctx.getNetworkId();
+            printSchedule(myID);
+            expandSchedule(myID);
             explicitScheduleID = header.getScheduleID();
-            printExplicitSchedule();
+            printExplicitSchedule(myID);
         }
         checkTimeSetSchedule();
         return;
