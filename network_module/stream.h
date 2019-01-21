@@ -27,6 +27,8 @@
 
 #pragma once
 
+#include "uplink/stream_management/stream_management_context.h"
+
 namespace mxnet {
 /**
  * The class Stream contains information about all the streams opened from
@@ -37,7 +39,10 @@ namespace mxnet {
 
 class Stream {
 public:
-    Stream(MACContext ctx, StreamManagementContext& str_mgmt) : mac_ctx(ctx), stream_mgmt(str_mgmt) {}
+    /* Master node constructor (StreamManagementContext) not necessary*/
+    Stream() {};
+    virtual ~Stream() {};
+    //Stream(MACContext& ctx, StreamManagementContext& str_mgmt) : mac_ctx(ctx), stream_mgmt(str_mgmt) {}
 
     /* Put data to send through an opened stream in a buffer */
     void put(const void* data, int size, unsigned int port);
@@ -56,11 +61,24 @@ public:
 
 private:
     /* Reference to MACContext */
-    MACContext& mac_ctx;
+    //MACContext& mac_ctx;
     /* Reference to StreamManagementContext for sending/receiving StreamManagementElements */
-    StreamManagementContext& stream_mgmt;
+    //StreamManagementContext& stream_mgmt = ;
     /* Vector containing pointers to a packet buffer for every established stream */
     std::vector<Packet*> buffer;
 };
+
+class MasterStream : public Stream {
+public:
+    MasterStream() : Stream() {};
+    ~MasterStream() {};
+};
+
+class DynamicStream : public Stream {
+public:
+    DynamicStream() : Stream() {};
+    ~DynamicStream() {};
+};
+
 
 } /* namespace mxnet */

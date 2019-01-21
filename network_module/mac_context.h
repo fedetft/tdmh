@@ -33,6 +33,7 @@
 #include "network_configuration.h"
 #include "interfaces-impl/transceiver.h"
 #include "interfaces-impl/power_manager.h"
+#include "stream.h"
 #include <functional>
 #include <stdexcept>
 

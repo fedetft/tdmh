@@ -45,8 +45,8 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
         uplink = new MasterUplinkPhase(*this, topology_ctx, *scheduleComputation);
     }
     scheduleDistribution = new MasterScheduleDownlinkPhase(*this, *scheduleComputation);
-    stream = new Stream(*this);
-    data = new DataPhase(*this, stream);
+    //stream = new Stream(*this);
+    data = new DataPhase(*this);
     /* Stream list hardcoding */
     /* parameters:
        StreamManagementElement(unsigned char src, unsigned char dst, unsigned char srcPort,

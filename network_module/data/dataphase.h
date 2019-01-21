@@ -41,7 +41,8 @@ namespace mxnet {
 
 class DataPhase : public MACPhase {
 public:
-    DataPhase(MACContext& ctx, Stream& str) : MACPhase(ctx), stream(str) {};
+    //DataPhase(MACContext& ctx, Stream& str) : MACPhase(ctx), stream(str) {};
+    DataPhase(MACContext& ctx) : MACPhase(ctx) {};
     
     virtual ~DataPhase() {}
 
@@ -99,7 +100,7 @@ private:
         }
     }
     // Reference to Stream class, to get packets from stream buffers
-    Stream& stream;
+    //Stream& stream;
     unsigned short tileSlot = 0;
     unsigned long scheduleID = 0;
     unsigned long scheduleTiles = 0;

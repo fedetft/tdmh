@@ -61,7 +61,6 @@ MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiv
 
 TopologyContext* MACContext::getTopologyContext() const { return uplink->getTopologyContext(); }
 StreamManagementContext* MACContext::getStreamManagementContext() const { return uplink->getStreamManagementContext(); }
-Stream* MACContext::getStream() const { return stream; }
 
 void MACContext::calculateDurations() {
     dataSlotDuration = DataPhase::getDuration();
