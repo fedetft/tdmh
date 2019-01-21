@@ -243,6 +243,7 @@ protected:
 
     TopologyContext* topologyContext = nullptr;
     StreamManagementContext* streamManagement = nullptr;
+    Stream* stream = nullptr;
 
     unsigned long long dataSlotDuration;
     unsigned long long downlinkSlotDuration;

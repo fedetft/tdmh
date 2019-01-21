@@ -31,6 +31,7 @@
 #include "../mac_context.h"
 #include "../schedule/schedule_distribution.h"
 #include "../timesync/networktime.h"
+#include "../stream.h"
 
 namespace mxnet {
 /**
@@ -38,10 +39,9 @@ namespace mxnet {
  * in a TDMA way, by following the schedule that has been distributed.
  */
 
-
 class DataPhase : public MACPhase {
 public:
-    DataPhase(MACContext& ctx) : MACPhase(ctx) {};
+    DataPhase(MACContext& ctx, Stream& str) : MACPhase(ctx), stream(str) {};
     
     virtual ~DataPhase() {}
 
@@ -98,6 +98,8 @@ private:
             tileSlot = 0;
         }
     }
+    // Reference to Stream class, to get packets from stream buffers
+    Stream& stream;
     unsigned short tileSlot = 0;
     unsigned long scheduleID = 0;
     unsigned long scheduleTiles = 0;

@@ -46,6 +46,7 @@ MACContext::~MACContext() {
     delete streamManagement;
     delete scheduleDistribution;
     delete data;
+    delete stream;
 }
     
 MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiver, const NetworkConfiguration& config) :
@@ -60,6 +61,7 @@ MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiv
 
 TopologyContext* MACContext::getTopologyContext() const { return uplink->getTopologyContext(); }
 StreamManagementContext* MACContext::getStreamManagementContext() const { return uplink->getStreamManagementContext(); }
+Stream* MACContext::getStream() const { return stream; }
 
 void MACContext::calculateDurations() {
     dataSlotDuration = DataPhase::getDuration();
@@ -67,6 +69,9 @@ void MACContext::calculateDurations() {
     /* Align the Uplink slot duration is a multiple of the Data slot duration */
     if (uplinkSlotDuration % dataSlotDuration != 0)
         uplinkSlotDuration = (uplinkSlotDuration / dataSlotDuration + 1) * dataSlotDuration;
+    printf("####DEBUG####\n- maxhops: %d\n- scheduledownlinkphase: %d\n- timesyncdownlinkphase: %d\n",
+           networkConfig.getMaxHops(), ScheduleDownlinkPhase::getDuration(networkConfig.getMaxHops()),
+           TimesyncDownlink::getDuration(networkConfig.getMaxHops()));
     auto downlinkMaxDuration = std::max(ScheduleDownlinkPhase::getDuration(networkConfig.getMaxHops()), TimesyncDownlink::getDuration(networkConfig.getMaxHops()));
     /* Align the Downlink slot duration is a multiple of the Data slot duration */
     if (downlinkMaxDuration % dataSlotDuration == 0)
@@ -154,9 +159,6 @@ void MACContext::warmUp() {
     assert(downlinkSlotDuration + numDataSlotInDownlinkTile * dataSlotDuration ==
            uplinkSlotDuration   + numDataSlotInUplinkTile   * dataSlotDuration);
     tileSlackTime = tileDuration - (uplinkSlotDuration + numDataSlotInUplinkTile * dataSlotDuration);
-
-    //TODO remove
-    data->setDataSuperframeSize(numDataSlotInUplinkTile + numDataSlotInDownlinkTile);
 }
 
 void MACContext::run()

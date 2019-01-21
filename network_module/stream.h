@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2018 by Polidori Paolo                                 *
+ *   Copyright (C)  2019 by Federico Amedeo Izzo                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,36 +25,42 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-
-#include "master_mac_context.h"
-#include "data/dataphase.h"
+#pragma once
 
 namespace mxnet {
-MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
-    MACContext(mac, transceiver, config) {
-    timesync = new MasterTimesyncDownlink(*this);
-    if (config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION) {
-        auto* topology_ctx = new MasterMeshTopologyContext(*this);
-        scheduleComputation = new ScheduleComputation(*this, *topology_ctx);
-        topologyContext = topology_ctx;
-        uplink = new MasterUplinkPhase(*this, topology_ctx, *scheduleComputation);
-    } else {
-        auto* topology_ctx = new MasterTreeTopologyContext(*this);
-        // A scheduler for Tree topology is not yet implemented
-        topologyContext = topology_ctx;
-        uplink = new MasterUplinkPhase(*this, topology_ctx, *scheduleComputation);
-    }
-    scheduleDistribution = new MasterScheduleDownlinkPhase(*this, *scheduleComputation);
-    stream = new Stream(*this);
-    data = new DataPhase(*this, stream);
-    /* Stream list hardcoding */
-    /* parameters:
-       StreamManagementElement(unsigned char src, unsigned char dst, unsigned char srcPort,
-       unsigned char dstPort, Period period, unsigned char payloadSize,
-       Redundancy redundancy=Redundancy::NONE)*/
-    scheduleComputation->open(StreamManagementElement(0, 1, 0, 0, Period::P2, 0));
-    scheduleComputation->open(StreamManagementElement(3, 2, 0, 0, Period::P5, 0));
-    scheduleComputation->open(StreamManagementElement(0, 2, 0, 0, Period::P1, 0));
+/**
+ * The class Stream contains information about all the streams opened from
+ * and to the node, together with the relative buffers
+ * It acts as a high-level API for opening streams, and send data through
+ * streams.
+ */
+
+class Stream {
+public:
+    Stream(MACContext ctx, StreamManagementContext& str_mgmt) : mac_ctx(ctx), stream_mgmt(str_mgmt) {}
+
+    /* Put data to send through an opened stream in a buffer */
+    void put(const void* data, int size, unsigned int port);
+    /* Get data received through an opened stream from a buffer */
+    void get(void* data, int size, unsigned int port);
+    /* Begin accepting incoming stream requests on a given port */
+    void accept(unsigned int port);
+    /* Open a new stream to a given node on a specific port
+     * by sending a StreamRequestElement to the node */
+    void connect(unsigned char dstID, unsigned int dstPort, Period period);
+
+    /* ### Not to be called by the end user ### */
+    // Used by the DataPhase to put/get data to/from buffers 
+    Packet putBuffer(unsigned int DstPort);
+    Packet getBuffer(unsigned int SrcPort);
+
+private:
+    /* Reference to MACContext */
+    MACContext& mac_ctx;
+    /* Reference to StreamManagementContext for sending/receiving StreamManagementElements */
+    StreamManagementContext& stream_mgmt;
+    /* Vector containing pointers to a packet buffer for every established stream */
+    std::vector<Packet*> buffer;
 };
 
 } /* namespace mxnet */
