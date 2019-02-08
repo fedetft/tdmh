@@ -240,6 +240,8 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
         bool stream_err = false;
         // Counter to last slot offset: ensures sequentiality
         unsigned last_offset = 0;
+        // Save schedule size to rollback in case the stream scheduling fails
+        last_schedule_size = schedule_size;
         for(auto& transmission : stream) {
             unsigned char tx = transmission.getTx();
             unsigned char rx = transmission.getRx();
@@ -255,7 +257,8 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
                 for(int i=0; i<block_size; i++) {
                     scheduled_transmissions.pop_back();
                 }
-                //TODO recalculate schedule size without new stream
+                // Rollback schedule size to before the failed stream
+                schedule_size = last_schedule_size;
                 // Skip to next block
                 break;
                 }

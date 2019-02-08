@@ -122,6 +122,9 @@ private:
     unsigned long scheduleID = 0;
     // Schedulesize value is equal to lcm(p1,p2,...,pn) or p1 for a single stream
     unsigned int schedule_size;
+    // Schedule size of last stream, used if the scheduling of a stream has failed
+    // and we need to rollback the size to the old value
+    unsigned int last_schedule_size;
 
     // References to other classes
     MasterMeshTopologyContext& topology_ctx;
