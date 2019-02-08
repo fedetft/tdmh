@@ -61,9 +61,10 @@ public:
      * it converts the schedule from implicit form (list of streams)
      * to explicit form (action to do on every timeslot)
      * keeping only the actions that involve this node */
-    void expandSchedule(unsigned char nodeID);
+    std::vector<ExplicitScheduleElement> expandSchedule(unsigned char nodeID);
     void printSchedule(unsigned char nodeID);
-    void printExplicitSchedule(unsigned char nodeID, bool printHeader);
+    void printExplicitSchedule(unsigned char nodeID, bool printHeader, std::vector<ExplicitScheduleElement> expSchedule);
+    /* Calculates and prints explicit schedule for all the nodes */
     void printCompleteSchedule();
     /* The new schedule must be set in the first downlink tile after the old schedule is over.
        This function calculates the tilesPassedTotal time indicator,

@@ -33,13 +33,13 @@ using namespace miosix;
 
 namespace mxnet {
 
-void ScheduleDownlinkPhase::expandSchedule(unsigned char nodeID) {
-    // Resize explicitSchedule and fill with default value (sleep)
+std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsigned char nodeID) {
+    // New explicitSchedule to return
+    std::vector<ExplicitScheduleElement> result;
+    // Resize new explicitSchedule and fill with default value (sleep)
     auto slotsInTile = ctx.getSlotsInTileCount();
     auto scheduleSlots = header.getScheduleTiles() * slotsInTile;
-    explicitSchedule.clear();
-    explicitSchedule.resize(scheduleSlots,
-                            ExplicitScheduleElement(Action::SLEEP, 0));
+    result.resize(scheduleSlots, ExplicitScheduleElement(Action::SLEEP, 0));
     // Scan implicit schedule for element that imply the node action
     for(auto e : schedule) {
         // Send from stream case
@@ -47,7 +47,7 @@ void ScheduleDownlinkPhase::expandSchedule(unsigned char nodeID) {
             // Period is normally expressed in tiles, get period in slots
             auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                explicitSchedule[slot] = ExplicitScheduleElement(Action::SENDSTREAM, e.getSrcPort()); 
+                result[slot] = ExplicitScheduleElement(Action::SENDSTREAM, e.getSrcPort()); 
             }
         }
         // Receive to stream case
@@ -55,7 +55,7 @@ void ScheduleDownlinkPhase::expandSchedule(unsigned char nodeID) {
             // Period is normally expressed in tiles, get period in slots
             auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                explicitSchedule[slot] = ExplicitScheduleElement(Action::RECVSTREAM, e.getDstPort()); 
+                result[slot] = ExplicitScheduleElement(Action::RECVSTREAM, e.getDstPort()); 
             }
         }
         // Send from buffer case (send saved multi-hop packet)
@@ -63,7 +63,7 @@ void ScheduleDownlinkPhase::expandSchedule(unsigned char nodeID) {
             // Period is normally expressed in tiles, get period in slots
             auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                explicitSchedule[slot] = ExplicitScheduleElement(Action::SENDBUFFER, 0); 
+                result[slot] = ExplicitScheduleElement(Action::SENDBUFFER, 0); 
             }
         }
         // Receive to buffer case (receive and save multi-hop packet)
@@ -71,10 +71,11 @@ void ScheduleDownlinkPhase::expandSchedule(unsigned char nodeID) {
             // Period is normally expressed in tiles, get period in slots
             auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                explicitSchedule[slot] = ExplicitScheduleElement(Action::RECVBUFFER, 0); 
+                result[slot] = ExplicitScheduleElement(Action::RECVBUFFER, 0); 
             }
         }
     }
+    return result;
 }
 
 void ScheduleDownlinkPhase::printSchedule(unsigned char nodeID) {
@@ -86,12 +87,12 @@ void ScheduleDownlinkPhase::printSchedule(unsigned char nodeID) {
     }
 }
 
-void ScheduleDownlinkPhase::printExplicitSchedule(unsigned char nodeID, bool printHeader) {
+    void ScheduleDownlinkPhase::printExplicitSchedule(unsigned char nodeID, bool printHeader, std::vector<ExplicitScheduleElement> expSchedule) {
     auto slotsInTile = ctx.getSlotsInTileCount();
     // print header
     if(printHeader) {
         printf("        | ");
-        for(unsigned int i=0; i<explicitSchedule.size(); i++) {
+        for(unsigned int i=0; i<expSchedule.size(); i++) {
             printf("%2d ", i);
             if(((i+1) % slotsInTile) == 0)
                 printf("| ");
@@ -100,9 +101,9 @@ void ScheduleDownlinkPhase::printExplicitSchedule(unsigned char nodeID, bool pri
     }
     // print schedule line
     printf("Node: %2d|", nodeID);
-    for(unsigned int i=0; i<explicitSchedule.size(); i++)
+    for(unsigned int i=0; i<expSchedule.size(); i++)
         {
-            switch(explicitSchedule[i].getAction()) {
+            switch(expSchedule[i].getAction()) {
             case Action::SLEEP:
                 printf(" _ ");
                 break;
@@ -132,11 +133,12 @@ void ScheduleDownlinkPhase::printCompleteSchedule() {
     auto maxNodes = ctx.getNetworkConfig().getMaxNodes();
     printSchedule(myID);
     printf("### Explicit Schedule for all nodes\n");
+    std::vector<ExplicitScheduleElement> nodeSchedule;
     for(unsigned char node = 0; node < maxNodes; node++)
     {
-        expandSchedule(node);
+        nodeSchedule = expandSchedule(node);
         // Print schedule header only for first line
-        printExplicitSchedule(node, (node == 0));
+        printExplicitSchedule(node, (node == 0), nodeSchedule);
     } 
 }
 

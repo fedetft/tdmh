@@ -69,11 +69,12 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
             auto myID = ctx.getNetworkId();
             if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
                 printSchedule(myID);
-            expandSchedule(myID);
+            std::vector<ExplicitScheduleElement> NewExplicitSchedule = expandSchedule(myID);
+            explicitSchedule = std::move(NewExplicitSchedule);
             explicitScheduleID = header.getScheduleID();
             if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG) {
                 printf("Explicit schedule:\n");
-                printExplicitSchedule(myID, true);                
+                printExplicitSchedule(myID, true, explicitSchedule);                
             }
         }
         checkTimeSetSchedule();

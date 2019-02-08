@@ -68,7 +68,8 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
         if(explicitScheduleID != header.getScheduleID()) {
             // Apply newest schedule by expanding it            
             auto myID = ctx.getNetworkId();
-            expandSchedule(myID);
+            auto newExplicitSchedule = expandSchedule(myID);
+            explicitSchedule = std::move(newExplicitSchedule);
             explicitScheduleID = header.getScheduleID();
             if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)
                 print_dbg("[D] Calculated explicit schedule n.%2d", explicitScheduleID);
