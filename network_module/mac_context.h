@@ -33,7 +33,7 @@
 #include "network_configuration.h"
 #include "interfaces-impl/transceiver.h"
 #include "interfaces-impl/power_manager.h"
-#include "stream.h"
+#include "stream_manager.h"
 #include <functional>
 #include <stdexcept>
 
@@ -244,7 +244,7 @@ protected:
 
     TopologyContext* topologyContext = nullptr;
     StreamManagementContext* streamManagement = nullptr;
-    Stream* stream = nullptr;
+    StreamManager* stream = nullptr;
 
     unsigned long long dataSlotDuration;
     unsigned long long downlinkSlotDuration;

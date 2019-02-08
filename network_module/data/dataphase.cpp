@@ -63,15 +63,18 @@ void DataPhase::sleep(long long slotStart) {
     ctx.sleepUntil(slotStart);
 }
 void DataPhase::sendFromStream(long long slotStart, unsigned int SrcPort) {
-    Packet pkt; //= stream.getBuffer(SrcPort);
-    pkt.put(&buffer, sizeof(buffer));
+    Packet pkt = stream.getBuffer(SrcPort);
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     pkt.send(ctx, slotStart);
     ctx.transceiverIdle();
 
 }
 void DataPhase::receiveToStream(long long slotStart, unsigned int DstPort) {
-
+    Packet pkt;
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    auto rcvResult = pkt.recv(ctx, slotStart);
+    ctx.transceiverIdle();
+    stream.putBuffer(DstPort, pkt);
 }
 void DataPhase::sendFromBuffer(long long slotStart) {
     Packet pkt;

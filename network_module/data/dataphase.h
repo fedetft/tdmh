@@ -31,7 +31,7 @@
 #include "../mac_context.h"
 #include "../schedule/schedule_distribution.h"
 #include "../timesync/networktime.h"
-#include "../stream.h"
+#include "../stream_manager.h"
 
 namespace mxnet {
 /**
@@ -41,8 +41,7 @@ namespace mxnet {
 
 class DataPhase : public MACPhase {
 public:
-    //DataPhase(MACContext& ctx, Stream& str) : MACPhase(ctx), stream(str) {};
-    DataPhase(MACContext& ctx) : MACPhase(ctx) {};
+    DataPhase(MACContext& ctx, StreamManager& str) : MACPhase(ctx), stream(str) {};
     
     virtual ~DataPhase() {}
 
@@ -103,7 +102,7 @@ private:
             tileSlot = (tileSlot + n) % scheduleSlots;
     }
     // Reference to Stream class, to get packets from stream buffers
-    //Stream& stream;
+    StreamManager& stream;
     unsigned short tileSlot = 0;
     unsigned long scheduleID = 0;
     unsigned long scheduleTiles = 0;

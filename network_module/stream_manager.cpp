@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2018 by Polidori Paolo                                 *
+ *   Copyright (C)  2018 by Federico Amedeo Izzo                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,25 +25,12 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-
-#include "dynamic_mac_context.h"
-#include "data/dataphase.h"
+#include "stream_manager.h"
 
 namespace mxnet {
-DynamicMACContext::DynamicMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
-    MACContext(mac, transceiver, config) {
-    timesync = new DynamicTimesyncDownlink(*this);
-    scheduleDistribution = new DynamicScheduleDownlinkPhase(*this);
-    streamManagement = new DynamicStreamManagementContext();
-    DynamicTopologyContext* topology;
-    if (config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION)
-        topology = new DynamicMeshTopologyContext(*this);
-    else
-        topology = new DynamicTreeTopologyContext(*this);
-    topologyContext = topology;
-    uplink = new DynamicUplinkPhase(*this, topology);
-    stream = new DynamicStreamManager(*this, *streamManagement);
-    data = new DataPhase(*this, *stream);
-};
 
-} /* namespace mxnet */
+void StreamManager::listen(unsigned int port) {
+}
+
+}
+
