@@ -49,15 +49,14 @@ OBJS = \
     $O/network_module/master_mac_context.o \
     $O/network_module/master_tdmh.o \
     $O/network_module/network_configuration.o \
+    $O/network_module/packet.o \
     $O/network_module/tdmh.o \
     $O/network_module/data/dataphase.o \
     $O/network_module/schedule/dynamic_schedule_distribution.o \
-    $O/network_module/schedule/dynamic_schedule_information.o \
     $O/network_module/schedule/master_schedule_distribution.o \
-    $O/network_module/schedule/master_schedule_information.o \
     $O/network_module/schedule/schedule_computation.o \
     $O/network_module/schedule/schedule_distribution.o \
-    $O/network_module/schedule/schedule_information.o \
+    $O/network_module/schedule/schedule_element.o \
     $O/network_module/timesync/dynamic_timesync_downlink.o \
     $O/network_module/timesync/master_timesync_downlink.o \
     $O/network_module/timesync/networktime.o \

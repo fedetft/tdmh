@@ -21,6 +21,10 @@ import wandstemmac.RootNode;
 
 network SimReal2018RTSS
 {
+    parameters:
+        n*.nodes = 16;
+        // NOTE: A lower number of hops triggers a bug in the MAC Implementation
+        n*.hops = 6;
     @display("bgb=1148.8619,502.944");
     submodules:
         n0: RootNode {
