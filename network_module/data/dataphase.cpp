@@ -67,7 +67,6 @@ void DataPhase::sendFromStream(long long slotStart, unsigned int SrcPort) {
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     pkt.send(ctx, slotStart);
     ctx.transceiverIdle();
-
 }
 void DataPhase::receiveToStream(long long slotStart, unsigned int DstPort) {
     Packet pkt;
@@ -88,6 +87,7 @@ void DataPhase::receiveToBuffer(long long slotStart) {
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     auto rcvResult = pkt.recv(ctx, slotStart);
     ctx.transceiverIdle();
+    pkt.get(&buffer, pkt.size());
 }
 void DataPhase::alignToNetworkTime(NetworkTime nt) {
     auto tileDuration = ctx.getNetworkConfig().getTileDuration();
