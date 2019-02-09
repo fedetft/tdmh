@@ -57,9 +57,9 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
     scheduleComputation->open(StreamManagementElement(3, 2, 0, 0, Period::P5, 0));
     scheduleComputation->open(StreamManagementElement(0, 2, 0, 0, Period::P1, 0));*/
     // Streams to replicate RTSS experiment
-    scheduleComputation->open(StreamManagementElement(3, 0, 0, 0, Period::P1, 0));
-    scheduleComputation->open(StreamManagementElement(4, 0, 0, 0, Period::P2, 0));
-    scheduleComputation->open(StreamManagementElement(6, 0, 0, 0, Period::P2, 0));
+    scheduleComputation->open(StreamManagementElement(3, 0, 0, 0, Period::P1, 0, Redundancy::NONE));
+    scheduleComputation->open(StreamManagementElement(4, 0, 0, 0, Period::P2, 0, Redundancy::DOUBLE_SPATIAL));
+    scheduleComputation->open(StreamManagementElement(6, 0, 0, 0, Period::P2, 0, Redundancy::NONE));
 };
 
 } /* namespace mxnet */

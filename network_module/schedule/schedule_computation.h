@@ -154,8 +154,8 @@ private:
 
 class Router {
 public:
-    Router(ScheduleComputation& scheduler, bool multipath, int more_hops) : 
-        scheduler(scheduler), multipath(multipath), more_hops(more_hops) {};
+    Router(ScheduleComputation& scheduler, int more_hops) : 
+        scheduler(scheduler), more_hops(more_hops) {};
     virtual ~Router() {};
 
     std::list<std::list<ScheduleElement>> run(const std::vector<StreamManagementElement>& stream_list);
@@ -163,12 +163,16 @@ public:
 private:
     std::list<ScheduleElement> breadthFirstSearch(StreamManagementElement stream);
     std::list<ScheduleElement> construct_path(StreamManagementElement stream, unsigned char node, std::map<const unsigned char, unsigned char>& parent_of);
-    
+    std::list<std::list<unsigned char>> depthFirstSearch(StreamManagementElement stream, unsigned int limit);
+    // Recursive function
+    void dfsRun(unsigned char start, unsigned char target, unsigned int limit,
+                bool visited[], std::list<unsigned char> path,
+                std::list<std::list<unsigned char>>& all_paths);
 protected:
     // References to other classes
     ScheduleComputation& scheduler;
 
-    bool multipath;
+    // TODO: make more_hop configurable in network_configuration
     int more_hops;
 };
 }

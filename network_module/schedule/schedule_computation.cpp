@@ -182,7 +182,7 @@ void ScheduleComputation::run() {
 std::vector<ScheduleElement> ScheduleComputation::routeAndScheduleStreams(
                                                   const std::vector<StreamManagementElement>& stream_list) {
     if(!stream_list.empty()) {
-        Router router(*this, 1, 2);
+        Router router(*this, 2);
         printf("## Routing ##\n");
         // Run router to route multi-hop streams and get multiple paths
         auto routed_streams = router.run(stream_list);
@@ -457,20 +457,48 @@ std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamManage
         }
         // Otherwise run BFS
         std::list<ScheduleElement> path = breadthFirstSearch(stream);
+        // Calculate path lenght (for limiting DFS)
+        unsigned int sol_size = path.size();
+
         if(!path.empty()) {
             // Print routed path
-            printf("Path found: \n");
+            printf("Found path of lenght %d: \n", sol_size);
             for(auto& s : path) {
                 printf("%d->%d ", s.getTx(), s.getRx());
             }
             printf("\n");
         }
         // Insert routed path in place of multihop stream
+        // TODO: this line should go inside the previous IF?
         routed_streams.push_back(path);
-        // TODO: If redundancy, run DFS
-        if(multipath) {
-            //int sol_size = path.size();
+        // TODO: If spatial redundancy is present, run DFS
+        Redundancy redundancy = stream.getRedundancy();
+        if(redundancy == Redundancy::DOUBLE_SPATIAL || redundancy == Redundancy::TRIPLE_SPATIAL) {
+            // Runs depth first search to get a list of possible paths,
+            // with maximum hops = first_solution + more_hops, among
+            // which we choose the redundant path.
+            printf("Searching alternative paths of max length %d\n", sol_size + more_hops);
+            std::list<std::list<unsigned char>> extra_paths = depthFirstSearch(stream, sol_size + more_hops);
+            // Choose best solution
 
+            if(!extra_paths.empty()) {
+                // Print secondary paths found
+                printf("Secondary Paths found: \n");
+                for(auto& path : extra_paths) {
+                    for(auto& node : path) {
+                        printf(" %d ", node);                        
+                    }
+                    printf("\n");
+                }
+                printf("\n");
+            }
+            // Reconstruct complete path from list of nodes, by copying
+            // over period, ports, ecc... from original multi-hop stream
+            //path.push_back(ScheduleElement(stream.getSrc(), stream.getDst(), stream.getSrcPort(),
+            //                                   stream.getDstPort(), src, dst, stream.getPeriod()));
+
+            // Add secondary path to list of routed streams
+            //routed_streams.push_back(extra_path);
         }
     }
     return routed_streams;
@@ -553,4 +581,60 @@ std::list<ScheduleElement> Router::construct_path(StreamManagementElement stream
     path.reverse();
     return path;
 }
+
+std::list<std::list<unsigned char>> Router::depthFirstSearch(StreamManagementElement stream,
+                                                               unsigned int limit) {
+    unsigned char src = stream.getSrc();
+    unsigned char dst = stream.getDst();
+
+    // V = number of nodes in the network
+    //TODO: implement topology_ctx.getnodecount()
+    int V = 32;
+    // Mark all the vertices as not visited
+    bool *visited = new bool[V]; 
+    for (int i = 0; i < V; i++) 
+        visited[i] = false; 
+
+    // Create a list to store a path
+    std::list<unsigned char> path;
+    // Create a list to store all paths found
+    std::list<std::list<unsigned char>> all_paths;
+
+    // Run the recursive function
+    // NOTE: we do limit+1 otherwise only solution of size limit-1 are found
+    dfsRun(src, dst, limit + 1, visited, path, all_paths);
+
+    return all_paths;
+}
+
+void Router::dfsRun(unsigned char start, unsigned char target, unsigned int limit,
+                    bool visited[], std::list<unsigned char> path,
+                    std::list<std::list<unsigned char>>& all_paths) {
+    // Mark current node in visited, and store it in path
+    visited[start] = true;
+    path.push_back(start);
+
+    // If current node == target -> return path
+    if(start == target) {
+        printf("Found redundand path of lenght %d, ", path.size());
+        all_paths.push_back(path);
+        printf("total paths found: %d\n", all_paths.size());
+    }
+    else{ // If current node != target
+        // Recur for all the vertices adjacent to current vertex
+        std::vector<unsigned char> adjacence = scheduler.topology_map.getEdges(start);
+        for (unsigned char child : adjacence) {
+            // Maximum depth reached
+            if(limit == 0)
+                continue;
+            limit--;
+            if(!visited[child])
+                dfsRun(child, target, limit, visited, path, all_paths);
+        }
+    }
+    // Remove current vertex from path[] and mark it as unvisited
+    path.pop_back();
+    visited[start] = false;
+}
+
 }
