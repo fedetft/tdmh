@@ -161,8 +161,12 @@ public:
     std::list<std::list<ScheduleElement>> run(const std::vector<StreamManagementElement>& stream_list);
 
 private:
-    std::list<ScheduleElement> breadthFirstSearch(StreamManagementElement stream);
-    std::list<ScheduleElement> construct_path(StreamManagementElement stream, unsigned char node, std::map<const unsigned char, unsigned char>& parent_of);
+    std::list<unsigned char> breadthFirstSearch(StreamManagementElement stream);
+    std::list<unsigned char> construct_path(unsigned char node, std::map<const unsigned char, unsigned char>& parent_of);
+    /* Transform path ( 0 1 2 3 ) to schedule (0->1 1->2 2->3) */
+    std::list<ScheduleElement> pathToSchedule(const std::list<unsigned char>& path,
+                                                      const StreamManagementElement& stream);
+    void printPath(const std::list<unsigned char>& path);
     std::list<std::list<unsigned char>> depthFirstSearch(StreamManagementElement stream, unsigned int limit);
     // Recursive function
     void dfsRun(unsigned char start, unsigned char target, unsigned int limit,

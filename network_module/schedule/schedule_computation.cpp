@@ -182,7 +182,7 @@ void ScheduleComputation::run() {
 std::vector<ScheduleElement> ScheduleComputation::routeAndScheduleStreams(
                                                   const std::vector<StreamManagementElement>& stream_list) {
     if(!stream_list.empty()) {
-        Router router(*this, 2);
+        Router router(*this, 1);
         printf("## Routing ##\n");
         // Run router to route multi-hop streams and get multiple paths
         auto routed_streams = router.run(stream_list);
@@ -456,39 +456,38 @@ std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamManage
             continue;
         }
         // Otherwise run BFS
-        std::list<ScheduleElement> path = breadthFirstSearch(stream);
+        std::list<unsigned char> path = breadthFirstSearch(stream);
         // Calculate path lenght (for limiting DFS)
         unsigned int sol_size = path.size();
 
         if(!path.empty()) {
             // Print routed path
-            printf("Found path of lenght %d: \n", sol_size);
-            for(auto& s : path) {
-                printf("%d->%d ", s.getTx(), s.getRx());
-            }
-            printf("\n");
+            printf("Found path of length %d:\n", sol_size);
+            printPath(path);
+            std::list<ScheduleElement> schedule = pathToSchedule(path, stream);
+            // Insert routed path in place of multihop stream
+            routed_streams.push_back(schedule);
         }
-        // Insert routed path in place of multihop stream
-        // TODO: this line should go inside the previous IF?
-        routed_streams.push_back(path);
-        // TODO: If spatial redundancy is present, run DFS
         Redundancy redundancy = stream.getRedundancy();
         if(redundancy == Redundancy::DOUBLE_SPATIAL || redundancy == Redundancy::TRIPLE_SPATIAL) {
             // Runs depth first search to get a list of possible paths,
             // with maximum hops = first_solution + more_hops, among
             // which we choose the redundant path.
-            printf("Searching alternative paths of max length %d\n", sol_size + more_hops);
+            printf("Searching alternative paths of length %d + %d\n", sol_size, more_hops);
             std::list<std::list<unsigned char>> extra_paths = depthFirstSearch(stream, sol_size + more_hops);
-            // Choose best solution
-
+            // Choose best secondary path for redundancy
             if(!extra_paths.empty()) {
                 // Print secondary paths found
                 printf("Secondary Paths found: \n");
-                for(auto& path : extra_paths) {
-                    for(auto& node : path) {
-                        printf(" %d ", node);                        
-                    }
-                    printf("\n");
+                for(auto& p : extra_paths) {
+                    printPath(p);
+                }
+                printf("\n");
+                // Remove primary path from solutions
+                extra_paths.remove(path);
+                printf("Secondary Paths after removing primary path: \n");
+                for(auto& p : extra_paths) {
+                    printPath(p);
                 }
                 printf("\n");
             }
@@ -504,18 +503,18 @@ std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamManage
     return routed_streams;
 }
 
-std::list<ScheduleElement> Router::breadthFirstSearch(StreamManagementElement stream) {
+std::list<unsigned char> Router::breadthFirstSearch(StreamManagementElement stream) {
     unsigned char root = stream.getSrc();
     unsigned char dest = stream.getDst();
     // Check that the source node exists in the graph
     if(!scheduler.topology_map.hasNode(root)) {
         printf("Error: source node is not present in TopologyMap\n");
-        return std::list<ScheduleElement>();
+        return std::list<unsigned char>();
     }
     // Check that the destination node exists in the graph
     if(!scheduler.topology_map.hasNode(dest)) {
         printf("Error: destination node is not present in TopologyMap\n");
-        return std::list<ScheduleElement>();
+        return std::list<unsigned char>();
     }
     // V = number of nodes in the network
     //TODO: implement topology_ctx.getnodecount()
@@ -540,7 +539,7 @@ std::list<ScheduleElement> Router::breadthFirstSearch(StreamManagementElement st
         //Get and remove first element of open set
         unsigned char subtree_root = open_set.front();
         open_set.pop_front();
-        if (subtree_root == dest) return construct_path(stream, subtree_root, parent_of);
+        if (subtree_root == dest) return construct_path(subtree_root, parent_of);
         // Get all adjacent vertices of the dequeued vertex
         std::vector<unsigned char> adjacence = scheduler.topology_map.getEdges(subtree_root);
         for (unsigned char child : adjacence) {
@@ -558,30 +557,52 @@ std::list<ScheduleElement> Router::breadthFirstSearch(StreamManagementElement st
     }
     // If the execution ends here, src and dst are not connected in the graph
     printf("Error: source and destination node are not connected in TopologyMap\n");
-    return std::list<ScheduleElement>();
+    return std::list<unsigned char>();
 }
 
-std::list<ScheduleElement> Router::construct_path(StreamManagementElement stream,
-                                                  unsigned char node,
+std::list<unsigned char> Router::construct_path(unsigned char node,
                                                   std::map<const unsigned char, unsigned char>& parent_of) {
     /* Construct path by following the parent-of relation to the root node */
-    std::list<ScheduleElement> path;
-    unsigned char dst = node;
-    unsigned char src = parent_of[node];
-    // Copy over period, ports, ecc... from original multi-hop stream
-    path.push_back(ScheduleElement(stream.getSrc(), stream.getDst(), stream.getSrcPort(),
-                                   stream.getDstPort(), src, dst, stream.getPeriod()));
+    std::list<unsigned char> path;
+    path.push_back(node);
     /* The root node is the only to have itself as predecessor */
-    while(parent_of[src] != src) {
-        dst = src;
-        src = parent_of[dst];
-        path.push_back(ScheduleElement(stream.getSrc(), stream.getDst(), stream.getSrcPort(),
-                                       stream.getDstPort(), src, dst, stream.getPeriod()));
+    while(parent_of[node] != node) {
+        node = parent_of[node];
+        path.push_back(node);
     }
     path.reverse();
     return path;
 }
 
+std::list<ScheduleElement> Router::pathToSchedule(const std::list<unsigned char>& path,
+                                                  const StreamManagementElement& stream) {
+    /* Es: path: 0 1 2 3 schedule: 0->1 1->2 2->3 */
+    std::list<ScheduleElement> result;
+    if(!path.size())
+        return result;
+    // Cache data from original multi-hop stream
+    unsigned char src = stream.getSrc();
+    unsigned char dst = stream.getDst();
+    unsigned char srcPort = stream.getSrcPort();
+    unsigned char dstPort = stream.getDstPort();
+    Period period = stream.getPeriod();
+    unsigned char tx = path.front();
+    for(auto& rx : path) {
+        // Skip first round of for because we are ciclyng with rx node
+        if(rx == tx) continue;
+        result.push_back(ScheduleElement(src, dst, srcPort, dstPort, tx, rx, period));
+        tx = rx;
+    }
+    return result;
+}
+
+void Router::printPath(const std::list<unsigned char>& path) {
+    for(auto& node : path) {
+        printf(" %d ", node);                        
+    }
+    printf("\n");
+}
+   
 std::list<std::list<unsigned char>> Router::depthFirstSearch(StreamManagementElement stream,
                                                                unsigned int limit) {
     unsigned char src = stream.getSrc();
@@ -616,7 +637,7 @@ void Router::dfsRun(unsigned char start, unsigned char target, unsigned int limi
 
     // If current node == target -> return path
     if(start == target) {
-        printf("Found redundand path of lenght %d, ", path.size());
+        printf("Found redundand path of length %d, ", path.size());
         all_paths.push_back(path);
         printf("total paths found: %d\n", all_paths.size());
     }
