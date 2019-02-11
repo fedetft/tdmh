@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include <list>
+#include <unordered_set>
 #include <utility>
 #include <stdio.h>
 #include "../debug_settings.h"
@@ -479,25 +480,31 @@ std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamManage
             if(!extra_paths.empty()) {
                 // Print secondary paths found
                 printf("Secondary Paths found: \n");
-                for(auto& p : extra_paths) {
-                    printPath(p);
-                }
-                printf("\n");
+                printPathList(extra_paths);
                 // Remove primary path from solutions
                 extra_paths.remove(path);
                 printf("Secondary Paths after removing primary path: \n");
-                for(auto& p : extra_paths) {
-                    printPath(p);
+                printPathList(extra_paths);
+                // FInd paths without intermediate nodes in common with primary path
+                std::list<std::list<unsigned char>> indip_paths = findIndependentPaths(extra_paths, path);
+                // If the independent set is not empty choose shortest solution
+                std::list<unsigned char> solution;
+                if(indip_paths.size()) {
+                    printf("Indipendent Paths found: \n");
+                    printPathList(indip_paths);
+                    solution = findShortestPath(indip_paths);
                 }
-                printf("\n");
+                else { // Else pick the shortest non independent solution
+                    printf("Indipendent Paths not found: \n");
+                    solution = findShortestPath(extra_paths);
+                }
+                printf("The best redundand path is:\n");
+                printPath(solution);
+                std::list<ScheduleElement> schedule = pathToSchedule(solution, stream);
+                // Add secondary path to list of routed streams
+                routed_streams.push_back(schedule);
+                //TODO: possible improvement: choose the path with least common nodes
             }
-            // Reconstruct complete path from list of nodes, by copying
-            // over period, ports, ecc... from original multi-hop stream
-            //path.push_back(ScheduleElement(stream.getSrc(), stream.getDst(), stream.getSrcPort(),
-            //                                   stream.getDstPort(), src, dst, stream.getPeriod()));
-
-            // Add secondary path to list of routed streams
-            //routed_streams.push_back(extra_path);
         }
     }
     return routed_streams;
@@ -561,7 +568,7 @@ std::list<unsigned char> Router::breadthFirstSearch(StreamManagementElement stre
 }
 
 std::list<unsigned char> Router::construct_path(unsigned char node,
-                                                  std::map<const unsigned char, unsigned char>& parent_of) {
+                                                std::map<const unsigned char, unsigned char>& parent_of) {
     /* Construct path by following the parent-of relation to the root node */
     std::list<unsigned char> path;
     path.push_back(node);
@@ -603,6 +610,13 @@ void Router::printPath(const std::list<unsigned char>& path) {
     printf("\n");
 }
    
+void Router::printPathList(const std::list<std::list<unsigned char>>& path_list) {
+    for(auto& p : path_list) {
+        printPath(p);
+    }
+    printf("\n");
+}
+
 std::list<std::list<unsigned char>> Router::depthFirstSearch(StreamManagementElement stream,
                                                                unsigned int limit) {
     unsigned char src = stream.getSrc();
@@ -656,6 +670,46 @@ void Router::dfsRun(unsigned char start, unsigned char target, unsigned int limi
     // Remove current vertex from path[] and mark it as unvisited
     path.pop_back();
     visited[start] = false;
+}
+
+std::list<unsigned char> Router::findShortestPath(const std::list<std::list<unsigned char>>& path_list) {
+    unsigned int min = path_list.front().size();
+    std::list<unsigned char> result;
+    for(auto& path : path_list) {
+        if(path.size() < min) {
+            min = path.size();
+            result = path;
+        }
+    }
+    return result;
+}
+
+std::list<std::list<unsigned char>> Router::findIndependentPaths(const std::list<std::list<unsigned char>>& path_list,
+                                                                 const std::list<unsigned char> primary) {
+    std::list<std::list<unsigned char>> result;
+    std::list<unsigned char> nodes = primary;
+    nodes.pop_front();
+    nodes.pop_back();
+    std::unordered_set<unsigned char> common_nodes(std::begin(nodes), std::end(nodes));
+    printf("Nodes to avoid:\n");
+    for(auto& n : common_nodes) {
+        printf(" %d ", n);
+    }
+    printf("\n");
+    for(auto& p : path_list) {
+        bool ind = true;
+        for(auto& e : p) {
+            std::unordered_set<unsigned char>::const_iterator got = common_nodes.find(e);
+            if (got != common_nodes.end()) {
+                // If we found one element in common, there is no need to look further
+                ind = false;
+                break;
+            }
+        }
+        if(ind)
+            result.push_back(p);
+    }
+    return result;
 }
 
 }

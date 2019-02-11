@@ -167,11 +167,15 @@ private:
     std::list<ScheduleElement> pathToSchedule(const std::list<unsigned char>& path,
                                                       const StreamManagementElement& stream);
     void printPath(const std::list<unsigned char>& path);
+    void printPathList(const std::list<std::list<unsigned char>>& path_list);
     std::list<std::list<unsigned char>> depthFirstSearch(StreamManagementElement stream, unsigned int limit);
     // Recursive function
     void dfsRun(unsigned char start, unsigned char target, unsigned int limit,
                 bool visited[], std::list<unsigned char> path,
                 std::list<std::list<unsigned char>>& all_paths);
+    std::list<unsigned char> findShortestPath(const std::list<std::list<unsigned char>>& path_list);
+    std::list<std::list<unsigned char>> findIndependentPaths(const std::list<std::list<unsigned char>>& path_list,
+                                                             const std::list<unsigned char> primary);
 protected:
     // References to other classes
     ScheduleComputation& scheduler;
