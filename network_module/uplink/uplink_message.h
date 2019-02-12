@@ -38,8 +38,6 @@ namespace mxnet {
 struct UplinkMessagePkt {
     unsigned char hop;
     unsigned char assignee;
-    unsigned int numSME;
-    unsigned int numTopologies;
 } __attribute__((packed));
 
 

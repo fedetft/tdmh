@@ -84,8 +84,13 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
 }
 
 void NetworkConfiguration::validate() const {
-    if(UplinkMessage::getMinSize()+NeighborMessage::guaranteedSize(*this)>MediumAccessController::maxPktSize)
-        throwLogicError("guaranteedTopologies exceeds max packet size");
+    auto size = UplinkMessage::getMinSize()+NeighborMessage::guaranteedSize(*this);
+    auto maxSize = MediumAccessController::maxPktSize;
+    if(size > maxSize) {
+        std::ostringstream error;
+        error << "UplinkMessage size of " << size << " exceeds max packet size of " << static_cast<int>(maxSize);
+        throwLogicError(error.str().c_str());
+    }
     if(clockSyncPeriod % controlSuperframeDuration != 0)
         throwLogicError("control superframe (%lld) does not divide clock sync period (%lld)",
                         controlSuperframeDuration, clockSyncPeriod);
