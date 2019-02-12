@@ -70,7 +70,10 @@ const bool ENABLE_TOPOLOGY_SHORT_SUMMARY = false;
 const bool ENABLE_STREAM_INFO_DBG = true;
 
 //prints the schedule downlink phase debug info
-const bool ENABLE_SCHEDULE_DL_INFO_DBG = false;
+const bool ENABLE_SCHEDULE_DIST_MAS_INFO_DBG = false;
+
+//prints the schedule downlink phase debug info
+const bool ENABLE_SCHEDULE_DIST_DYN_INFO_DBG = false;
 
 //prints the data phase debug info
 const bool ENABLE_DATA_INFO_DBG = MASTERNODE;
