@@ -460,16 +460,25 @@ std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamManage
         std::list<unsigned char> path = breadthFirstSearch(stream);
         // Calculate path lenght (for limiting DFS)
         unsigned int sol_size = path.size();
-
-        if(!path.empty()) {
-            // Print routed path
-            printf("Found path of length %d:\n", sol_size);
-            printPath(path);
-            std::list<ScheduleElement> schedule = pathToSchedule(path, stream);
-            // Insert routed path in place of multihop stream
+        if(path.empty()) {
+            printf("No path found, stream not scheduled\n");
+            continue;
+        }
+        // Print routed path
+        printf("Found path of length %d:\n", sol_size);
+        printPath(path);
+        std::list<ScheduleElement> schedule = pathToSchedule(path, stream);
+        // Insert routed path in place of multihop stream
+        routed_streams.push_back(schedule);
+        Redundancy redundancy = stream.getRedundancy();
+        // Temporal redundancy
+        if(redundancy == Redundancy::DOUBLE)
+            routed_streams.push_back(schedule);
+        if(redundancy == Redundancy::TRIPLE) {
+            routed_streams.push_back(schedule);
             routed_streams.push_back(schedule);
         }
-        Redundancy redundancy = stream.getRedundancy();
+        // Spatial redundancy
         if(redundancy == Redundancy::DOUBLE_SPATIAL || redundancy == Redundancy::TRIPLE_SPATIAL) {
             // Runs depth first search to get a list of possible paths,
             // with maximum hops = first_solution + more_hops, among
@@ -605,11 +614,11 @@ std::list<ScheduleElement> Router::pathToSchedule(const std::list<unsigned char>
 
 void Router::printPath(const std::list<unsigned char>& path) {
     for(auto& node : path) {
-        printf(" %d ", node);                        
+        printf(" %d ", node);                      
     }
     printf("\n");
 }
-   
+
 void Router::printPathList(const std::list<std::list<unsigned char>>& path_list) {
     for(auto& p : path_list) {
         printPath(p);
