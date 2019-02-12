@@ -57,14 +57,16 @@ private:
 inline int maxForwardedTopologiesFromMaxNumNodes(int maxNumNodes)
 {
     /*
-     * FIXME: this leaves no space for sme, but we should move to dynamic uplink
-     * packet space allocation anyway
+     * Dynamic Uplink allocation implemented
+     * the parameter topologySMERatio configures the fraction of uplink packet
+     * reserved for topology messages
      * UplinkMessagePkt                 { hop, assignee }   2
      * NeighborTable                    { bitmask }         maxNumNodes/8
      * number of forwarded topologies (NeighborMessage::serialize) 1
-     * vector<ForwardedNeighborMessage> { nodeId, bitmask } 1+maxForwardedTopologies*maxNumNodes/8
+     * vector<ForwardedNeighborMessage> { nodeId, bitmask } maxForwardedTopologies*(1+maxNumNodes/8)
      */
+    const float topologySMERatio = 1;
     int packetCapacity = (125 - 2 - maxNumNodes/8 - 1) / (1 + maxNumNodes/8);
-    return std::min(packetCapacity, maxNumNodes - 2);
+    return std::min<int>(packetCapacity * topologySMERatio, maxNumNodes - 2);
 }
 

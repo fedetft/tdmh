@@ -69,10 +69,10 @@ const bool ENABLE_TOPOLOGY_SHORT_SUMMARY = false;
 //prints the stream context debug info
 const bool ENABLE_STREAM_INFO_DBG = true;
 
-//prints the schedule downlink phase debug info
+//prints the schedule distribution info in the master node
 const bool ENABLE_SCHEDULE_DIST_MAS_INFO_DBG = false;
 
-//prints the schedule downlink phase debug info
+//prints the schedule distribution info in the dynamic nodes
 const bool ENABLE_SCHEDULE_DIST_DYN_INFO_DBG = false;
 
 //prints the data phase debug info

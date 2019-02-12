@@ -112,7 +112,8 @@ void DynamicScheduleDownlinkPhase::decodePacket(SchedulePacket& spkt) {
         received.at(newHeader.getCurrentPacket()) = true;
         nextHeader = newHeader;
         // Add elements from received packet to new schedule
-        nextSchedule.insert(nextSchedule.begin(), spkt.getElements().begin(), spkt.getElements().end());
+        auto elements = spkt.getElements();
+        nextSchedule.insert(nextSchedule.begin(), elements.begin(), elements.end());
     }
     // If we receive an header with ID less of what we have, discard it
 }
