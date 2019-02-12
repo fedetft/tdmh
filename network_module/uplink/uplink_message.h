@@ -35,6 +35,14 @@
 
 namespace mxnet {
 
+struct UplinkMessagePkt {
+    unsigned char hop;
+    unsigned char assignee;
+    unsigned int numSME;
+    unsigned int numTopologies;
+} __attribute__((packed));
+
+
 class UplinkMessage : public SerializableMessage {
 public:
     UplinkMessage(unsigned char hop,
@@ -99,10 +107,6 @@ public:
         return getSizeWithoutSMEs(topology) + smes.size() * StreamManagementElement::maxSize();
     }
 protected:
-    struct UplinkMessagePkt {
-        unsigned char hop;
-        unsigned char assignee;
-    } __attribute__((packed));
     UplinkMessage(TopologyMessage* const topology) : topology(topology) {};
     UplinkMessagePkt content;
     TopologyMessage* const topology;

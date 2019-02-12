@@ -168,8 +168,16 @@ public:
      * Gets a count number of SMEs from the queue
      */
     std::vector<StreamManagementElement> dequeue(std::size_t count);
+
+    /**
+     * @return the number of SMEs available to be forwarded.
+     */
+    unsigned char getNumSME() { return queue.size(); }
+
 protected:
+    /* Queue containing SMEs to be forwarded towards the master node */
     UpdatableQueue<unsigned int, StreamManagementElement> queue;
+    /* Vector containing the SMEs of the streams opened from this node */
     std::vector<StreamManagementElement> pending;
 };
 

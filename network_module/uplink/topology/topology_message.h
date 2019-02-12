@@ -163,6 +163,12 @@ public:
     void serialize(Packet& pkt) const override;
     static ForwardedNeighborMessage* deserialize(Packet& pkt, const NetworkConfiguration& config);
     std::size_t size() const override;
+
+    static std::size_t staticSize(const NetworkConfiguration& config) {
+        return 1   // Size in bytes of nodeId (unsigned char)
+               + config.getNeighborTableSize();
+    }
+
 protected:
     ForwardedNeighborMessage(NeighborTable&& table) : neighbors(table) {};
     unsigned char nodeId;
@@ -210,18 +216,20 @@ public:
     }
 
     /**
-     * @return the maximum size such message can have, based on the network configuration
+     * @return the size of a NeighborMessage containing the guaranteed number of forwarded topologies.
      */
-    static std::size_t maxSize(const NetworkConfiguration& config) {
-        return size(config, config.getMaxForwardedTopologies());
+    static std::size_t guaranteedSize(const NetworkConfiguration& config) {
+        return size(config, config.getGuaranteedTopologies());
     }
 
     /**
      * @return the size such message can have, based on the network configuration and the actually forwarded topologies
      */
     static std::size_t size(const NetworkConfiguration& config, unsigned char forwardedTopologies) {
-        unsigned char nodeBytes = ((config.getMaxNodes() - 1) >> 3) + 1;
-        return nodeBytes + forwardedTopologies * (1 /* topology source addr */ + nodeBytes) + 1 /* topologies count */;
+        unsigned char neighborTableSize = config.getNeighborTableSize();
+        return neighborTableSize + forwardedTopologies * (1 /* topology source addr */
+                                                          + neighborTableSize)
+                                                          + 1 /* topologies count */;
     }
 
 protected:
@@ -287,7 +295,7 @@ public:
      * @return the maximum size a topology message can have, based on the current configuration.
      */
     static unsigned short maxSize(const NetworkConfiguration& config) {
-        return config.getMaxForwardedTopologies() * RoutingLink::maxSize();
+        return config.getGuaranteedTopologies() * RoutingLink::maxSize();
     }
 
     /**

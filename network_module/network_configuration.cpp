@@ -64,7 +64,7 @@ int ControlSuperframeStructure::countUplinkSlots() const
 
 NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short maxNodes, unsigned short networkId,
         unsigned char staticHop, unsigned short panId, short txPower, unsigned int baseFrequency,
-        unsigned long long clockSyncPeriod, unsigned char maxForwardedTopologies,
+        unsigned long long clockSyncPeriod, unsigned char guaranteedTopologies,
         unsigned char numUplinkPackets, unsigned long long tileDuration,
         unsigned long long maxAdmittedRcvWindow,
         unsigned short maxRoundsUnavailableBecomesDead, short minNeighborRSSI,
@@ -74,7 +74,7 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
     staticNetworkId(networkId), staticHop(staticHop), maxNodes(maxNodes),
     panId(panId), txPower(txPower), baseFrequency(baseFrequency), topologyMode(topologyMode),
     clockSyncPeriod(clockSyncPeriod), tileDuration(tileDuration), maxAdmittedRcvWindow(maxAdmittedRcvWindow),
-    maxMissedTimesyncs(maxMissedTimesyncs), maxForwardedTopologies(maxForwardedTopologies),
+    maxMissedTimesyncs(maxMissedTimesyncs), guaranteedTopologies(guaranteedTopologies),
     numUplinkPackets(numUplinkPackets),
     maxRoundsUnavailableBecomesDead(maxRoundsUnavailableBecomesDead),
     minNeighborRSSI(minNeighborRSSI),
@@ -84,8 +84,8 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
 }
 
 void NetworkConfiguration::validate() const {
-    if(UplinkMessage::getMinSize()+NeighborMessage::maxSize(*this)>MediumAccessController::maxPktSize)
-        throwLogicError("maxForwardedTopologies exceeds max packet size");
+    if(UplinkMessage::getMinSize()+NeighborMessage::guaranteedSize(*this)>MediumAccessController::maxPktSize)
+        throwLogicError("guaranteedTopologies exceeds max packet size");
     if(clockSyncPeriod % controlSuperframeDuration != 0)
         throwLogicError("control superframe (%lld) does not divide clock sync period (%lld)",
                         controlSuperframeDuration, clockSyncPeriod);

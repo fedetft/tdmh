@@ -170,7 +170,7 @@ public:
     /**
      * Returns the topology information to send in the uplink message
      */
-    virtual TopologyMessage* getMyTopologyMessage() = 0;
+    virtual TopologyMessage* getMyTopologyMessage(unsigned char extraTopologies) = 0;
 
     /**
      * @return the network id of the predecessor, chosen using the rssi as metric

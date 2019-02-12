@@ -164,6 +164,7 @@ void NeighborMessage::serialize(Packet& pkt) const {
 
 NeighborMessage* NeighborMessage::deserialize(Packet& pkt, const NetworkConfiguration& config) {
     auto neighbors = NeighborTable::deserialize(pkt, config.getMaxNodes());
+    // numMessages is a byte in the packet that contains the number of forwarded topologies
     unsigned char numMessages;
     pkt.get(&numMessages, 1);
     std::vector<ForwardedNeighborMessage*> forwarded(numMessages);

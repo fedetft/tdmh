@@ -104,7 +104,7 @@ public:
     NetworkConfiguration(unsigned char maxHops, unsigned short maxNodes, unsigned short networkId,
             unsigned char staticHop, unsigned short panId, short txPower,
             unsigned int baseFrequency, unsigned long long clockSyncPeriod,
-            unsigned char maxForwardedTopologies, unsigned char numUplinkPackets,
+            unsigned char guaranteedTopologies, unsigned char numUplinkPackets,
             unsigned long long tileDuration, unsigned long long maxAdmittedRcvWindow,
             unsigned short maxRoundsUnavailableBecomesDead,
             short minNeighborRSSI, unsigned char maxMissedTimesyncs,
@@ -170,10 +170,10 @@ public:
     }
 
     /**
-     * @return the maximum number of topology messages that can be forwarded in an uplink.
+     * @return the number of topology messages that is guaranteed to be forwarded in an uplink message.
      */
-    unsigned char getMaxForwardedTopologies() const {
-        return maxForwardedTopologies;
+    unsigned char getGuaranteedTopologies() const {
+        return guaranteedTopologies;
     }
     
     /**
@@ -195,6 +195,13 @@ public:
      */
     unsigned short getMaxNodes() const {
         return maxNodes;
+    }
+
+    /**
+     * @return the size of NeighborTable (RuntimeBitset).
+     */
+    unsigned short getNeighborTableSize() const {
+        return ((maxNodes - 1) >> 3) + 1;
     }
 
     /**
@@ -296,7 +303,7 @@ private:
     const unsigned long long tileDuration;
     const unsigned long long maxAdmittedRcvWindow;
     const unsigned char maxMissedTimesyncs;
-    const unsigned char maxForwardedTopologies;
+    const unsigned char guaranteedTopologies;
     const unsigned char numUplinkPackets;
     const unsigned short maxRoundsUnavailableBecomesDead;
     const short minNeighborRSSI;

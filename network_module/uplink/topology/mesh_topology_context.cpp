@@ -71,13 +71,14 @@ void DynamicMeshTopologyContext::unreceivedMessage(unsigned char nodeIdByTopolog
     neighbors.removeNeighbor(nodeIdByTopologySlot);
 }
 
-TopologyMessage* DynamicMeshTopologyContext::getMyTopologyMessage() {
+TopologyMessage* DynamicMeshTopologyContext::getMyTopologyMessage(unsigned char extraTopologies) {
     auto& config = ctx.getNetworkConfig();
     std::vector<ForwardedNeighborMessage*> forwarded;
     // Forward topologies only if we know a predecessor
     if(hasPredecessor())
     {
-        auto forward = dequeueMessages(config.getMaxForwardedTopologies());
+        auto numTopologies = config.getGuaranteedTopologies() + extraTopologies;
+        auto forward = dequeueMessages(numTopologies);
         forwarded.reserve(forward.size());
         std::transform(forward.begin(), forward.end(), std::back_inserter(forwarded), [](TopologyElement* elem){
             return dynamic_cast<ForwardedNeighborMessage*>(elem);

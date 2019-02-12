@@ -56,9 +56,12 @@ public:
     void unreceivedMessage(unsigned char sender) override;
 
     /**
-     * Builds the topology message to send, including the neighbor table and the forwarded topologies
+     * Builds the topology message to send, including the neighbor table and
+     * the forwarded topologies.
+     * The minimum number of Forwarded Topologies is config.getGuaranteedTopologies()
+     * The maximum number of topologies is as many as they can fit in UplinkMessage
      */
-    TopologyMessage* getMyTopologyMessage() override;
+    TopologyMessage* getMyTopologyMessage(unsigned char extraTopologies) override;
 
     /**
      * Used by the timesync phase to set/remove the master node as neighbor in case the node belongs/does not belong to hop 1,

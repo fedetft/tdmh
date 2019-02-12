@@ -39,7 +39,7 @@ public:
         return NetworkConfiguration::TopologyMode::ROUTING_VECTOR;
     }
     void receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) override;
-    TopologyMessage* getMyTopologyMessage() override;
+    TopologyMessage* getMyTopologyMessage(unsigned char extraTopologies) override;
 };
 
 

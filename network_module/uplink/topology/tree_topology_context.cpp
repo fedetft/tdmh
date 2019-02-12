@@ -53,9 +53,9 @@ void DynamicTreeTopologyContext::receivedMessage(UplinkMessage msg, unsigned cha
     delete tMsg;
 }
 
-TopologyMessage* DynamicTreeTopologyContext::getMyTopologyMessage() {
+TopologyMessage* DynamicTreeTopologyContext::getMyTopologyMessage(unsigned char extraTopologies) {
     auto config = ctx.getNetworkConfig();
-    auto count = std::min(enqueuedTopologyMessages.size(), static_cast<std::size_t>(config.getMaxForwardedTopologies()));
+    auto count = std::min(enqueuedTopologyMessages.size(), static_cast<std::size_t>(config.getGuaranteedTopologies() + extraTopologies));
     std::vector<RoutingLink*> links(count);
     auto forward = dequeueMessages(count);
     std::transform(forward.begin(), forward.end(), std::back_inserter(links), [](TopologyElement* elem){
