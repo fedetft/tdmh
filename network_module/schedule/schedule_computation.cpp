@@ -272,30 +272,12 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
                     continue;
                 printf("Checking offset %d\n", offset);
                 // Cycle over already scheduled elements to find conflicts
-                bool conflict = false;
-                for(auto& elem : schedule) {
-                    // conflictPossible is a simple condition used to reduce number of conflict checks
-                    if(slotConflictPossible(transmission, elem, offset, tile_size)) {
-                        if(checkSlotConflict(transmission, elem, offset, tile_size, schedule_size)) {
-                            printf("Other transmissions have timeslots in common\n");
-                            /* Conflict checks */
-                            // Unicity check: no activity for src or dst node in a given timeslot
-                            if(checkUnicityConflict(transmission, elem)) {
-                                conflict |= true;
-                                printf("Unicity conflict!\n");
-                            }
-                            // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
-                            if(checkInterferenceConflict(transmission, elem)) {
-                                conflict |= true;
-                                printf("Interference conflict!\n");
-                            }
-                            if(conflict)
-                                // Avoid checking other streams when a conflict is found
-                                break;
-                        }
-                    }
-                    // else conflict is not possible
-                }
+                printf("Checking against old streams\n");
+                bool conflict = checkAllConflicts(schedule, transmission, offset, tile_size);
+                // Cycle over elements to be scheduled to find conflicts
+                printf("Checking against new streams\n");
+                conflict |= checkAllConflicts(scheduled_transmissions, transmission, offset, tile_size);
+
                 if(!conflict) {
                     last_offset = offset;
                     block_size++;
@@ -330,6 +312,36 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
     return scheduled_transmissions;
 }
 
+bool ScheduleComputation::checkAllConflicts(std::vector<ScheduleElement> other_streams, const ScheduleElement& transmission, unsigned offset, unsigned tile_size) {
+    bool conflict = false;
+    for(auto& elem : other_streams) {
+        // conflictPossible is a simple condition used to reduce number of conflict checks
+        if(slotConflictPossible(transmission, elem, offset, tile_size)) {
+            printf("Conflict possible with %d->%d\n", elem.getTx(), elem.getRx());
+            if(checkSlotConflict(transmission, elem, offset, tile_size)) {
+                printf("%d->%d and %d-%d have timeslots in common\n", transmission.getTx(),
+                       transmission.getRx(), elem.getTx(), elem.getRx());
+                /* Conflict checks */
+                // Unicity check: no activity for src or dst node in a given timeslot
+                if(checkUnicityConflict(transmission, elem)) {
+                    conflict |= true;
+                    printf("Unicity conflict!\n");
+                }
+                // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
+                if(checkInterferenceConflict(transmission, elem)) {
+                    conflict |= true;
+                    printf("Interference conflict!\n");
+                }
+                if(conflict)
+                    // Avoid checking other streams when a conflict is found
+                    break;
+            }
+        }
+        // else conflict is not possible
+    }
+    return conflict;            
+}
+
 // This check makes sure that data is not scheduled in control slots (Downlink, Uplink)
 bool ScheduleComputation::checkDataSlot(unsigned offset, unsigned tile_size,
                                         unsigned downlink_size,
@@ -357,14 +369,16 @@ bool ScheduleComputation::slotConflictPossible(const ScheduleElement& newtransm,
 // Extensive check to be used when slotConflictPossible returns true
 bool ScheduleComputation::checkSlotConflict(const ScheduleElement& newtransm,
                                             const ScheduleElement& oldtransm,
-                                            unsigned offset_a, unsigned tile_size,
-                                            unsigned schedule_size) {
+                                            unsigned offset_a, unsigned tile_size) {
     // Calculate slots used by the two transmissions and see if there is any common value
-    unsigned periodslots_a = toInt(newtransm.getPeriod()) * tile_size;
-    unsigned periodslots_b = toInt(oldtransm.getPeriod()) * tile_size;
+    unsigned period_a = toInt(newtransm.getPeriod());
+    unsigned period_b = toInt(oldtransm.getPeriod());
+    unsigned periodslots_a = period_a * tile_size;
+    unsigned periodslots_b = period_b * tile_size;
+    unsigned schedule_slots = lcm(period_a, period_b) * tile_size;
 
-    for(unsigned slot_a=offset_a; slot_a < schedule_size; slot_a += periodslots_a) {
-        for(unsigned slot_b=oldtransm.getOffset(); slot_b < schedule_size; slot_b += periodslots_b) {
+    for(unsigned slot_a=offset_a; slot_a < schedule_slots; slot_a += periodslots_a) {
+        for(unsigned slot_b=oldtransm.getOffset(); slot_b < schedule_slots; slot_b += periodslots_b) {
             if(slot_a == slot_b)
                 return true;
         }
@@ -534,7 +548,7 @@ std::list<unsigned char> Router::breadthFirstSearch(StreamManagementElement stre
     }
     // V = number of nodes in the network
     //TODO: implement topology_ctx.getnodecount()
-    int V = 32;
+    int V = 128;
     // Mark all the vertices as not visited
     //TODO: Can be turned to a bit-vector to save space
     bool visited[V];
@@ -633,7 +647,7 @@ std::list<std::list<unsigned char>> Router::depthFirstSearch(StreamManagementEle
 
     // V = number of nodes in the network
     //TODO: implement topology_ctx.getnodecount()
-    int V = 32;
+    int V = 128;
     // Mark all the vertices as not visited
     bool *visited = new bool[V]; 
     for (int i = 0; i < V; i++) 
@@ -647,12 +661,12 @@ std::list<std::list<unsigned char>> Router::depthFirstSearch(StreamManagementEle
     // Run the recursive function
     // NOTE: we do limit+1 otherwise only solution of size limit-1 are found
     dfsRun(src, dst, limit + 1, visited, path, all_paths);
-
+    delete[] visited;
     return all_paths;
 }
 
 void Router::dfsRun(unsigned char start, unsigned char target, unsigned int limit,
-                    bool visited[], std::list<unsigned char> path,
+                    bool visited[], std::list<unsigned char>& path,
                     std::list<std::list<unsigned char>>& all_paths) {
     // Mark current node in visited, and store it in path
     visited[start] = true;

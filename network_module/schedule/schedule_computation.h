@@ -71,11 +71,13 @@ private:
     
     std::vector<ScheduleElement> scheduleStreams(const std::list<std::list<ScheduleElement>>& routed_streams);
 
+    bool checkAllConflicts(std::vector<ScheduleElement> other_streams, const ScheduleElement& transmission, unsigned offset, unsigned tile_size);
+
     bool checkDataSlot(unsigned offset, unsigned tile_size, unsigned downlink_size, unsigned uplink_size);
 
     bool slotConflictPossible(const ScheduleElement& newtransm, const ScheduleElement& oldtransm, unsigned offset, unsigned tile_size);
 
-    bool checkSlotConflict(const ScheduleElement& newtransm, const ScheduleElement& oldtransm, unsigned offset_a, unsigned tile_size, unsigned schedule_size);
+    bool checkSlotConflict(const ScheduleElement& newtransm, const ScheduleElement& oldtransm, unsigned offset_a, unsigned tile_size);
 
     bool checkUnicityConflict(const ScheduleElement& new_transmission, const ScheduleElement& old_transmission);
 
@@ -171,7 +173,7 @@ private:
     std::list<std::list<unsigned char>> depthFirstSearch(StreamManagementElement stream, unsigned int limit);
     // Recursive function
     void dfsRun(unsigned char start, unsigned char target, unsigned int limit,
-                bool visited[], std::list<unsigned char> path,
+                bool visited[], std::list<unsigned char>& path,
                 std::list<std::list<unsigned char>>& all_paths);
     std::list<unsigned char> findShortestPath(const std::list<std::list<unsigned char>>& path_list);
     std::list<std::list<unsigned char>> findIndependentPaths(const std::list<std::list<unsigned char>>& path_list,
