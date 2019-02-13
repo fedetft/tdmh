@@ -546,21 +546,17 @@ std::list<unsigned char> Router::breadthFirstSearch(StreamManagementElement stre
         printf("Error: destination node is not present in TopologyMap\n");
         return std::list<unsigned char>();
     }
-    // V = number of nodes in the network
+    // V = maximum number of nodes in the network
     unsigned int V = scheduler.netconfig.getMaxNodes();
-    assert(root < V && dest < V);
     // Mark all the vertices as not visited
-    //TODO: Can be turned to a bit-vector to save space
-    bool visited[V];
-    for(unsigned int i = 0; i < V; i++)
-        visited[i] = false;
+    std::vector<bool> visited(V, false);
 
     // Create a queue for BFS
     std::list<unsigned char> open_set;
     // Dictionary to save parent-of relations between vertices
     std::map<const unsigned char, unsigned char> parent_of;
     // Mark the current node as visited and enqueue it
-    visited[root] = true;
+    visited.at(root) = true;
     open_set.push_back(root);
     /* The root node is the only to have itself as predecessor */
     parent_of[root] = root;
@@ -574,7 +570,7 @@ std::list<unsigned char> Router::breadthFirstSearch(StreamManagementElement stre
         std::vector<unsigned char> adjacence = scheduler.topology_map.getEdges(subtree_root);
         for (unsigned char child : adjacence) {
             // If child is already visited, skip.
-            if (visited[child] == true) continue;
+            if (visited.at(child) == true) continue;
             // If child is not already in open_set
             if(!(std::find(open_set.begin(), open_set.end(), child) != open_set.end())) {
                 // Add to parent_of structure
@@ -583,7 +579,7 @@ std::list<unsigned char> Router::breadthFirstSearch(StreamManagementElement stre
                 open_set.push_back(child);
             }
         }
-        visited[subtree_root] = true;
+        visited.at(subtree_root) = true;
     }
     // If the execution ends here, src and dst are not connected in the graph
     printf("Error: source and destination node are not connected in TopologyMap\n");
@@ -647,14 +643,8 @@ std::list<std::list<unsigned char>> Router::depthFirstSearch(StreamManagementEle
 
     // V = maximum number of nodes in the network
     unsigned int V = scheduler.netconfig.getMaxNodes();
-    assert(src < V && dst < V);
     // Mark all the vertices as not visited
-    bool *visited = new bool[V]; 
-    for (unsigned int i = 0; i < V; i++) {
-        assert(i < V);
-        visited[i] = false; 
-    }
-
+    std::vector<bool> visited(V, false);
     // Create a list to store a path
     std::list<unsigned char> path;
     // Create a list to store all paths found
@@ -662,17 +652,15 @@ std::list<std::list<unsigned char>> Router::depthFirstSearch(StreamManagementEle
 
     // Run the recursive function
     // NOTE: we do limit+1 otherwise only solution of size limit-1 are found
-    dfsRun(src, dst, limit + 1, visited, path, all_paths, V);
-    delete[] visited;
+    dfsRun(src, dst, limit + 1, visited, path, all_paths);
     return all_paths;
 }
 
 void Router::dfsRun(unsigned char start, unsigned char target, unsigned int limit,
-                    bool visited[], std::list<unsigned char>& path,
-                    std::list<std::list<unsigned char>>& all_paths, unsigned int V) {
+                    std::vector<bool>& visited, std::list<unsigned char>& path,
+                    std::list<std::list<unsigned char>>& all_paths) {
     // Mark current node in visited, and store it in path
-    assert(start<V);
-    visited[start] = true;
+    visited.at(start) = true;
     path.push_back(start);
 
     // If current node == target -> return path
@@ -689,15 +677,13 @@ void Router::dfsRun(unsigned char start, unsigned char target, unsigned int limi
             if(limit == 0)
                 continue;
             limit--;
-            assert(child<V);
-            if(!visited[child])
-                dfsRun(child, target, limit, visited, path, all_paths, V);
+            if(!visited.at(child))
+                dfsRun(child, target, limit, visited, path, all_paths);
         }
     }
     // Remove current vertex from path[] and mark it as unvisited
     path.pop_back();
-    assert(start<V);
-    visited[start] = false;
+    visited.at(start) = false;
 }
 
 std::list<unsigned char> Router::findShortestPath(const std::list<std::list<unsigned char>>& path_list) {
