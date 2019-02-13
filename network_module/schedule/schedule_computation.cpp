@@ -547,8 +547,8 @@ std::list<unsigned char> Router::breadthFirstSearch(StreamManagementElement stre
         return std::list<unsigned char>();
     }
     // V = number of nodes in the network
-    //TODO: implement topology_ctx.getnodecount()
-    int V = 128;
+    unsigned int V = scheduler.topology_map.getNodeCount();
+    assert(root < V && dest < V);
     // Mark all the vertices as not visited
     //TODO: Can be turned to a bit-vector to save space
     bool visited[V];
@@ -646,8 +646,8 @@ std::list<std::list<unsigned char>> Router::depthFirstSearch(StreamManagementEle
     unsigned char dst = stream.getDst();
 
     // V = number of nodes in the network
-    //TODO: implement topology_ctx.getnodecount()
-    int V = 128;
+    unsigned int V = scheduler.topology_map.getNodeCount();
+    assert(src < V && dst < V);
     // Mark all the vertices as not visited
     bool *visited = new bool[V]; 
     for (int i = 0; i < V; i++) 

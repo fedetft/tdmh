@@ -88,6 +88,13 @@ public:
     bool hasNode(unsigned char a) const;
 
     /**
+     * @return the number of nodes present in the graph
+     */
+    unsigned int getNodeCount() const {
+        return edges.size();
+    };
+
+    /**
      * Returns true if the map doesn't contain any node
      */
     bool isEmpty() const {
