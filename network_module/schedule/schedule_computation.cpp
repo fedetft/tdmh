@@ -547,12 +547,12 @@ std::list<unsigned char> Router::breadthFirstSearch(StreamManagementElement stre
         return std::list<unsigned char>();
     }
     // V = number of nodes in the network
-    unsigned int V = scheduler.topology_map.getNodeCount();
+    unsigned int V = scheduler.netconfig.getMaxNodes();
     assert(root < V && dest < V);
     // Mark all the vertices as not visited
     //TODO: Can be turned to a bit-vector to save space
     bool visited[V];
-    for(int i = 0; i < V; i++)
+    for(unsigned int i = 0; i < V; i++)
         visited[i] = false;
 
     // Create a queue for BFS
@@ -645,13 +645,15 @@ std::list<std::list<unsigned char>> Router::depthFirstSearch(StreamManagementEle
     unsigned char src = stream.getSrc();
     unsigned char dst = stream.getDst();
 
-    // V = number of nodes in the network
-    unsigned int V = scheduler.topology_map.getNodeCount();
+    // V = maximum number of nodes in the network
+    unsigned int V = scheduler.netconfig.getMaxNodes();
     assert(src < V && dst < V);
     // Mark all the vertices as not visited
     bool *visited = new bool[V]; 
-    for (int i = 0; i < V; i++) 
+    for (unsigned int i = 0; i < V; i++) {
+        assert(i < V);
         visited[i] = false; 
+    }
 
     // Create a list to store a path
     std::list<unsigned char> path;
@@ -660,15 +662,16 @@ std::list<std::list<unsigned char>> Router::depthFirstSearch(StreamManagementEle
 
     // Run the recursive function
     // NOTE: we do limit+1 otherwise only solution of size limit-1 are found
-    dfsRun(src, dst, limit + 1, visited, path, all_paths);
+    dfsRun(src, dst, limit + 1, visited, path, all_paths, V);
     delete[] visited;
     return all_paths;
 }
 
 void Router::dfsRun(unsigned char start, unsigned char target, unsigned int limit,
                     bool visited[], std::list<unsigned char>& path,
-                    std::list<std::list<unsigned char>>& all_paths) {
+                    std::list<std::list<unsigned char>>& all_paths, unsigned int V) {
     // Mark current node in visited, and store it in path
+    assert(start<V);
     visited[start] = true;
     path.push_back(start);
 
@@ -686,12 +689,14 @@ void Router::dfsRun(unsigned char start, unsigned char target, unsigned int limi
             if(limit == 0)
                 continue;
             limit--;
+            assert(child<V);
             if(!visited[child])
-                dfsRun(child, target, limit, visited, path, all_paths);
+                dfsRun(child, target, limit, visited, path, all_paths, V);
         }
     }
     // Remove current vertex from path[] and mark it as unvisited
     path.pop_back();
+    assert(start<V);
     visited[start] = false;
 }
 

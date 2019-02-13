@@ -174,7 +174,7 @@ private:
     // Recursive function
     void dfsRun(unsigned char start, unsigned char target, unsigned int limit,
                 bool visited[], std::list<unsigned char>& path,
-                std::list<std::list<unsigned char>>& all_paths);
+                std::list<std::list<unsigned char>>& all_paths, unsigned int V);
     std::list<unsigned char> findShortestPath(const std::list<std::list<unsigned char>>& path_list);
     std::list<std::list<unsigned char>> findIndependentPaths(const std::list<std::list<unsigned char>>& path_list,
                                                              const std::list<unsigned char> primary);
