@@ -28,6 +28,7 @@
 #pragma once
 
 
+#include "../stream_manager.h"
 #include "../uplink/stream_management/stream_management_context.h"
 #include "../uplink/topology/mesh_topology_context.h"
 #include "../network_configuration.h"
@@ -115,7 +116,7 @@ private:
         return temp ? (a / temp * b) : 0;
     };
 
-    // Class containing the current Stream Requests (SME)
+    // Class containing information about Streams
     MasterStreamManagementContext stream_mgmt;
     MasterStreamManagementContext stream_snapshot;
     // Final stream list after scheduling

@@ -33,6 +33,7 @@
 #include "stream_management/stream_management_context.h"
 #include "../mac_context.h"
 #include "../timesync/networktime.h"
+#include "../stream_manager.h"
 #include <cstdio>
 
 namespace mxnet {
@@ -69,10 +70,13 @@ public:
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
     static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
 protected:
-    UplinkPhase(MACContext& ctx, TopologyContext* const topology, StreamManagementContext* const streamManagement) :
+    UplinkPhase(MACContext& ctx, TopologyContext* const topology,
+                StreamManagementContext* const streamManagement,
+                StreamManager* const streamMgr) :
             MACPhase(ctx),
             topology(topology),
             streamManagement(streamManagement),
+            streamMgr(streamMgr),
             nodesCount(ctx.getNetworkConfig().getMaxNodes()),
             nextNode(nodesCount - 1) {};
     
@@ -88,6 +92,7 @@ protected:
 
     TopologyContext* const topology;
     StreamManagementContext* const streamManagement;
+    StreamManager* const streamMgr;
 
     unsigned short nodesCount;
     unsigned char nextNode;

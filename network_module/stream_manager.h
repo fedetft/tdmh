@@ -53,7 +53,7 @@ public:
     ~StreamManager() {};
 
     // Used by the Stream class to register itself in the Stream Map
-    void registerStream(StreamManagementElement sme, Stream* stream);
+    void registerStream(StreamInfo info, Stream* stream);
     // Used by the DataPhase to put/get data to/from buffers
     void putBuffer(unsigned int DstPort, Packet& pkt) {
         //recvbuffer[DstPort] = new Packet(pkt);
@@ -64,15 +64,86 @@ public:
         //stream[SrcPort].clearBuffer();
         return buffer;
     }
+    /**
+     * @return the number of Streams saved
+     */
+    unsigned char getStreamNumber() { return streamList.size(); }
+    /**
+     * @return the number of available SME to send
+     * = number of StreamInfo with status LISTEN_REQ or CONNECT_REQ
+     */
+    unsigned char getNumSME();
+    /**
+     * @return the list of SME to send on the network,
+     * used by UplinkPhase
+     */
+    std::vector<StreamManagementElement> getSMEs(unsigned char count);
+    /**
+     * @return true if there are streams not yet scheduled
+     */
+    bool hasNewStreams();
+    /**
+     * change the state of the saved Stream
+     */
+    //TODO: implement
+    void setStreamStatus(unsigned int, StreamStatus) const {};
+    /**
+     * Return vector containing all the streams
+     */
+    //TODO: implement
+    std::vector<StreamManagementElement> getStreams() { return std::vector<StreamManagementElement>(); };
+    /**
+     * Return vector of stream elements marked as new
+     */
+    //TODO: implement
+    std::vector<StreamManagementElement> getNewStreams() { return std::vector<StreamManagementElement>(); };
+    /**
+     * Return vector of stream elements marked as established
+     */
+    //TODO: implement
+    std::vector<StreamManagementElement> getEstablishedStreams() { return std::vector<StreamManagementElement>(); };
+
+    /**
+     * Return true if the stream list was modified since last time the flag was cleared 
+     */
+    bool wasModified() const {
+        return modified_flag;
+    };
+
+    /**
+     * Return true if any stream was removed since last time the flag was cleared 
+     */
+    bool wasRemoved() const {
+        return removed_flag;
+    };
+
+    /**
+     * Return true if any stream was added since last time the flag was cleared 
+     */
+    bool wasAdded() const {
+        return added_flag;
+    };
+    /**
+     * Set all flags to false
+     */
+    void clearFlags() {
+        modified_flag = false;
+        removed_flag = false;
+        added_flag = false;
+    };
 
 private:
-    /* Map containing all opened streams, associating StreamId to the corresponding
-     * stream class pointer */
+    /* Map containing pointers to Stream classes in this node */
     std::map<StreamId, Stream*> serverMap;
-    /* Map containing pointers to all StreamServers */
+    /* Map containing pointers to StreamServer classes in this node */
     std::map<StreamId, Stream*> streamMap;
-    /* List containing pending SME awaiting to be sent */
-    std::list<StreamManagementElement> requestList;
+    /* List containing information about Streams related to this node */
+    std::list<StreamInfo> streamList;
+    /* Flags used by the master node to get whether the streams were changed
+       IMPORTANT: this bit must be set to true whenever the data structure is modified */
+    bool modified_flag = false;
+    bool removed_flag = false;
+    bool added_flag = false;
 
     /* Thread synchronization */
 #ifdef _MIOSIX

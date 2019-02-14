@@ -31,7 +31,6 @@
 #include <stdio.h>
 #include "../debug_settings.h"
 #include "schedule_computation.h"
-#include "../uplink/stream_management/stream_management_context.h"
 #include "../uplink/stream_management/stream_management_element.h"
 #include "../uplink/topology/topology_context.h"
 #include "../mac_context.h"
@@ -427,17 +426,23 @@ void ScheduleComputation::printStreams(const std::vector<StreamManagementElement
         printf("%d  %d-->%d   %d  ", stream.getKey(), stream.getSrc(),
                stream.getDst(), toInt(stream.getPeriod()));
         switch(stream.getStatus()){
-        case StreamStatus::NEW:
-            printf("NEW");
+        case StreamStatus::CLOSED:
+            printf("CLD");
+            break;
+        case StreamStatus::LISTEN:
+            printf("LIS");
+            break;
+        case StreamStatus::CONNECT:
+            printf("CON");
+            break;
+       case StreamStatus::ACCEPTED:
+            printf("ACC");
             break;
         case StreamStatus::ESTABLISHED:
             printf("EST");
             break;
         case StreamStatus::REJECTED:
             printf("REJ");
-            break;
-        case StreamStatus::CLOSED:
-            printf("CLO");
             break;
         }
         printf("\n");

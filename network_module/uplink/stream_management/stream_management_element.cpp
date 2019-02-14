@@ -31,7 +31,9 @@
 namespace mxnet {
 
 void StreamManagementElement::serialize(Packet& pkt) const {
-    pkt.put(&content, size());
+    pkt.put(&id, sizeof(StreamId));
+    pkt.put(&parameters, sizeof(StreamParameters));
+    pkt.put(&type, sizeof(SMEType));
 }
 
 std::vector<StreamManagementElement> StreamManagementElement::deserialize(Packet& pkt, std::size_t size) {
@@ -40,7 +42,9 @@ std::vector<StreamManagementElement> StreamManagementElement::deserialize(Packet
     result.reserve(count);
     for (unsigned i = 0; i < count; i++) {
         StreamManagementElement val;
-        pkt.get(&val.content, maxSize());
+        pkt.get(&val.id, sizeof(StreamId));
+        pkt.get(&val.parameters, sizeof(StreamParameters));
+        pkt.get(&val.type, sizeof(SMEType));
         result.push_back(val);
     }
     return result;

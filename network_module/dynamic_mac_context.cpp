@@ -41,8 +41,8 @@ DynamicMACContext::DynamicMACContext(const MediumAccessController& mac, miosix::
     else
         topology = new DynamicTreeTopologyContext(*this);
     topologyContext = topology;
-    uplink = new DynamicUplinkPhase(*this, topology);
     streamMgr = new StreamManager();
+    uplink = new DynamicUplinkPhase(*this, topology, streamMgr);
     data = new DataPhase(*this, *streamMgr);
 };
 

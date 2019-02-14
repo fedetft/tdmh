@@ -26,22 +26,78 @@
  ***************************************************************************/
 
 #include "stream_manager.h"
+#include <algorithm>
 
 namespace mxnet {
 
-void StreamManager::registerStream(StreamManagementElement sme, Stream* stream) {
+void StreamManager::registerStream(StreamInfo info, Stream* stream) {
     // Mutex lock to access the Stream map from the application thread.
-    {
 #ifdef _MIOSIX
-        miosix::Lock<miosix::Mutex> lck(stream_mutex);
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
 #else
-        std::unique_lock<std::mutex> lck(stream_mutex);
+    std::unique_lock<std::mutex> lck(stream_mutex);
 #endif
-        // Register stream in stream map
-        streamMap[sme.getStreamId()] = stream;
-        // register SME in request list
-        requestList.push_back(sme);
+    // Register stream in stream map
+    streamMap[info.getStreamId()] = stream;
+    // register SME in request list
+    streamList.push_back(info);
+}
+
+bool isRequest(StreamInfo stream) {
+    StreamStatus status = stream.getStatus();
+    return (status == StreamStatus::LISTEN_REQ) ||
+           (status == StreamStatus::CONNECT_REQ);
+}
+
+bool isSchedulable(StreamInfo stream) {
+    StreamStatus status = stream.getStatus();
+    return (status == StreamStatus::ACCEPTED);
+}
+
+
+unsigned char StreamManager::getNumSME() {
+    // Mutex lock to access the shared container StreamList
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    return std::count_if(streamList.begin(), streamList.end(), isRequest);
+}
+
+bool StreamManager::hasNewStreams() {
+    // Mutex lock to access the shared container StreamList
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    return std::count_if(streamList.begin(), streamList.end(), isSchedulable);
+}
+
+std::vector<StreamManagementElement> StreamManager::getSMEs(unsigned char count) {
+    // Mutex lock to access the shared container StreamList
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    count = std::min(count, getNumSME());
+    std::vector<StreamManagementElement> result;
+    result.reserve(count);
+    // Generate SME for every StreamInfo that needs it
+    for (auto& stream: streamList) {
+        StreamStatus status = stream.getStatus();
+        if(stream.getStatus() == StreamStatus::LISTEN_REQ) {
+            StreamManagementElement sme(stream, StreamStatus::LISTEN);
+            result.push_back(sme);
+        }
+        else if(stream.getStatus() == StreamStatus::CONNECT_REQ) {
+            StreamManagementElement sme(stream, StreamStatus::CONNECT);
+            result.push_back(sme);
+        }
     }
+    return result;
 }
 
 }

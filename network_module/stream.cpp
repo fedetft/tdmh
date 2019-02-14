@@ -32,16 +32,17 @@ namespace mxnet {
 
 Stream::Stream(MediumAccessController& tdmh, unsigned char dst,
                unsigned char dstPort, Period period, unsigned char payloadSize,
-               Redundancy redundancy=Redundancy::NONE) : tdmh(tdmh) {
-    // Save Stream parameters in SME
+               Direction direction, Redundancy redundancy=Redundancy::NONE) : tdmh(tdmh) {
+    // Save Stream parameters in StreamInfo
     MACContext* ctx = tdmh.getMACContext();
     streamMgr = ctx->getStreamManager();
     unsigned char src = ctx->getNetworkId();
     /* TODO: Implement srcPort, for the moment it is hardcoded to 0 */
     unsigned char srcPort = 0;
-    sme = StreamManagementElement(src, dst, srcPort, dstPort, period, payloadSize, redundancy);
+    info = StreamInfo(src, dst, srcPort, dstPort, period, payloadSize,
+                      direction, redundancy);
     // Register Stream to StreamManager (with thread synchronization)
-    streamMgr->registerStream(sme, this);
+    streamMgr->registerStream(info, this);
 }
 
 }

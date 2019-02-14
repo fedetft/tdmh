@@ -33,19 +33,19 @@ namespace mxnet {
 MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
     MACContext(mac, transceiver, config) {
     timesync = new MasterTimesyncDownlink(*this);
+    streamMgr = new StreamManager();
     if (config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION) {
         auto* topology_ctx = new MasterMeshTopologyContext(*this);
         scheduleComputation = new ScheduleComputation(*this, *topology_ctx);
         topologyContext = topology_ctx;
-        uplink = new MasterUplinkPhase(*this, topology_ctx, *scheduleComputation);
+        uplink = new MasterUplinkPhase(*this, topology_ctx, *scheduleComputation, streamMgr);
     } else {
         auto* topology_ctx = new MasterTreeTopologyContext(*this);
         // A scheduler for Tree topology is not yet implemented
         topologyContext = topology_ctx;
-        uplink = new MasterUplinkPhase(*this, topology_ctx, *scheduleComputation);
+        uplink = new MasterUplinkPhase(*this, topology_ctx, *scheduleComputation, streamMgr);
     }
     scheduleDistribution = new MasterScheduleDownlinkPhase(*this, *scheduleComputation);
-    streamMgr = new StreamManager();
     data = new DataPhase(*this, *streamMgr);
     /* Stream list hardcoding */
     /* parameters:
@@ -57,9 +57,18 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
     scheduleComputation->open(StreamManagementElement(3, 2, 0, 0, Period::P5, 0));
     scheduleComputation->open(StreamManagementElement(0, 2, 0, 0, Period::P1, 0));*/
     // Streams to replicate RTSS experiment
-    scheduleComputation->open(StreamManagementElement(3, 0, 0, 0, Period::P1, 0, Redundancy::NONE));
-    scheduleComputation->open(StreamManagementElement(4, 0, 0, 0, Period::P2, 0, Redundancy::DOUBLE_SPATIAL));
-    scheduleComputation->open(StreamManagementElement(6, 0, 0, 0, Period::P2, 0, Redundancy::NONE));
+    scheduleComputation->open(StreamManagementElement(3, 0, 0, 0, Period::P1, 0,
+                                                      Direction::TX,
+                                                      Redundancy::NONE,
+                                                      StreamStatus::ACCEPTED));
+    scheduleComputation->open(StreamManagementElement(4, 0, 0, 0, Period::P2, 0,
+                                                      Direction::TX,
+                                                      Redundancy::DOUBLE_SPATIAL,
+                                                      StreamStatus::ACCEPTED));
+    scheduleComputation->open(StreamManagementElement(6, 0, 0, 0, Period::P2, 0,
+                                                      Direction::TX,
+                                                      Redundancy::NONE,
+                                                      StreamStatus::ACCEPTED));
 };
 
 } /* namespace mxnet */

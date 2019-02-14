@@ -40,8 +40,9 @@ namespace mxnet {
 class MasterUplinkPhase : public UplinkPhase {
 public:
     MasterUplinkPhase(MACContext& ctx, MasterTopologyContext* const topology, 
-                      ScheduleComputation& scheduleComputation) :
-        UplinkPhase(ctx, topology, new MasterStreamManagementContext()),
+                      ScheduleComputation& scheduleComputation,
+                      StreamManager* const streamMgr) :
+        UplinkPhase(ctx, topology, new MasterStreamManagementContext(), streamMgr),
         scheduleComputation(scheduleComputation) {}
         
     virtual ~MasterUplinkPhase() {};

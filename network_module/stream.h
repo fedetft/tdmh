@@ -44,9 +44,9 @@ class StreamManager;
 
 class Stream {
 public:
-    Stream(MediumAccessController& tdmh, unsigned char dst, unsigned char dstPort,
-           Period period, unsigned char payloadSize,
-           Redundancy redundancy);
+    Stream(MediumAccessController& tdmh, unsigned char dst,
+           unsigned char dstPort, Period period, unsigned char payloadSize,
+           Direction direction, Redundancy redundancy);
     ~Stream() {};
 
     /* Put data to send through this stream */
@@ -73,7 +73,7 @@ private:
     /* Packet buffer for receiving data */
     Packet recvBuffer;
     /* Information about this Stream */
-    StreamManagementElement sme;
+    StreamInfo info;
 };
 
 } /* namespace mxnet */
