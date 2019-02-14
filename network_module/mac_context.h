@@ -187,6 +187,11 @@ public:
     DataPhase* const getDataPhase() const { return data; }
 
     /**
+     * @return the StreamManager
+     */
+    StreamManager* const getStreamManager() const { return streamMgr; }
+
+    /**
      * @return the number of slots (of data slot size) in a generic tile
      */
     unsigned getSlotsInTileCount() const { return numSlotInTile; }
@@ -244,7 +249,7 @@ protected:
 
     TopologyContext* topologyContext = nullptr;
     StreamManagementContext* streamManagement = nullptr;
-    StreamManager* stream = nullptr;
+    StreamManager* streamMgr = nullptr;
 
     unsigned long long dataSlotDuration;
     unsigned long long downlinkSlotDuration;

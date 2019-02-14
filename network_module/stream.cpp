@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2019 by Federico Amedeo Izzo                           *
+ *   Copyright (C)  2018 by Federico Amedeo Izzo                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,46 +25,23 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#pragma once
-
-// For StreamId
-#include "uplink/stream_management/stream_management_element.h"
 #include "stream.h"
-#include <map>
+#include "mac_context.h"
 
 namespace mxnet {
 
-/**
- * The class StreamManager contains pointers to all the Stream classes
- * and it is used by classes UplinkPhase, StreamManagementContext and ScheduleComputation
- * to get information about opened streams.
- */
+Stream::Stream(MediumAccessController& tdmh, unsigned char dst,
+               unsigned char dstPort, Period period, unsigned char payloadSize,
+               Redundancy redundancy=Redundancy::NONE) : tdmh(tdmh) {
+    // Save Stream parameters in SME
+    MACContext* ctx = tdmh.getMACContext();
+    streamMgr = ctx->getStreamManager();
+    unsigned char src = ctx->getNetworkId();
+    /* TODO: Implement srcPort, for the moment it is hardcoded to 0 */
+    unsigned char srcPort = 0;
+    sme = StreamManagementElement(src, dst, srcPort, dstPort, period, payloadSize, redundancy);
+    // Register Stream to StreamManager (with thread synchronization)
+    streamMgr->registerStream(sme, this);
+}
 
-class StreamManager {
-public:
-    StreamManager() {};
-    ~StreamManager() {};
-
-    void registerStream(StreamManagementElement sme, Stream* stream);
-    // Used by the DataPhase to put/get data to/from buffers
-    void putBuffer(unsigned int DstPort, Packet& pkt) {
-        //recvbuffer[DstPort] = new Packet(pkt);
-    }
-    Packet getBuffer(unsigned int SrcPort) {
-        Packet buffer;// = stream[SrcPort].getBuffer();
-        //Packet buffer = stream[SrcPort].getBuffer();
-        //stream[SrcPort].clearBuffer();
-        return buffer;
-    }
-
-private:
-    /* Map containing all opened streams, associating StreamId to the corresponding
-     * stream class pointer */
-    std::map<StreamId, Stream*> serverMap;
-    /* Map containing pointers to all StreamServers */
-    std::map<StreamId, Stream*> streamMap;
-    /* List containing pending SME awaiting to be sent */
-    std::list<StreamManagementElement> requestList;
-};
-
-} /* namespace mxnet */
+}

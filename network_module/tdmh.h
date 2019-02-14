@@ -60,6 +60,9 @@ public:
     static const unsigned int sendingNodeWakeupAdvance = 500000; //500 us TODO fine tune, it was guessed, used to be 750
     static const unsigned char maxPktSize = 125;
     static const unsigned char maxPktSizeNoCRC = 127;
+
+    MACContext* const getMACContext() const { return ctx; }
+
 protected:
     MediumAccessController(MACContext* const ctx) : ctx(ctx), async(false) {};
     MACContext* const ctx;

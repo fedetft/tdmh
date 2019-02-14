@@ -29,7 +29,11 @@
 
 namespace mxnet {
 
-void StreamManager::listen(unsigned int port) {
+void StreamManager::registerStream(StreamManagementElement sme, Stream* stream) {
+    // Register stream in stream map
+    streamMap[sme.getStreamId()] = stream;
+    // register SME in request list
+    requestList.push_back(sme);
 }
 
 }

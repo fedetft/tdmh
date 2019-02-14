@@ -75,15 +75,29 @@ enum class StreamStatus
     CLOSED
 };
 
-struct StreamManagementElementPkt {
+class StreamId {
+public:
+    StreamId() {};
+    StreamId(unsigned char src, unsigned char dst, unsigned char srcPort,
+             unsigned char dstPort) : src(src), dst(dst), srcPort(srcPort),
+                                      dstPort(dstPort) {}
+    bool operator <(const StreamId& other) const {
+        unsigned int id_a = src | dst<<8 | srcPort<<16 | dstPort<<20;
+        unsigned int id_b = other.src | other.dst<<8 | other.srcPort<<16 | other.dstPort<<20;
+        return id_a < id_b;
+    }
+
     unsigned int src:8;
     unsigned int dst:8;
     unsigned int srcPort:4;
     unsigned int dstPort:4;
+} __attribute__((packed));
+
+struct StreamManagementElementPkt {
     unsigned int redundancy:3;
     unsigned int period:4;
     unsigned int payloadSize:9;
-};
+} __attribute__((packed));
 
 class StreamManagementElement : public SerializableMessage {
 public:
@@ -93,10 +107,10 @@ public:
                             unsigned char dstPort, Period period, unsigned char payloadSize,
                             Redundancy redundancy=Redundancy::NONE, StreamStatus st=StreamStatus::NEW)
     {
-        content.src=src;
-        content.dst=dst;
-        content.srcPort=srcPort;
-        content.dstPort=dstPort;
+        id.src=src;
+        id.dst=dst;
+        id.srcPort=srcPort;
+        id.dstPort=dstPort;
         content.period=static_cast<unsigned int>(period);
         content.payloadSize=payloadSize;
         content.redundancy=static_cast<unsigned int>(redundancy);
@@ -107,10 +121,11 @@ public:
 
     void serialize(Packet& pkt) const override;
     static std::vector<StreamManagementElement> deserialize(Packet& pkt, std::size_t size);
-    unsigned char getSrc() const { return content.src; }
-    unsigned char getSrcPort() const { return content.srcPort; }
-    unsigned char getDst() const { return content.dst; }
-    unsigned char getDstPort() const { return content.dstPort; }
+    StreamId getStreamId() const { return id; }
+    unsigned char getSrc() const { return id.src; }
+    unsigned char getSrcPort() const { return id.srcPort; }
+    unsigned char getDst() const { return id.dst; }
+    unsigned char getDstPort() const { return id.dstPort; }
     Redundancy getRedundancy() const { return static_cast<Redundancy>(content.redundancy); }
     Period getPeriod() const { return static_cast<Period>(content.period); }
     unsigned short getPayloadSize() const { return content.payloadSize; }
@@ -124,20 +139,20 @@ public:
     bool operator !=(const StreamManagementElement& other) const {
         return !(*this == other);
     }
-
-    static unsigned short maxSize() { return sizeof(StreamManagementElementPkt); }
-    
-    std::size_t size() const override { return maxSize(); }
-    
     /**
-     * \return an unique key for each stream
+     * @return an unique key for each stream
      */
     unsigned int getKey() const
     {
-        return content.src | content.dst<<8 | content.srcPort<<16 | content.dstPort<<20;
+        return id.src | id.dst<<8 | id.srcPort<<16 | id.dstPort<<20;
     }
 
+    static unsigned short maxSize() { return sizeof(StreamId) + sizeof(StreamManagementElementPkt); }
+    
+    std::size_t size() const override { return maxSize(); }
+
 protected:
+    StreamId id;
     StreamManagementElementPkt content;
     unsigned int status;
 };

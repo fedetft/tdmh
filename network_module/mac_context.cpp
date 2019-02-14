@@ -46,7 +46,7 @@ MACContext::~MACContext() {
     delete streamManagement;
     delete scheduleDistribution;
     delete data;
-    delete stream;
+    delete streamMgr;
 }
     
 MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiver, const NetworkConfiguration& config) :

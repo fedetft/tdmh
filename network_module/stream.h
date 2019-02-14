@@ -27,44 +27,53 @@
 
 #pragma once
 
-// For StreamId
+#include "tdmh.h"
+#include "packet.h"
 #include "uplink/stream_management/stream_management_element.h"
-#include "stream.h"
-#include <map>
 
 namespace mxnet {
 
+class StreamManager;
+
 /**
- * The class StreamManager contains pointers to all the Stream classes
- * and it is used by classes UplinkPhase, StreamManagementContext and ScheduleComputation
- * to get information about opened streams.
+ * The class Stream represents a single opened stream.
+ * It acts as a high-level API for that stream.
+ * The stream is opened when the constructor is called, and closed when
+ * the destructor is called.
  */
 
-class StreamManager {
+class Stream {
 public:
-    StreamManager() {};
-    ~StreamManager() {};
+    Stream(MediumAccessController& tdmh, unsigned char dst, unsigned char dstPort,
+           Period period, unsigned char payloadSize,
+           Redundancy redundancy);
+    ~Stream() {};
 
-    void registerStream(StreamManagementElement sme, Stream* stream);
-    // Used by the DataPhase to put/get data to/from buffers
-    void putBuffer(unsigned int DstPort, Packet& pkt) {
-        //recvbuffer[DstPort] = new Packet(pkt);
+    /* Put data to send through this stream */
+    void send(const void* data, int size);
+    /* Get data received from this stream */
+    void recv(void* data, int size);
+
+    /* ### Not to be called by the end user ### */
+    // Used by the StreamManager class to put/get data to/from buffers 
+    Packet getSendBuffer() {
+        return sendBuffer;
     }
-    Packet getBuffer(unsigned int SrcPort) {
-        Packet buffer;// = stream[SrcPort].getBuffer();
-        //Packet buffer = stream[SrcPort].getBuffer();
-        //stream[SrcPort].clearBuffer();
-        return buffer;
+    void putRecvBuffer(Packet& pkt) {
+        recvBuffer = pkt;
     }
 
 private:
-    /* Map containing all opened streams, associating StreamId to the corresponding
-     * stream class pointer */
-    std::map<StreamId, Stream*> serverMap;
-    /* Map containing pointers to all StreamServers */
-    std::map<StreamId, Stream*> streamMap;
-    /* List containing pending SME awaiting to be sent */
-    std::list<StreamManagementElement> requestList;
+    /* Reference to MediumAccessController */
+    MediumAccessController& tdmh;
+    /* Reference to StreamManager */
+    StreamManager* streamMgr;
+    /* Packet buffer for transmitting data */
+    Packet sendBuffer;
+    /* Packet buffer for receiving data */
+    Packet recvBuffer;
+    /* Information about this Stream */
+    StreamManagementElement sme;
 };
 
 } /* namespace mxnet */
