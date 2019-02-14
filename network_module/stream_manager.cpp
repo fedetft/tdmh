@@ -30,10 +30,18 @@
 namespace mxnet {
 
 void StreamManager::registerStream(StreamManagementElement sme, Stream* stream) {
-    // Register stream in stream map
-    streamMap[sme.getStreamId()] = stream;
-    // register SME in request list
-    requestList.push_back(sme);
+    // Mutex lock to access the Stream map from the application thread.
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+        std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+        // Register stream in stream map
+        streamMap[sme.getStreamId()] = stream;
+        // register SME in request list
+        requestList.push_back(sme);
+    }
 }
 
 }

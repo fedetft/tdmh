@@ -30,6 +30,13 @@
 // For StreamId
 #include "uplink/stream_management/stream_management_element.h"
 #include "stream.h"
+// For thread synchronization
+#ifdef _MIOSIX
+#include <miosix.h>
+#else
+#include <mutex>
+#endif
+
 #include <map>
 
 namespace mxnet {
@@ -45,6 +52,7 @@ public:
     StreamManager() {};
     ~StreamManager() {};
 
+    // Used by the Stream class to register itself in the Stream Map
     void registerStream(StreamManagementElement sme, Stream* stream);
     // Used by the DataPhase to put/get data to/from buffers
     void putBuffer(unsigned int DstPort, Packet& pkt) {
@@ -65,6 +73,13 @@ private:
     std::map<StreamId, Stream*> streamMap;
     /* List containing pending SME awaiting to be sent */
     std::list<StreamManagementElement> requestList;
+
+    /* Thread synchronization */
+#ifdef _MIOSIX
+    miosix::Mutex stream_mutex;
+#else
+    std::mutex stream_mutex;
+#endif
 };
 
 } /* namespace mxnet */
