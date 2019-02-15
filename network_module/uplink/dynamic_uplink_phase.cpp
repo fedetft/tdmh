@@ -62,8 +62,6 @@ void DynamicUplinkPhase::receiveByNode(long long slotStart, unsigned char curren
 
 void DynamicUplinkPhase::sendMyUplink(long long slotStart) {
     auto* dTopology = static_cast<DynamicTopologyContext*>(topology);
-    // TODO: remove DynamicStreamManagementContext as SME are now stored in StreamManaeger
-    //auto* dSMContext = static_cast<DynamicStreamManagementContext*>(streamManagement);
     auto& config = ctx.getNetworkConfig();
     // Calculate max number of SME that leaves spaces for the guaranteed topologies
     unsigned char SMEPart = MediumAccessController::maxPktSize -

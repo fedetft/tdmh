@@ -49,10 +49,6 @@ bool isRequest(StreamInfo stream) {
            (status == StreamStatus::CONNECT_REQ);
 }
 
-bool isSchedulable(StreamInfo stream) {
-    StreamStatus status = stream.getStatus();
-    return (status == StreamStatus::ACCEPTED);
-}
 
 
 unsigned char StreamManager::getNumSME() {
@@ -65,15 +61,6 @@ unsigned char StreamManager::getNumSME() {
     return std::count_if(streamList.begin(), streamList.end(), isRequest);
 }
 
-bool StreamManager::hasNewStreams() {
-    // Mutex lock to access the shared container StreamList
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
-#else
-    std::unique_lock<std::mutex> lck(stream_mutex);
-#endif
-    return std::count_if(streamList.begin(), streamList.end(), isSchedulable);
-}
 
 std::vector<StreamManagementElement> StreamManager::getSMEs(unsigned char count) {
     // Mutex lock to access the shared container StreamList
@@ -82,9 +69,10 @@ std::vector<StreamManagementElement> StreamManager::getSMEs(unsigned char count)
 #else
     std::unique_lock<std::mutex> lck(stream_mutex);
 #endif
-    count = std::min(count, getNumSME());
+    unsigned char available = std::count_if(streamList.begin(), streamList.end(), isRequest);
+    unsigned char num = std::min(count, available);
     std::vector<StreamManagementElement> result;
-    result.reserve(count);
+    result.reserve(num);
     // Generate SME for every StreamInfo that needs it
     for (auto& stream: streamList) {
         StreamStatus status = stream.getStatus();
@@ -98,6 +86,21 @@ std::vector<StreamManagementElement> StreamManager::getSMEs(unsigned char count)
         }
     }
     return result;
+}
+
+bool isSchedulable(StreamInfo stream) {
+    StreamStatus status = stream.getStatus();
+    return (status == StreamStatus::ACCEPTED);
+}
+
+bool MasterStreamManager::hasNewStreams() {
+    // Mutex lock to access the shared container StreamList
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    return std::count_if(streamList.begin(), streamList.end(), isSchedulable);
 }
 
 }

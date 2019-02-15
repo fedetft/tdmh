@@ -43,8 +43,8 @@ namespace mxnet {
 
 /**
  * The class StreamManager contains pointers to all the Stream classes
- * and it is used by classes UplinkPhase, StreamManagementContext and ScheduleComputation
- * to get information about opened streams.
+ * created in the current node.
+ * It is used by classes DynamicUplinkPhase, DataPhase
  */
 
 class StreamManager {
@@ -65,10 +65,6 @@ public:
         return buffer;
     }
     /**
-     * @return the number of Streams saved
-     */
-    unsigned char getStreamNumber() { return streamList.size(); }
-    /**
      * @return the number of available SME to send
      * = number of StreamInfo with status LISTEN_REQ or CONNECT_REQ
      */
@@ -78,10 +74,37 @@ public:
      * used by UplinkPhase
      */
     std::vector<StreamManagementElement> getSMEs(unsigned char count);
+
+protected:
+    /* Map containing pointers to Stream classes in this node */
+    std::map<StreamId, Stream*> serverMap;
+    /* Map containing pointers to StreamServer classes in this node */
+    std::map<StreamId, Stream*> streamMap;
+    /* List containing information about Streams related to this node */
+    std::list<StreamInfo> streamList;
+
+    /* Thread synchronization */
+#ifdef _MIOSIX
+    miosix::Mutex stream_mutex;
+#else
+    std::mutex stream_mutex;
+#endif
+};
+
+/**
+ * The class MasterStreamManager is a variant of StreamManager used by the master
+ * node to collect and update information about the streams in the network.
+ * It is used by classes MasterUplinkPhase, ScheduleComputation
+ */
+class MasterStreamManager : StreamManager {
+public:
+    MasterStreamManager() {};
+    virtual ~MasterStreamManager() {};
+
     /**
-     * @return true if there are streams not yet scheduled
+     * @return the number of Streams saved
      */
-    bool hasNewStreams();
+    unsigned char getStreamNumber() { return streamList.size(); }
     /**
      * change the state of the saved Stream
      */
@@ -104,19 +127,21 @@ public:
     std::vector<StreamManagementElement> getEstablishedStreams() { return std::vector<StreamManagementElement>(); };
 
     /**
+     * @return true if there are streams not yet scheduled
+     */
+    bool hasNewStreams();
+    /**
      * Return true if the stream list was modified since last time the flag was cleared 
      */
     bool wasModified() const {
         return modified_flag;
     };
-
     /**
      * Return true if any stream was removed since last time the flag was cleared 
      */
     bool wasRemoved() const {
         return removed_flag;
     };
-
     /**
      * Return true if any stream was added since last time the flag was cleared 
      */
@@ -133,24 +158,12 @@ public:
     };
 
 private:
-    /* Map containing pointers to Stream classes in this node */
-    std::map<StreamId, Stream*> serverMap;
-    /* Map containing pointers to StreamServer classes in this node */
-    std::map<StreamId, Stream*> streamMap;
-    /* List containing information about Streams related to this node */
-    std::list<StreamInfo> streamList;
     /* Flags used by the master node to get whether the streams were changed
        IMPORTANT: this bit must be set to true whenever the data structure is modified */
     bool modified_flag = false;
     bool removed_flag = false;
     bool added_flag = false;
-
-    /* Thread synchronization */
-#ifdef _MIOSIX
-    miosix::Mutex stream_mutex;
-#else
-    std::mutex stream_mutex;
-#endif
 };
+
 
 } /* namespace mxnet */
