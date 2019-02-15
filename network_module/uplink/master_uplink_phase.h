@@ -42,7 +42,7 @@ public:
     MasterUplinkPhase(MACContext& ctx, MasterTopologyContext* const topology, 
                       ScheduleComputation& scheduleComputation,
                       StreamManager* const streamMgr) :
-        UplinkPhase(ctx, topology, new MasterStreamManagementContext(), streamMgr),
+        UplinkPhase(ctx, topology, streamMgr),
         scheduleComputation(scheduleComputation) {}
         
     virtual ~MasterUplinkPhase() {};

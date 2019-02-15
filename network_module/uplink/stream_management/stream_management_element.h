@@ -71,7 +71,6 @@ enum class Redundancy
 
 enum class StreamStatus
 {
-    NEW,             // TODO: remove after StreamManagementContext refactoring
     CLOSED,          // No stream opened, or stream closed
     LISTEN_REQ,      // Listen request sent by server
     LISTEN,          // Listen acknowledged by the master

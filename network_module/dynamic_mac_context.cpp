@@ -34,7 +34,6 @@ DynamicMACContext::DynamicMACContext(const MediumAccessController& mac, miosix::
     MACContext(mac, transceiver, config) {
     timesync = new DynamicTimesyncDownlink(*this);
     scheduleDistribution = new DynamicScheduleDownlinkPhase(*this);
-    streamManagement = new DynamicStreamManagementContext();
     DynamicTopologyContext* topology;
     if (config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION)
         topology = new DynamicMeshTopologyContext(*this);

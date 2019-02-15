@@ -43,7 +43,6 @@ MACContext::~MACContext() {
     delete timesync;
     delete uplink;
     delete topologyContext;
-    delete streamManagement;
     delete scheduleDistribution;
     delete data;
     delete streamMgr;
@@ -60,7 +59,6 @@ MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiv
 }
 
 TopologyContext* MACContext::getTopologyContext() const { return uplink->getTopologyContext(); }
-StreamManagementContext* MACContext::getStreamManagementContext() const { return uplink->getStreamManagementContext(); }
 
 void MACContext::calculateDurations() {
     dataSlotDuration = DataPhase::getDuration();

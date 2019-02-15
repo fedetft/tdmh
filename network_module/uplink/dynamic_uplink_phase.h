@@ -36,7 +36,7 @@ class DynamicUplinkPhase : public UplinkPhase {
 public:
     DynamicUplinkPhase(MACContext& ctx, DynamicTopologyContext* const topology,
                        StreamManager* const streamMgr) :
-        UplinkPhase(ctx, topology, new DynamicStreamManagementContext(), streamMgr) {}
+        UplinkPhase(ctx, topology, streamMgr) {}
     DynamicUplinkPhase();
     virtual ~DynamicUplinkPhase() {};
     virtual void execute(long long slotStart) override;

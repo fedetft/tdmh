@@ -28,7 +28,6 @@
 #pragma once
 
 //#include "uplink/topology/topology_context.h"
-//#include "uplink/stream_management/stream_management_context.h"
 //#include "timesync/timesync_downlink.h"
 #include "network_configuration.h"
 #include "interfaces-impl/transceiver.h"
@@ -43,7 +42,6 @@ class MediumAccessController;
 class TimesyncDownlink;
 class UplinkPhase;
 class TopologyContext;
-class StreamManagementContext;
 class ScheduleDownlinkPhase;
 class DataPhase;
 
@@ -172,11 +170,6 @@ public:
     TopologyContext* getTopologyContext() const;
 
     /**
-     * @return the StreamManagementContext
-     */
-    StreamManagementContext* getStreamManagementContext() const;
-
-    /**
      * @return the ScheduleDownlink
      */
     ScheduleDownlinkPhase* const getScheduleDownlink() const { return scheduleDistribution; }
@@ -248,7 +241,6 @@ protected:
     DataPhase* data = nullptr;
 
     TopologyContext* topologyContext = nullptr;
-    StreamManagementContext* streamManagement = nullptr;
     StreamManager* streamMgr = nullptr;
 
     unsigned long long dataSlotDuration;

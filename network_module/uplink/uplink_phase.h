@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2018 by Polidori Paolo                                 *
+ *   Copyright (C)  2018 by Polidori Paolo, Federico Amedeo Izzo           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -30,7 +30,6 @@
 #include "../mac_phase.h"
 #include "interfaces-impl/power_manager.h"
 #include "topology/topology_context.h"
-#include "stream_management/stream_management_context.h"
 #include "../mac_context.h"
 #include "../timesync/networktime.h"
 #include "../stream_manager.h"
@@ -55,11 +54,6 @@ public:
     TopologyContext* const getTopologyContext() const { return topology; }
 
     /**
-     * @return the StreamManagementContext
-     */
-    StreamManagementContext* const getStreamManagementContext() const { return streamManagement; }
-    
-    /**
      * Align uplink phase to the network time
      */
     void alignToNetworkTime(NetworkTime nt);
@@ -71,11 +65,9 @@ public:
     static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
 protected:
     UplinkPhase(MACContext& ctx, TopologyContext* const topology,
-                StreamManagementContext* const streamManagement,
                 StreamManager* const streamMgr) :
             MACPhase(ctx),
             topology(topology),
-            streamManagement(streamManagement),
             streamMgr(streamMgr),
             nodesCount(ctx.getNetworkConfig().getMaxNodes()),
             nextNode(nodesCount - 1) {};
@@ -91,8 +83,6 @@ protected:
     }
 
     TopologyContext* const topology;
-    //TODO: remove once StreamManagementContext is not needed anymore
-    StreamManagementContext* const streamManagement;
     StreamManager* const streamMgr;
 
     unsigned short nodesCount;

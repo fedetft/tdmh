@@ -32,14 +32,15 @@
 #include "uplink/topology/mesh_topology_context.h"
 #include "uplink/topology/tree_topology_context.h"
 #include "uplink/dynamic_uplink_phase.h"
-#include "uplink/stream_management/stream_management_context.h"
 #include "schedule/dynamic_schedule_distribution.h"
 
 namespace mxnet {
 
 class DynamicMACContext : public MACContext {
 public:
-    DynamicMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config);
+    DynamicMACContext(const MediumAccessController& mac,
+                      miosix::Transceiver& transceiver,
+                      const NetworkConfiguration& config);
     DynamicMACContext() = delete;
     virtual ~DynamicMACContext() {};
 };
