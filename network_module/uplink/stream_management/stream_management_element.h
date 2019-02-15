@@ -33,6 +33,8 @@
 
 namespace mxnet {
 
+class StreamManagementElement;
+
 enum class Period
 {
     P0dot1,        //  0.1*tileDuration (currently unsupported)
@@ -132,7 +134,7 @@ struct SMEType {
 class StreamInfo {
 public:
     StreamInfo() {}
-    
+    StreamInfo(StreamManagementElement sme, StreamStatus st);
     StreamInfo(unsigned char src, unsigned char dst, unsigned char srcPort,
                unsigned char dstPort, Period period, unsigned char payloadSize,
                Direction direction, Redundancy redundancy=Redundancy::NONE,
@@ -206,6 +208,7 @@ public:
     void serialize(Packet& pkt) const override;
     static std::vector<StreamManagementElement> deserialize(Packet& pkt, std::size_t size);
     StreamId getStreamId() const { return id; }
+    StreamParameters getStreamParameters() const { return parameters; }
     unsigned char getSrc() const { return id.src; }
     unsigned char getSrcPort() const { return id.srcPort; }
     unsigned char getDst() const { return id.dst; }

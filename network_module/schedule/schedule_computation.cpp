@@ -94,7 +94,7 @@ void ScheduleComputation::run() {
             }
             // ELSE we can begin scheduling 
             // Take snapshot of stream requests and network topology
-            stream_snapshot = stream_mgmt;
+            stream_snapshot = stream_mgmt.getSnapshot();
             topology_map = topology_ctx.getTopologyMap();
         }
         /* IMPORTANT!: From now on use only the snapshot class `stream_snapshot` */
@@ -113,12 +113,12 @@ void ScheduleComputation::run() {
            re-routing when topology or stream list did not change. */
 
         printf("Total streams: %d\n", stream_snapshot.getStreamNumber());
-        auto established_streams = stream_snapshot.getEstablishedStreams();
-        auto new_streams = stream_snapshot.getNewStreams();
+        auto established_streams = stream_snapshot.getStreamsWithStatus(StreamStatus::ESTABLISHED);
+        auto accepted_streams = stream_snapshot.getStreamsWithStatus(StreamStatus::ACCEPTED);
         printf("Established streams: %d\n", established_streams.size());
-        printf("New streams: %d\n", new_streams.size());
+        printf("Accepted streams: %d\n", accepted_streams.size());
         printStreams(established_streams);
-        printStreams(new_streams);
+        printStreams(accepted_streams);
 
         /* If topology changed or a stream was removed:
            clear current schedule and reroute + reschedule established streams */
@@ -136,23 +136,23 @@ void ScheduleComputation::run() {
             /* No action is needed since the old schedule is kept unless
                it is explicitly removed with routed_streams.clear() */
         }
-        /* If there are new streams:
+        /* If there are accepted streams:
            route + schedule them and add them to existing schedule */
-        if(stream_mgmt.hasNewStreams()) {
-            printf("Scheduling new streams\n");
-            //Sort new streams based on highest period first
-            std::sort(new_streams.begin(), new_streams.end(),
-                      [](StreamManagementElement a, StreamManagementElement b) {
+        if(stream_snapshot.hasSchedulableStreams()) {
+            printf("Scheduling accepted streams\n");
+            //Sort accepted streams based on highest period first
+            std::sort(accepted_streams.begin(), accepted_streams.end(),
+                      [](StreamInfo a, StreamInfo b) {
                           return toInt(a.getPeriod()) > toInt(b.getPeriod());});
-            //printf("New streams after sorting:\n");
-            //printStreams(new_streams);
-            auto new_schedule = routeAndScheduleStreams(new_streams);
+            //printf("Accepted streams after sorting:\n");
+            //printStreams(accepted_streams);
+            auto new_schedule = routeAndScheduleStreams(accepted_streams);
             schedule.insert(schedule.end(), new_schedule.begin(), new_schedule.end());
             changed = true;
             //Mark successfully scheduled streams as established
             for(auto& stream: new_schedule) {
                 printf("Setting stream %d to ESTABLISHED\n", stream.getKey());
-                stream_mgmt.setStreamStatus(stream.getKey(), StreamStatus::ESTABLISHED);
+                stream_snapshot.setStreamStatus(stream.getStreamId(), StreamStatus::ESTABLISHED);
             }
         }
         if(changed == true) {
@@ -168,10 +168,11 @@ void ScheduleComputation::run() {
         printSchedule();
 
         printf("Stream list after scheduling\n");
-        printStreams(stream_mgmt.getStreams());
-
+        printStreams(stream_snapshot.getStreams());
         // To avoid caching of stdout
         fflush(stdout);
+
+        //TODO: Write back changes from stream_snapshot to stream_mgmt
 
         // Clear modified bit to detect changes to topology or streams
         topology_ctx.clearModifiedFlag();
@@ -180,7 +181,7 @@ void ScheduleComputation::run() {
 }
 
 std::vector<ScheduleElement> ScheduleComputation::routeAndScheduleStreams(
-                                                  const std::vector<StreamManagementElement>& stream_list) {
+                                                  const std::vector<StreamInfo>& stream_list) {
     if(!stream_list.empty()) {
         Router router(*this, 1);
         printf("## Routing ##\n");
@@ -208,16 +209,16 @@ void ScheduleComputation::addNewStreams(const std::vector<StreamManagementElemen
 #else
     std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-    stream_mgmt.receive(smes);
+    //stream_mgmt.putSMEs(smes);
 }
 
-void ScheduleComputation::open(const StreamManagementElement& sme) {
+void ScheduleComputation::open(const StreamInfo& stream) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
     std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-    stream_mgmt.open(sme);
+    stream_mgmt.addStream(stream);
 }
 
 std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
@@ -420,7 +421,7 @@ void ScheduleComputation::printSchedule() {
     }
 }
 
-void ScheduleComputation::printStreams(const std::vector<StreamManagementElement>& stream_list) {
+void ScheduleComputation::printStreams(const std::vector<StreamInfo>& stream_list) {
     printf("ID  SRC DST PER STS\n");
     for(auto& stream : stream_list) {
         printf("%d  %d-->%d   %d  ", stream.getKey(), stream.getSrc(),
@@ -457,7 +458,7 @@ void ScheduleComputation::printStreamList(const std::list<std::list<ScheduleElem
                                        stream.getRx(), toInt(stream.getPeriod()));
 }
 
-std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamManagementElement>& stream_list) {
+std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamInfo>& stream_list) {
     std::list<std::list<ScheduleElement>> routed_streams;
     printf("Routing %d stream requests\n", stream_list.size());
     // Cycle over stream_requests
@@ -538,7 +539,7 @@ std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamManage
     return routed_streams;
 }
 
-std::list<unsigned char> Router::breadthFirstSearch(StreamManagementElement stream) {
+std::list<unsigned char> Router::breadthFirstSearch(StreamInfo stream) {
     unsigned char root = stream.getSrc();
     unsigned char dest = stream.getDst();
     // Check that the source node exists in the graph
@@ -606,7 +607,7 @@ std::list<unsigned char> Router::construct_path(unsigned char node,
 }
 
 std::list<ScheduleElement> Router::pathToSchedule(const std::list<unsigned char>& path,
-                                                  const StreamManagementElement& stream) {
+                                                  const StreamInfo& stream) {
     /* Es: path: 0 1 2 3 schedule: 0->1 1->2 2->3 */
     std::list<ScheduleElement> result;
     if(!path.size())
@@ -641,7 +642,7 @@ void Router::printPathList(const std::list<std::list<unsigned char>>& path_list)
     printf("\n");
 }
 
-std::list<std::list<unsigned char>> Router::depthFirstSearch(StreamManagementElement stream,
+std::list<std::list<unsigned char>> Router::depthFirstSearch(StreamInfo stream,
                                                                unsigned int limit) {
     unsigned char src = stream.getSrc();
     unsigned char dst = stream.getDst();

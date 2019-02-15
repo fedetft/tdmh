@@ -30,6 +30,13 @@
 
 namespace mxnet {
 
+StreamInfo::StreamInfo(StreamManagementElement sme, StreamStatus st)
+{
+    id=sme.getStreamId();
+    parameters=sme.getStreamParameters();
+    status = st;
+}
+
 void StreamManagementElement::serialize(Packet& pkt) const {
     pkt.put(&id, sizeof(StreamId));
     pkt.put(&parameters, sizeof(StreamParameters));

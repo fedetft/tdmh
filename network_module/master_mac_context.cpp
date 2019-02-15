@@ -57,15 +57,15 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
     scheduleComputation->open(StreamManagementElement(3, 2, 0, 0, Period::P5, 0));
     scheduleComputation->open(StreamManagementElement(0, 2, 0, 0, Period::P1, 0));*/
     // Streams to replicate RTSS experiment
-    scheduleComputation->open(StreamManagementElement(3, 0, 0, 0, Period::P1, 0,
+    scheduleComputation->open(StreamInfo(3, 0, 0, 0, Period::P1, 0,
                                                       Direction::TX,
                                                       Redundancy::NONE,
                                                       StreamStatus::ACCEPTED));
-    scheduleComputation->open(StreamManagementElement(4, 0, 0, 0, Period::P2, 0,
+    scheduleComputation->open(StreamInfo(4, 0, 0, 0, Period::P2, 0,
                                                       Direction::TX,
                                                       Redundancy::DOUBLE_SPATIAL,
                                                       StreamStatus::ACCEPTED));
-    scheduleComputation->open(StreamManagementElement(6, 0, 0, 0, Period::P2, 0,
+    scheduleComputation->open(StreamInfo(6, 0, 0, 0, Period::P2, 0,
                                                       Direction::TX,
                                                       Redundancy::NONE,
                                                       StreamStatus::ACCEPTED));

@@ -132,8 +132,8 @@ public:
         content.offset = off;
     }
 
-    // Constructor copying data from StreamManagementElement
-    ScheduleElement(StreamManagementElement stream, unsigned int off=0) {
+    // Constructor copying data from StreamInfo
+    ScheduleElement(StreamInfo stream, unsigned int off=0) {
         content.src = stream.getSrc();
         content.dst = stream.getDst();
         content.srcPort = stream.getSrcPort();
@@ -149,6 +149,9 @@ public:
     void serialize(Packet& pkt) const override;
     static ScheduleElement deserialize(Packet& pkt);
     std::size_t size() const override { return sizeof(ScheduleElementPkt); }
+    StreamId getStreamId() const {
+        return StreamId(content.src, content.dst, content.srcPort, content.dstPort);
+    }
     unsigned char getSrc() const { return content.src; }
     unsigned char getDst() const { return content.dst; }
     unsigned char getSrcPort() const { return content.srcPort; }

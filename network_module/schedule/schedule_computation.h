@@ -29,7 +29,6 @@
 
 
 #include "../stream_manager.h"
-#include "../uplink/stream_management/stream_management_context.h"
 #include "../uplink/topology/mesh_topology_context.h"
 #include "../network_configuration.h"
 #include "schedule_element.h"
@@ -48,7 +47,6 @@
 namespace mxnet {
 
 class MasterTopologyContext;
-class StreamManagementElement;
 class MACContext;
 
 class ScheduleComputation {
@@ -63,12 +61,12 @@ public:
     
     void addNewStreams(const std::vector<StreamManagementElement>& smes);
 
-    void open(const StreamManagementElement& sme);
+    void open(const StreamInfo& sme);
 
 private: 
     void run();
 
-    std::vector<ScheduleElement> routeAndScheduleStreams(const std::vector<StreamManagementElement>& stream_list);
+    std::vector<ScheduleElement> routeAndScheduleStreams(const std::vector<StreamInfo>& stream_list);
     
     std::vector<ScheduleElement> scheduleStreams(const std::list<std::list<ScheduleElement>>& routed_streams);
 
@@ -98,7 +96,7 @@ private:
         return schedule_size;
     }
 
-    void printStreams(const std::vector<StreamManagementElement>& stream_list);
+    void printStreams(const std::vector<StreamInfo>& stream_list);
 
     void printStreamList(const std::list<std::list<ScheduleElement>>& stream_list);        
 
@@ -117,8 +115,8 @@ private:
     };
 
     // Class containing information about Streams
-    MasterStreamManagementContext stream_mgmt;
-    MasterStreamManagementContext stream_snapshot;
+    StreamManager stream_mgmt;
+    StreamCollection stream_snapshot;
     // Final stream list after scheduling
     std::vector<ScheduleElement> schedule;
     // Used to check if a (new) schedule is available
@@ -161,17 +159,17 @@ public:
         scheduler(scheduler), more_hops(more_hops) {};
     virtual ~Router() {};
 
-    std::list<std::list<ScheduleElement>> run(const std::vector<StreamManagementElement>& stream_list);
+    std::list<std::list<ScheduleElement>> run(const std::vector<StreamInfo>& stream_list);
 
 private:
-    std::list<unsigned char> breadthFirstSearch(StreamManagementElement stream);
+    std::list<unsigned char> breadthFirstSearch(StreamInfo stream);
     std::list<unsigned char> construct_path(unsigned char node, std::map<const unsigned char, unsigned char>& parent_of);
     /* Transform path ( 0 1 2 3 ) to schedule (0->1 1->2 2->3) */
     std::list<ScheduleElement> pathToSchedule(const std::list<unsigned char>& path,
-                                                      const StreamManagementElement& stream);
+                                                      const StreamInfo& stream);
     void printPath(const std::list<unsigned char>& path);
     void printPathList(const std::list<std::list<unsigned char>>& path_list);
-    std::list<std::list<unsigned char>> depthFirstSearch(StreamManagementElement stream, unsigned int limit);
+    std::list<std::list<unsigned char>> depthFirstSearch(StreamInfo stream, unsigned int limit);
     // Recursive function
     void dfsRun(unsigned char start, unsigned char target, unsigned int limit,
                 std::vector<bool>& visited, std::list<unsigned char>& path,
