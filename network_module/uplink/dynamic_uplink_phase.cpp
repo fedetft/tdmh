@@ -47,7 +47,7 @@ void DynamicUplinkPhase::receiveByNode(long long slotStart, unsigned char curren
         if(msg.getAssignee() == ctx.getNetworkId())
         {
             auto smes = msg.getSMEs();
-            streamManagement->receive(smes);
+            streamMgr->enqueueSMEs(smes);
         }
         if (ENABLE_UPLINK_INFO_DBG)
             print_dbg("[U]<-N=%u @%llu %hddBm\n", currentNode, rcvResult.timestamp, rcvResult.rssi);
@@ -72,7 +72,7 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart) {
     unsigned char freeBytes = (maxSMEs - numSMEs) * StreamManagementElement::maxSize();
     unsigned char extraTopologies = freeBytes / ForwardedNeighborMessage::staticSize(config);
     // Prepare the UplinkMessage
-    auto smes = streamMgr->getSMEs(numSMEs);
+    auto smes = streamMgr->dequeueSMEs(numSMEs);
     auto* tMsg = dTopology->getMyTopologyMessage(extraTopologies);
     UplinkMessage msg(ctx.getHop(), dTopology->getBestPredecessor(), tMsg, smes);
     Packet pkt;

@@ -135,6 +135,12 @@ class StreamInfo {
 public:
     StreamInfo() {}
     StreamInfo(StreamManagementElement sme, StreamStatus st);
+    StreamInfo(StreamInfo info, StreamStatus st)
+    {
+        id=info.id;
+        parameters=info.parameters;
+        status=st;
+    }
     StreamInfo(unsigned char src, unsigned char dst, unsigned char srcPort,
                unsigned char dstPort, Period period, unsigned char payloadSize,
                Direction direction, Redundancy redundancy=Redundancy::NONE,

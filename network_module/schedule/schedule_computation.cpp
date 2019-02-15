@@ -203,13 +203,43 @@ std::vector<ScheduleElement> ScheduleComputation::routeAndScheduleStreams(
 
 }
 
-void ScheduleComputation::addNewStreams(const std::vector<StreamManagementElement>& smes) {
+void ScheduleComputation::receiveSMEs(const std::vector<StreamManagementElement>& smes) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
     std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-    //stream_mgmt.putSMEs(smes);
+    // Iterate over received SMEs
+    for(auto& sme: smes) {
+        StreamStatus status = sme.getStatus();
+        StreamId id = sme.getStreamId();
+        // Handle each SME
+        switch(status){
+            // If status == CONNECT, check for a corresponding LISTEN
+        case StreamStatus::CONNECT:
+            if(stream_mgmt.getStreamStatus(id) == StreamStatus::LISTEN) {
+                // Mark stream as accepted
+                stream_mgmt.setStreamStatus(id, StreamStatus::ACCEPTED);
+            }
+            else{
+                //TODO: Implement INFO_MESSAGE
+                // Enqueue NACK_CONNECT
+            }
+            break;
+            // If status == LISTEN, register it in StreamManager
+        case StreamStatus::LISTEN:
+            // Mark stream as LISTEN
+            stream_mgmt.setStreamStatus(id, StreamStatus::LISTEN);
+            //TODO: Implement INFO_MESSAGE
+            // Enqueue ACK_LISTEN
+            break;
+            // If status == CLOSE, close the corresponding connection
+        case StreamStatus::CLOSED:
+            // Mark stream as CLOSED
+            stream_mgmt.setStreamStatus(id, StreamStatus::CLOSED);
+            break;
+        }
+    }
 }
 
 void ScheduleComputation::open(const StreamInfo& stream) {

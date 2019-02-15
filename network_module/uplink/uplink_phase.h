@@ -91,6 +91,7 @@ protected:
     }
 
     TopologyContext* const topology;
+    //TODO: remove once StreamManagementContext is not needed anymore
     StreamManagementContext* const streamManagement;
     StreamManager* const streamMgr;
 

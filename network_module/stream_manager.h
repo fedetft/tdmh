@@ -36,8 +36,8 @@
 #else
 #include <mutex>
 #endif
-
 #include <map>
+#include <queue>
 
 namespace mxnet {
 
@@ -84,6 +84,8 @@ private:
  * The class StreamManager contains pointers to all the Stream classes
  * created in the current node.
  * It is used by classes UplinkPhase, DataPhase
+ * NOTE: the methods of this class are protected by a mutex,
+ * Do not call one method from another! or you will get a deadlock.
  */
 
 class StreamManager {
@@ -95,7 +97,7 @@ public:
     void registerStream(StreamInfo info, Stream* stream);
     // Used by the Stream class to get removed from the Stream Map
     void deregisterStream(StreamInfo info);
-   // Used by the DataPhase to put/get data to/from buffers
+    // Used by the DataPhase to put/get data to/from buffers
     void putBuffer(unsigned int DstPort, Packet& pkt) {
         //recvbuffer[DstPort] = new Packet(pkt);
     }
@@ -106,23 +108,17 @@ public:
         return buffer;
     }
     /**
-     * @return the number of available SME to send
-     * = number of StreamInfo with status LISTEN_REQ or CONNECT_REQ
-     */
-    unsigned char getNumSME();
-    /**
-     * @return the list of SME to send on the network,
-     * used by UplinkPhase
-     */
-    std::vector<StreamManagementElement> getSMEs(unsigned char count);
-    /**
-     * Register in the Stream Map a vector of incoming SME 
-     */
-    //void putSMEs(const std::vvectorector<StreamManagementElement>& smes);
-    /**
      * @return the number of Streams saved
      */
-    unsigned char getStreamNumber() { return streamMap.size(); }
+    unsigned char getStreamNumber();
+    /**
+     * @return the state of the saved Stream
+     */
+    StreamStatus getStreamStatus(StreamId id);
+    /**
+     * Change the state of the saved Stream
+     */
+    void setStreamStatus(StreamId id, StreamStatus status);
     /**
      * Register in the Stream Map a single stream 
      */
@@ -130,9 +126,24 @@ public:
     /**
      * @return a snapshot of streamMap 
      */
-    StreamCollection getSnapshot() {
-        return StreamCollection(streamMap);
-    };
+    StreamCollection getSnapshot();
+    /**
+     * @return the number of available SME to send
+     * = number of StreamInfo with status LISTEN_REQ or CONNECT_REQ
+     */
+    unsigned char getNumSME();
+    /**
+     * @return a number of element from the SME queue to send on the network,
+     * used by UplinkPhase
+     */
+    std::vector<StreamManagementElement> dequeueSMEs(unsigned char count);
+    /**
+     * Enqueue a list of sme received from other noded, to be forwarded
+     * towards the master node.
+     * used by UplinkPhase
+     */
+    void enqueueSMEs(std::vector<StreamManagementElement> smes);
+
     /**
      * @return true if the stream list was modified since last time the flag was cleared 
      */
@@ -168,7 +179,8 @@ protected:
     std::map<StreamId, Stream*> clientMap;
     /* Map containing information about Streams related to this node */
     std::map<StreamId, StreamInfo> streamMap;
-
+    /* FIFO queue of SME to send on the network */
+    std::queue<StreamManagementElement> smeQueue;
     /* Thread synchronization */
 #ifdef _MIOSIX
     miosix::Mutex stream_mutex;

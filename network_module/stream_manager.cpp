@@ -68,8 +68,10 @@ void StreamManager::registerStream(StreamInfo info, Stream* stream) {
 #endif
     // Register Stream class pointer in stream map
     clientMap[info.getStreamId()] = stream;
-    // Register Stream information
-    streamMap[info.getStreamId()]= info;
+    // Register Stream information and status
+    streamMap[info.getStreamId()] = StreamInfo(info, StreamStatus::CONNECT_REQ);
+    // Push corresponding SME on the queue
+    smeQueue.push(StreamManagementElement(info, StreamStatus::CONNECT));
     // Set flags
     modified_flag = true;
     added_flag = true;
@@ -86,15 +88,72 @@ void StreamManager::deregisterStream(StreamInfo info) {
     clientMap.erase(info.getStreamId());
     // Mark Stream as closed
     streamMap[info.getStreamId()].setStatus(StreamStatus::CLOSED);
+    // Push corresponding SME on the queue
+    smeQueue.push(StreamManagementElement(info, StreamStatus::CLOSED));
     // Set flags
     modified_flag = true;
     removed_flag = true;
 }
 
-bool isRequest(std::pair<StreamId, StreamInfo> stream) {
-    StreamStatus status = stream.second.getStatus();
-    return (status == StreamStatus::LISTEN_REQ) ||
-           (status == StreamStatus::CONNECT_REQ);
+unsigned char StreamManager::getStreamNumber() {
+    // Mutex lock to access the shared container StreamMap
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    return streamMap.size();
+}
+
+StreamStatus StreamManager::getStreamStatus(StreamId id) {
+    // Mutex lock to access the shared container StreamMap
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    // Check if stream exists
+    if (streamMap.find(id) == streamMap.end())
+        return StreamStatus::CLOSED;
+    else
+        return streamMap[id].getStatus();
+}
+
+void StreamManager::setStreamStatus(StreamId id, StreamStatus status) {
+    // Mutex lock to access the shared container StreamMap
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    // Check if stream exists
+    if (streamMap.find(id) == streamMap.end())
+        throw std::runtime_error("The specified stream does not exist");
+    else
+        streamMap[id].setStatus(status);
+}
+
+void StreamManager::addStream(const StreamInfo& stream) {
+    // Mutex lock to access the shared container StreamMap
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    streamMap[stream.getStreamId()] = stream;
+    // Set flags
+    modified_flag = true;
+    added_flag = true;
+}
+
+StreamCollection StreamManager::getSnapshot() {
+    // Mutex lock to access the shared container StreamMap
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    return StreamCollection(streamMap);
 }
 
 unsigned char StreamManager::getNumSME() {
@@ -104,65 +163,37 @@ unsigned char StreamManager::getNumSME() {
 #else
     std::unique_lock<std::mutex> lck(stream_mutex);
 #endif
-    return std::count_if(streamMap.begin(), streamMap.end(), isRequest);
+    return smeQueue.size();
 }
 
-
-std::vector<StreamManagementElement> StreamManager::getSMEs(unsigned char count) {
+std::vector<StreamManagementElement> StreamManager::dequeueSMEs(unsigned char count) {
     // Mutex lock to access the shared container StreamMap
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(stream_mutex);
 #else
     std::unique_lock<std::mutex> lck(stream_mutex);
 #endif
-    unsigned char available = std::count_if(streamMap.begin(), streamMap.end(), isRequest);
+    unsigned char available = smeQueue.size();
     unsigned char num = std::min(count, available);
     std::vector<StreamManagementElement> result;
     result.reserve(num);
-    // Generate SME for every StreamInfo that needs it
-    for (auto& stream: streamMap) {
-        StreamStatus status = stream.second.getStatus();
-        if(status == StreamStatus::LISTEN_REQ) {
-            StreamManagementElement sme(stream.second, StreamStatus::LISTEN);
-            result.push_back(sme);
-        }
-        else if(status == StreamStatus::CONNECT_REQ) {
-            StreamManagementElement sme(stream.second, StreamStatus::CONNECT);
-            result.push_back(sme);
-        }
+    for(unsigned int i = 0; i < num; i++) {
+        result.push_back(smeQueue.front());
+        smeQueue.pop();
     }
     return result;
 }
 
-//TODO: Finish algorithm and move in scheduler, this code is too important to be hidden
-/*void StreamManager::putSMEs(const std::vector<StreamManagementElement>& smes) {
-    smeId = sme.getStreamId();
+void StreamManager::enqueueSMEs(std::vector<StreamManagementElement> smes) {
+    // Mutex lock to access the shared container StreamMap
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
     for(auto& sme: smes) {
-        std::map<StreamId, StreamInfo>::iterator it;
-        it = streamMap.find(sme.getStreamId());
-        // If stream already present
-        if(it != streamMap.end()) {
-            // If old_stream = LISTEN and new_stream = CONNECT: stream ACCEPTED
-            if((it.second.getStatus() == StreamStatus::LISTEN) &&
-               (sme.getStatus() == StreamStatus::CONNECT))
-                streamMap[smeId] = StreamInfo(sme, StreamStatus::ACCEPTED);
-            if((it.second.getStatus() == StreamStatus::CONNECT) &&
-               (sme.getStatus() == StreamStatus::CONNECT))
-                streamMap[smeId] = StreamInfo(sme, StreamStatus::ACCEPTED);
- 
-            
-        }
-        // Else add it
-        else
-            streamMap[smeId] = StreamInfo(sme, sme.getStatus())
+        smeQueue.push(sme);
     }
-}*/
-
-void StreamManager::addStream(const StreamInfo& stream) {
-    streamMap[stream.getStreamId()] = stream;
-    // Set flags
-    modified_flag = true;
-    added_flag = true;
 }
 
 } /* namespace mxnet */

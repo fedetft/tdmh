@@ -58,8 +58,11 @@ public:
     void startThread();
     
     void beginScheduling();
-    
-    void addNewStreams(const std::vector<StreamManagementElement>& smes);
+
+    /**
+     * Receives a vector of SME from the network and register them in the StreamManager
+     */
+    void receiveSMEs(const std::vector<StreamManagementElement>& smes);
 
     void open(const StreamInfo& sme);
 
