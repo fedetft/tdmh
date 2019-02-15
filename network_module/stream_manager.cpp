@@ -70,6 +70,25 @@ void StreamManager::registerStream(StreamInfo info, Stream* stream) {
     clientMap[info.getStreamId()] = stream;
     // Register Stream information
     streamMap[info.getStreamId()]= info;
+    // Set flags
+    modified_flag = true;
+    added_flag = true;
+}
+
+void StreamManager::deregisterStream(StreamInfo info) {
+    // Mutex lock to access the Stream map from the application thread.
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    // Remove Stream class pointer in stream map
+    clientMap.erase(info.getStreamId());
+    // Mark Stream as closed
+    streamMap[info.getStreamId()].setStatus(StreamStatus::CLOSED);
+    // Set flags
+    modified_flag = true;
+    removed_flag = true;
 }
 
 bool isRequest(std::pair<StreamId, StreamInfo> stream) {
@@ -141,6 +160,9 @@ std::vector<StreamManagementElement> StreamManager::getSMEs(unsigned char count)
 
 void StreamManager::addStream(const StreamInfo& stream) {
     streamMap[stream.getStreamId()] = stream;
+    // Set flags
+    modified_flag = true;
+    added_flag = true;
 }
 
 } /* namespace mxnet */

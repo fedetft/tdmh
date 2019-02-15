@@ -93,7 +93,9 @@ public:
 
     // Used by the Stream class to register itself in the Stream Map
     void registerStream(StreamInfo info, Stream* stream);
-    // Used by the DataPhase to put/get data to/from buffers
+    // Used by the Stream class to get removed from the Stream Map
+    void deregisterStream(StreamInfo info);
+   // Used by the DataPhase to put/get data to/from buffers
     void putBuffer(unsigned int DstPort, Packet& pkt) {
         //recvbuffer[DstPort] = new Packet(pkt);
     }
@@ -116,7 +118,7 @@ public:
     /**
      * Register in the Stream Map a vector of incoming SME 
      */
-    //void putSMEs(const std::vector<StreamManagementElement>& smes);
+    //void putSMEs(const std::vvectorector<StreamManagementElement>& smes);
     /**
      * @return the number of Streams saved
      */
