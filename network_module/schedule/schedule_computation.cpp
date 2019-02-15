@@ -172,8 +172,6 @@ void ScheduleComputation::run() {
         // To avoid caching of stdout
         fflush(stdout);
 
-        //TODO: Write back changes from stream_snapshot to stream_mgmt
-
         // Clear modified bit to detect changes to topology or streams
         topology_ctx.clearModifiedFlag();
         stream_mgmt.clearFlags();

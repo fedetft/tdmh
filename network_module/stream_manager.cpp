@@ -127,9 +127,7 @@ void StreamManager::setStreamStatus(StreamId id, StreamStatus status) {
     std::unique_lock<std::mutex> lck(stream_mutex);
 #endif
     // Check if stream exists
-    if (streamMap.find(id) == streamMap.end())
-        throw std::runtime_error("The specified stream does not exist");
-    else
+    if (streamMap.find(id) != streamMap.end())
         streamMap[id].setStatus(status);
 }
 
