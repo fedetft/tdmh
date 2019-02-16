@@ -40,7 +40,13 @@ enum class Action
     SENDSTREAM =1,    // Send packet of a stream opened from this node
     RECVSTREAM =2,    // Receive packet of a stream opened to this node
     SENDBUFFER =3,    // Send a saved packet from a multihop stream
-    RECVBUFFER =4,    // Receive and save packet from a multihop stream
+    RECVBUFFER =4     // Receive and save packet from a multihop stream
+};
+
+enum class InfoType
+{
+    ACK_LISTEN   =0, // Signals that the master have received the Listen request
+    NACK_CONNECT =1  // Signals that the connect has failed for lack of a listen 
 };
 
 struct ScheduleHeaderPkt {
@@ -174,8 +180,67 @@ private:
     ScheduleElementPkt content;
 };
 
-class SchedulePacket : public SerializableMessage {
+class InfoElement : public SerializableMessage {
+public:
+    InfoElement() {
+        std::memset(&content, 0, sizeof(ScheduleElementPkt));
+    }
+    // Constructor copying data from ScheduleElement
+    // Used when parsing SchedulePacket that contains Info elements
+    InfoElement(ScheduleElement s) {
+        content.src = s.getSrc();
+        content.dst = s.getDst();
+        content.srcPort = s.getSrcPort();
+        content.dstPort = s.getDstPort();
+        // This is an info element and is characterized by TX=RX=0
+        content.tx = 0;
+        content.rx = 0;
+        content.period = 0;
+        // The message of the info element is saved in the offset field
+        content.offset = s.getOffset();
+    }
+    // Constructor copying data from StreamId
+    InfoElement(StreamId id, InfoType type) {
+        content.src = id.src;
+        content.dst = id.dst;
+        content.srcPort = id.srcPort;
+        content.dstPort = id.dstPort;
+        // This is an info element and is characterized by TX=RX=0
+        content.tx = 0;
+        content.rx = 0;
+        content.period = 0;
+        // The message of the info element is saved in the offset field
+        content.offset = static_cast<unsigned int>(type);
+    };
 
+    void serialize(Packet& pkt) const override;
+    static InfoElement deserialize(Packet& pkt);
+    std::size_t size() const override { return sizeof(ScheduleElementPkt); }
+    StreamId getStreamId() const {
+        return StreamId(content.src, content.dst, content.srcPort, content.dstPort);
+    }
+    unsigned char getSrc() const { return content.src; }
+    unsigned char getDst() const { return content.dst; }
+    unsigned char getSrcPort() const { return content.srcPort; }
+    unsigned char getDstPort() const { return content.dstPort; }
+    unsigned char getTx() const { return content.tx; }
+    unsigned char getRx() const { return content.rx; }
+    InfoType getType() const { return static_cast<InfoType>(content.offset); }
+
+    /**
+     * \return an unique key for each stream
+     */
+    unsigned int getKey() const
+    {
+        return content.src | content.dst<<8 | content.srcPort<<16 | content.dstPort<<20;
+    }
+
+private:
+    ScheduleElementPkt content;
+};
+
+
+class SchedulePacket : public SerializableMessage {
 public:
     SchedulePacket() {}
 
@@ -187,7 +252,6 @@ public:
     std::size_t size() const override { return header.size() + elements.size(); }
     ScheduleHeader getHeader() const { return header; }
     std::vector<ScheduleElement> getElements() const { return elements; }
-
 private:
     ScheduleHeader header;
     std::vector<ScheduleElement> elements;

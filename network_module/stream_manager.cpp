@@ -194,4 +194,44 @@ void StreamManager::enqueueSMEs(std::vector<StreamManagementElement> smes) {
     }
 }
 
+unsigned char StreamManager::getNumInfo() {
+    // Mutex lock to access the shared container StreamMap
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    return infoQueue.size();
+}
+
+std::vector<InfoElement> StreamManager::dequeueInfo(unsigned char count) {
+    // Mutex lock to access the shared container StreamMap
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    unsigned char available = infoQueue.size();
+    unsigned char num = std::min(count, available);
+    std::vector<InfoElement> result;
+    result.reserve(num);
+    for(unsigned int i = 0; i < num; i++) {
+        result.push_back(infoQueue.front());
+        infoQueue.pop();
+    }
+    return result;
+}
+
+void StreamManager::enqueueInfo(std::vector<InfoElement> infos) {
+    // Mutex lock to access the shared container StreamMap
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    for(auto& info: infos) {
+        infoQueue.push(info);
+    }
+}
+
 } /* namespace mxnet */

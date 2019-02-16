@@ -50,6 +50,16 @@ ScheduleElement ScheduleElement::deserialize(Packet& pkt) {
     return result;
 }
 
+void InfoElement::serialize(Packet& pkt) const {
+    pkt.put(&content, sizeof(ScheduleElementPkt));
+}
+
+InfoElement InfoElement::deserialize(Packet& pkt) {
+    InfoElement result;
+    pkt.get(&result.content, sizeof(ScheduleElementPkt));
+    return result;
+}
+
 void SchedulePacket::serialize(Packet& pkt) const {
     header.serialize(pkt);
     for(auto e : elements)

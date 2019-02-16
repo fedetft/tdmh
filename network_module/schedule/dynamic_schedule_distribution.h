@@ -38,7 +38,7 @@ public:
     DynamicScheduleDownlinkPhase(const DynamicScheduleDownlinkPhase& orig) = delete;
     void execute(long long slotStart) override;
     virtual ~DynamicScheduleDownlinkPhase() {};
-    void decodePacket(SchedulePacket& spkt);
+    ScheduleHeader decodePacket(Packet& pkt);
     void printHeader(ScheduleHeader& header);
     void calculateCountdown(ScheduleHeader& newHeader);
     bool isScheduleComplete();

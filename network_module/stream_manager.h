@@ -30,6 +30,7 @@
 // For StreamId
 #include "uplink/stream_management/stream_management_element.h"
 #include "stream.h"
+#include "schedule/schedule_element.h"
 // For thread synchronization
 #ifdef _MIOSIX
 #include <miosix.h>
@@ -128,8 +129,7 @@ public:
      */
     StreamCollection getSnapshot();
     /**
-     * @return the number of available SME to send
-     * = number of StreamInfo with status LISTEN_REQ or CONNECT_REQ
+     * @return the number of SME stored in the Queue
      */
     unsigned char getNumSME();
     /**
@@ -138,11 +138,26 @@ public:
      */
     std::vector<StreamManagementElement> dequeueSMEs(unsigned char count);
     /**
-     * Enqueue a list of sme received from other noded, to be forwarded
+     * Enqueue a list of sme received from other nodes, to be forwarded
      * towards the master node.
      * used by UplinkPhase
      */
     void enqueueSMEs(std::vector<StreamManagementElement> smes);
+    /**
+     * @return the number of Info elements stored in the Queue
+     */
+    unsigned char getNumInfo();
+    /**
+     * @return a number of element from the Info element queue to send on the network,
+     * used by ScheduleDistribution
+     */
+    std::vector<InfoElement> dequeueInfo(unsigned char count);
+    /**
+     * Enqueue a list of Info elements received from other nodes, to be forwarded
+     * to the rest of the network.
+     * used by ScheduleDistribution
+     */
+    void enqueueInfo(std::vector<InfoElement> infos);
 
     /**
      * @return true if the stream list was modified since last time the flag was cleared 
@@ -179,8 +194,10 @@ protected:
     std::map<StreamId, Stream*> clientMap;
     /* Map containing information about Streams related to this node */
     std::map<StreamId, StreamInfo> streamMap;
-    /* FIFO queue of SME to send on the network */
+    /* FIFO queue of SME to send from the nodes to the master */
     std::queue<StreamManagementElement> smeQueue;
+    /* FIFO queue of Info elements to send from the master to the nodes */
+    std::queue<InfoElement> infoQueue;
     /* Thread synchronization */
 #ifdef _MIOSIX
     miosix::Mutex stream_mutex;

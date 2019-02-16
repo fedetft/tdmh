@@ -40,6 +40,7 @@ public:
     void execute(long long slotStart) override;
     void getCurrentSchedule();
     void sendSchedulePkt(long long slotstart);
+    void sendInfoPkt(long long slotstart);
     void printHeader(ScheduleHeader& header);
 
 private:

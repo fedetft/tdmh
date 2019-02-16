@@ -207,6 +207,7 @@ void ScheduleComputation::receiveSMEs(const std::vector<StreamManagementElement>
 #else
     std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
+    std::vector<InfoElement> infos;
     // Iterate over received SMEs
     for(auto& sme: smes) {
         StreamStatus status = sme.getStatus();
@@ -220,16 +221,16 @@ void ScheduleComputation::receiveSMEs(const std::vector<StreamManagementElement>
                 stream_mgmt.setStreamStatus(id, StreamStatus::ACCEPTED);
             }
             else{
-                //TODO: Implement INFO_MESSAGE
                 // Enqueue NACK_CONNECT
+                infos.push_back(InfoElement(id, InfoType::NACK_CONNECT));
             }
             break;
             // If status == LISTEN, register it in StreamManager
         case StreamStatus::LISTEN:
             // Mark stream as LISTEN
             stream_mgmt.setStreamStatus(id, StreamStatus::LISTEN);
-            //TODO: Implement INFO_MESSAGE
             // Enqueue ACK_LISTEN
+            infos.push_back(InfoElement(id, InfoType::ACK_LISTEN));
             break;
             // If status == CLOSE, close the corresponding connection
         case StreamStatus::CLOSED:
@@ -238,6 +239,8 @@ void ScheduleComputation::receiveSMEs(const std::vector<StreamManagementElement>
             break;
         }
     }
+    // Enqueue vector of InfoElement
+    stream_mgmt.enqueueInfo(infos);
 }
 
 void ScheduleComputation::open(const StreamInfo& stream) {

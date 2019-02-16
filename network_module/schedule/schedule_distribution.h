@@ -44,7 +44,9 @@ class ScheduleDownlinkPhase : public MACPhase {
 public:
     ScheduleDownlinkPhase() = delete;
     ScheduleDownlinkPhase(const ScheduleDownlinkPhase& orig) = delete;
-    ScheduleDownlinkPhase(MACContext& ctx) : MACPhase(ctx), dataPhase(ctx.getDataPhase()) {}
+    ScheduleDownlinkPhase(MACContext& ctx) : MACPhase(ctx),
+                                             streamMgr(ctx.getStreamManager()),
+                                             dataPhase(ctx.getDataPhase()) {}
     virtual ~ScheduleDownlinkPhase() {};
 
     static unsigned long long getDuration(unsigned short hops) {
@@ -79,6 +81,7 @@ protected:
     // Current schedule lenght in tiles
     unsigned long explicitScheduleID;
     std::vector<ExplicitScheduleElement> explicitSchedule;
+    StreamManager* const streamMgr;
 private:
     DataPhase* const dataPhase;
 };

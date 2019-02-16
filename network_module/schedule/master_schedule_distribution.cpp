@@ -60,6 +60,9 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     if(header.getScheduleID() == 0) {
         if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)
             print_dbg("[D] no schedule to send\n");
+        // If InfoElements available, send a SchedulePkt with InfoElements only
+        if(streamMgr->getNumInfo() != 0)
+            sendInfoPkt(slotStart);
         return;
     }
     if(header.getRepetition() >= 3){
@@ -75,6 +78,9 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
                 print_dbg("[D] Calculated explicit schedule n.%2d", explicitScheduleID);
         }
         checkTimeSetSchedule();
+        // If InfoElements available, send a SchedulePkt with InfoElements only
+        if(streamMgr->getNumInfo() != 0)
+            sendInfoPkt(slotStart);
         return;
     }
     if(header.getCurrentPacket() >= header.getTotalPacket()) {
@@ -123,11 +129,17 @@ void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
     Packet pkt;
     // Add schedule distribution header
     header.serialize(pkt);
-    for(unsigned int i = 0; (i < packetCapacity) && (position < schedule.size()); i++) {
-        // Add schedule element to packet
+    // Add schedule elements to packet
+    unsigned int sched = 0;
+    for(sched = 0; (sched < packetCapacity) && (position < schedule.size()); sched++) {
         schedule[position].serialize(pkt);
         position++;
     }
+    // Add info elements to packet
+    unsigned char numInfo = packetCapacity - sched;
+    auto infos = streamMgr->dequeueInfo(numInfo);
+    for(auto& info : infos)
+        info.serialize(pkt);
     // Send schedule downlink packet
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     pkt.send(ctx, slotStart);
@@ -140,6 +152,24 @@ void MasterScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
               header.getCurrentPacket(),
               header.getScheduleID(),
               header.getRepetition());
+}
+
+void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart) {
+    Packet pkt;
+    // Build Info packet header
+    ScheduleHeader infoHeader(0,0,header.getScheduleID());
+    // Add Info packet header
+    infoHeader.serialize(pkt);
+    // Add info elements to packet
+    unsigned int availableInfo = streamMgr->getNumInfo();
+    unsigned int numInfo = std::min(packetCapacity, availableInfo);
+    auto infos = streamMgr->dequeueInfo(numInfo);
+    for(auto& info : infos)
+        info.serialize(pkt);
+    // Send schedule downlink packet
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    pkt.send(ctx, slotStart);
+    ctx.transceiverIdle();
 }
 
 }
