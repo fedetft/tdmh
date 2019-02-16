@@ -229,9 +229,32 @@ void StreamManager::enqueueInfo(std::vector<InfoElement> infos) {
 #else
     std::unique_lock<std::mutex> lck(stream_mutex);
 #endif
-    for(auto& info: infos) {
+    for(auto& info : infos) {
         infoQueue.push(info);
     }
+}
+
+void StreamManager::receiveInfo() {
+    for(auto& info : infoQueue) {
+        StreamId id = info.getStreamId();
+        //Check if stream exists
+        if (streamMap.find(id) != streamMap.end()) {
+            switch(info.getType()){
+            case InfoType::ACK_LISTEN:
+                if(streamMap[id].getStatus() == StreamStatus::LISTEN_REQ) {
+                    streamMap[id].setStatus(StreamStatus::LISTEN);
+                    // TODO: Notify corresponding Stream
+                }
+                break;
+            case InfoType::NACK_CONNECT:
+                if(streamMap[id].getStatus() == StreamStatus::CONNECT_REQ) {
+                    streamMap[id].setStatus(StreamStatus::REJECTED);
+                    // TODO: Notify and close corresponding Stream 
+                }
+                break;
+            }
+        }
+    } 
 }
 
 } /* namespace mxnet */

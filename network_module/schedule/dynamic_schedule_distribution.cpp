@@ -77,7 +77,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
         }
         checkTimeSetSchedule();
     }
-
+    streamMgr->receiveInfo();
     //printStatus();
 }
 

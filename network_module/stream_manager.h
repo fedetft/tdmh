@@ -158,7 +158,10 @@ public:
      * used by ScheduleDistribution
      */
     void enqueueInfo(std::vector<InfoElement> infos);
-
+    /**
+     * Consume the Info elements present in the queue and use the relevant information 
+     */
+    void receiveInfo();
     /**
      * @return true if the stream list was modified since last time the flag was cleared 
      */
