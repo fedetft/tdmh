@@ -41,7 +41,6 @@ class StreamManager;
  * The stream is opened when the constructor is called, and closed when
  * the destructor is called.
  */
-
 class Stream {
 public:
     Stream(MediumAccessController& tdmh, unsigned char dst,
@@ -72,6 +71,28 @@ private:
     Packet sendBuffer;
     /* Packet buffer for receiving data */
     Packet recvBuffer;
+    /* Information about this Stream */
+    StreamInfo info;
+};
+
+/**
+ * The class StreamServer is created by a node that want to listen for
+ * incoming streams. The listen request is forwarded to the master.
+ * When a node connects, it returns a Stream object.
+ */
+class StreamServer {
+public:
+    StreamServer(MediumAccessController& tdmh, unsigned char dstPort,
+                 Period period, unsigned char payloadSize,
+                 Direction direction, Redundancy redundancy);
+    ~StreamServer() {};
+
+
+private:
+    /* Reference to MediumAccessController */
+    MediumAccessController& tdmh;
+    /* Reference to StreamManager */
+    StreamManager* streamMgr;
     /* Information about this Stream */
     StreamInfo info;
 };

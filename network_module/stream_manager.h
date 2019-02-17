@@ -98,6 +98,8 @@ public:
     void registerStream(StreamInfo info, Stream* stream);
     // Used by the Stream class to get removed from the Stream Map
     void deregisterStream(StreamInfo info);
+    // Used by the StreamServer class to register itself in the Server Map
+    void registerStreamServer(StreamInfo info, Stream* stream);
     // Used by the DataPhase to put/get data to/from buffers
     void putBuffer(unsigned int DstPort, Packet& pkt) {
         //recvbuffer[DstPort] = new Packet(pkt);

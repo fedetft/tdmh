@@ -36,7 +36,7 @@ void StreamCollection::setStreamStatus(StreamId id, StreamStatus status) {
 
 std::vector<StreamInfo> StreamCollection::getStreams() {
     std::vector<StreamInfo> result;
-    for(auto stream : collection)
+    for(auto& stream : collection)
         result.push_back(stream.second);
     return result;
 }
@@ -235,7 +235,8 @@ void StreamManager::enqueueInfo(std::vector<InfoElement> infos) {
 }
 
 void StreamManager::receiveInfo() {
-    for(auto& info : infoQueue) {
+    while(!infoQueue.empty()) {
+        InfoElement info = infoQueue.front();
         StreamId id = info.getStreamId();
         //Check if stream exists
         if (streamMap.find(id) != streamMap.end()) {
@@ -254,7 +255,8 @@ void StreamManager::receiveInfo() {
                 break;
             }
         }
-    } 
+        infoQueue.pop();
+    }
 }
 
 } /* namespace mxnet */
