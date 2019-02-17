@@ -101,14 +101,11 @@ public:
     // Used by the StreamServer class to register itself in the Server Map
     void registerStreamServer(StreamInfo info, Stream* stream);
     // Used by the DataPhase to put/get data to/from buffers
-    void putBuffer(unsigned int DstPort, Packet& pkt) {
-        //recvbuffer[DstPort] = new Packet(pkt);
+    void putBuffer(StreamId id, Packet& pkt) {
+        clientMap[id]->putRecvBuffer(pkt);
     }
-    Packet getBuffer(unsigned int SrcPort) {
-        Packet buffer;// = stream[SrcPort].getBuffer();
-        //Packet buffer = stream[SrcPort].getBuffer();
-        //stream[SrcPort].clearBuffer();
-        return buffer;
+    Packet getBuffer(StreamId id) {
+        return clientMap[id]->getSendBuffer();
     }
     /**
      * @return the number of Streams saved

@@ -39,7 +39,7 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
     // Resize new explicitSchedule and fill with default value (sleep)
     auto slotsInTile = ctx.getSlotsInTileCount();
     auto scheduleSlots = header.getScheduleTiles() * slotsInTile;
-    result.resize(scheduleSlots, ExplicitScheduleElement(Action::SLEEP, 0));
+    result.resize(scheduleSlots, ExplicitScheduleElement());
     // Scan implicit schedule for element that imply the node action
     for(auto e : schedule) {
         // Send from stream case
@@ -47,7 +47,7 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
             // Period is normally expressed in tiles, get period in slots
             auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                result[slot] = ExplicitScheduleElement(Action::SENDSTREAM, e.getSrcPort()); 
+                result[slot] = ExplicitScheduleElement(Action::SENDSTREAM, e.getStreamId()); 
             }
         }
         // Receive to stream case
@@ -55,7 +55,7 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
             // Period is normally expressed in tiles, get period in slots
             auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                result[slot] = ExplicitScheduleElement(Action::RECVSTREAM, e.getDstPort()); 
+                result[slot] = ExplicitScheduleElement(Action::RECVSTREAM, e.getStreamId()); 
             }
         }
         // Send from buffer case (send saved multi-hop packet)
@@ -63,7 +63,7 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
             // Period is normally expressed in tiles, get period in slots
             auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                result[slot] = ExplicitScheduleElement(Action::SENDBUFFER, 0); 
+                result[slot] = ExplicitScheduleElement(Action::SENDBUFFER, e.getStreamId()); 
             }
         }
         // Receive to buffer case (receive and save multi-hop packet)
@@ -71,7 +71,7 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
             // Period is normally expressed in tiles, get period in slots
             auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                result[slot] = ExplicitScheduleElement(Action::RECVBUFFER, 0); 
+                result[slot] = ExplicitScheduleElement(Action::RECVBUFFER, e.getStreamId()); 
             }
         }
     }

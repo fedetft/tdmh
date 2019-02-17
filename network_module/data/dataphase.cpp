@@ -45,10 +45,10 @@ void DataPhase::execute(long long slotStart) {
         sleep(slotStart);
         break;
     case Action::SENDSTREAM:
-        sendFromStream(slotStart, currentSchedule[tileSlot].getPort());
+        sendFromStream(slotStart, currentSchedule[tileSlot].getStreamId());
         break;
     case Action::RECVSTREAM:
-        receiveToStream(slotStart, currentSchedule[tileSlot].getPort());
+        receiveToStream(slotStart, currentSchedule[tileSlot].getStreamId());
         break;
     case Action::SENDBUFFER:
         sendFromBuffer(slotStart);
@@ -62,18 +62,18 @@ void DataPhase::execute(long long slotStart) {
 void DataPhase::sleep(long long slotStart) {
     ctx.sleepUntil(slotStart);
 }
-void DataPhase::sendFromStream(long long slotStart, unsigned int SrcPort) {
-    Packet pkt = stream.getBuffer(SrcPort);
+void DataPhase::sendFromStream(long long slotStart, StreamId id) {
+    Packet pkt = stream.getBuffer(id);
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     pkt.send(ctx, slotStart);
     ctx.transceiverIdle();
 }
-void DataPhase::receiveToStream(long long slotStart, unsigned int DstPort) {
+void DataPhase::receiveToStream(long long slotStart, StreamId id) {
     Packet pkt;
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     auto rcvResult = pkt.recv(ctx, slotStart);
     ctx.transceiverIdle();
-    stream.putBuffer(DstPort, pkt);
+    stream.putBuffer(id, pkt);
 }
 void DataPhase::sendFromBuffer(long long slotStart) {
     Packet pkt;

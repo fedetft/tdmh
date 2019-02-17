@@ -66,8 +66,8 @@ public:
     static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
     /* Five possible actions, as described by the explicit schedule */
     void sleep(long long slotStart);
-    void sendFromStream(long long slotStart, unsigned int SrcPort);
-    void receiveToStream(long long slotStart, unsigned int DstPort);
+    void sendFromStream(long long slotStart, StreamId id);
+    void receiveToStream(long long slotStart, StreamId id);
     void sendFromBuffer(long long slotStart);
     void receiveToBuffer(long long slotStart);
     /* Called from ScheduleDownlinkPhase class on the first downlink slot

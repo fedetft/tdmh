@@ -69,11 +69,6 @@ struct ScheduleElementPkt {
     unsigned int offset:20;
 };
 
-struct ExplicitScheduleElementStruct {
-    unsigned int action:3;
-    unsigned int port:4;
-};
-
 class ScheduleHeader : public SerializableMessage {
 public:
     ScheduleHeader() {
@@ -260,17 +255,17 @@ private:
 class ExplicitScheduleElement {
 public:
     ExplicitScheduleElement() {
-        content = {0,0};
+        action = Action::SLEEP;
+        id = StreamId(0,0,0,0);
     }
-    ExplicitScheduleElement(Action action, unsigned char port)
-    {
-        content.action = static_cast<unsigned int>(action);
-        content.port = port;
-    }
-    Action getAction() const { return static_cast<Action>(content.action); }
-    unsigned char getPort() const { return content.port; }
+    ExplicitScheduleElement(Action action, StreamId id) :
+        action(action), id(id) {}
+
+    Action getAction() const { return action; }
+    StreamId getStreamId() const { return id; }
 private:
-    ExplicitScheduleElementStruct content;
+    Action action;
+    StreamId id;
 };
 
 
