@@ -99,31 +99,43 @@ void ScheduleComputation::run() {
         }
         /* IMPORTANT!: From now on use only the snapshot class `stream_snapshot` */
 
-        printf("\n#### Starting schedule computation ####\n");
+
+        if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+            printf("\n#### Starting schedule computation ####\n");
 
         // Used to check if the schedule has been modified or not
         bool changed = false;
         // NOTE: Debug topology print
-        printf("Topology:\n");
-        for(auto it : topology_map.getEdges())
-            printf("[%d - %d]\n", it.first, it.second);
+        if(ENABLE_SCHEDULE_COMP_INFO_DBG) {
+            printf("\nTopology:\n");
+            for(auto it : topology_map.getEdges())
+                printf("[%d - %d]\n", it.first, it.second);
+        }
+
+        if(ENABLE_STREAM_LIST_INFO_DBG){
+            printf("\nStream list before scheduling:\n");
+            printStreams(stream_snapshot.getStreams());
+        }
 
         /* Here we prioritize established streams over new ones,
            also we try to avoid unnecessary work like re-scheduling or
            re-routing when topology or stream list did not change. */
-
-        printf("Total streams: %d\n", stream_snapshot.getStreamNumber());
+        if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+            printf("Total streams: %d\n", stream_snapshot.getStreamNumber());
         auto established_streams = stream_snapshot.getStreamsWithStatus(StreamStatus::ESTABLISHED);
         auto accepted_streams = stream_snapshot.getStreamsWithStatus(StreamStatus::ACCEPTED);
-        printf("Established streams: %d\n", established_streams.size());
-        printf("Accepted streams: %d\n", accepted_streams.size());
-        printStreams(established_streams);
-        printStreams(accepted_streams);
+        if(ENABLE_SCHEDULE_COMP_INFO_DBG) {
+            printf("Established streams: %d\n", established_streams.size());
+            printf("Accepted streams: %d\n", accepted_streams.size());
+            printStreams(established_streams);
+            printStreams(accepted_streams);
+        }
 
         /* If topology changed or a stream was removed:
            clear current schedule and reroute + reschedule established streams */
         if(topology_map.wasModified() || stream_mgmt.wasRemoved()) {
-            printf("Topology changed or a stream was removed, Re-scheduling established streams\n");
+            if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                printf("Topology changed or a stream was removed, Re-scheduling established streams\n");
             schedule.clear();
             // schedule_size must always be initialized to the number of tiles in superframe
             schedule_size = superframe.size();
@@ -132,14 +144,16 @@ void ScheduleComputation::run() {
             changed = true;
         }
         else {
-            printf("Topology and current streams did not change, Keep established schedule\n");
+            if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                printf("Topology and current streams did not change, Keep established schedule\n");
             /* No action is needed since the old schedule is kept unless
                it is explicitly removed with routed_streams.clear() */
         }
         /* If there are accepted streams:
            route + schedule them and add them to existing schedule */
         if(stream_snapshot.hasSchedulableStreams()) {
-            printf("Scheduling accepted streams\n");
+            if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                printf("Scheduling accepted streams\n");
             //Sort accepted streams based on highest period first
             std::sort(accepted_streams.begin(), accepted_streams.end(),
                       [](StreamInfo a, StreamInfo b) {
@@ -151,7 +165,8 @@ void ScheduleComputation::run() {
             changed = true;
             //Mark successfully scheduled streams as established
             for(auto& stream: new_schedule) {
-                printf("Setting stream %d to ESTABLISHED\n", stream.getKey());
+                if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                    printf("Setting stream %d to ESTABLISHED\n", stream.getKey());
                 stream_snapshot.setStreamStatus(stream.getStreamId(), StreamStatus::ESTABLISHED);
             }
         }
@@ -163,12 +178,16 @@ void ScheduleComputation::run() {
                 scheduleID++;
         }
 
-        printf("## Results ##\n");
-        printf("Final schedule, ID:%lu\n", scheduleID);
-        printSchedule();
+        if(ENABLE_SCHEDULE_COMP_INFO_DBG) {
+            printf("## Results ##\n");
+            printf("Final schedule, ID:%lu\n", scheduleID);
+            printSchedule();
+        }
+        if(ENABLE_STREAM_LIST_INFO_DBG){
+            printf("Stream list after scheduling:\n");
+            printStreams(stream_snapshot.getStreams());
+        }
 
-        printf("Stream list after scheduling\n");
-        printStreams(stream_snapshot.getStreams());
         // To avoid caching of stdout
         fflush(stdout);
 
@@ -182,19 +201,24 @@ std::vector<ScheduleElement> ScheduleComputation::routeAndScheduleStreams(
                                                   const std::vector<StreamInfo>& stream_list) {
     if(!stream_list.empty()) {
         Router router(*this, 1);
-        printf("## Routing ##\n");
+        if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+            printf("## Routing ##\n");
         // Run router to route multi-hop streams and get multiple paths
         auto routed_streams = router.run(stream_list);
-        printf("Stream list after routing:\n");
-        printStreamList(routed_streams);
+        if(ENABLE_SCHEDULE_COMP_INFO_DBG) {
+            printf("Stream list after routing:\n");
+            printStreamList(routed_streams);
+        }
 
         // Schedule expanded streams, avoiding conflicts
-        printf("## Scheduling ##\n");
+        if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+            printf("## Scheduling ##\n");
         auto new_schedule = scheduleStreams(routed_streams);
         return new_schedule;
     }
     else {
-        printf("Stream list empty, scheduling done.\n");
+        if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+            printf("Stream list empty, scheduling done.\n");
         std::vector<ScheduleElement> empty;
         return empty;
     }
@@ -261,7 +285,8 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
     unsigned downlink_size = tile_size - dataslots_downlinktile;
     unsigned uplink_size = tile_size - dataslots_uplinktile;
 
-    printf("Network configuration:\n- tile_size: %d\n- downlink_size: %d\n- uplink_size: %d\n",
+    if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+        printf("Network configuration:\n- tile_size: %d\n- downlink_size: %d\n- uplink_size: %d\n",
            tile_size, downlink_size, uplink_size);
 
     // Start with an empty schedule
@@ -277,15 +302,18 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
         for(auto& transmission : stream) {
             unsigned char tx = transmission.getTx();
             unsigned char rx = transmission.getRx();
-            printf("Scheduling transmission %d,%d\n", tx, rx);
+            if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                printf("Scheduling transmission %d,%d\n", tx, rx);
             // Connectivity check
             if(!topology_map.hasEdge(tx, rx)) {
                 stream_err = true;
-                printf("%d,%d are not connected in topology, cannot schedule stream\n", tx, rx);
+                if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                    printf("%d,%d are not connected in topology, cannot schedule stream\n", tx, rx);
             }
             // If a transmission cannot be scheduled, undo the whole stream
             if(stream_err) {
-                printf("Transmission scheduling failed, removing rest of the stream\n");
+                if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                    printf("Transmission scheduling failed, removing rest of the stream\n");
                 for(int i=0; i<block_size; i++) {
                     scheduled_transmissions.pop_back();
                 }
@@ -301,12 +329,15 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
             for(unsigned offset = last_offset; offset < max_offset; offset++) {
                 if(!checkDataSlot(offset, tile_size, downlink_size, uplink_size))
                     continue;
-                printf("Checking offset %d\n", offset);
+                if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                    printf("Checking offset %d\n", offset);
                 // Cycle over already scheduled elements to find conflicts
-                printf("Checking against old streams\n");
+                if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                    printf("Checking against old streams\n");
                 bool conflict = checkAllConflicts(schedule, transmission, offset, tile_size);
                 // Cycle over elements to be scheduled to find conflicts
-                printf("Checking against new streams\n");
+                if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                    printf("Checking against new streams\n");
                 conflict |= checkAllConflicts(scheduled_transmissions, transmission, offset, tile_size);
 
                 if(!conflict) {
@@ -314,18 +345,22 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
                     block_size++;
                     // Calculate new schedule size
                     unsigned period = toInt(transmission.getPeriod());
-                    printf("Schedule size, before:%d ", schedule_size);
+                    if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                        printf("Schedule size, before:%d ", schedule_size);
                     schedule_size = lcm(schedule_size, period);
-                    printf("after:%d \n", schedule_size);
+                    if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                        printf("after:%d \n", schedule_size);
                     // Add transmission to schedule, and set schedule offset
                     scheduled_transmissions.push_back(transmission);
                     scheduled_transmissions.back().setOffset(offset);
-                    printf("Scheduled transmission %d,%d with offset %d\n", tx, rx, offset);
+                    if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                        printf("Scheduled transmission %d,%d with offset %d\n", tx, rx, offset);
                     // Successfully scheduled transmission, break timeslot cycle
                     break;
                     }
                 else {
-                    printf("Cannot schedule transmission %d,%d with offset %d\n", tx, rx, offset);
+                    if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                        printf("Cannot schedule transmission %d,%d with offset %d\n", tx, rx, offset);
                     //Try to schedule in next timeslot
 
                 }
@@ -339,7 +374,8 @@ std::vector<ScheduleElement> ScheduleComputation::scheduleStreams(
                 stream_err = true;
         }
     }
-    printf("Final schedule length: %d\n", schedule_size);
+    if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+        printf("Final schedule length: %d\n", schedule_size);
     return scheduled_transmissions;
 }
 
@@ -348,20 +384,24 @@ bool ScheduleComputation::checkAllConflicts(std::vector<ScheduleElement> other_s
     for(auto& elem : other_streams) {
         // conflictPossible is a simple condition used to reduce number of conflict checks
         if(slotConflictPossible(transmission, elem, offset, tile_size)) {
-            printf("Conflict possible with %d->%d\n", elem.getTx(), elem.getRx());
+            if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                printf("Conflict possible with %d->%d\n", elem.getTx(), elem.getRx());
             if(checkSlotConflict(transmission, elem, offset, tile_size)) {
-                printf("%d->%d and %d-%d have timeslots in common\n", transmission.getTx(),
-                       transmission.getRx(), elem.getTx(), elem.getRx());
+                if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                    printf("%d->%d and %d-%d have timeslots in common\n", transmission.getTx(),
+                           transmission.getRx(), elem.getTx(), elem.getRx());
                 /* Conflict checks */
                 // Unicity check: no activity for src or dst node in a given timeslot
                 if(checkUnicityConflict(transmission, elem)) {
                     conflict |= true;
-                    printf("Unicity conflict!\n");
+                    if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                        printf("Unicity conflict!\n");
                 }
                 // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
                 if(checkInterferenceConflict(transmission, elem)) {
                     conflict |= true;
-                    printf("Interference conflict!\n");
+                    if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                        printf("Interference conflict!\n");
                 }
                 if(conflict)
                     // Avoid checking other streams when a conflict is found
@@ -491,17 +531,20 @@ void ScheduleComputation::printStreamList(const std::list<std::list<ScheduleElem
 
 std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamInfo>& stream_list) {
     std::list<std::list<ScheduleElement>> routed_streams;
-    printf("Routing %d stream requests\n", stream_list.size());
+    if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+        printf("Routing %d stream requests\n", stream_list.size());
     // Cycle over stream_requests
     for(auto& stream: stream_list) {
         unsigned char src = stream.getSrc();
         unsigned char dst = stream.getDst();
-        printf("Routing stream %d->%d\n", src, dst);
+        if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+            printf("Routing stream %d->%d\n", src, dst);
 
         // Check if 1-hop
         if(scheduler.topology_map.hasEdge(src, dst)) {
             // Add stream as is to final List
-            printf("Stream %d->%d is single hop\n", src, dst);
+            if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                printf("Stream %d->%d is single hop\n", src, dst);
             std::list<ScheduleElement> single_hop;
             single_hop.push_back(ScheduleElement(stream));
             routed_streams.push_back(single_hop);
@@ -512,12 +555,15 @@ std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamInfo>&
         // Calculate path lenght (for limiting DFS)
         unsigned int sol_size = path.size();
         if(path.empty()) {
-            printf("No path found, stream not scheduled\n");
+            if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                printf("No path found, stream not scheduled\n");
             continue;
         }
         // Print routed path
-        printf("Found path of length %d:\n", sol_size);
-        printPath(path);
+        if(ENABLE_SCHEDULE_COMP_INFO_DBG) {
+            printf("Found path of length %d:\n", sol_size);
+            printPath(path);
+        }
         std::list<ScheduleElement> schedule = pathToSchedule(path, stream);
         // Insert routed path in place of multihop stream
         routed_streams.push_back(schedule);
@@ -534,32 +580,42 @@ std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamInfo>&
             // Runs depth first search to get a list of possible paths,
             // with maximum hops = first_solution + more_hops, among
             // which we choose the redundant path.
-            printf("Searching alternative paths of length %d + %d\n", sol_size, more_hops);
+            if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                printf("Searching alternative paths of length %d + %d\n", sol_size, more_hops);
             std::list<std::list<unsigned char>> extra_paths = depthFirstSearch(stream, sol_size + more_hops);
             // Choose best secondary path for redundancy
             if(!extra_paths.empty()) {
                 // Print secondary paths found
-                printf("Secondary Paths found: \n");
-                printPathList(extra_paths);
+                if(ENABLE_SCHEDULE_COMP_INFO_DBG) {
+                    printf("Secondary Paths found: \n");
+                    printPathList(extra_paths);
+                }
                 // Remove primary path from solutions
                 extra_paths.remove(path);
-                printf("Secondary Paths after removing primary path: \n");
-                printPathList(extra_paths);
+                if(ENABLE_SCHEDULE_COMP_INFO_DBG) {
+                    printf("Secondary Paths after removing primary path: \n");
+                    printPathList(extra_paths);
+                }
                 // FInd paths without intermediate nodes in common with primary path
                 std::list<std::list<unsigned char>> indip_paths = findIndependentPaths(extra_paths, path);
                 // If the independent set is not empty choose shortest solution
                 std::list<unsigned char> solution;
                 if(indip_paths.size()) {
-                    printf("Indipendent Paths found: \n");
-                    printPathList(indip_paths);
+                    if(ENABLE_SCHEDULE_COMP_INFO_DBG) {
+                        printf("Indipendent Paths found: \n");
+                        printPathList(indip_paths);
+                    }
                     solution = findShortestPath(indip_paths);
                 }
                 else { // Else pick the shortest non independent solution
-                    printf("Indipendent Paths not found: \n");
+                    if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                        printf("Indipendent Paths not found: \n");
                     solution = findShortestPath(extra_paths);
                 }
-                printf("The best redundand path is:\n");
-                printPath(solution);
+                if(ENABLE_SCHEDULE_COMP_INFO_DBG) {
+                    printf("The best redundand path is:\n");
+                    printPath(solution);
+                }
                 std::list<ScheduleElement> schedule = pathToSchedule(solution, stream);
                 // Add secondary path to list of routed streams
                 routed_streams.push_back(schedule);
@@ -575,12 +631,14 @@ std::list<unsigned char> Router::breadthFirstSearch(StreamInfo stream) {
     unsigned char dest = stream.getDst();
     // Check that the source node exists in the graph
     if(!scheduler.topology_map.hasNode(root)) {
-        printf("Error: source node is not present in TopologyMap\n");
+        if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+            printf("Error: source node is not present in TopologyMap\n");
         return std::list<unsigned char>();
     }
     // Check that the destination node exists in the graph
     if(!scheduler.topology_map.hasNode(dest)) {
-        printf("Error: destination node is not present in TopologyMap\n");
+        if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+            printf("Error: destination node is not present in TopologyMap\n");
         return std::list<unsigned char>();
     }
     // V = maximum number of nodes in the network
@@ -619,7 +677,8 @@ std::list<unsigned char> Router::breadthFirstSearch(StreamInfo stream) {
         visited.at(subtree_root) = true;
     }
     // If the execution ends here, src and dst are not connected in the graph
-    printf("Error: source and destination node are not connected in TopologyMap\n");
+    if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+        printf("Error: source and destination node are not connected in TopologyMap\n");
     return std::list<unsigned char>();
 }
 
@@ -702,9 +761,11 @@ void Router::dfsRun(unsigned char start, unsigned char target, unsigned int limi
 
     // If current node == target -> return path
     if(start == target) {
-        printf("Found redundand path of length %d, ", path.size());
+        if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+            printf("Found redundand path of length %d, ", path.size());
         all_paths.push_back(path);
-        printf("total paths found: %d\n", all_paths.size());
+        if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+            printf("total paths found: %d\n", all_paths.size());
     }
     else{ // If current node != target
         // Recur for all the vertices adjacent to current vertex
@@ -742,11 +803,13 @@ std::list<std::list<unsigned char>> Router::findIndependentPaths(const std::list
     nodes.pop_front();
     nodes.pop_back();
     std::unordered_set<unsigned char> common_nodes(std::begin(nodes), std::end(nodes));
-    printf("Nodes to avoid:\n");
-    for(auto& n : common_nodes) {
-        printf(" %d ", n);
+    if(ENABLE_SCHEDULE_COMP_INFO_DBG) {
+        printf("Nodes to avoid:\n");
+        for(auto& n : common_nodes) {
+            printf(" %d ", n);
+        }
+        printf("\n");
     }
-    printf("\n");
     for(auto& p : path_list) {
         bool ind = true;
         for(auto& e : p) {
