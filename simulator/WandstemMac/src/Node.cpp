@@ -17,6 +17,7 @@
 #include "DisconnectMessage.h"
 #include "network_module/dynamic_tdmh.h"
 #include "network_module/network_configuration.h"
+#include "network_module/stream.h"
 #include <miosix.h>
 #include <iostream>
 #include <stdexcept>
@@ -55,6 +56,7 @@ try {
             3              //maxMissedTimesyncs
     );
     DynamicMediumAccessController controller(Transceiver::instance(), config);
+    tdmh = &controller;
     
     if(connectTime > 0)
     {
@@ -69,7 +71,10 @@ try {
     }
     
     try {
+        thread t(&Node::application, this);
         controller.run();
+        quit.store(true);
+        t.join();
     } catch(DisconnectException&) {
         print_dbg("===> Stopping @ %lld (disconnecTime %lld)\n",getTime(),disconnectTime);
     }
@@ -80,4 +85,19 @@ try {
     if(string(typeid(e).name()).find("cStackCleanupException")==string::npos)
         cerr<<"\nException thrown: "<<e.what()<<endl;
     throw;
+}
+
+void Node::application() {
+    // Open Stream from node 2
+    if(address == 2) {
+        /* Open a Stream to another node */
+        mxnet::Stream(*tdmh,            // Pointer to MediumAccessController
+                     0,                 // Destination node
+                     1,                 // Destination port
+                     Period::P1,        // Period
+                     1,                 // Payload size
+                     Direction::TX,     // Direction
+                     Redundancy::NONE); // Redundancy
+    }
+
 }

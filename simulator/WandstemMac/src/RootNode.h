@@ -16,6 +16,9 @@
 #pragma once
 
 #include "NodeBase.h"
+#include "network_module/tdmh.h"
+#include <thread>
+#include <atomic>
 
 /**
  * The Root Node of the Wandstem Mac.
@@ -23,7 +26,14 @@
  */
 class RootNode : public NodeBase
 {
+public:
+    RootNode() : quit(false) {};
+
 protected:
     virtual void activity();
+    void application();
 
+    /* Pointer to tdmh class for opening streams */
+    mxnet::MediumAccessController* tdmh = nullptr;
+    std::atomic<bool> quit;
 };

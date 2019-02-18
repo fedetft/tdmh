@@ -17,6 +17,7 @@
 
 #include "network_module/master_tdmh.h"
 #include "network_module/network_configuration.h"
+#include "network_module/stream.h"
 #include <iostream>
 #include <stdexcept>
 
@@ -47,11 +48,25 @@ try {
             3              //maxMissedTimesyncs
     );
     MasterMediumAccessController controller(Transceiver::instance(), config);
+    tdmh = &controller;
+    thread t(&RootNode::application, this);
     controller.run();
+    quit.store(true);
+    t.join();
 } catch(exception& e) {
     //Note: omnet++ seems to terminate coroutines with an exception
     //of type cStackCleanupException. Squelch these
     if(string(typeid(e).name()).find("cStackCleanupException")==string::npos)
         cerr<<"\nException thrown: "<<e.what()<<endl;
     throw;
+}
+
+void RootNode::application() {
+    /* Open a StreamServer to listen for incoming streams */
+    mxnet::StreamServer(*tdmh,      // Pointer to MediumAccessController
+                 1,                 // Destination port
+                 Period::P1,        // Period
+                 1,                 // Payload size
+                 Direction::TX,     // Direction
+                 Redundancy::NONE); // Redundancy
 }
