@@ -30,6 +30,12 @@
 #include "tdmh.h"
 #include "packet.h"
 #include "uplink/stream_management/stream_management_element.h"
+#ifdef _MIOSIX
+#include <miosix.h>
+#else
+#include <mutex>
+#include <condition_variable>
+#endif
 
 namespace mxnet {
 
@@ -48,6 +54,9 @@ public:
            Direction direction, Redundancy redundancy);
     ~Stream() {};
 
+    /* Called from StreamManager, to update the status of the Stream
+     * and wake up the Stream thread */
+    void notifyStream(StreamStatus s);
     /* Put data to send through this stream */
     void send(const void* data, int size);
     /* Get data received from this stream */
@@ -73,6 +82,14 @@ private:
     Packet recvBuffer;
     /* Information about this Stream */
     StreamInfo info;
+    /* Thread synchronization */
+#ifdef _MIOSIX
+    miosix::Mutex stream_mutex;
+    miosix::ConditionVariable stream_cv;
+#else
+    std::mutex stream_mutex;
+    std::condition_variable stream_cv;
+#endif
 };
 
 /**
@@ -87,6 +104,9 @@ public:
                  Direction direction, Redundancy redundancy);
     ~StreamServer() {};
 
+    /* Called from StreamManager, to update the status of the StreamServer
+     * and wake up the StreamServer thread */
+    void notifyServer(StreamStatus s);
 
 private:
     /* Reference to MediumAccessController */
@@ -95,6 +115,14 @@ private:
     StreamManager* streamMgr;
     /* Information about this Stream */
     StreamInfo info;
+    /* Thread synchronization */
+#ifdef _MIOSIX
+    miosix::Mutex server_mutex;
+    miosix::ConditionVariable server_cv;
+#else
+    std::mutex server_mutex;
+    std::condition_variable server_cv;
+#endif
 };
 
 } /* namespace mxnet */

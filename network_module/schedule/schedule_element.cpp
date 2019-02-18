@@ -72,7 +72,7 @@ SchedulePacket SchedulePacket::deserialize(Packet& pkt) {
     std::vector<ScheduleElement> elements;
     elements.clear();
     elements.reserve(count);
-    for(int i=0; i < count; i++) {
+    for(unsigned int i=0; i < count; i++) {
         elements.push_back(ScheduleElement::deserialize(pkt));
     }
     SchedulePacket result(header, elements);

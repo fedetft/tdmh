@@ -62,9 +62,9 @@ std::vector<StreamInfo> StreamCollection::getStreamsWithStatus(StreamStatus s) {
 void StreamManager::registerStream(StreamInfo info, Stream* client) {
     // Mutex lock to access the Stream map from the application thread.
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
 #else
-    std::unique_lock<std::mutex> lck(stream_mutex);
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     // Register Stream class pointer in client map
     clientMap[info.getStreamId()] = client;
@@ -80,9 +80,9 @@ void StreamManager::registerStream(StreamInfo info, Stream* client) {
 void StreamManager::deregisterStream(StreamInfo info) {
     // Mutex lock to access the Stream map from the application thread.
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
 #else
-    std::unique_lock<std::mutex> lck(stream_mutex);
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     // Remove Stream class pointer in stream map
     clientMap.erase(info.getStreamId());
@@ -98,9 +98,9 @@ void StreamManager::deregisterStream(StreamInfo info) {
 void StreamManager::registerStreamServer(StreamInfo info, StreamServer* server) {
     // Mutex lock to access the Stream map from the application thread.
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
 #else
-    std::unique_lock<std::mutex> lck(stream_mutex);
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     // Register StreamServer class pointer in server map
     serverMap[info.getStreamId()] = server;
@@ -113,12 +113,21 @@ void StreamManager::registerStreamServer(StreamInfo info, StreamServer* server) 
     added_flag = true;
 }
 
+void StreamManager::notifyStreams(const std::vector<ExplicitScheduleElement>& schedule) {
+    for(auto& elem : schedule) {
+        StreamId id = elem.getStreamId();
+        // If stream is registered on this node, set status to ACCEPTED
+        if (streamMap.find(id) != streamMap.end())
+            streamMap[id].setStatus(StreamStatus::ACCEPTED);
+    }
+}
+
 unsigned char StreamManager::getStreamNumber() {
     // Mutex lock to access the shared container StreamMap
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
 #else
-    std::unique_lock<std::mutex> lck(stream_mutex);
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     return streamMap.size();
 }
@@ -126,9 +135,9 @@ unsigned char StreamManager::getStreamNumber() {
 StreamStatus StreamManager::getStreamStatus(StreamId id) {
     // Mutex lock to access the shared container StreamMap
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
 #else
-    std::unique_lock<std::mutex> lck(stream_mutex);
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     // Check if stream exists
     if (streamMap.find(id) == streamMap.end())
@@ -140,9 +149,9 @@ StreamStatus StreamManager::getStreamStatus(StreamId id) {
 void StreamManager::setStreamStatus(StreamId id, StreamStatus status) {
     // Mutex lock to access the shared container StreamMap
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
 #else
-    std::unique_lock<std::mutex> lck(stream_mutex);
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     // Check if stream exists
     if (streamMap.find(id) != streamMap.end())
@@ -152,9 +161,9 @@ void StreamManager::setStreamStatus(StreamId id, StreamStatus status) {
 void StreamManager::addStream(const StreamInfo& stream) {
     // Mutex lock to access the shared container StreamMap
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
 #else
-    std::unique_lock<std::mutex> lck(stream_mutex);
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     streamMap[stream.getStreamId()] = stream;
     // Set flags
@@ -165,9 +174,9 @@ void StreamManager::addStream(const StreamInfo& stream) {
 StreamCollection StreamManager::getSnapshot() {
     // Mutex lock to access the shared container StreamMap
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
 #else
-    std::unique_lock<std::mutex> lck(stream_mutex);
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     return StreamCollection(streamMap);
 }
@@ -175,9 +184,9 @@ StreamCollection StreamManager::getSnapshot() {
 unsigned char StreamManager::getNumSME() {
     // Mutex lock to access the shared container StreamMap
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
 #else
-    std::unique_lock<std::mutex> lck(stream_mutex);
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     return smeQueue.size();
 }
@@ -185,9 +194,9 @@ unsigned char StreamManager::getNumSME() {
 std::vector<StreamManagementElement> StreamManager::dequeueSMEs(unsigned char count) {
     // Mutex lock to access the shared container StreamMap
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
 #else
-    std::unique_lock<std::mutex> lck(stream_mutex);
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     unsigned char available = smeQueue.size();
     unsigned char num = std::min(count, available);
@@ -203,9 +212,9 @@ std::vector<StreamManagementElement> StreamManager::dequeueSMEs(unsigned char co
 void StreamManager::enqueueSMEs(std::vector<StreamManagementElement> smes) {
     // Mutex lock to access the shared container StreamMap
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
 #else
-    std::unique_lock<std::mutex> lck(stream_mutex);
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     for(auto& sme: smes) {
         smeQueue.push(sme);
@@ -215,9 +224,9 @@ void StreamManager::enqueueSMEs(std::vector<StreamManagementElement> smes) {
 unsigned char StreamManager::getNumInfo() {
     // Mutex lock to access the shared container StreamMap
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
 #else
-    std::unique_lock<std::mutex> lck(stream_mutex);
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     return infoQueue.size();
 }
@@ -225,9 +234,9 @@ unsigned char StreamManager::getNumInfo() {
 std::vector<InfoElement> StreamManager::dequeueInfo(unsigned char count) {
     // Mutex lock to access the shared container StreamMap
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
 #else
-    std::unique_lock<std::mutex> lck(stream_mutex);
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     unsigned char available = infoQueue.size();
     unsigned char num = std::min(count, available);
@@ -243,9 +252,9 @@ std::vector<InfoElement> StreamManager::dequeueInfo(unsigned char count) {
 void StreamManager::enqueueInfo(std::vector<InfoElement> infos) {
     // Mutex lock to access the shared container StreamMap
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
 #else
-    std::unique_lock<std::mutex> lck(stream_mutex);
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     for(auto& info : infos) {
         infoQueue.push(info);
@@ -255,9 +264,9 @@ void StreamManager::enqueueInfo(std::vector<InfoElement> infos) {
 void StreamManager::receiveInfo() {
     // Mutex lock to access the shared container StreamMap
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
 #else
-    std::unique_lock<std::mutex> lck(stream_mutex);
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     while(!infoQueue.empty()) {
         InfoElement info = infoQueue.front();
@@ -268,13 +277,15 @@ void StreamManager::receiveInfo() {
             case InfoType::ACK_LISTEN:
                 if(streamMap[id].getStatus() == StreamStatus::LISTEN_REQ) {
                     streamMap[id].setStatus(StreamStatus::LISTEN);
-                    // TODO: Notify corresponding Stream
+                    // Notify Server thread
+                    serverMap[id]->notifyServer(StreamStatus::LISTEN);
                 }
                 break;
             case InfoType::NACK_CONNECT:
                 if(streamMap[id].getStatus() == StreamStatus::CONNECT_REQ) {
                     streamMap[id].setStatus(StreamStatus::REJECTED);
-                    // TODO: Notify and close corresponding Stream 
+                    // Notify Stream thread
+                    clientMap[id]->notifyStream(StreamStatus::REJECTED);
                 }
                 break;
             }

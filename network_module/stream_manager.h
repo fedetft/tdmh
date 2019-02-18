@@ -100,6 +100,11 @@ public:
     void deregisterStream(StreamInfo info);
     // Used by the StreamServer class to register itself in the Server Map
     void registerStreamServer(StreamInfo info, StreamServer* server);
+    /** Used to update the status of the Stream and wake up the corresponding thread
+     *  when receiving a new schedule containing that Stream.
+     *  used by the DynamicScheduleDownlinkPhase
+     */
+    void notifyStreams(const std::vector<ExplicitScheduleElement>& schedule);
     // Used by the DataPhase to put/get data to/from buffers
     void putBuffer(StreamId id, Packet& pkt) {
         clientMap[id]->putRecvBuffer(pkt);
@@ -201,9 +206,9 @@ protected:
     std::queue<InfoElement> infoQueue;
     /* Thread synchronization */
 #ifdef _MIOSIX
-    miosix::Mutex stream_mutex;
+    miosix::Mutex streamMgr_mutex;
 #else
-    std::mutex stream_mutex;
+    std::mutex streamMgr_mutex;
 #endif
     /* Flags used by the master node to get whether the streams were changed
        IMPORTANT: this bit must be set to true whenever the data structure is modified */
