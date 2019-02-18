@@ -259,7 +259,6 @@ void StreamManager::receiveInfo() {
 #else
     std::unique_lock<std::mutex> lck(stream_mutex);
 #endif
-    printf("infoQueue size:%d", infoQueue.size());
     while(!infoQueue.empty()) {
         InfoElement info = infoQueue.front();
         StreamId id = info.getStreamId();

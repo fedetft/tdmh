@@ -77,7 +77,6 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
         }
         checkTimeSetSchedule();
     }
-    printf("infoQueue size:%d \n",streamMgr->getNumInfo());
     streamMgr->receiveInfo();
     //printStatus();
 }
