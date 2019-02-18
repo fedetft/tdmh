@@ -45,4 +45,17 @@ Stream::Stream(MediumAccessController& tdmh, unsigned char dst,
     streamMgr->registerStream(info, this);
 }
 
+StreamServer::StreamServer(MediumAccessController& tdmh, unsigned char dstPort,
+                           Period period, unsigned char payloadSize,
+                           Direction direction, Redundancy redundancy=Redundancy::NONE) : tdmh(tdmh) {
+    // Save Stream parameters in StreamInfo
+    MACContext* ctx = tdmh.getMACContext();
+    streamMgr = ctx->getStreamManager();
+    unsigned char dst = ctx->getNetworkId();
+    info = StreamInfo(0, dst, 0, dstPort, period, payloadSize,
+                      direction, redundancy);
+    // Register Stream to StreamManager (with thread synchronization)
+    streamMgr->registerStreamServer(info, this);
+}
+
 }

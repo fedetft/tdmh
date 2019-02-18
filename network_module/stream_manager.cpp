@@ -59,15 +59,15 @@ std::vector<StreamInfo> StreamCollection::getStreamsWithStatus(StreamStatus s) {
     return result;
 }
 
-void StreamManager::registerStream(StreamInfo info, Stream* stream) {
+void StreamManager::registerStream(StreamInfo info, Stream* client) {
     // Mutex lock to access the Stream map from the application thread.
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(stream_mutex);
 #else
     std::unique_lock<std::mutex> lck(stream_mutex);
 #endif
-    // Register Stream class pointer in stream map
-    clientMap[info.getStreamId()] = stream;
+    // Register Stream class pointer in client map
+    clientMap[info.getStreamId()] = client;
     // Register Stream information and status
     streamMap[info.getStreamId()] = StreamInfo(info, StreamStatus::CONNECT_REQ);
     // Push corresponding SME on the queue
@@ -93,6 +93,24 @@ void StreamManager::deregisterStream(StreamInfo info) {
     // Set flags
     modified_flag = true;
     removed_flag = true;
+}
+
+void StreamManager::registerStreamServer(StreamInfo info, StreamServer* server) {
+    // Mutex lock to access the Stream map from the application thread.
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    // Register StreamServer class pointer in server map
+    serverMap[info.getStreamId()] = server;
+    // Register Stream information and status
+    streamMap[info.getStreamId()] = StreamInfo(info, StreamStatus::LISTEN_REQ);
+    // Push corresponding SME on the queue
+    smeQueue.push(StreamManagementElement(info, StreamStatus::LISTEN));
+    // Set flags
+    modified_flag = true;
+    added_flag = true;
 }
 
 unsigned char StreamManager::getStreamNumber() {
@@ -235,6 +253,13 @@ void StreamManager::enqueueInfo(std::vector<InfoElement> infos) {
 }
 
 void StreamManager::receiveInfo() {
+    // Mutex lock to access the shared container StreamMap
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    printf("infoQueue size:%d", infoQueue.size());
     while(!infoQueue.empty()) {
         InfoElement info = infoQueue.front();
         StreamId id = info.getStreamId();

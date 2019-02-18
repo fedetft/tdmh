@@ -95,11 +95,11 @@ public:
     ~StreamManager() {};
 
     // Used by the Stream class to register itself in the Stream Map
-    void registerStream(StreamInfo info, Stream* stream);
+    void registerStream(StreamInfo info, Stream* client);
     // Used by the Stream class to get removed from the Stream Map
     void deregisterStream(StreamInfo info);
     // Used by the StreamServer class to register itself in the Server Map
-    void registerStreamServer(StreamInfo info, Stream* stream);
+    void registerStreamServer(StreamInfo info, StreamServer* server);
     // Used by the DataPhase to put/get data to/from buffers
     void putBuffer(StreamId id, Packet& pkt) {
         clientMap[id]->putRecvBuffer(pkt);
@@ -190,8 +190,7 @@ public:
 
 protected:
     /* Map containing pointers to StreamServer classes in this node */
-    //TODO make this a map<StreamId, StreamServer*
-    std::map<StreamId, Stream*> serverMap;
+    std::map<StreamId, StreamServer*> serverMap;
     /* Map containing pointers to Stream classes in this node */
     std::map<StreamId, Stream*> clientMap;
     /* Map containing information about Streams related to this node */
