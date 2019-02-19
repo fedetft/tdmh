@@ -172,7 +172,17 @@ void ScheduleComputation::run() {
                 stream_snapshot.setStreamStatus(stream.getStreamId(), StreamStatus::ESTABLISHED);
                 stream_mgmt.setStreamStatus(stream.getStreamId(), StreamStatus::ESTABLISHED);
             }
-            // TODO: Mark streams not scheduled as REJECTED
+            // Mark streams in snapshot that are ACCEPTED but not scheduled as REJECTED
+            for(auto& stream: stream_snapshot.getStreams()) {
+                if(stream.getStatus() == StreamStatus::ACCEPTED) {
+                    stream_snapshot.setStreamStatus(stream.getStreamId(), StreamStatus::REJECTED);
+                    stream_mgmt.setStreamStatus(stream.getStreamId(), StreamStatus::REJECTED);
+                    // Enqueue NACK_CONNECT to inform Stream
+                    std::vector<InfoElement> infos;
+                    infos.push_back(InfoElement(stream.getStreamId(), InfoType::NACK_CONNECT));
+                    stream_mgmt.enqueueInfo(infos);
+                }
+            }
         }
         if(changed == true) {
             // NOTE: schedule with ScheduleID=0 are not sent in MasterScheduleDistribution
@@ -189,7 +199,8 @@ void ScheduleComputation::run() {
         }
         if(ENABLE_STREAM_LIST_INFO_DBG){
             printf("[SC] Stream list after scheduling:\n");
-            printStreams(stream_snapshot.getStreams());
+            StreamCollection streams = stream_mgmt.getSnapshot();
+            printStreams(streams.getStreams());
         }
 
         // To avoid caching of stdout
