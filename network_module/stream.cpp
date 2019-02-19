@@ -55,9 +55,7 @@ Stream::Stream(MediumAccessController& tdmh, unsigned char dst,
         // Condition variable to wait for notification from StreamManager
         stream_cv.wait(lck);
     }
-    if(info.getStatus() != StreamStatus::CONNECT &&
-       info.getStatus() != StreamStatus::ACCEPTED)
-        throw std::runtime_error("Stream opening failed!");
+    //TODO: if stream opening is not successful, notify the user
 }
 
 void Stream::notifyStream(StreamStatus s) {

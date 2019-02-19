@@ -21,6 +21,7 @@
 #include <miosix.h>
 #include <iostream>
 #include <stdexcept>
+#include <chrono>
 
 Define_Module(Node);
 
@@ -88,7 +89,12 @@ try {
 }
 
 void Node::application() {
-    // Open Stream from node 2
+    /* Wait for TDMH to become ready */
+    MACContext* ctx = tdmh->getMACContext();
+    while(!ctx->isReady()) {
+        this_thread::sleep_for(chrono::seconds(2));
+    }
+    /* Open Stream from node 2 */
     if(address == 2) {
         /* Open a Stream to another node */
         mxnet::Stream(*tdmh,            // Pointer to MediumAccessController

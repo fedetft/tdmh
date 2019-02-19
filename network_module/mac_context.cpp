@@ -163,6 +163,15 @@ void MACContext::run()
     warmUp();
     transceiver.turnOn();
     timesync->macStartHook();
+    {
+        // Mutex lock to access the ready variable from the application thread.
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(ready_mutex);
+#else
+        std::unique_lock<std::mutex> lck(ready_mutex);
+#endif
+        ready = true;
+    }
     startScheduler();
 
     long long currentNextDeadline = 0;
@@ -218,6 +227,16 @@ void MACContext::run()
 
 void MACContext::stop() {
     running = false;
+}
+
+bool MACContext::isReady() {
+    // Mutex lock to access the ready variable from the application thread.
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(ready_mutex);
+#else
+    std::unique_lock<std::mutex> lck(ready_mutex);
+#endif
+    return ready;
 }
 
 }

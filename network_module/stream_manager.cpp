@@ -60,6 +60,7 @@ std::vector<StreamInfo> StreamCollection::getStreamsWithStatus(StreamStatus s) {
 }
 
 void StreamManager::registerStream(StreamInfo info, Stream* client) {
+    printf("Stream registered! \n");
     // Mutex lock to access the Stream map from the application thread.
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
@@ -96,6 +97,7 @@ void StreamManager::deregisterStream(StreamInfo info) {
 }
 
 void StreamManager::registerStreamServer(StreamInfo info, StreamServer* server) {
+    printf("StreamServer registered! \n");
     // Mutex lock to access the Stream map from the application thread.
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
@@ -278,6 +280,7 @@ void StreamManager::receiveInfo() {
                 if(streamMap[id].getStatus() == StreamStatus::LISTEN_REQ) {
                     streamMap[id].setStatus(StreamStatus::LISTEN);
                     // Notify Server thread
+                    printf("[SM] StreamServer %d->%d LISTEN\n", id.src, id.dst);
                     serverMap[id]->notifyServer(StreamStatus::LISTEN);
                 }
                 break;
@@ -285,6 +288,7 @@ void StreamManager::receiveInfo() {
                 if(streamMap[id].getStatus() == StreamStatus::CONNECT_REQ) {
                     streamMap[id].setStatus(StreamStatus::REJECTED);
                     // Notify Stream thread
+                    printf("[SM] Stream %d->%d REJECTED\n", id.src, id.dst);
                     clientMap[id]->notifyStream(StreamStatus::REJECTED);
                 }
                 break;

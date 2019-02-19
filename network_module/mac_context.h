@@ -35,6 +35,12 @@
 #include "stream_manager.h"
 #include <functional>
 #include <stdexcept>
+// For thread synchronization
+#ifdef _MIOSIX
+#include <miosix.h>
+#else
+#include <mutex>
+#endif
 
 namespace mxnet {
 
@@ -226,6 +232,8 @@ public:
 
     void stop();
 
+    bool isReady();
+
     virtual void startScheduler() {};
 
     virtual void beginScheduling() {};
@@ -271,6 +279,13 @@ private:
 
     volatile bool running;
     const bool sleepDeep=false; //TODO: make it configurable
+    bool ready = false;
+    /* Thread synchronization */
+#ifdef _MIOSIX
+    miosix::Mutex ready_mutex;
+#else
+    std::mutex ready_mutex;
+#endif
 
 };
 }

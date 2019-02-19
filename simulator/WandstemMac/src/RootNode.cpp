@@ -20,6 +20,7 @@
 #include "network_module/stream.h"
 #include <iostream>
 #include <stdexcept>
+#include <chrono>
 
 Define_Module(RootNode);
 
@@ -62,6 +63,11 @@ try {
 }
 
 void RootNode::application() {
+    /* Wait for TDMH to become ready */
+    MACContext* ctx = tdmh->getMACContext();
+    while(!ctx->isReady()) {
+        this_thread::sleep_for(chrono::seconds(1));
+    }
     /* Open a StreamServer to listen for incoming streams */
     mxnet::StreamServer(*tdmh,      // Pointer to MediumAccessController
                  1,                 // Destination port

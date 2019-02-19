@@ -66,6 +66,10 @@ public:
 
     void open(const StreamInfo& sme);
 
+    StreamManager* getStreamManager() {
+        return &stream_mgmt;
+    }
+
 private: 
     void run();
 
