@@ -51,7 +51,6 @@ Stream::Stream(MediumAccessController& tdmh, unsigned char dst,
     // Wait for notification from StreamStatus
     stream_cv.wait(lck);
     while(info.getStatus() == StreamStatus::CONNECT_REQ) {
-        printf("CONNECT Request sent, waiting for notification...\n");
         // Condition variable to wait for notification from StreamManager
         stream_cv.wait(lck);
     }
@@ -88,7 +87,6 @@ StreamServer::StreamServer(MediumAccessController& tdmh, unsigned char dstPort,
     // Wait for notification from StreamStatus
     server_cv.wait(lck);
     while(info.getStatus() == StreamStatus::LISTEN_REQ) {
-        printf("LISTEN Request sent, waiting for notification...\n");
         // Condition variable to wait for notification from StreamManager
         server_cv.wait(lck);
     }

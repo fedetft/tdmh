@@ -79,7 +79,7 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
 }
 
 void ScheduleDownlinkPhase::printSchedule(unsigned char nodeID) {
-    printf("Node: %d, implicit schedule n. %lu\n", nodeID, header.getScheduleID());
+    printf("[SD] Node: %d, implicit schedule n. %lu\n", nodeID, header.getScheduleID());
     printf("ID   TX  RX  PER OFF\n");
     for(auto& elem : schedule) {
         printf("%d  %d-->%d   %d   %d\n", elem.getKey(), elem.getTx(), elem.getRx(),
@@ -129,10 +129,10 @@ void ScheduleDownlinkPhase::printSchedule(unsigned char nodeID) {
 void ScheduleDownlinkPhase::printCompleteSchedule() {
     auto myID = ctx.getNetworkId();
     if(myID == 0)
-        printf("### Schedule distribution, Master node\n");
+        printf("[SD] ### Schedule distribution, Master node\n");
     auto maxNodes = ctx.getNetworkConfig().getMaxNodes();
     printSchedule(myID);
-    printf("### Explicit Schedule for all nodes\n");
+    printf("[SD] ### Explicit Schedule for all nodes\n");
     std::vector<ExplicitScheduleElement> nodeSchedule;
     for(unsigned char node = 0; node < maxNodes; node++)
     {
@@ -148,7 +148,7 @@ void ScheduleDownlinkPhase::checkTimeSetSchedule() {
     auto tilesPassedTotal = nt.get() / tileDuration;
     if (tilesPassedTotal == header.getActivationTile()) {
         if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
-            print_dbg("[D] Activating schedule n.%2d", explicitScheduleID);
+            print_dbg("[SD] Activating schedule n.%2d", explicitScheduleID);
         dataPhase->setSchedule(explicitSchedule);
         dataPhase->setScheduleTiles(header.getScheduleTiles());
         dataPhase->setScheduleActivationTile(header.getActivationTile());

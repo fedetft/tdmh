@@ -95,7 +95,7 @@ void ScheduleComputation::run() {
             // ELSE we can begin scheduling 
             // Take snapshot of stream requests and network topology
             if(ENABLE_STREAM_LIST_INFO_DBG)
-                printf("\nStream number in master: %d\n", stream_mgmt.getStreamNumber());
+                printf("\n[SC] Stream number in master: %d\n", stream_mgmt.getStreamNumber());
             stream_snapshot = stream_mgmt.getSnapshot();
             topology_map = topology_ctx.getTopologyMap();
         }
@@ -115,7 +115,7 @@ void ScheduleComputation::run() {
         }
 
         if(ENABLE_STREAM_LIST_INFO_DBG){
-            printf("Stream list before scheduling:\n");
+            printf("[SC] Stream list before scheduling:\n");
             printStreams(stream_snapshot.getStreams());
         }
 
@@ -186,7 +186,7 @@ void ScheduleComputation::run() {
             printSchedule();
         }
         if(ENABLE_STREAM_LIST_INFO_DBG){
-            printf("Stream list after scheduling:\n");
+            printf("[SC] Stream list after scheduling:\n");
             printStreams(stream_snapshot.getStreams());
         }
 

@@ -60,7 +60,7 @@ std::vector<StreamInfo> StreamCollection::getStreamsWithStatus(StreamStatus s) {
 }
 
 void StreamManager::registerStream(StreamInfo info, Stream* client) {
-    printf("Stream registered! \n");
+    printf("[SM] Stream registered! \n");
     // Mutex lock to access the Stream map from the application thread.
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
@@ -97,7 +97,7 @@ void StreamManager::deregisterStream(StreamInfo info) {
 }
 
 void StreamManager::registerStreamServer(StreamInfo info, StreamServer* server) {
-    printf("StreamServer registered! \n");
+    printf("[SM] StreamServer registered! \n");
     // Mutex lock to access the Stream map from the application thread.
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
