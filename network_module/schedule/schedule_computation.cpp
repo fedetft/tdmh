@@ -131,8 +131,6 @@ void ScheduleComputation::run() {
         if(ENABLE_SCHEDULE_COMP_INFO_DBG) {
             printf("Established streams: %d\n", established_streams.size());
             printf("Accepted streams: %d\n", accepted_streams.size());
-            printStreams(established_streams);
-            printStreams(accepted_streams);
         }
 
         /* If topology changed or a stream was removed:
@@ -172,7 +170,9 @@ void ScheduleComputation::run() {
                 if(ENABLE_SCHEDULE_COMP_INFO_DBG)
                     printf("Setting stream %d to ESTABLISHED\n", stream.getKey());
                 stream_snapshot.setStreamStatus(stream.getStreamId(), StreamStatus::ESTABLISHED);
+                stream_mgmt.setStreamStatus(stream.getStreamId(), StreamStatus::ESTABLISHED);
             }
+            // TODO: Mark streams not scheduled as REJECTED
         }
         if(changed == true) {
             // NOTE: schedule with ScheduleID=0 are not sent in MasterScheduleDistribution
