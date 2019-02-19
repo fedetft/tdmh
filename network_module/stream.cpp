@@ -68,6 +68,69 @@ void Stream::notifyStream(StreamStatus s) {
 #endif
 }
 
+void Stream::send(const void* data, int size) {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(send_mutex);
+#else
+    std::unique_lock<std::mutex> lck(send_mutex);
+#endif
+    // Wait for sendBuffer to be empty
+    send_cv.wait(lck);
+    while(sendBuffer.size() != 0) {
+        // Condition variable to wait for buffer to be empty
+        send_cv.wait(lck);
+    }
+    sendBuffer.put(data, size);
+}
+
+void Stream::recv(void* data, int size) {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(recv_mutex);
+#else
+    std::unique_lock<std::mutex> lck(recv_mutex);
+#endif
+    // Wait for recvBuffer to be non empty
+    recv_cv.wait(lck);
+    while(recvBuffer.size() == 0) {
+        // Condition variable to wait for buffer to be non empty
+        recv_cv.wait(lck);
+    }
+}
+
+
+Packet Stream::getSendBuffer() {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(send_mutex);
+#else
+    std::unique_lock<std::mutex> lck(send_mutex);
+#endif
+    return sendBuffer;
+    // Clear buffer
+    sendBuffer.clear();
+    // Wake up the Application thread calling the send
+#ifdef _MIOSIX
+    send_cv.signal();
+#else
+    send_cv.notify_one();
+#endif
+}
+
+void Stream::putRecvBuffer(Packet& pkt) {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(recv_mutex);
+#else
+    std::unique_lock<std::mutex> lck(recv_mutex);
+#endif
+    recvBuffer = pkt;
+    // Wake up the Application thread calling the recv
+#ifdef _MIOSIX
+    recv_cv.signal();
+#else
+    recv_cv.notify_one();
+#endif
+
+}
+
 StreamServer::StreamServer(MediumAccessController& tdmh, unsigned char dstPort,
                            Period period, unsigned char payloadSize,
                            Direction direction, Redundancy redundancy=Redundancy::NONE) : tdmh(tdmh) {

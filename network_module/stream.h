@@ -63,13 +63,10 @@ public:
     void recv(void* data, int size);
 
     /* ### Not to be called by the end user ### */
-    // Used by the StreamManager class to put/get data to/from buffers 
-    Packet getSendBuffer() {
-        return sendBuffer;
-    }
-    void putRecvBuffer(Packet& pkt) {
-        recvBuffer = pkt;
-    }
+    /* Used by the StreamManager class to get data from buffer */
+    Packet getSendBuffer();
+    /* Used by the StreamManager class to put data to buffer */
+    void putRecvBuffer(Packet& pkt);
 
 private:
     /* Reference to MediumAccessController */
@@ -85,10 +82,18 @@ private:
     /* Thread synchronization */
 #ifdef _MIOSIX
     miosix::Mutex stream_mutex;
+    miosix::Mutex send_mutex;
+    miosix::Mutex recv_mutex;
     miosix::ConditionVariable stream_cv;
+    miosix::ConditionVariable send_cv;
+    miosix::ConditionVariable recv_cv;
 #else
     std::mutex stream_mutex;
+    std::mutex send_mutex;
+    std::mutex recv_mutex;
     std::condition_variable stream_cv;
+    std::condition_variable send_cv;
+    std::condition_variable recv_cv;
 #endif
 };
 
