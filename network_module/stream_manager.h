@@ -91,7 +91,7 @@ private:
 
 class StreamManager {
 public:
-    StreamManager() {};
+    StreamManager(unsigned char id) : myId(id) {};
     ~StreamManager() {};
 
     // Used by the Stream class to register itself in the Stream Map
@@ -194,6 +194,8 @@ public:
     };
 
 protected:
+    /* NetworkId of this node */
+    unsigned char myId;
     /* Map containing pointers to StreamServer classes in this node */
     std::map<StreamId, StreamServer*> serverMap;
     /* Map containing pointers to Stream classes in this node */

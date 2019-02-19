@@ -121,7 +121,7 @@ private:
         return temp ? (a / temp * b) : 0;
     };
 
-    // Class containing information about Streams
+    // Classes containing information about Streams
     StreamManager stream_mgmt;
     StreamCollection stream_snapshot;
     // Final stream list after scheduling

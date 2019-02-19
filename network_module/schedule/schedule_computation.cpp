@@ -45,7 +45,9 @@ namespace mxnet {
 ScheduleComputation::ScheduleComputation(MACContext& mac_ctx, MasterMeshTopologyContext& topology_ctx) : 
     topology_ctx(topology_ctx), mac_ctx(mac_ctx), netconfig(mac_ctx.getNetworkConfig()),
     superframe(netconfig.getControlSuperframeStructure()),
-    topology_map(mac_ctx.getNetworkConfig().getMaxNodes()) {
+    topology_map(mac_ctx.getNetworkConfig().getMaxNodes()),
+    stream_mgmt(0) // Initialize StreamManager with ID=0 (Master node)
+{
     // schedule_size must always be initialized to the number of tiles in superframe
     schedule_size = superframe.size();
 }
@@ -238,15 +240,24 @@ void ScheduleComputation::receiveSMEs(const std::vector<StreamManagementElement>
     for(auto& sme: smes) {
         StreamStatus status = sme.getStatus();
         StreamId id = sme.getStreamId();
+        // StreamId used to match LISTEN Streams StreamId(dst, dst, 0, dstPort)
+        StreamId listenId(id.dst, id.dst, 0, id.dstPort);
         // Handle each SME
         switch(status){
             // If status == CONNECT, check for a corresponding LISTEN
         case StreamStatus::CONNECT:
-            if(stream_mgmt.getStreamStatus(id) == StreamStatus::LISTEN) {
+            // Search for corresponding LISTEN StreamId
+            printf("[SC] Received CONNECT, checking for LISTEN with (%d,%d,%d,%d)\n",
+                   listenId.src, listenId.dst, listenId.srcPort, listenId.dstPort);
+            if(stream_mgmt.getStreamStatus(listenId) == StreamStatus::LISTEN) {
                 // Mark stream as accepted
-                stream_mgmt.setStreamStatus(id, StreamStatus::ACCEPTED);
+                printf("[SC] LISTEN found, stream ACCEPTED\n");
+                // Add stream because we just received the SME
+                // TODO: add parameter negotiation between Client and Server
+                stream_mgmt.addStream(StreamInfo(sme, StreamStatus::ACCEPTED));
             }
             else{
+                printf("[SC] LISTEN not found, stream REJECTED\n");
                 // Enqueue NACK_CONNECT
                 infos.push_back(InfoElement(id, InfoType::NACK_CONNECT));
             }
@@ -265,6 +276,8 @@ void ScheduleComputation::receiveSMEs(const std::vector<StreamManagementElement>
             break;
         }
     }
+    // To avoid caching of stdout
+    fflush(stdout);
     // Enqueue vector of InfoElement
     stream_mgmt.enqueueInfo(infos);
 }
@@ -495,16 +508,22 @@ void ScheduleComputation::printSchedule() {
 }
 
 void ScheduleComputation::printStreams(const std::vector<StreamInfo>& stream_list) {
-    printf("ID  SRC DST PER STS\n");
+    printf("ID SRC DST PER STS\n");
     for(auto& stream : stream_list) {
-        printf("%d  %d-->%d   %d  ", stream.getKey(), stream.getSrc(),
+        printf("%d   %d-->%d   %d  ", stream.getKey(), stream.getSrc(),
                stream.getDst(), toInt(stream.getPeriod()));
         switch(stream.getStatus()){
         case StreamStatus::CLOSED:
             printf("CLD");
             break;
+        case StreamStatus::LISTEN_REQ:
+            printf("LIR");
+            break;
         case StreamStatus::LISTEN:
             printf("LIS");
+            break;
+        case StreamStatus::CONNECT_REQ:
+            printf("COR");
             break;
         case StreamStatus::CONNECT:
             printf("CON");

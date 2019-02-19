@@ -80,7 +80,8 @@ StreamServer::StreamServer(MediumAccessController& tdmh, unsigned char dstPort,
     MACContext* ctx = tdmh.getMACContext();
     streamMgr = ctx->getStreamManager();
     unsigned char dst = ctx->getNetworkId();
-    info = StreamInfo(0, dst, 0, dstPort, period, payloadSize,
+    // NOTE: The StreamId of a LISTEN request is StreamId(dst, dst, 0, dstPort)
+    info = StreamInfo(dst, dst, 0, dstPort, period, payloadSize,
                       direction, redundancy);
     // Register Stream to StreamManager
     streamMgr->registerStreamServer(info, this);

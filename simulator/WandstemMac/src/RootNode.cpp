@@ -70,7 +70,7 @@ void RootNode::application() {
     }
     /* Open a StreamServer to listen for incoming streams */
     mxnet::StreamServer(*tdmh,      // Pointer to MediumAccessController
-                 1,                 // Destination port
+                 0,                 // Destination port
                  Period::P1,        // Period
                  1,                 // Payload size
                  Direction::TX,     // Direction

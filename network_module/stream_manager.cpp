@@ -89,8 +89,11 @@ void StreamManager::deregisterStream(StreamInfo info) {
     clientMap.erase(info.getStreamId());
     // Mark Stream as closed
     streamMap[info.getStreamId()].setStatus(StreamStatus::CLOSED);
-    // Push corresponding SME on the queue
-    smeQueue.push(StreamManagementElement(info, StreamStatus::CLOSED));
+    // Send SME only if we are in a dynamic node
+    if(myId != 0) {
+        // Push corresponding SME on the queue
+        smeQueue.push(StreamManagementElement(info, StreamStatus::CLOSED));
+    }
     // Set flags
     modified_flag = true;
     removed_flag = true;
@@ -106,10 +109,18 @@ void StreamManager::registerStreamServer(StreamInfo info, StreamServer* server) 
 #endif
     // Register StreamServer class pointer in server map
     serverMap[info.getStreamId()] = server;
-    // Register Stream information and status
-    streamMap[info.getStreamId()] = StreamInfo(info, StreamStatus::LISTEN_REQ);
-    // Push corresponding SME on the queue
-    smeQueue.push(StreamManagementElement(info, StreamStatus::LISTEN));
+    // If we are in a dynamic node, send SME
+    if(myId != 0) {
+        // Register Stream information and status
+        streamMap[info.getStreamId()] = StreamInfo(info, StreamStatus::LISTEN_REQ);
+        // Push corresponding SME on the queue
+        smeQueue.push(StreamManagementElement(info, StreamStatus::LISTEN));
+    }
+    // If we are in the master node, no need to send SME
+    else {
+        // Register Stream information and status
+        streamMap[info.getStreamId()] = StreamInfo(info, StreamStatus::LISTEN);
+    }
     // Set flags
     modified_flag = true;
     added_flag = true;
@@ -156,8 +167,19 @@ void StreamManager::setStreamStatus(StreamId id, StreamStatus status) {
     std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     // Check if stream exists
-    if (streamMap.find(id) != streamMap.end())
+    if (streamMap.find(id) != streamMap.end()) {
+        printf("[SM] Stream found, changing status\n");
         streamMap[id].setStatus(status);
+        // Set flags
+        modified_flag = true;
+        if(status == StreamStatus::ACCEPTED)
+            added_flag = true;
+        if(status == StreamStatus::CLOSED)
+            removed_flag = true;
+    }
+    else {
+        printf("[SM] Stream not found\n");
+    }
 }
 
 void StreamManager::addStream(const StreamInfo& stream) {

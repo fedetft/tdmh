@@ -92,14 +92,16 @@ void Node::application() {
     /* Wait for TDMH to become ready */
     MACContext* ctx = tdmh->getMACContext();
     while(!ctx->isReady()) {
-        this_thread::sleep_for(chrono::seconds(2));
+        this_thread::sleep_for(chrono::seconds(1));
     }
+    /* Delay the Stream opening so it gets opened after the StreamServer */
+    this_thread::sleep_for(chrono::seconds(1));
     /* Open Stream from node 2 */
     if(address == 2) {
         /* Open a Stream to another node */
         mxnet::Stream(*tdmh,            // Pointer to MediumAccessController
                      0,                 // Destination node
-                     1,                 // Destination port
+                     0,                 // Destination port
                      Period::P1,        // Period
                      1,                 // Payload size
                      Direction::TX,     // Direction
