@@ -75,7 +75,6 @@ void Stream::send(const void* data, int size) {
     std::unique_lock<std::mutex> lck(send_mutex);
 #endif
     // Wait for sendBuffer to be empty
-    send_cv.wait(lck);
     while(sendBuffer.size() != 0) {
         // Condition variable to wait for buffer to be empty
         send_cv.wait(lck);
@@ -90,7 +89,6 @@ void Stream::recv(void* data, int size) {
     std::unique_lock<std::mutex> lck(recv_mutex);
 #endif
     // Wait for recvBuffer to be non empty
-    recv_cv.wait(lck);
     while(recvBuffer.size() == 0) {
         // Condition variable to wait for buffer to be non empty
         recv_cv.wait(lck);
