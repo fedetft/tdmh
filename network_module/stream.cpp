@@ -67,7 +67,8 @@ void Stream::registerStream(StreamInfo i) {
     // Register Stream to StreamManager
     streamMgr->registerStream(info, this);
     // Wait for notification from StreamStatus
-    while(info.getStatus() == StreamStatus::CONNECT_REQ) {
+    while(info.getStatus() != StreamStatus::ESTABLISHED &&
+          info.getStatus() != StreamStatus::REJECTED) {
         // Condition variable to wait for notification from StreamManager
         stream_cv.wait(lck);
     }

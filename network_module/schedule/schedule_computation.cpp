@@ -175,9 +175,10 @@ void ScheduleComputation::run() {
             // Mark streams in snapshot that are ACCEPTED but not scheduled as REJECTED
             for(auto& stream: stream_snapshot.getStreams()) {
                 if(stream.getStatus() == StreamStatus::ACCEPTED) {
+                    // setStreamStatus handles notifying the constructor
                     stream_snapshot.setStreamStatus(stream.getStreamId(), StreamStatus::REJECTED);
                     stream_mgmt.setStreamStatus(stream.getStreamId(), StreamStatus::REJECTED);
-                    // Enqueue NACK_CONNECT to inform Stream
+                    // Enqueue NACK_CONNECT to inform Stream in other nodes
                     std::vector<InfoElement> infos;
                     infos.push_back(InfoElement(stream.getStreamId(), InfoType::NACK_CONNECT));
                     stream_mgmt.enqueueInfo(infos);

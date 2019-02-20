@@ -188,14 +188,15 @@ void StreamManager::setStreamStatus(StreamId id, StreamStatus status) {
     if (streamMap.find(id) != streamMap.end()) {
         printf("[SM] Stream found, changing status\n");
         streamMap[id].setStatus(status);
+        // Change status in stream class if local
+        if(clientMap.find(id) != clientMap.end())
+            clientMap[id]->notifyStream(status);
         // Set flags
         modified_flag = true;
         if(status == StreamStatus::ACCEPTED)
             added_flag = true;
         if(status == StreamStatus::CLOSED)
             removed_flag = true;
-        if(status == StreamStatus::REJECTED)
-            clientMap[id]->notifyStream(StreamStatus::REJECTED);
     }
     else {
         printf("[SM] Stream not found\n");
