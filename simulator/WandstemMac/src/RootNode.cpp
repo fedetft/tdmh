@@ -28,7 +28,7 @@ using namespace std;
 using namespace mxnet;
 
 void RootNode::activity()
-try {
+{
     using namespace miosix;
     print_dbg("Master node\n");
     const NetworkConfiguration config(
@@ -49,17 +49,22 @@ try {
             3              //maxMissedTimesyncs
     );
     MasterMediumAccessController controller(Transceiver::instance(), config);
+
     tdmh = &controller;
     thread t(&RootNode::application, this);
-    controller.run();
+    try {
+        controller.run();
+    } catch(exception& e) {
+        //Note: omnet++ seems to terminate coroutines with an exception
+        //of type cStackCleanupException. Squelch these
+        if(string(typeid(e).name()).find("cStackCleanupException")==string::npos)
+            cerr<<"\nException thrown: "<<e.what()<<endl;
+        quit.store(true);
+        t.join();
+        throw;
+    }
     quit.store(true);
     t.join();
-} catch(exception& e) {
-    //Note: omnet++ seems to terminate coroutines with an exception
-    //of type cStackCleanupException. Squelch these
-    if(string(typeid(e).name()).find("cStackCleanupException")==string::npos)
-        cerr<<"\nException thrown: "<<e.what()<<endl;
-    throw;
 }
 
 void RootNode::application() {

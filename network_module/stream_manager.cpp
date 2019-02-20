@@ -67,6 +67,7 @@ void StreamManager::registerStream(StreamInfo info, Stream* client) {
 #else
     std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
+    StreamId id = info.getStreamId();
     // Register Stream class pointer in client map
     clientMap[info.getStreamId()] = client;
     // Register Stream information and status
@@ -129,20 +130,24 @@ void StreamManager::registerStreamServer(StreamInfo info, StreamServer* server) 
 
 void StreamManager::notifyStreams(const std::vector<ExplicitScheduleElement>& schedule) {
     for(auto& elem : schedule) {
+        StreamId id = elem.getStreamId();
         /* If schedule element action is SLEEP, ignore */
         if(elem.getAction() != Action::SLEEP) {
-            StreamId id = elem.getStreamId();
             StreamInfo info = elem.getStreamInfo();
             StreamId listenId(id.dst, id.dst, 0, id.dstPort);
-            // If Stream is registered on this node, set status to ACCEPTED
-            if (streamMap.find(id) != streamMap.end()) { 
-                streamMap[id].setStatus(StreamStatus::ACCEPTED);
-                clientMap[id]->notifyStream(StreamStatus::ACCEPTED);
+            // If Stream is registered on this node, set status to ESTABLISHED
+            if (clientMap.find(id) != clientMap.end()) {
+                streamMap[id].setStatus(StreamStatus::ESTABLISHED);
+                clientMap[id]->notifyStream(StreamStatus::ESTABLISHED);
             }
-            // If StreamServer (LISTEN) is registered on this node, open corresponding
-            // server-side Stream
-            if (streamMap.find(listenId) != streamMap.end()) {
-                serverMap[listenId]->openStream(info);
+            // If StreamServer (LISTEN) is registered on this node,
+            // and server-side stream is not already open, open it
+            if (serverMap.find(listenId) != serverMap.end()) {
+                if(clientMap.find(id) == clientMap.end()) {
+                    serverMap[listenId]->openStream(info);
+                    printf("[SM] node %d, Server Stream %d,%d opened!\n",myId, id.src, id.dst);
+                }
+                streamMap[id].setStatus(StreamStatus::ESTABLISHED);
             }
         }
     }

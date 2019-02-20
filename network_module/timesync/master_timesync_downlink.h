@@ -56,13 +56,9 @@ protected:
      */
     void setTimesyncPacketCounter(unsigned int value)
     {
-        // TODO: make a struct containing the packetCounter
-        std::array<unsigned char, MediumAccessController::maxPktSize> packetdata;
-        packet.get(packetdata.data(), packet.size());
-        // Write the int (4 bytes) to the array
-        *reinterpret_cast<unsigned int*>(&packetdata[7])=value;
-        packetdata[7] = value;
-        packet.put(packetdata.data(), packet.size());
+        // Write the int (4 bytes) to the Packet
+        *reinterpret_cast<unsigned int*>(&packet[7]) = value;
+        packetCounter = value;
     }
     
     /**
@@ -71,13 +67,9 @@ protected:
      */
     void incrementTimesyncPacketCounter()
     {
-        // TODO: make a struct containing the packetCounter
-        std::array<unsigned char, MediumAccessController::maxPktSize> packetdata;
-        packet.get(packetdata.data(), packet.size());
-        unsigned int value = *reinterpret_cast<unsigned int*>(&packetdata[7]);
-        // Write the int (4 bytes) to the array
-        *reinterpret_cast<unsigned int*>(&packetdata[7]) = value + 1;
-        packet.put(packetdata.data(), packet.size());
+        // Write the int (4 bytes) to the Packet
+        packetCounter++;
+        *reinterpret_cast<unsigned int*>(&packet[7]) = packetCounter;
     }
     
     void next() override;

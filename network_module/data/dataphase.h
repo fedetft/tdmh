@@ -84,6 +84,14 @@ public:
         auto slotsInTile = ctx.getSlotsInTileCount();
         scheduleSlots = scheduleTiles * slotsInTile;
     }
+    /* Called from ScheduleDownlinkPhase class to set the new scheduleID */
+    void setScheduleID(unsigned long newID) {
+        scheduleID = newID;
+    }
+    /* Called from ScheduleDownlinkPhase class to check if the schedule is up to date */
+    unsigned long getScheduleID() {
+        return scheduleID;
+    }
     /* Called from ScheduleDownlinkPhase class on the first downlink slot
      * of the new schedule, to set the global time number when the scedule
      * becomes active, useful to know the current dataslot after resync */

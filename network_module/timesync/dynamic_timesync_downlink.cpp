@@ -61,7 +61,7 @@ void DynamicTimesyncDownlink::periodicSync() {
         rebroadcast(pkt, measuredFrameStart);
         ctx.transceiverIdle();
         // TODO: make a struct containing the packetCounter
-        packetCounter = static_cast<unsigned int>(pkt[7]);
+        packetCounter = *reinterpret_cast<unsigned int*>(&pkt[7]);
         error = rcvResult.timestamp - computedFrameStart;
         std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->computeCorrection(error);
         missedPackets = 0;
@@ -115,7 +115,7 @@ void DynamicTimesyncDownlink::resync() {
     ctx.transceiverIdle();
 
     // TODO: make a struct containing the packetCounter
-    packetCounter = static_cast<unsigned int>(pkt[7]);
+    packetCounter = *reinterpret_cast<unsigned int*>(&pkt[7]);
     NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() * networkConfig.getClockSyncPeriod() - correct(start));
     auto ntNow = NetworkTime::now();
     ctx.getUplink()->alignToNetworkTime(ntNow);

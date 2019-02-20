@@ -143,15 +143,18 @@ void ScheduleDownlinkPhase::printCompleteSchedule() {
 }
 
 void ScheduleDownlinkPhase::checkTimeSetSchedule() {
-    auto nt = NetworkTime::now();
-    auto tileDuration = ctx.getNetworkConfig().getTileDuration();
-    auto tilesPassedTotal = nt.get() / tileDuration;
-    if (tilesPassedTotal >= header.getActivationTile()) {
-        if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
-            print_dbg("[SD] Activating schedule n.%2d", explicitScheduleID);
-        dataPhase->setSchedule(explicitSchedule);
-        dataPhase->setScheduleTiles(header.getScheduleTiles());
-        dataPhase->setScheduleActivationTile(header.getActivationTile());
+    if(explicitScheduleID != dataPhase->getScheduleID()) {
+        auto nt = NetworkTime::now();
+        auto tileDuration = ctx.getNetworkConfig().getTileDuration();
+        auto tilesPassedTotal = nt.get() / tileDuration;
+        if (tilesPassedTotal >= header.getActivationTile()) {
+            if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
+                printf("[SD] Activating schedule n.%2d\n", explicitScheduleID);
+            dataPhase->setSchedule(explicitSchedule);
+            dataPhase->setScheduleTiles(header.getScheduleTiles());
+            dataPhase->setScheduleActivationTile(header.getActivationTile());
+            dataPhase->setScheduleID(explicitScheduleID);
+        }
     }
 }
 

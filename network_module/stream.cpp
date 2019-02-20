@@ -50,6 +50,8 @@ Stream::Stream(MediumAccessController& tdmh) : tdmh(tdmh) {
 #else
     std::unique_lock<std::mutex> lck(stream_mutex);
 #endif
+    MACContext* ctx = tdmh.getMACContext();
+    streamMgr = ctx->getStreamManager();
     // Mark stream CLOSED
     info.setStatus(StreamStatus::CLOSED);
 }
@@ -162,7 +164,6 @@ StreamServer::StreamServer(MediumAccessController& tdmh, unsigned char dstPort,
     // Register Stream to StreamManager
     streamMgr->registerStreamServer(info, this);
     // Wait for notification from StreamStatus
-    server_cv.wait(lck);
     while(info.getStatus() == StreamStatus::LISTEN_REQ) {
         // Condition variable to wait for notification from StreamManager
         server_cv.wait(lck);
@@ -201,11 +202,11 @@ void StreamServer::accept(Stream& stream) {
     std::unique_lock<std::mutex> lck(server_mutex);
 #endif
     // Wait for opened stream
-    stream_cv.wait(lck);
     while(streamQueue.empty()) {
         // Condition variable to wait for opened streams
         stream_cv.wait(lck);
     }
+    printf("Server: Accepted a stream\n");
     StreamInfo info = streamQueue.front();
     streamQueue.pop();
     stream.registerStream(info);
