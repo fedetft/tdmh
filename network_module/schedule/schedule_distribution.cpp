@@ -146,7 +146,7 @@ void ScheduleDownlinkPhase::checkTimeSetSchedule() {
     auto nt = NetworkTime::now();
     auto tileDuration = ctx.getNetworkConfig().getTileDuration();
     auto tilesPassedTotal = nt.get() / tileDuration;
-    if (tilesPassedTotal == header.getActivationTile()) {
+    if (tilesPassedTotal >= header.getActivationTile()) {
         if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
             print_dbg("[SD] Activating schedule n.%2d", explicitScheduleID);
         dataPhase->setSchedule(explicitSchedule);

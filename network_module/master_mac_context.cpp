@@ -45,8 +45,8 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
         topologyContext = topology_ctx;
         uplink = new MasterUplinkPhase(*this, topology_ctx, *scheduleComputation, streamMgr);
     }
-    scheduleDistribution = new MasterScheduleDownlinkPhase(*this, *scheduleComputation);
     data = new DataPhase(*this, *streamMgr);
+    scheduleDistribution = new MasterScheduleDownlinkPhase(*this, *scheduleComputation);
 };
 
 } /* namespace mxnet */

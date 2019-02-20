@@ -34,6 +34,7 @@ DynamicMACContext::DynamicMACContext(const MediumAccessController& mac, miosix::
     MACContext(mac, transceiver, config) {
     timesync = new DynamicTimesyncDownlink(*this);
     streamMgr = new StreamManager(getNetworkId());
+    data = new DataPhase(*this, *streamMgr);
     scheduleDistribution = new DynamicScheduleDownlinkPhase(*this);
     DynamicTopologyContext* topology;
     if (config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION)
@@ -42,7 +43,6 @@ DynamicMACContext::DynamicMACContext(const MediumAccessController& mac, miosix::
         topology = new DynamicTreeTopologyContext(*this);
     topologyContext = topology;
     uplink = new DynamicUplinkPhase(*this, topology, streamMgr);
-    data = new DataPhase(*this, *streamMgr);
 };
 
 } /* namespace mxnet */

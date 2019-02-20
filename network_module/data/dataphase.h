@@ -73,7 +73,7 @@ public:
     /* Called from ScheduleDownlinkPhase class on the first downlink slot
      * of the new schedule, to replace the currentSchedule,
      * taking effect in the next dataphase */
-    void setSchedule(const std::vector<ExplicitScheduleElement>& newSchedule) { 
+    void setSchedule(const std::vector<ExplicitScheduleElement>& newSchedule) {
         currentSchedule = newSchedule;
         stream.notifyStreams(newSchedule);
     }
