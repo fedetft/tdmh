@@ -69,7 +69,7 @@ enum class Redundancy
     TRIPLE_SPATIAL   //Triple redundancy, packets follow more than one path
 };
 
-enum class StreamStatus
+enum class StreamStatus : uint8_t
 {
     CLOSED,          // No stream opened, or stream closed
     LISTEN_REQ,      // Listen request sent by server

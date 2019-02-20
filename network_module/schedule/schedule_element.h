@@ -153,6 +153,12 @@ public:
     StreamId getStreamId() const {
         return StreamId(content.src, content.dst, content.srcPort, content.dstPort);
     }
+    //TODO: Save payloadSize, Direction, Redundancy in ScheduleElement
+    StreamInfo getStreamInfo() const {
+        return StreamInfo(content.src, content.dst, content.srcPort,
+                          content.dstPort, static_cast<Period>(content.period),
+                          0, Direction::TX, Redundancy::NONE, StreamStatus::ESTABLISHED);
+    }
     unsigned char getSrc() const { return content.src; }
     unsigned char getDst() const { return content.dst; }
     unsigned char getSrcPort() const { return content.srcPort; }
@@ -256,16 +262,17 @@ class ExplicitScheduleElement {
 public:
     ExplicitScheduleElement() {
         action = Action::SLEEP;
-        id = StreamId(0,0,0,0);
+        stream = StreamInfo();
     }
-    ExplicitScheduleElement(Action action, StreamId id) :
-        action(action), id(id) {}
+    ExplicitScheduleElement(Action action, StreamInfo stream) :
+        action(action), stream(stream) {}
 
     Action getAction() const { return action; }
-    StreamId getStreamId() const { return id; }
+    StreamId getStreamId() const { return stream.getStreamId(); }
+    StreamInfo getStreamInfo() const { return stream; }
 private:
     Action action;
-    StreamId id;
+    StreamInfo stream;
 };
 
 

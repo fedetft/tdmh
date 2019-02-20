@@ -47,7 +47,7 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
             // Period is normally expressed in tiles, get period in slots
             auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                result[slot] = ExplicitScheduleElement(Action::SENDSTREAM, e.getStreamId()); 
+                result[slot] = ExplicitScheduleElement(Action::SENDSTREAM, e.getStreamInfo()); 
             }
         }
         // Receive to stream case
@@ -55,7 +55,7 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
             // Period is normally expressed in tiles, get period in slots
             auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                result[slot] = ExplicitScheduleElement(Action::RECVSTREAM, e.getStreamId()); 
+                result[slot] = ExplicitScheduleElement(Action::RECVSTREAM, e.getStreamInfo()); 
             }
         }
         // Send from buffer case (send saved multi-hop packet)
@@ -63,7 +63,7 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
             // Period is normally expressed in tiles, get period in slots
             auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                result[slot] = ExplicitScheduleElement(Action::SENDBUFFER, e.getStreamId()); 
+                result[slot] = ExplicitScheduleElement(Action::SENDBUFFER, e.getStreamInfo()); 
             }
         }
         // Receive to buffer case (receive and save multi-hop packet)
@@ -71,7 +71,7 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
             // Period is normally expressed in tiles, get period in slots
             auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                result[slot] = ExplicitScheduleElement(Action::RECVBUFFER, e.getStreamId()); 
+                result[slot] = ExplicitScheduleElement(Action::RECVBUFFER, e.getStreamInfo()); 
             }
         }
     }

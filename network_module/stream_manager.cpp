@@ -132,17 +132,16 @@ void StreamManager::notifyStreams(const std::vector<ExplicitScheduleElement>& sc
         /* If schedule element action is SLEEP, ignore */
         if(elem.getAction() != Action::SLEEP) {
             StreamId id = elem.getStreamId();
+            StreamInfo info = elem.getStreamInfo();
             StreamId listenId(id.dst, id.dst, 0, id.dstPort);
             // If Stream is registered on this node, set status to ACCEPTED
             if (streamMap.find(id) != streamMap.end()) { 
                 streamMap[id].setStatus(StreamStatus::ACCEPTED);
                 clientMap[id]->notifyStream(StreamStatus::ACCEPTED);
             }
-            // If StreamServer is registered on this node, open corresponding
+            // If StreamServer (LISTEN) is registered on this node, open corresponding
             // server-side Stream
-            // TODO: get accurate server-side stream parameters (not == listen parameters) 
             if (streamMap.find(listenId) != streamMap.end()) {
-                StreamInfo info = streamMap[listenId];
                 serverMap[listenId]->openStream(info);
             }
         }
