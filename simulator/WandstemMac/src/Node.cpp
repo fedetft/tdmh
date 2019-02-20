@@ -99,13 +99,20 @@ void Node::application() {
     /* Open Stream from node 2 */
     if(address == 2) {
         /* Open a Stream to another node */
-        mxnet::Stream(*tdmh,            // Pointer to MediumAccessController
-                     0,                 // Destination node
-                     0,                 // Destination port
-                     Period::P1,        // Period
-                     1,                 // Payload size
-                     Direction::TX,     // Direction
-                     Redundancy::NONE); // Redundancy
+        mxnet::Stream s(*tdmh,            // Pointer to MediumAccessController
+                        0,                 // Destination node
+                        0,                 // Destination port
+                        Period::P1,        // Period
+                        1,                 // Payload size
+                        Direction::TX,     // Direction
+                        Redundancy::NONE); // Redundancy
+        vector<char> data(125);
+        data[0] = 1;
+        data[1] = 2;
+        data[2] = 3;
+        data[3] = 4;
+        s.send(&data, 4);
+        printf("[A] Sent data 1234\n");
     }
 
 }

@@ -69,10 +69,18 @@ void RootNode::application() {
         this_thread::sleep_for(chrono::seconds(1));
     }
     /* Open a StreamServer to listen for incoming streams */
-    mxnet::StreamServer(*tdmh,      // Pointer to MediumAccessController
+    mxnet::StreamServer server(*tdmh,      // Pointer to MediumAccessController
                  0,                 // Destination port
                  Period::P1,        // Period
                  1,                 // Payload size
                  Direction::TX,     // Direction
                  Redundancy::NONE); // Redundancy
+    Stream r(*tdmh);
+    server.accept(r);
+    vector<char> data(125);
+    r.recv(&data, 125);
+    printf("[A] Received data ");
+    for(auto d : data)
+        printf(" %d ", d);
+    printf("\n");
 }

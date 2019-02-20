@@ -33,19 +33,35 @@ namespace mxnet {
 Stream::Stream(MediumAccessController& tdmh, unsigned char dst,
                unsigned char dstPort, Period period, unsigned char payloadSize,
                Direction direction, Redundancy redundancy=Redundancy::NONE) : tdmh(tdmh) {
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
-#else
-    std::unique_lock<std::mutex> lck(stream_mutex);
-#endif
     // Save Stream parameters in StreamInfo
     MACContext* ctx = tdmh.getMACContext();
     streamMgr = ctx->getStreamManager();
     unsigned char src = ctx->getNetworkId();
     /* TODO: Implement srcPort, for the moment it is hardcoded to 0 */
     unsigned char srcPort = 0;
-    info = StreamInfo(src, dst, srcPort, dstPort, period, payloadSize,
+    StreamInfo i = StreamInfo(src, dst, srcPort, dstPort, period, payloadSize,
                       direction, redundancy, StreamStatus::CONNECT_REQ);
+    registerStream(i);
+}
+
+Stream::Stream(MediumAccessController& tdmh) : tdmh(tdmh) {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    // Mark stream CLOSED
+    info.setStatus(StreamStatus::CLOSED);
+}
+
+void Stream::registerStream(StreamInfo i) {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+    // Set StreamInfo field
+    info = i;
     // Register Stream to StreamManager
     streamMgr->registerStream(info, this);
     // Wait for notification from StreamStatus
@@ -54,7 +70,7 @@ Stream::Stream(MediumAccessController& tdmh, unsigned char dst,
         // Condition variable to wait for notification from StreamManager
         stream_cv.wait(lck);
     }
-    //TODO: if stream opening is not successful, notify the user
+    //TODO: if stream opening is not successful, notify the user 
 }
 
 void Stream::notifyStream(StreamStatus s) {
@@ -166,6 +182,34 @@ void StreamServer::notifyServer(StreamStatus s) {
 #else
     server_cv.notify_one();
 #endif
+}
+
+void StreamServer::openStream(StreamInfo info) {
+    // Push new stream info to queue
+    streamQueue.push(info);
+    // Wake up the Stream thread
+#ifdef _MIOSIX
+    stream_cv.signal();
+#else
+    stream_cv.notify_one();
+#endif
+}
+
+void StreamServer::accept(Stream& stream) {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(server_mutex);
+#else
+    std::unique_lock<std::mutex> lck(server_mutex);
+#endif
+    // Wait for opened stream
+    stream_cv.wait(lck);
+    while(streamQueue.empty()) {
+        // Condition variable to wait for opened streams
+        stream_cv.wait(lck);
+    }
+    StreamInfo info = streamQueue.front();
+    streamQueue.pop();
+    stream.registerStream(info);
 }
 
 }

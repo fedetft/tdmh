@@ -30,6 +30,7 @@
 #include "tdmh.h"
 #include "packet.h"
 #include "uplink/stream_management/stream_management_element.h"
+#include <queue>
 #ifdef _MIOSIX
 #include <miosix.h>
 #else
@@ -48,10 +49,13 @@ class StreamManager;
  * the destructor is called.
  */
 class Stream {
+    friend class StreamServer;
 public:
     Stream(MediumAccessController& tdmh, unsigned char dst,
            unsigned char dstPort, Period period, unsigned char payloadSize,
            Direction direction, Redundancy redundancy);
+    /* Used to create an empty (CLOSED) stream to open with accept */
+    Stream(MediumAccessController& tdmh);
     ~Stream() {};
 
     /* Called from StreamManager, to update the status of the Stream
@@ -69,6 +73,8 @@ public:
     void putRecvBuffer(Packet& pkt);
 
 private:
+    /* Used by the constructor to register the Stream in the StreamManager */
+    void registerStream(StreamInfo i);
     /* Reference to MediumAccessController */
     MediumAccessController& tdmh;
     /* Reference to StreamManager */
@@ -108,10 +114,19 @@ public:
                  Period period, unsigned char payloadSize,
                  Direction direction, Redundancy redundancy);
     ~StreamServer() {};
-
-    /* Called from StreamManager, to update the status of the StreamServer
+    /**
+     * Called from StreamManager, to update the status of the StreamServer
      * and wake up the StreamServer thread */
     void notifyServer(StreamStatus s);
+    /**
+     * Called from StreamManager, to notify the StreamServer that a Stream
+     * has been opened and wake up the StreamServer thread */
+    void openStream(StreamInfo info);
+    /**
+     * Opens a Stream object by modifying an empty stream.
+     * This function blocks unless a stream is opened
+     */
+    void accept(Stream& stream);
 
 private:
     /* Reference to MediumAccessController */
@@ -120,13 +135,17 @@ private:
     StreamManager* streamMgr;
     /* Information about this Stream */
     StreamInfo info;
+    /* Queue of opened Stream information (used for creating Stream classes) */
+    std::queue<StreamInfo> streamQueue;
     /* Thread synchronization */
 #ifdef _MIOSIX
     miosix::Mutex server_mutex;
     miosix::ConditionVariable server_cv;
+    miosix::ConditionVariable stream_cv;
 #else
     std::mutex server_mutex;
     std::condition_variable server_cv;
+    std::condition_variable stream_cv;
 #endif
 };
 
