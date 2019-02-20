@@ -71,7 +71,8 @@ void Stream::registerStream(StreamInfo i) {
         // Condition variable to wait for notification from StreamManager
         stream_cv.wait(lck);
     }
-    //TODO: if stream opening is not successful, notify the user 
+    if(info.getStatus() == StreamStatus::REJECTED)
+        throw std::runtime_error("The stream cannot be routed or scheduled");
 }
 
 void Stream::notifyStream(StreamStatus s) {

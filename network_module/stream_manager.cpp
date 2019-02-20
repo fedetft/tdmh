@@ -194,6 +194,8 @@ void StreamManager::setStreamStatus(StreamId id, StreamStatus status) {
             added_flag = true;
         if(status == StreamStatus::CLOSED)
             removed_flag = true;
+        if(status == StreamStatus::REJECTED)
+            clientMap[id]->notifyStream(StreamStatus::REJECTED);
     }
     else {
         printf("[SM] Stream not found\n");

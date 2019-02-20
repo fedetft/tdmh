@@ -75,7 +75,7 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
             explicitSchedule = std::move(newExplicitSchedule);
             explicitScheduleID = header.getScheduleID();
             if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) {
-                printf("[SD] Calculated explicit schedule n.%2d\n", explicitScheduleID);
+                printf("[SD] Calculated explicit schedule n.%2lu\n", explicitScheduleID);
                 printExplicitSchedule(myID, true, explicitSchedule);
             }
         }
