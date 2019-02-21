@@ -68,10 +68,12 @@ void StreamManager::registerStream(StreamInfo info, Stream* client) {
     std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     StreamId id = info.getStreamId();
-    // Register Stream class pointer in client map
-    clientMap[info.getStreamId()] = client;
-    // Register Stream information and status
-    streamMap[info.getStreamId()] = StreamInfo(info, StreamStatus::CONNECT_REQ);
+    // Register Stream class pointer in client map (if not already present)
+    if(clientMap.find(id) == clientMap.end())
+        clientMap[id] = client;
+    // Register Stream information and status (if not already present)
+    if(streamMap.find(id) == streamMap.end())
+        streamMap[id] = StreamInfo(info, StreamStatus::CONNECT_REQ);
     // Push corresponding SME on the queue
     smeQueue.push(StreamManagementElement(info, StreamStatus::CONNECT));
     // Set flags
