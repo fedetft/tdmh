@@ -256,7 +256,6 @@ protected:
     unsigned long long uplinkSlotDuration;
     unsigned long long tileSlackTime;
 private:
-    void warmUp();
 
     unsigned char hop;
     const MediumAccessController& mac;

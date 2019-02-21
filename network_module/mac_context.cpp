@@ -75,6 +75,22 @@ void MACContext::calculateDurations() {
         downlinkSlotDuration = downlinkMaxDuration;
     else
         downlinkSlotDuration = (downlinkMaxDuration / dataSlotDuration + 1) * dataSlotDuration;
+
+    auto tileDuration = networkConfig.getTileDuration();
+    /* Tile size in number of data slots, needed for the scheduler */
+    numSlotInTile = tileDuration / dataSlotDuration;
+   if(tileDuration - downlinkSlotDuration < dataSlotDuration)
+        throwLogicError("downlink slot (%lld) too large for tile (%lld)", downlinkSlotDuration, tileDuration);
+
+    if(tileDuration - uplinkSlotDuration < dataSlotDuration)
+        throwLogicError("uplink slot (%lld) too large for tile (%lld)", uplinkSlotDuration, tileDuration);
+
+    numDataSlotInDownlinkTile  = (tileDuration - downlinkSlotDuration) / dataSlotDuration;
+    numDataSlotInUplinkTile    = (tileDuration - uplinkSlotDuration)   / dataSlotDuration;
+    
+    assert(downlinkSlotDuration + numDataSlotInDownlinkTile * dataSlotDuration ==
+           uplinkSlotDuration   + numDataSlotInUplinkTile   * dataSlotDuration);
+    tileSlackTime = tileDuration - (uplinkSlotDuration + numDataSlotInUplinkTile * dataSlotDuration);
 }
 
 void MACContext::sendAt(const void* pkt, int size, long long ns) {
@@ -139,29 +155,10 @@ RecvResult MACContext::recv(void *pkt, int size, long long timeout, std::functio
     return rcvResult;
 }
 
-void MACContext::warmUp() {
-
-    auto tileDuration = networkConfig.getTileDuration();
-    /* Tile size in number of data slots, needed for the scheduler */
-    numSlotInTile = tileDuration / dataSlotDuration;
-   if(tileDuration - downlinkSlotDuration < dataSlotDuration)
-        throwLogicError("downlink slot (%lld) too large for tile (%lld)", downlinkSlotDuration, tileDuration);
-
-    if(tileDuration - uplinkSlotDuration < dataSlotDuration)
-        throwLogicError("uplink slot (%lld) too large for tile (%lld)", uplinkSlotDuration, tileDuration);
-
-    numDataSlotInDownlinkTile  = (tileDuration - downlinkSlotDuration) / dataSlotDuration;
-    numDataSlotInUplinkTile    = (tileDuration - uplinkSlotDuration)   / dataSlotDuration;
-    
-    assert(downlinkSlotDuration + numDataSlotInDownlinkTile * dataSlotDuration ==
-           uplinkSlotDuration   + numDataSlotInUplinkTile   * dataSlotDuration);
-    tileSlackTime = tileDuration - (uplinkSlotDuration + numDataSlotInUplinkTile * dataSlotDuration);
-}
-
 void MACContext::run()
 {
-    warmUp();
     transceiver.turnOn();
+    // After this: NetworkTime is valid in the Master node
     timesync->macStartHook();
     {
         // Mutex lock to access the ready variable from the application thread.

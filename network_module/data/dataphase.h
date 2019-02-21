@@ -98,7 +98,6 @@ public:
     void setScheduleActivationTile(unsigned long newScheduleActivationTile) {
         scheduleActivationTile = newScheduleActivationTile;
     }
-
     /**
      * Calculates slot number in current schedule (dataSlot) after resyncing
      */
@@ -116,6 +115,7 @@ private:
     unsigned long scheduleID = 0;
     unsigned long scheduleTiles = 0;
     unsigned long scheduleSlots = 0;
+    // FIXME: if the MAC remains alive for more than 13 years, this overflows
     unsigned long scheduleActivationTile = 0;
     std::vector<ExplicitScheduleElement> currentSchedule;
     Packet buffer;
