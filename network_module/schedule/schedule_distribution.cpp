@@ -79,10 +79,10 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
 }
 
 void ScheduleDownlinkPhase::printSchedule(unsigned char nodeID) {
-    printf("[SD] Node: %d, implicit schedule n. %lu\n", nodeID, header.getScheduleID());
-    printf("ID   TX  RX  PER OFF\n");
+    print_dbg("[SD] Node: %d, implicit schedule n. %lu\n", nodeID, header.getScheduleID());
+    print_dbg("ID   TX  RX  PER OFF\n");
     for(auto& elem : schedule) {
-        printf("%d  %d-->%d   %d   %d\n", elem.getKey(), elem.getTx(), elem.getRx(),
+        print_dbg("%d  %d-->%d   %d   %d\n", elem.getKey(), elem.getTx(), elem.getRx(),
                toInt(elem.getPeriod()), elem.getOffset());
     }
 }
@@ -91,48 +91,48 @@ void ScheduleDownlinkPhase::printSchedule(unsigned char nodeID) {
     auto slotsInTile = ctx.getSlotsInTileCount();
     // print header
     if(printHeader) {
-        printf("        | ");
+        print_dbg("        | ");
         for(unsigned int i=0; i<expSchedule.size(); i++) {
-            printf("%2d ", i);
+            print_dbg("%2d ", i);
             if(((i+1) % slotsInTile) == 0)
-                printf("| ");
+                print_dbg("| ");
         }
-        printf("\n");
+        print_dbg("\n");
     }
     // print schedule line
-    printf("Node: %2d|", nodeID);
+    print_dbg("Node: %2d|", nodeID);
     for(unsigned int i=0; i<expSchedule.size(); i++)
         {
             switch(expSchedule[i].getAction()) {
             case Action::SLEEP:
-                printf(" _ ");
+                print_dbg(" _ ");
                 break;
             case Action::SENDSTREAM:
-                printf(" SS");
+                print_dbg(" SS");
                 break;
             case Action::RECVSTREAM:
-                printf(" RS");
+                print_dbg(" RS");
                 break;
             case Action::SENDBUFFER:
-                printf(" SB");
+                print_dbg(" SB");
                 break;
             case Action::RECVBUFFER:
-                printf(" RB");
+                print_dbg(" RB");
                 break;
             }
             if(((i+1) % slotsInTile) == 0)
-                printf(" |");
+                print_dbg(" |");
         }
-    printf("\n");
+    print_dbg("\n");
 }
 
 void ScheduleDownlinkPhase::printCompleteSchedule() {
     auto myID = ctx.getNetworkId();
     if(myID == 0)
-        printf("[SD] ### Schedule distribution, Master node\n");
+        print_dbg("[SD] ### Schedule distribution, Master node\n");
     auto maxNodes = ctx.getNetworkConfig().getMaxNodes();
     printSchedule(myID);
-    printf("[SD] ### Explicit Schedule for all nodes\n");
+    print_dbg("[SD] ### Explicit Schedule for all nodes\n");
     std::vector<ExplicitScheduleElement> nodeSchedule;
     for(unsigned char node = 0; node < maxNodes; node++)
     {
@@ -149,7 +149,7 @@ void ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
     if (currentTile >= header.getActivationTile()) {
         assert (currentTile == header.getActivationTile());
         if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
-            printf("[SD] Activating schedule n.%2lu\n", explicitScheduleID);
+            print_dbg("[SD] Activating schedule n.%2lu\n", explicitScheduleID);
         dataPhase->setSchedule(explicitSchedule);
         dataPhase->setScheduleTiles(header.getScheduleTiles());
         dataPhase->setScheduleActivationTile(header.getActivationTile());

@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "stream_manager.h"
+#include "debug_settings.h"
 #include <algorithm>
 
 namespace mxnet {
@@ -60,7 +61,7 @@ std::vector<StreamInfo> StreamCollection::getStreamsWithStatus(StreamStatus s) {
 }
 
 void StreamManager::registerStream(StreamInfo info, Stream* client) {
-    printf("[SM] Stream registered! \n");
+    print_dbg("[SM] Stream registered! \n");
     // Mutex lock to access the Stream map from the application thread.
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
@@ -103,7 +104,7 @@ void StreamManager::deregisterStream(StreamInfo info) {
 }
 
 void StreamManager::registerStreamServer(StreamInfo info, StreamServer* server) {
-    printf("[SM] StreamServer registered! \n");
+    print_dbg("[SM] StreamServer registered! \n");
     // Mutex lock to access the Stream map from the application thread.
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
@@ -147,7 +148,7 @@ void StreamManager::notifyStreams(const std::vector<ExplicitScheduleElement>& sc
             if (serverMap.find(listenId) != serverMap.end()) {
                 if(clientMap.find(id) == clientMap.end()) {
                     serverMap[listenId]->openStream(info);
-                    printf("[SM] node %d, Server Stream %d,%d opened!\n",myId, id.src, id.dst);
+                    print_dbg("[SM] node %d, Server Stream %d,%d opened!\n",myId, id.src, id.dst);
                 }
                 streamMap[id].setStatus(StreamStatus::ESTABLISHED);
             }
@@ -188,7 +189,7 @@ void StreamManager::setStreamStatus(StreamId id, StreamStatus status) {
 #endif
     // Check if stream exists
     if (streamMap.find(id) != streamMap.end()) {
-        printf("[SM] Stream found, changing status\n");
+        print_dbg("[SM] Stream found, changing status\n");
         streamMap[id].setStatus(status);
         // Change status in stream class if local
         if(clientMap.find(id) != clientMap.end())
@@ -201,7 +202,7 @@ void StreamManager::setStreamStatus(StreamId id, StreamStatus status) {
             removed_flag = true;
     }
     else {
-        printf("[SM] Stream not found\n");
+        print_dbg("[SM] Stream not found\n");
     }
 }
 
@@ -325,7 +326,7 @@ void StreamManager::receiveInfo() {
                 if(streamMap[id].getStatus() == StreamStatus::LISTEN_REQ) {
                     streamMap[id].setStatus(StreamStatus::LISTEN);
                     // Notify Server thread
-                    printf("[SM] StreamServer %d->%d LISTEN\n", id.src, id.dst);
+                    print_dbg("[SM] StreamServer %d->%d LISTEN\n", id.src, id.dst);
                     serverMap[id]->notifyServer(StreamStatus::LISTEN);
                 }
                 break;
@@ -333,7 +334,7 @@ void StreamManager::receiveInfo() {
                 if(streamMap[id].getStatus() == StreamStatus::CONNECT_REQ) {
                     streamMap[id].setStatus(StreamStatus::REJECTED);
                     // Notify Stream thread
-                    printf("[SM] Stream %d->%d REJECTED\n", id.src, id.dst);
+                    print_dbg("[SM] Stream %d->%d REJECTED\n", id.src, id.dst);
                     clientMap[id]->notifyStream(StreamStatus::REJECTED);
                 }
                 break;

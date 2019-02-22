@@ -58,8 +58,6 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     }
     // ScheduleID = 0 means the first schedule is not ready
     if(header.getScheduleID() == 0) {
-        if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)
-            printf("[SD] no schedule to send\n");
         // If InfoElements available, send a SchedulePkt with InfoElements only
         if(streamMgr->getNumInfo() != 0)
             sendInfoPkt(slotStart);
@@ -75,7 +73,7 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
             explicitSchedule = std::move(newExplicitSchedule);
             explicitScheduleID = header.getScheduleID();
             if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) {
-                printf("[SD] Calculated explicit schedule n.%2lu\n", explicitScheduleID);
+                print_dbg("[SD] Calculated explicit schedule n.%2lu\n", explicitScheduleID);
                 printExplicitSchedule(myID, true, explicitSchedule);
             }
         }
@@ -166,7 +164,7 @@ void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
 }
 
 void MasterScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
-    printf("[SD] sending schedule %u/%u/%lu/%d\n",
+    print_dbg("[SD] sending schedule %u/%u/%lu/%d\n",
               header.getTotalPacket(),
               header.getCurrentPacket(),
               header.getScheduleID(),

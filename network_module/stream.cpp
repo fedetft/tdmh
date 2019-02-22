@@ -27,6 +27,7 @@
 
 #include "stream.h"
 #include "mac_context.h"
+#include "debug_settings.h"
 #include <algorithm>
 
 namespace mxnet {
@@ -78,6 +79,8 @@ void Stream::registerStream(StreamInfo i) {
 }
 
 void Stream::notifyStream(StreamStatus s) {
+    //FIXME: remove this print_dbg
+    print_dbg("[S] Calling notifyStream with status %d\n", s);
     // Update the stream status
     info.setStatus(s);
     // Wake up the Stream thread
@@ -212,7 +215,7 @@ void StreamServer::accept(Stream& stream) {
         // Condition variable to wait for opened streams
         stream_cv.wait(lck);
     }
-    printf("Server: Accepted a stream\n");
+    print_dbg("Server: Accepted a stream\n");
     StreamInfo info = streamQueue.front();
     streamQueue.pop();
     stream.registerStream(info);

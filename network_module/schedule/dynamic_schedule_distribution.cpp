@@ -74,7 +74,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
             explicitSchedule = std::move(NewExplicitSchedule);
             explicitScheduleID = header.getScheduleID();
             if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG) {
-                printf("[SD] Explicit schedule:\n");
+                print_dbg("[SD] Explicit schedule:\n");
                 printExplicitSchedule(myID, true, explicitSchedule);                
             }
         }
@@ -111,7 +111,7 @@ ScheduleHeader DynamicScheduleDownlinkPhase::decodePacket(Packet& pkt) {
         // We received a new schedule, replace currently received
         if((newHeader.getScheduleID() != nextHeader.getScheduleID())) {
             if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
-                printf("[SD] Node:%d New schedule received!\n", myID);
+                print_dbg("[SD] Node:%d New schedule received!\n", myID);
             nextHeader = newHeader;
             nextSchedule = elements;
             // Resize the received bool vector to the size of the new schedule
@@ -129,7 +129,7 @@ ScheduleHeader DynamicScheduleDownlinkPhase::decodePacket(Packet& pkt) {
                 (newHeader.getRepetition() >= nextHeader.getRepetition()) &&
                 (!received.at(newHeader.getCurrentPacket()))) {
             if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
-                printf("[SD] Node:%d Piece %d of schedule received!\n", myID, newHeader.getCurrentPacket());
+                print_dbg("[SD] Node:%d Piece %d of schedule received!\n", myID, newHeader.getCurrentPacket());
             // Set current packet as received
             received.at(newHeader.getCurrentPacket()) = true;
             nextHeader = newHeader;
@@ -142,7 +142,7 @@ ScheduleHeader DynamicScheduleDownlinkPhase::decodePacket(Packet& pkt) {
 }
 
 void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
-    printf("[SD] node %d, hop %d, received schedule %u/%u/%lu/%d\n",
+    print_dbg("[SD] node %d, hop %d, received schedule %u/%u/%lu/%d\n",
               ctx.getNetworkId(),
               ctx.getHop(),
               header.getTotalPacket(),
@@ -167,7 +167,7 @@ bool DynamicScheduleDownlinkPhase::isScheduleComplete() {
 
 void DynamicScheduleDownlinkPhase::replaceRunningSchedule() {
     if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
-        printf("[SD] Countdown: %d, replacing old schedule\n", replaceCountdown);
+        print_dbg("[SD] Countdown: %d, replacing old schedule\n", replaceCountdown);
     header = nextHeader;
     schedule = nextSchedule;
 }
@@ -177,8 +177,8 @@ void DynamicScheduleDownlinkPhase::printStatus() {
            ctx.getNetworkId(),
            replaceCountdown,
            received.size());
-    for (unsigned int i=0; i < received.size(); i++) printf("%d", static_cast<bool>(received[i]));
-    printf("]\n");
+    for (unsigned int i=0; i < received.size(); i++) print_dbg("%d", static_cast<bool>(received[i]));
+    print_dbg("]\n");
 }
 
 }

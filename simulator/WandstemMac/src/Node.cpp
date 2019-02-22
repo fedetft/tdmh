@@ -96,8 +96,8 @@ void Node::application() {
     }
     /* Delay the Stream opening so it gets opened after the StreamServer */
     this_thread::sleep_for(chrono::seconds(1));
-    /* Open Stream from node 2 */
-    if(address == 2) {
+    /* Open Stream from node 1 */
+    if(address == 1) {
         while(true){
             try{
                 /* Open a Stream to another node */

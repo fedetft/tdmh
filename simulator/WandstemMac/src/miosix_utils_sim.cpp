@@ -71,6 +71,7 @@ void print_dbg_(const char *fmt, ...) {
     std::string buf = vformat (fmt, ap);
     va_end (ap);
     EV_INFO << buf;
+    printf("%s", buf.c_str());
 }
 }
 namespace miosix {

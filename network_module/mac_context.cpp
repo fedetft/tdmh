@@ -160,15 +160,6 @@ void MACContext::run()
     transceiver.turnOn();
     // After this: NetworkTime is valid in the Master node
     timesync->macStartHook();
-    {
-        // Mutex lock to access the ready variable from the application thread.
-#ifdef _MIOSIX
-        miosix::Lock<miosix::Mutex> lck(ready_mutex);
-#else
-        std::unique_lock<std::mutex> lck(ready_mutex);
-#endif
-        ready = true;
-    }
     startScheduler();
 
     long long currentNextDeadline = 0;
@@ -181,6 +172,15 @@ void MACContext::run()
     unsigned uplink_slots = tile_size - dataslots_uplinktile;
     for(running = true; running; )
     {
+        {
+            // Mutex lock to access the ready variable from the application thread.
+#ifdef _MIOSIX
+            miosix::Lock<miosix::Mutex> lck(ready_mutex);
+#else
+            std::unique_lock<std::mutex> lck(ready_mutex);
+#endif
+            ready = getTimesync()->macCanOperate();
+        }
         unsigned dataSlots;
         if(controlSuperframe.isControlDownlink(tileCounter))
         {

@@ -28,6 +28,7 @@
 #include <cstdio>
 #include <unistd.h>
 #include <miosix.h>
+#include <chrono>
 #include "network_module/network_configuration.h"
 #include "network_module/dynamic_tdmh.h"
 #include "network_module/master_tdmh.h"
@@ -37,6 +38,8 @@
 using namespace std;
 using namespace mxnet;
 using namespace miosix;
+
+MediumAccessController *tdmh = nullptr;
 
 class Arg
 {
@@ -67,6 +70,7 @@ void masterNode(void*)
             3              //maxMissedTimesyncs
         );
         MasterMediumAccessController controller(Transceiver::instance(), config);
+        tdmh = &controller;
         controller.run();
     } catch(exception& e) {
         for(;;)
@@ -102,6 +106,7 @@ void dynamicNode(void* argv)
             3              //maxMissedTimesyncs
         );
         DynamicMediumAccessController controller(Transceiver::instance(), config);
+        tdmh = &controller;
         controller.run();
     } catch(exception& e) {
         for(;;)
@@ -123,10 +128,75 @@ void blinkThread(void *)
     }
 }
 
+struct Data
+{
+    Data() {}
+    Data(int id) : id(id), time(miosix::getTime()) {}
+    unsigned char id;
+    long long time;
+}__attribute__((packed));
+
+void masterApplication() {
+    /* Wait for TDMH to become ready */
+    MACContext* ctx = tdmh->getMACContext();
+    while(!ctx->isReady()) {
+        Thread::sleep(1000);
+    }
+    /* Open a StreamServer to listen for incoming streams */
+    mxnet::StreamServer server(*tdmh,      // Pointer to MediumAccessController
+                               0,                 // Destination port
+                               Period::P1,        // Period
+                               1,                 // Payload size
+                               Direction::TX,     // Direction
+                               Redundancy::NONE); // Redundancy
+    Stream r(*tdmh);
+    server.accept(r);
+    printf("[A] Accept returned! \n");
+    while(2.0){
+        Data data;
+        int len = r.recv(&data, sizeof(data));
+        if(len != sizeof(data))
+            printf("[E] Received wrong size data");
+        else
+            printf("[A] Received id=%d time=%lld\n", data.id, data.time);
+    }
+}
+
+void dynamicApplication() {
+    /* Wait for TDMH to become ready */
+    MACContext* ctx = tdmh->getMACContext();
+    while(!ctx->isReady()) {
+        Thread::sleep(1000);
+    }
+    /* Delay the Stream opening so it gets opened after the StreamServer */
+    Thread::sleep(1000);
+    /* Open Stream from node */
+    while(true){
+        try{
+            /* Open a Stream to another node */
+            mxnet::Stream s(*tdmh,            // Pointer to MediumAccessController
+                            0,                 // Destination node
+                            0,                 // Destination port
+                            Period::P1,        // Period
+                            1,                 // Payload size
+                            Direction::TX,     // Direction
+                            Redundancy::NONE); // Redundancy
+            printf("[A] Stream constructor returned \n");
+            while(4.0) {
+                Data data(ctx->getNetworkId());
+                s.send(&data, sizeof(data));
+                printf("[A] Sent id=%d time=%lld\n", data.id, data.time); 
+            }
+        } catch(exception& e) {
+            cerr<<"\nException thrown: "<<e.what()<<endl;
+        }
+    }
+}
+
 int main()
 {
-    auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1,1), Thread::JOINABLE);
+    //       auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+          auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1,1), Thread::JOINABLE);
 //     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2,3), Thread::JOINABLE);
 //     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,1), Thread::JOINABLE);
 //     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(4,2), Thread::JOINABLE);
@@ -136,9 +206,20 @@ int main()
 //     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(8,2), Thread::JOINABLE);
     
     Thread::create(blinkThread,STACK_MIN,PRIORITY_MAX-1);
+
+    while(tdmh==nullptr) ;
+    Thread::sleep(5000);
+    MACContext* ctx = tdmh->getMACContext();
+    // Master node code
+    if(ctx->getNetworkId() == 0)
+        masterApplication();
+    else
+        dynamicApplication();
+
+
 //     t1->join();
     
-    auto& timestamp=GPIOtimerCorr::instance();
+/*    auto& timestamp=GPIOtimerCorr::instance();
     for(;;)
     {
         auto period=NetworkTime::fromNetworkTime(10000000000);
@@ -150,6 +231,5 @@ int main()
             // MemoryProfiling::print();
         }
     }
-    
-    return 0;
+*/  
 }
