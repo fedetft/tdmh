@@ -86,14 +86,11 @@ void DataPhase::receiveToBuffer(long long slotStart) {
     ctx.transceiverIdle();
 }
 void DataPhase::alignToNetworkTime(NetworkTime nt) {
-    auto netTime = nt.get();
-    auto tileDuration = ctx.getNetworkConfig().getTileDuration();
-    auto slotDuration = ctx.getDataSlotDuration();
-    auto tilesPassedTotal = netTime / tileDuration;
-    auto timeInCurrentTile = netTime % tileDuration;
-    auto slotInCurrentTile = (timeInCurrentTile / slotDuration);
+    auto tileAndSlot = ctx.getCurrentTileAndSlot(nt);
+    auto currentTile = tileAndSlot.first;
+    auto slotInCurrentTile = tileAndSlot.second;
     // current tile in current Schedule (DataSuperFrame)
-    auto scheduleTile = tilesPassedTotal - scheduleActivationTile;
+    auto scheduleTile = currentTile - scheduleActivationTile;
     auto slotsInTile = ctx.getSlotsInTileCount();
     tileSlot = (scheduleTile * slotsInTile) + slotInCurrentTile;
 }

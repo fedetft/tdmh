@@ -50,8 +50,8 @@ private:
     // To check if all the schedule packets are received
     std::vector<bool> received;
     // Countdown for replacing current schedule
-    // Initial value = 0, Replaced if = 1
-    unsigned int replaceCountdown = 0;
+    // Initial value = 5, Replaced if = 0
+    unsigned int replaceCountdown = 5;
     // Next schedule being received
     ScheduleHeader nextHeader;
     std::vector<ScheduleElement> nextSchedule;

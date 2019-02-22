@@ -35,7 +35,8 @@ void UplinkPhase::alignToNetworkTime(NetworkTime nt)
     auto tileDuration = ctx.getNetworkConfig().getTileDuration();
     auto numUplinkPerSuperframe = ctx.getNetworkConfig().getNumUplinkSlotperSuperframe();
     auto controlSuperframe = ctx.getNetworkConfig().getControlSuperframeStructure();
-    
+    // NOTE: Add half slot size to make the computation more robust to noise in time
+    auto time = nt.get() + ctx.getDataSlotDuration()/2;
     auto superframeCount = nt.get() / controlSuperframeDuration;
     auto timeWithinSuperframe = nt.get() % controlSuperframeDuration;
     

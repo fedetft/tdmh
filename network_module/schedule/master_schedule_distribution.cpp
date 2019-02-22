@@ -49,7 +49,7 @@ MasterScheduleDownlinkPhase::MasterScheduleDownlinkPhase(MACContext& ctx, Schedu
 void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     // Check for new schedule
     if(schedule_comp.getScheduleID() != header.getScheduleID()) { 
-        getCurrentSchedule();
+        getCurrentSchedule(slotStart);
         // Reset variable for splitting schedule in packets
         position = 0;
         // Print explicit schedule of every node
@@ -79,7 +79,7 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
                 printExplicitSchedule(myID, true, explicitSchedule);
             }
         }
-        checkTimeSetSchedule();
+        checkTimeSetSchedule(slotStart);
         // If InfoElements available, send a SchedulePkt with InfoElements only
         if(streamMgr->getNumInfo() != 0)
             sendInfoPkt(slotStart);
@@ -95,36 +95,53 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     header.incrementPacketCounter();
 }
 
-void MasterScheduleDownlinkPhase::getCurrentSchedule() {
+void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {
     schedule = schedule_comp.getSchedule();
-    auto nt = NetworkTime::now();
-    auto tileDuration = ctx.getNetworkConfig().getTileDuration();
-    auto currentTile = nt.get() / tileDuration;
+    auto currentTile = ctx.getCurrentTile(slotStart);
     auto activationTile = 0;
+    unsigned numPackets = (schedule.size() / packetCapacity) + 1;
+    auto tilesToDistributeSchedule = getTilesToDistributeSchedule(numPackets);
     // First schedule activation time
-    if(schedule_comp.getScheduleID() == 1)
+    if(schedule_comp.getScheduleID() == 1){
+        auto superframeSize = ctx.getNetworkConfig().getControlSuperframeStructure().size();
+        auto align = currentTile % superframeSize;
+        if(align) currentTile += superframeSize - align;        
         activationTile = currentTile + tilesToDistributeSchedule;
+    }
     // Subsequent schedules activation time
     else {
+        // Use activationTile and scheduleTiles of the previous schedule (still saved in header)
         auto scheduleTiles = header.getScheduleTiles();
         auto currentScheduleTile = (currentTile - header.getActivationTile()) %
                                    scheduleTiles;
         auto remainingScheduleTiles = scheduleTiles - currentScheduleTile;
         activationTile = currentTile + remainingScheduleTiles;
         // Add multiples of scheduleTiles to allow schedule distribution
-        while((activationTile - currentTile) < tilesToDistributeSchedule) {
-            activationTile += scheduleTiles;
+        if ((activationTile - currentTile) < tilesToDistributeSchedule) {
+            auto moreTiles = (tilesToDistributeSchedule - (activationTile - currentTile));
+            auto align = moreTiles % scheduleTiles;
+            activationTile += moreTiles + (align ? scheduleTiles-align : 0);
         }
     }
     // Build a header for the new schedule
-    unsigned numPackets = (schedule.size() / packetCapacity) + 1;
     ScheduleHeader newheader(
-        numPackets,                         // totalPacket
-        0,                                  // currentPacket
-        schedule_comp.getScheduleID(),      // scheduleID
-        activationTile,                     // activationTile
-        schedule_comp.getScheduleTiles());  // scheduleTiles
+                             numPackets,                         // totalPacket
+                             0,                                  // currentPacket
+                             schedule_comp.getScheduleID(),      // scheduleID
+                             activationTile,                     // activationTile
+                             schedule_comp.getScheduleTiles());  // scheduleTiles
     header = newheader;
+}
+
+unsigned long MasterScheduleDownlinkPhase::getTilesToDistributeSchedule(unsigned int numPackets) {
+    auto superframeSize = ctx.getNetworkConfig().getControlSuperframeStructure().size();
+    auto downlinkInSuperframe = ctx.getNetworkConfig().getNumDownlinkSlotperSuperframe();
+    // TODO: make number of repetitions configurable
+    auto numRepetition = 3;
+    auto downlinkNeeded = numPackets * numRepetition;
+    auto result = downlinkNeeded / downlinkInSuperframe;
+    if(downlinkNeeded % downlinkInSuperframe) result++;
+    return result * superframeSize;
 }
 
 void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {

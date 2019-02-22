@@ -33,8 +33,10 @@
 #include "interfaces-impl/transceiver.h"
 #include "interfaces-impl/power_manager.h"
 #include "stream_manager.h"
+#include "timesync/networktime.h"
 #include <functional>
 #include <stdexcept>
+#include <utility>
 // For thread synchronization
 #ifdef _MIOSIX
 #include <miosix.h>
@@ -227,6 +229,35 @@ public:
      * @return the duration of an uplink slot
      */
     unsigned long long getUplinkSlotDuration() const { return uplinkSlotDuration; }
+
+    /**
+     * @return the current tile from the protocol start, based on slotStart,
+     * taking count that the computation for every slot happens before the slot starts.
+     */
+    unsigned int getCurrentTile(long long slotStart) const {
+        //NOTE: slotStart is the LOCAL time (returned by miosix::getTime()) of
+        //the beginning of a slot in a tile. Given that there may be some clock
+        //synchronization error, we add half a slot length to make it more robust
+        slotStart += (dataSlotDuration/2);
+        auto tileDuration = networkConfig.getTileDuration();
+        auto nt = NetworkTime::fromLocalTime(slotStart).get();
+        return nt / tileDuration;
+    }
+
+    /**
+     * @return the current tile from the protocol start, based on slotStart,
+     * and the current slot in the current tile (from 0 to getSlotsInTileCount()-1).
+     */
+    std::pair<unsigned int, unsigned int> getCurrentTileAndSlot(NetworkTime nt) const {
+        //NOTE: Given that there may be some clock
+        //synchronization error, we add half a slot length to make it more robust
+        auto time = nt.get() + dataSlotDuration/2;
+        auto tileDuration = networkConfig.getTileDuration();
+        auto currentTile = time / tileDuration;
+        auto timeInCurrentTile = time % tileDuration;
+        auto slotInCurrentTile = timeInCurrentTile / dataSlotDuration;
+        return std::make_pair(currentTile, slotInCurrentTile);
+    }
 
     void run();
 

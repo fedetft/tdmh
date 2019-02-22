@@ -35,33 +35,36 @@ using namespace miosix;
 namespace mxnet {
 
 void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
-    if(replaceCountdown != 0)
-        replaceCountdown--;
     Packet pkt;
     // Receive the schedule packet
     auto arrivalTime = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     auto rcvResult = pkt.recv(ctx, arrivalTime);
     ctx.transceiverIdle(); //Save power waiting for rebroadcast time
-    
-    if (rcvResult.error == miosix::RecvResult::TIMEOUT) return;
+    // No schedule received
+    if (rcvResult.error == miosix::RecvResult::TIMEOUT) {
+        if(replaceCountdown != 5 && replaceCountdown != 0)
+            replaceCountdown--;
+    }
+    // Schedule received
+    else {
+        // Rebroadcast the schedule packet
+        if(ctx.getHop() >= ctx.getNetworkConfig().getMaxHops()) return;
+        ctx.configureTransceiver(ctx.getTransceiverConfig());
+        pkt.send(ctx, rcvResult.timestamp + rebroadcastInterval);
+        ctx.transceiverIdle();
 
-    // Rebroadcast the schedule packet
-    if(ctx.getHop() >= ctx.getNetworkConfig().getMaxHops()) return;
-    ctx.configureTransceiver(ctx.getTransceiverConfig());
-    pkt.send(ctx, rcvResult.timestamp + rebroadcastInterval);
-    ctx.transceiverIdle();
+        // Parse the schedule packet
+        ScheduleHeader newHeader = decodePacket(pkt);
 
-    // Parse the schedule packet
-    ScheduleHeader header = decodePacket(pkt);
-
-    if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
-        printHeader(header);
-    // If we received a complete schedule, calculate activation time
-    if(isScheduleComplete())
-        calculateCountdown(header);
+        if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
+            printHeader(newHeader);
+        // If we received a complete schedule, calculate activation time
+        if(isScheduleComplete())
+            calculateCountdown(newHeader);
+    }
     // Check replaceCountdown
-    if(replaceCountdown == 1 && isScheduleComplete()) { 
+    if(replaceCountdown == 0 && isScheduleComplete()) { 
         replaceRunningSchedule();
         if(explicitScheduleID != header.getScheduleID()) {
             auto myID = ctx.getNetworkId();
@@ -75,7 +78,11 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
                 printExplicitSchedule(myID, true, explicitSchedule);                
             }
         }
-        checkTimeSetSchedule();
+    }
+    if(isScheduleComplete() && (nextHeader.getScheduleID() == header.getScheduleID())) {
+        // The check on schedule activation must be done only after receiving the
+        // first schedule (copied from nextSchedule in replaceRunningSchedule())
+        checkTimeSetSchedule(slotStart);
     }
     streamMgr->receiveInfo();
     //printStatus();
@@ -113,7 +120,7 @@ ScheduleHeader DynamicScheduleDownlinkPhase::decodePacket(Packet& pkt) {
             // Set current packet as received
             received.at(newHeader.getCurrentPacket()) = true;
             // Reset the schedule replacement countdown;
-            replaceCountdown = 0;
+            replaceCountdown = 5;
         }
         // We are receiving another part of the same schedule, we accept it if:
         // - repetition number is higher or equal than the saved one
@@ -145,11 +152,14 @@ void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
 }
 
 void DynamicScheduleDownlinkPhase::calculateCountdown(ScheduleHeader& newHeader) {
-    // Becomes 1 with 3rd repetition (1 = replace schedule)
+    // Becomes 1 with 3rd repetition (0 = replace schedule)
     replaceCountdown = 4 - newHeader.getRepetition();
 }
 
 bool DynamicScheduleDownlinkPhase::isScheduleComplete() {
+    // If no packet was received, the schedule is not complete
+    if(received.size() == 0)
+        return false;
     bool complete = true;
     for(unsigned int i=0; i< received.size(); i++) complete &= received[i];
     return complete;

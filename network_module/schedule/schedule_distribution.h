@@ -57,7 +57,6 @@ public:
 
     static const int phaseStartupTime = 450000;
     static const int rebroadcastInterval = 5000000; //32us per-byte + 600us total delta
-    static const unsigned int tilesToDistributeSchedule = 3; //32us per-byte + 600us total delta
 
     /* Called after receiving a complete schedule,
      * it converts the schedule from implicit form (list of streams)
@@ -72,7 +71,7 @@ public:
        This function calculates the tilesPassedTotal time indicator,
        if it is equal to the one in the schedule header,
        replace expanded schedule in the dataphase with the new one */
-    void checkTimeSetSchedule();
+    void checkTimeSetSchedule(long long slotStart);
 protected:
     // Schedule header with information on schedule distribution
     ScheduleHeader header;

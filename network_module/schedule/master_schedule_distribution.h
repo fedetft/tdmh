@@ -38,12 +38,13 @@ public:
     MasterScheduleDownlinkPhase(const MasterScheduleDownlinkPhase& orig) = delete;
     virtual ~MasterScheduleDownlinkPhase() {};
     void execute(long long slotStart) override;
-    void getCurrentSchedule();
+    void getCurrentSchedule(long long slotStart);
     void sendSchedulePkt(long long slotstart);
     void sendInfoPkt(long long slotstart);
     void printHeader(ScheduleHeader& header);
 
 private:
+    unsigned long getTilesToDistributeSchedule(unsigned int numPackets);
     // Reference to ScheduleComputation class to get current schedule
     ScheduleComputation& schedule_comp;
     // Last schedule element sent

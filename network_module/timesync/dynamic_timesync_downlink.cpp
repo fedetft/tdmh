@@ -110,14 +110,15 @@ void DynamicTimesyncDownlink::resync() {
     ++pkt[2];
     reset(rcvResult.timestamp);
     ctx.setHop(pkt[2]);
-    rebroadcast(pkt, correct(rcvResult.timestamp));
+    auto correctPacketTime = correct(rcvResult.timestamp);
+    rebroadcast(pkt, correctPacketTime);
 
     ctx.transceiverIdle();
 
     // TODO: make a struct containing the packetCounter
     packetCounter = *reinterpret_cast<unsigned int*>(&pkt[7]);
     NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() * networkConfig.getClockSyncPeriod() - correct(start));
-    auto ntNow = NetworkTime::now();
+    auto ntNow = NetworkTime::fromLocalTime(correctPacketTime);
     ctx.getUplink()->alignToNetworkTime(ntNow);
     ctx.getDataPhase()->alignToNetworkTime(ntNow);
 
