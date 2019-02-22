@@ -108,12 +108,8 @@ void Node::application() {
                                 1,                 // Payload size
                                 Direction::TX,     // Direction
                                 Redundancy::NONE); // Redundancy
-                vector<char> data(125);
-                data[0] = 1;
-                data[1] = 2;
-                data[2] = 3;
-                data[3] = 4;
-                s.send(&data, 4);
+                vector<char> data={1,2,3,4};
+                s.send(data.data(), data.size());
                 printf("[A] Sent data 1234\n");
                 break;
             } catch(exception& e) {

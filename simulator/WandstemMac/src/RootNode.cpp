@@ -82,10 +82,9 @@ void RootNode::application() {
                  Redundancy::NONE); // Redundancy
     Stream r(*tdmh);
     server.accept(r);
-    vector<char> data(125);
-    r.recv(&data, 125);
-    printf("[A] Received data ");
-    for(auto d : data)
-        printf(" %d ", d);
-    printf("\n");
+    vector<char> data;
+    data.resize(125);
+    data.resize(r.recv(data.data(), data.size()));
+    printf("[A] Received data \n");
+    miosix::memDump(data.data(), data.size());
 }

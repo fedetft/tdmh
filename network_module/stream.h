@@ -64,7 +64,7 @@ public:
     /* Put data to send through this stream */
     void send(const void* data, int size);
     /* Get data received from this stream */
-    void recv(void* data, int size);
+    int recv(void* data, int maxSize);
 
     /* ### Not to be called by the end user ### */
     /* Used by the StreamManager class to get data from buffer */

@@ -27,6 +27,7 @@
 
 #include "stream.h"
 #include "mac_context.h"
+#include <algorithm>
 
 namespace mxnet {
 
@@ -101,7 +102,7 @@ void Stream::send(const void* data, int size) {
     sendBuffer.put(data, size);
 }
 
-void Stream::recv(void* data, int size) {
+int Stream::recv(void* data, int maxSize) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(recv_mutex);
 #else
@@ -112,6 +113,9 @@ void Stream::recv(void* data, int size) {
         // Condition variable to wait for buffer to be non empty
         recv_cv.wait(lck);
     }
+    auto size = std::min<int>(maxSize, recvBuffer.size());
+    recvBuffer.get(data, size);
+    return size;
 }
 
 
