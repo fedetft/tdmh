@@ -123,36 +123,94 @@ int Stream::recv(void* data, int maxSize) {
 
 
 Packet Stream::getSendBuffer() {
+    Redundancy r = info.getRedundancy();
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(send_mutex);
 #else
     std::unique_lock<std::mutex> lck(send_mutex);
 #endif
     auto result = sendBuffer;
-    // Clear buffer
-    sendBuffer.clear();
-    // Wake up the Application thread calling the send
+    // No redundancy: send value once
+    if(r == Redundancy::NONE) {
+        // Clear buffer
+        sendBuffer.clear();
+        // Wake up the Application thread calling the send
 #ifdef _MIOSIX
-    send_cv.signal();
+        send_cv.signal();
 #else
-    send_cv.notify_one();
+        send_cv.notify_one();
 #endif
+    }
+    // Double redundancy: send value twice before clear and notify
+    else if((r == Redundancy::DOUBLE) ||
+       (r == Redundancy::DOUBLE_SPATIAL)) {
+        if(++timesSent == 2){
+            timesSent = 0;
+            sendBuffer.clear();
+#ifdef _MIOSIX
+            send_cv.signal();
+#else
+            send_cv.notify_one();
+#endif
+        }
+    }
+    // Triple redundancy: send value three times before clear and notify
+    else if((r == Redundancy::TRIPLE) ||
+       (r == Redundancy::TRIPLE_SPATIAL)) {
+        if(++timesSent == 3){ 
+            timesSent = 0;
+            sendBuffer.clear();
+#ifdef _MIOSIX
+            send_cv.signal();
+#else
+            send_cv.notify_one();
+#endif
+        }  
+    }
     return result;
 }
 
 void Stream::putRecvBuffer(Packet& pkt) {
+    Redundancy r = info.getRedundancy();
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(recv_mutex);
 #else
     std::unique_lock<std::mutex> lck(recv_mutex);
 #endif
     recvBuffer = pkt;
-    // Wake up the Application thread calling the recv
+    // No redundancy: notify right away
+    if(r == Redundancy::NONE) {
+        // Wake up the Application thread calling the recv
 #ifdef _MIOSIX
-    recv_cv.signal();
+        recv_cv.signal();
 #else
-    recv_cv.notify_one();
+        recv_cv.notify_one();
 #endif
+    }
+    // Double redundancy: notify after receiving twice
+    else if((r == Redundancy::DOUBLE) ||
+       (r == Redundancy::DOUBLE_SPATIAL)) {
+        if(++timesRecv == 2){
+            timesRecv = 0;
+#ifdef _MIOSIX
+            recv_cv.signal();
+#else
+            recv_cv.notify_one();
+#endif
+        }
+    }
+    // Triple redundancy: notify after receiving three times
+    else if((r == Redundancy::TRIPLE) ||
+       (r == Redundancy::TRIPLE_SPATIAL)) {
+        if(++timesRecv == 3){ 
+            timesRecv = 0;
+#ifdef _MIOSIX
+            recv_cv.signal();
+#else
+            recv_cv.notify_one();
+#endif
+        }  
+    }
 }
 
 StreamServer::StreamServer(MediumAccessController& tdmh, unsigned char dstPort,

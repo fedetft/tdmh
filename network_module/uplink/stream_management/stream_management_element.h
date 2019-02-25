@@ -58,47 +58,49 @@ enum class Period
 /* Convert Period from 4-bit value to real value */
 inline int toInt(Period x)
 {
+    int value = 0;
     switch(x){
     case Period::P1:
-        return 1;
+        value = 1;
         break;
     case Period::P2:
-        return 2;
+        value = 2;
         break;
     case Period::P5:
-        return 5;
+        value = 5;
         break;
     case Period::P10:
-        return 10;
+        value = 10;
         break;
     case Period::P20:
-        return 20;
+        value = 20;
         break;
     case Period::P50:
-        return 50;
+        value = 50;
         break;
     case Period::P100:
-        return 100;
+        value = 100;
         break;
     case Period::P200:
-        return 200;
+        value = 200;
         break;
     case Period::P500:
-        return 500;
+        value = 500;
         break;
     case Period::P1000:
-        return 1000;
+        value = 1000;
         break;
     case Period::P2000:
-        return 2000;
+        value = 2000;
         break;
     case Period::P5000:
-        return 5000;
+        value = 5000;
         break;
     case Period::P10000:
-        return 10000;
+        value = 10000;
         break;
     }
+    return value;
 }
 
 enum class Redundancy

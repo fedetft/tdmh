@@ -79,7 +79,7 @@ void RootNode::application() {
                  Period::P50,        // Period
                  1,                 // Payload size
                  Direction::TX,     // Direction
-                 Redundancy::NONE); // Redundancy
+                 Redundancy::DOUBLE); // Redundancy
     Stream r(*tdmh);
     server.accept(r);
     vector<char> data;

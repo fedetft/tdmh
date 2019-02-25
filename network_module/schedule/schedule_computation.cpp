@@ -581,6 +581,14 @@ std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamInfo>&
             std::list<ScheduleElement> single_hop;
             single_hop.push_back(ScheduleElement(stream));
             routed_streams.push_back(single_hop);
+            Redundancy redundancy = stream.getRedundancy();
+            // Temporal redundancy
+            if(redundancy == Redundancy::DOUBLE)
+                routed_streams.push_back(single_hop);
+            if(redundancy == Redundancy::TRIPLE) {
+                routed_streams.push_back(single_hop);
+                routed_streams.push_back(single_hop);
+            }
             continue;
         }
         // Otherwise run BFS

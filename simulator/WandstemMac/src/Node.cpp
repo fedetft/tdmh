@@ -107,7 +107,7 @@ void Node::application() {
                                 Period::P50,        // Period
                                 1,                 // Payload size
                                 Direction::TX,     // Direction
-                                Redundancy::NONE); // Redundancy
+                                Redundancy::DOUBLE); // Redundancy
                 vector<char> data={1,2,3,4};
                 s.send(data.data(), data.size());
                 printf("[A] Sent data 1234\n");

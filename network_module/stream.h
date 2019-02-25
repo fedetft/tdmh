@@ -85,6 +85,9 @@ private:
     Packet recvBuffer;
     /* Information about this Stream */
     StreamInfo info;
+    /* Redundancy Info */
+    unsigned char timesSent = 0;
+    unsigned char timesRecv = 0;
     /* Thread synchronization */
 #ifdef _MIOSIX
     miosix::Mutex stream_mutex;
