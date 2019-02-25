@@ -84,6 +84,8 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
         return;
     }
     if(header.getCurrentPacket() >= header.getTotalPacket()) {
+        /* Reset schedule element index */
+        position = 0;
         header.resetPacketCounter();
         header.incrementRepetition();
     }

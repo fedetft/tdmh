@@ -82,7 +82,7 @@ void ScheduleComputation::run() {
             // Wait for beginScheduling()
             sched_cv.wait(lck);
             while(stream_mgmt.getStreamNumber() == 0) {
-                printf("No stream to schedule, waiting...\n");
+                printf("-");
                 // Condition variable to wait for streams to schedule.
                 sched_cv.wait(lck);
             }

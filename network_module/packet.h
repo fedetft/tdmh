@@ -29,6 +29,8 @@
 
 #include "tdmh.h"
 #include "interfaces-impl/transceiver.h"
+#include "miosix.h"
+#include "debug_settings.h"
 #include <array>
 #include <limits>
 #include <stdexcept>
@@ -52,6 +54,13 @@ public:
     unsigned int size() const { return (dataSize - dataStart); }
 
     unsigned int maxSize() const { return packet.size(); }
+
+    void print() const {
+        /* Check that immediately after receive, dataStart is equal to 0 */
+        assert (dataStart == 0);
+        print_dbg("Packet Dump, size:%d\n", dataSize);
+        miosix::memDump(packet.data(), dataSize);
+    }
 
     void send(MACContext& ctx, long long sendTime) const;
 

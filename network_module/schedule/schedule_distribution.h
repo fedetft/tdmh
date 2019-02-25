@@ -78,7 +78,7 @@ protected:
     // Copy of last computed/received schedule
     std::vector<ScheduleElement> schedule;
     // Current schedule lenght in tiles
-    unsigned long explicitScheduleID;
+    unsigned long explicitScheduleID = 0;
     std::vector<ExplicitScheduleElement> explicitSchedule;
     StreamManager* const streamMgr;
 private:

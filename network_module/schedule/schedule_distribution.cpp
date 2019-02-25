@@ -132,7 +132,7 @@ void ScheduleDownlinkPhase::printCompleteSchedule() {
         print_dbg("[SD] ### Schedule distribution, Master node\n");
     auto maxNodes = ctx.getNetworkConfig().getMaxNodes();
     printSchedule(myID);
-    print_dbg("[SD] ### Explicit Schedule for all nodes\n");
+    print_dbg("[SD] ### Explicit Schedule for all nodes (maxnodes=%d)\n", maxNodes);
     std::vector<ExplicitScheduleElement> nodeSchedule;
     for(unsigned char node = 0; node < maxNodes; node++)
     {

@@ -39,6 +39,8 @@ using namespace std;
 using namespace mxnet;
 using namespace miosix;
 
+const int maxNodes = 32;
+
 MediumAccessController *tdmh = nullptr;
 
 class Arg
@@ -48,20 +50,36 @@ public:
     const unsigned char id, hop;
 };
 
+inline int maxForwardedTopologiesFromMaxNumNodes(int maxNumNodes)
+{
+    /*
+     * Dynamic Uplink allocation implemented
+     * the parameter topologySMERatio configures the fraction of uplink packet
+     * reserved for topology messages
+     * UplinkMessagePkt                 { hop, assignee }   2
+     * NeighborTable                    { bitmask }         maxNumNodes/8
+     * number of forwarded topologies (NeighborMessage::serialize) 1
+     * vector<ForwardedNeighborMessage> { nodeId, bitmask } maxForwardedTopologies*(1+maxNumNodes/8)
+     */
+    const float topologySMERatio = 0.5;
+    int packetCapacity = (125 - 2 - maxNumNodes/8 - 1) / (1 + maxNumNodes/8);
+    return std::min<int>(packetCapacity * topologySMERatio, maxNumNodes - 2);
+}
+
 void masterNode(void*)
 {
     try {
         printf("Master node\n");
         const NetworkConfiguration config(
             6,             //maxHops
-            32,            //maxNodes
+            maxNodes,            //maxNodes
             0,             //networkId
             false,         //staticHop
             6,             //panId
             5,             //txPower
             2450,          //baseFrequency
             10000000000,   //clockSyncPeriod
-            10,            //maxForwardedTopologies
+            maxForwardedTopologiesFromMaxNumNodes(maxNodes), //maxForwardedTopologies
             1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
@@ -69,6 +87,7 @@ void masterNode(void*)
             -75,           //minNeighborRSSI
             3              //maxMissedTimesyncs
         );
+        printf("Starting TDMH with maxForwardedTopologies=%d\n", maxForwardedTopologiesFromMaxNumNodes(maxNodes));
         MasterMediumAccessController controller(Transceiver::instance(), config);
         tdmh = &controller;
         controller.run();
@@ -90,14 +109,14 @@ void dynamicNode(void* argv)
         printf("\n");
         const NetworkConfiguration config(
             6,             //maxHops
-            32,            //maxNodes
+            maxNodes,            //maxNodes
             arg->id,       //networkId
             arg->hop,      //staticHop
             6,             //panId
             5,             //txPower
             2450,          //baseFrequency
             10000000000,   //clockSyncPeriod
-            10,            //maxForwardedTopologies
+            maxForwardedTopologiesFromMaxNumNodes(maxNodes), //maxForwardedTopologies
             1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
@@ -105,6 +124,7 @@ void dynamicNode(void* argv)
             -75,           //minNeighborRSSI
             3              //maxMissedTimesyncs
         );
+        printf("Starting TDMH with maxForwardedTopologies=%d\n", maxForwardedTopologiesFromMaxNumNodes(maxNodes));
         DynamicMediumAccessController controller(Transceiver::instance(), config);
         tdmh = &controller;
         controller.run();
@@ -195,8 +215,8 @@ void dynamicApplication() {
 
 int main()
 {
-    //       auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-          auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1,1), Thread::JOINABLE);
+    //     auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+       auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1,1), Thread::JOINABLE);
 //     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2,3), Thread::JOINABLE);
 //     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,1), Thread::JOINABLE);
 //     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(4,2), Thread::JOINABLE);
