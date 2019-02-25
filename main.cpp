@@ -165,7 +165,7 @@ void masterApplication() {
     /* Open a StreamServer to listen for incoming streams */
     mxnet::StreamServer server(*tdmh,      // Pointer to MediumAccessController
                                0,                 // Destination port
-                               Period::P1,        // Period
+                               Period::P20,        // Period
                                1,                 // Payload size
                                Direction::TX,     // Direction
                                Redundancy::NONE); // Redundancy
@@ -197,12 +197,12 @@ void dynamicApplication() {
             mxnet::Stream s(*tdmh,            // Pointer to MediumAccessController
                             0,                 // Destination node
                             0,                 // Destination port
-                            Period::P1,        // Period
+                            Period::P20,        // Period
                             1,                 // Payload size
                             Direction::TX,     // Direction
                             Redundancy::NONE); // Redundancy
             printf("[A] Stream constructor returned \n");
-            while(4.0) {
+            while(true) {
                 Data data(ctx->getNetworkId());
                 s.send(&data, sizeof(data));
                 printf("[A] Sent id=%d time=%lld\n", data.id, data.time); 
@@ -215,8 +215,8 @@ void dynamicApplication() {
 
 int main()
 {
-    //     auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-       auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1,1), Thread::JOINABLE);
+    //    auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+                  auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1,1), Thread::JOINABLE);
 //     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2,3), Thread::JOINABLE);
 //     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,1), Thread::JOINABLE);
 //     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(4,2), Thread::JOINABLE);

@@ -37,27 +37,68 @@ class StreamManagementElement;
 
 enum class Period
 {
-    P0dot1,        //  0.1*tileDuration (currently unsupported)
-    P0dot2,        //  0.2*tileDuration (currently unsupported)
-    P0dot5,        //  0.5*tileDuration (currently unsupported)
+//  P0dot1,        //  0.1*tileDuration (currently unsupported)
+//  P0dot2,        //  0.2*tileDuration (currently unsupported)
+//  P0dot5,        //  0.5*tileDuration (currently unsupported)
     P1     =1,     //    1*tileDuration
     P2     =2,     //    2*tileDuration
-    P5     =5,     //    5*tileDuration
-    P10    =10,    //   10*tileDuration
-    P20    =20,    //   20*tileDuration
-    P50    =50,    //   50*tileDuration
-    P100   =100,   //  100*tileDuration
-    P200   =200,   //  200*tileDuration (currently unsupported)
-    P500   =500,   //  500*tileDuration (currently unsupported)
-    P1000  =1000,  // 1000*tileDuration (currently unsupported)
-    P2000  =2000,  // 2000*tileDuration (currently unsupported)
-    P5000  =5000,  // 5000*tileDuration (currently unsupported)
-    P10000 =10000, //10000*tileDuration (currently unsupported)
+    P5     =3,     //    5*tileDuration
+    P10    =4,    //   10*tileDuration
+    P20    =5,    //   20*tileDuration
+    P50    =6,    //   50*tileDuration
+    P100   =7,   //  100*tileDuration
+    P200   =8,   //  200*tileDuration (currently unsupported)
+    P500   =9,   //  500*tileDuration (currently unsupported)
+    P1000  =10,  // 1000*tileDuration (currently unsupported)
+    P2000  =11,  // 2000*tileDuration (currently unsupported)
+    P5000  =12,  // 5000*tileDuration (currently unsupported)
+    P10000 =13, //10000*tileDuration (currently unsupported)
 };
 
+/* Convert Period from 4-bit value to real value */
 inline int toInt(Period x)
 {
-    return static_cast<int>(x);
+    switch(x){
+    case Period::P1:
+        return 1;
+        break;
+    case Period::P2:
+        return 2;
+        break;
+    case Period::P5:
+        return 5;
+        break;
+    case Period::P10:
+        return 10;
+        break;
+    case Period::P20:
+        return 20;
+        break;
+    case Period::P50:
+        return 50;
+        break;
+    case Period::P100:
+        return 100;
+        break;
+    case Period::P200:
+        return 200;
+        break;
+    case Period::P500:
+        return 500;
+        break;
+    case Period::P1000:
+        return 1000;
+        break;
+    case Period::P2000:
+        return 2000;
+        break;
+    case Period::P5000:
+        return 5000;
+        break;
+    case Period::P10000:
+        return 10000;
+        break;
+    }
 }
 
 enum class Redundancy

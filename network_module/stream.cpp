@@ -128,7 +128,7 @@ Packet Stream::getSendBuffer() {
 #else
     std::unique_lock<std::mutex> lck(send_mutex);
 #endif
-    return sendBuffer;
+    auto result = sendBuffer;
     // Clear buffer
     sendBuffer.clear();
     // Wake up the Application thread calling the send
@@ -137,6 +137,7 @@ Packet Stream::getSendBuffer() {
 #else
     send_cv.notify_one();
 #endif
+    return result;
 }
 
 void Stream::putRecvBuffer(Packet& pkt) {
@@ -152,7 +153,6 @@ void Stream::putRecvBuffer(Packet& pkt) {
 #else
     recv_cv.notify_one();
 #endif
-
 }
 
 StreamServer::StreamServer(MediumAccessController& tdmh, unsigned char dstPort,

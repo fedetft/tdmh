@@ -512,17 +512,17 @@ bool ScheduleComputation::checkInterferenceConflict(const ScheduleElement& new_t
 }
 
 void ScheduleComputation::printSchedule() {
-    printf("ID   TX  RX  PER OFF\n");
+    printf("ID  TX  RX  PER OFF\n");
     for(auto& elem : schedule) {
-        printf("%d  %d-->%d   %d   %d\n", elem.getKey(), elem.getTx(), elem.getRx(),
+        printf("%d   %d-->%d   %d   %d\n", elem.getKey(), elem.getTx(), elem.getRx(),
                                         toInt(elem.getPeriod()), elem.getOffset());
     }
 }
 
 void ScheduleComputation::printStreams(const std::vector<StreamInfo>& stream_list) {
-    printf("ID SRC DST PER STS\n");
+    printf("ID SRC DST  PER STS\n");
     for(auto& stream : stream_list) {
-        printf("%d   %d-->%d   %d  ", stream.getKey(), stream.getSrc(),
+        printf("%d   %d-->%d   %2d  ", stream.getKey(), stream.getSrc(),
                stream.getDst(), toInt(stream.getPeriod()));
         switch(stream.getStatus()){
         case StreamStatus::CLOSED:

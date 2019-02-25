@@ -65,7 +65,7 @@ inline int maxForwardedTopologiesFromMaxNumNodes(int maxNumNodes)
      * number of forwarded topologies (NeighborMessage::serialize) 1
      * vector<ForwardedNeighborMessage> { nodeId, bitmask } maxForwardedTopologies*(1+maxNumNodes/8)
      */
-    const float topologySMERatio = 1;
+    const float topologySMERatio = 0.5;
     int packetCapacity = (125 - 2 - maxNumNodes/8 - 1) / (1 + maxNumNodes/8);
     return std::min<int>(packetCapacity * topologySMERatio, maxNumNodes - 2);
 }
