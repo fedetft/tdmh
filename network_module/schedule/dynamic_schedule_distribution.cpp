@@ -64,7 +64,9 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
             calculateCountdown(newHeader);
     }
     // Check replaceCountdown
-    if(replaceCountdown == 0 && isScheduleComplete()) { 
+    if(isScheduleComplete() &&
+       (replaceCountdown == 0) &&
+       (nextHeader.getScheduleID() != header.getScheduleID())) {
         replaceRunningSchedule();
         if(explicitScheduleID != header.getScheduleID()) {
             auto myID = ctx.getNetworkId();
@@ -84,7 +86,6 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
         // first schedule (copied from nextSchedule in replaceRunningSchedule())
         checkTimeSetSchedule(slotStart);
     }
-    streamMgr->receiveInfo();
     //printStatus();
 }
 
@@ -166,8 +167,6 @@ bool DynamicScheduleDownlinkPhase::isScheduleComplete() {
 }
 
 void DynamicScheduleDownlinkPhase::replaceRunningSchedule() {
-    if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
-        print_dbg("[SD] Countdown: %d, replacing old schedule\n", replaceCountdown);
     header = nextHeader;
     schedule = nextSchedule;
 }

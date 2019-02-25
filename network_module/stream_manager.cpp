@@ -133,27 +133,37 @@ void StreamManager::registerStreamServer(StreamInfo info, StreamServer* server) 
 
 void StreamManager::notifyStreams(const std::vector<ExplicitScheduleElement>& schedule) {
     for(auto& elem : schedule) {
-        StreamId id = elem.getStreamId();
         /* If schedule element action is SLEEP, ignore */
-        if(elem.getAction() != Action::SLEEP) {
-            StreamInfo info = elem.getStreamInfo();
-            StreamId listenId(id.dst, id.dst, 0, id.dstPort);
-            // If Stream is registered on this node, set status to ESTABLISHED
-            if (clientMap.find(id) != clientMap.end()) {
-                streamMap[id].setStatus(StreamStatus::ESTABLISHED);
-                clientMap[id]->notifyStream(StreamStatus::ESTABLISHED);
-            }
-            // If StreamServer (LISTEN) is registered on this node,
-            // and server-side stream is not already open, open it
-            if (serverMap.find(listenId) != serverMap.end()) {
-                if(clientMap.find(id) == clientMap.end()) {
-                    serverMap[listenId]->openStream(info);
-                    print_dbg("[SM] node %d, Server Stream %d,%d opened!\n",myId, id.src, id.dst);
-                }
-                streamMap[id].setStatus(StreamStatus::ESTABLISHED);
-            }
+        if(elem.getAction() == Action::SLEEP)
+            continue;
+        StreamId id = elem.getStreamId();
+        StreamInfo info = elem.getStreamInfo();
+        print_dbg("[SM] node %d: Notifying stream %d,%d\n", myId, id.src, id.dst);
+        StreamId listenId(id.dst, id.dst, 0, id.dstPort);
+        /* Note that the LISTEN request of a stream can be only in one of the two
+           endpoints of the Stream, otherwise we have a loop */
+        // If Client-side Stream is registered on this node, set status to ESTABLISHED
+        if ((serverMap.find(listenId) == serverMap.end()) &&
+            (clientMap.find(id) != clientMap.end())) {
+            streamMap[id].setStatus(StreamStatus::ESTABLISHED);
+            clientMap[id]->notifyStream(StreamStatus::ESTABLISHED);
+            print_dbg("[SM] node %d: Client-side Stream %d,%d woke up!\n", myId, id.src, id.dst);
+        }
+        // If StreamServer (LISTEN) is registered on this node,
+        // and server-side stream is not already open, open it
+        if (serverMap.find(listenId) != serverMap.end() &&
+            (clientMap.find(id) == clientMap.end())) {
+            info.setStatus(StreamStatus::ESTABLISHED);
+            serverMap[listenId]->openStream(info);
+            print_dbg("[SM] node %d: Server-side Stream %d,%d opened!\n",myId, id.src, id.dst);
+            streamMap[id].setStatus(StreamStatus::ESTABLISHED);
         }
     }
+}
+
+bool isNotListen(std::pair<StreamId,StreamInfo> stream) {
+    StreamStatus status = stream.second.getStatus();
+    return (status != StreamStatus::LISTEN);
 }
 
 unsigned char StreamManager::getStreamNumber() {
@@ -163,7 +173,8 @@ unsigned char StreamManager::getStreamNumber() {
 #else
     std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
-    return streamMap.size();
+
+    return std::count_if(streamMap.begin(), streamMap.end(), isNotListen);
 }
 
 StreamStatus StreamManager::getStreamStatus(StreamId id) {

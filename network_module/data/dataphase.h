@@ -75,7 +75,10 @@ public:
      * taking effect in the next dataphase */
     void setSchedule(const std::vector<ExplicitScheduleElement>& newSchedule) {
         currentSchedule = newSchedule;
+        /* Notify streams based on schedule results */
         stream.notifyStreams(newSchedule);
+        /* Elaborate Info elements enqueued in Stream Manager */
+        stream.receiveInfo();
     }
     /* Called from ScheduleDownlinkPhase class on the first downlink slot
      * of the new schedule, to set the schedule lenght or DataSuperframeSize */

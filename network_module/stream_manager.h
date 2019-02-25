@@ -119,7 +119,7 @@ public:
             throw std::runtime_error("DataPhase tried to sen on a node not registered in StreamManager");
     }
     /**
-     * @return the number of Streams saved
+     * @return the number of Streams saved, not counting LISTEN requests
      */
     unsigned char getStreamNumber();
     /**

@@ -215,7 +215,7 @@ void StreamServer::accept(Stream& stream) {
         // Condition variable to wait for opened streams
         stream_cv.wait(lck);
     }
-    print_dbg("Server: Accepted a stream\n");
+    print_dbg("[S] StreamServer: Accepted a stream\n");
     StreamInfo info = streamQueue.front();
     streamQueue.pop();
     stream.registerStream(info);
