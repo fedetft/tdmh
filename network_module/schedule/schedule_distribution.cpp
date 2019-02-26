@@ -134,13 +134,14 @@ void ScheduleDownlinkPhase::printCompleteSchedule() {
     auto myID = ctx.getNetworkId();
     if(myID == 0)
         print_dbg("[SD] ### Schedule distribution, Master node\n");
-    auto slotsInTile = ctx.getSlotsInTileCount();
-    if(explicitSchedule.size() > (2 * slotsInTile)) {
-        print_dbg("[SD] Not printing schedule longer than 2 tiles\n");
-        return;
-    }
     auto maxNodes = ctx.getNetworkConfig().getMaxNodes();
     printSchedule(myID);
+    for(auto& elem : schedule) {
+        if(toInt(elem.getPeriod()) > 2) {
+            print_dbg("[SD] Not printing schedule longer than 2 tiles\n");
+            return;
+        }
+    }
     print_dbg("[SD] ### Explicit Schedule for all nodes (maxnodes=%d)\n", maxNodes);
     std::vector<ExplicitScheduleElement> nodeSchedule;
     for(unsigned char node = 0; node < maxNodes; node++)
