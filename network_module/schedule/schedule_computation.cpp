@@ -743,17 +743,13 @@ std::list<ScheduleElement> Router::pathToSchedule(const std::list<unsigned char>
     std::list<ScheduleElement> result;
     if(!path.size())
         return result;
-    // Cache data from original multi-hop stream
-    unsigned char src = stream.getSrc();
-    unsigned char dst = stream.getDst();
-    unsigned char srcPort = stream.getSrcPort();
-    unsigned char dstPort = stream.getDstPort();
-    Period period = stream.getPeriod();
+    /* Convert path (list of nodes) to schedule (list of StreamElement),
+       copying stream parameters from the multi-hop stream we are scheduling */
     unsigned char tx = path.front();
     for(auto& rx : path) {
         // Skip first round of for because we are ciclyng with rx node
         if(rx == tx) continue;
-        result.push_back(ScheduleElement(src, dst, srcPort, dstPort, tx, rx, period));
+        result.push_back(ScheduleElement(stream, tx, rx));
         tx = rx;
     }
     return result;

@@ -56,7 +56,7 @@ struct ScheduleHeaderPkt {
     unsigned int activationTile:32;
     unsigned int scheduleTiles:16;
     unsigned int repetition:2;
-};
+} __attribute__((packed));
 
 struct ScheduleElementPkt {
     unsigned int src:8;
@@ -65,9 +65,12 @@ struct ScheduleElementPkt {
     unsigned int dstPort:4;
     unsigned int tx:8;
     unsigned int rx:8;
+    unsigned int redundancy:3;
     unsigned int period:4;
+    unsigned int payloadSize:7;
+    unsigned int direction:2;
     unsigned int offset:20;
-};
+} __attribute__((packed));
 
 class ScheduleHeader : public SerializableMessage {
 public:
@@ -119,21 +122,7 @@ public:
         std::memset(&content, 0, sizeof(ScheduleElementPkt));
     }
 
-    ScheduleElement(unsigned char src, unsigned char dst, unsigned char srcPort,
-                    unsigned char dstPort, unsigned char tx, unsigned char rx,
-                    Period period, unsigned int off=0)
-    {
-        content.src = src;
-        content.dst = dst;
-        content.srcPort = srcPort;
-        content.dstPort = dstPort;
-        content.tx = tx;
-        content.rx = rx;
-        content.period = static_cast<unsigned int>(period);
-        content.offset = off;
-    }
-
-    // Constructor copying data from StreamInfo
+    // Constructor for single-hop stream
     ScheduleElement(StreamInfo stream, unsigned int off=0) {
         content.src = stream.getSrc();
         content.dst = stream.getDst();
@@ -143,7 +132,25 @@ public:
         // because it is a single-hop transmission
         content.tx = stream.getSrc();
         content.rx = stream.getDst();
+        content.redundancy = static_cast<unsigned int>(stream.getRedundancy());
         content.period = static_cast<unsigned int>(stream.getPeriod());
+        content.payloadSize = stream.getPayloadSize();
+        content.direction = static_cast<unsigned int>(stream.getDirection());
+        content.offset = off;
+    };
+
+    // Constructor for multi-hop stream
+    ScheduleElement(StreamInfo stream, unsigned char tx, unsigned char rx, unsigned int off=0) {
+        content.src = stream.getSrc();
+        content.dst = stream.getDst();
+        content.srcPort = stream.getSrcPort();
+        content.dstPort = stream.getDstPort();
+        content.tx = tx;
+        content.rx = rx;
+        content.redundancy = static_cast<unsigned int>(stream.getRedundancy());
+        content.period = static_cast<unsigned int>(stream.getPeriod());
+        content.payloadSize = stream.getPayloadSize();
+        content.direction = static_cast<unsigned int>(stream.getDirection());
         content.offset = off;
     };
 
@@ -153,11 +160,13 @@ public:
     StreamId getStreamId() const {
         return StreamId(content.src, content.dst, content.srcPort, content.dstPort);
     }
-    //TODO: Save payloadSize, Direction, Redundancy in ScheduleElement
     StreamInfo getStreamInfo() const {
         return StreamInfo(content.src, content.dst, content.srcPort,
-                          content.dstPort, static_cast<Period>(content.period),
-                          0, Direction::TX, Redundancy::NONE, StreamStatus::ESTABLISHED);
+                          content.dstPort,
+                          static_cast<Period>(content.period), content.payloadSize,
+                          static_cast<Direction>(content.direction),
+                          static_cast<Redundancy>(content.redundancy),
+                          StreamStatus::ESTABLISHED);
     }
     unsigned char getSrc() const { return content.src; }
     unsigned char getDst() const { return content.dst; }
