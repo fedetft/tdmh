@@ -89,6 +89,10 @@ void ScheduleDownlinkPhase::printSchedule(unsigned char nodeID) {
 
     void ScheduleDownlinkPhase::printExplicitSchedule(unsigned char nodeID, bool printHeader, std::vector<ExplicitScheduleElement> expSchedule) {
     auto slotsInTile = ctx.getSlotsInTileCount();
+    if(explicitSchedule.size() > (2 * slotsInTile)) {
+        print_dbg("[SD] Not printing schedule longer than 2 tiles\n");
+        return;
+    }
     // print header
     if(printHeader) {
         print_dbg("        | ");
@@ -130,6 +134,11 @@ void ScheduleDownlinkPhase::printCompleteSchedule() {
     auto myID = ctx.getNetworkId();
     if(myID == 0)
         print_dbg("[SD] ### Schedule distribution, Master node\n");
+    auto slotsInTile = ctx.getSlotsInTileCount();
+    if(explicitSchedule.size() > (2 * slotsInTile)) {
+        print_dbg("[SD] Not printing schedule longer than 2 tiles\n");
+        return;
+    }
     auto maxNodes = ctx.getNetworkConfig().getMaxNodes();
     printSchedule(myID);
     print_dbg("[SD] ### Explicit Schedule for all nodes (maxnodes=%d)\n", maxNodes);

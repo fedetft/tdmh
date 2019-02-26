@@ -104,7 +104,7 @@ void Node::application() {
                 mxnet::Stream s(*tdmh,            // Pointer to MediumAccessController
                                 0,                 // Destination node
                                 0,                 // Destination port
-                                Period::P50,        // Period
+                                Period::P2,        // Period
                                 1,                 // Payload size
                                 Direction::TX,     // Direction
                                 Redundancy::DOUBLE); // Redundancy
