@@ -265,8 +265,30 @@ void ScheduleComputation::receiveSMEs(const std::vector<StreamManagementElement>
                 // Mark stream as accepted
                 printf("[SC] LISTEN found, stream ACCEPTED\n");
                 // Add stream because we just received the SME
-                // TODO: add parameter negotiation between Client and Server
-                stream_mgmt.addStream(StreamInfo(sme, StreamStatus::ACCEPTED));
+                // Parameter negotiation between Client and Server
+                StreamInfo server = stream_mgmt.getStreamInfo(listenId);
+                StreamInfo client(sme, StreamStatus::ACCEPTED);
+                StreamInfo stream = client;
+                // Pick the lowest redundancy level between Client and Server
+                Redundancy serverRed = server.getRedundancy();
+                Redundancy clientRed = client.getRedundancy();
+                if(serverRed != clientRed) {
+                    if(static_cast<int>(serverRed) < static_cast<int>(clientRed))
+                        stream.setRedundancy(serverRed);
+                    else
+                        stream.setRedundancy(clientRed);
+                }
+                // Pick the highest period between Client and Server
+                Period serverPer = server.getPeriod();
+                Period clientPer = client.getPeriod();
+                if(serverPer != clientPer) {
+                    if(toInt(serverPer) < toInt(clientPer))
+                        stream.setPeriod(clientPer);
+                    else
+                        stream.setPeriod(serverPer);
+                }
+                // TODO: add payloadSize and direction negotiation
+                stream_mgmt.addStream(stream);
             }
             else{
                 printf("[SC] LISTEN not found, stream REJECTED\n");
@@ -610,14 +632,16 @@ std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamInfo>&
         routed_streams.push_back(schedule);
         Redundancy redundancy = stream.getRedundancy();
         // Temporal redundancy
-        if(redundancy == Redundancy::DOUBLE)
+        if(redundancy == Redundancy::DOUBLE ||
+           redundancy == Redundancy::TRIPLE_SPATIAL)
             routed_streams.push_back(schedule);
         if(redundancy == Redundancy::TRIPLE) {
             routed_streams.push_back(schedule);
             routed_streams.push_back(schedule);
         }
         // Spatial redundancy
-        if(redundancy == Redundancy::DOUBLE_SPATIAL || redundancy == Redundancy::TRIPLE_SPATIAL) {
+        if(redundancy == Redundancy::DOUBLE_SPATIAL ||
+           redundancy == Redundancy::TRIPLE_SPATIAL) {
             // Runs depth first search to get a list of possible paths,
             // with maximum hops = first_solution + more_hops, among
             // which we choose the redundant path.

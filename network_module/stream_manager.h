@@ -131,6 +131,12 @@ public:
      */
     void setStreamStatus(StreamId id, StreamStatus status);
     /**
+     * @return the parameters of the saved Stream
+     */
+    StreamInfo getStreamInfo(StreamId id) {
+        return streamMap[id];
+    }
+    /**
      * Register in the Stream Map a single stream 
      */
     void addStream(const StreamInfo& stream);

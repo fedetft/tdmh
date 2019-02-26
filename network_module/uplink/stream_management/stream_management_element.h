@@ -210,8 +210,10 @@ public:
     unsigned short getPayloadSize() const { return parameters.payloadSize; }
     Direction getDirection() const { return static_cast<Direction>(parameters.direction); }
     StreamStatus getStatus() const { return status; }
-    void setStatus(StreamStatus s) { status=s; }
     unsigned int getKey() const { return id.getKey(); }
+    void setStatus(StreamStatus s) { status=s; }
+    void setRedundancy(Redundancy r) { parameters.redundancy=static_cast<unsigned int>(r); }
+    void setPeriod(Period p) { parameters.period=static_cast<unsigned int>(p); }
 
 protected:
     StreamId id;
@@ -264,10 +266,7 @@ public:
     Redundancy getRedundancy() const { return static_cast<Redundancy>(parameters.redundancy); }
     Period getPeriod() const { return static_cast<Period>(parameters.period); }
     unsigned short getPayloadSize() const { return parameters.payloadSize; }
-    // TODO: remove once ScheduleComputation is using StreamInfo instead of StreamManagementElement
     StreamStatus getStatus() const { return getType(); }
-    // TODO: remove once ScheduleComputation is using StreamInfo instead of StreamManagementElement
-    void setStatus(StreamStatus s) { type.type = static_cast<unsigned int>(s); }
     StreamStatus getType() const { return static_cast<StreamStatus>(type.type); }
 
     bool operator ==(const StreamManagementElement& other) const {

@@ -151,9 +151,13 @@ void blinkThread(void *)
 struct Data
 {
     Data() {}
-    Data(int id) : id(id), time(miosix::getTime()) {}
+    Data(int id) : id(id), time(miosix::getTime()),
+                   minHeap(miosix::MemoryProfiling::getAbsoluteFreeStack()),
+                   heap(miosix::MemoryProfiling::getCurrentFreeStack()) {}
     unsigned char id;
     long long time;
+    long long minHeap;
+    long long heap;
 }__attribute__((packed));
 
 void masterApplication() {
@@ -168,7 +172,7 @@ void masterApplication() {
                                Period::P20,        // Period
                                1,                 // Payload size
                                Direction::TX,     // Direction
-                               Redundancy::NONE); // Redundancy
+                               Redundancy::DOUBLE); // Redundancy
     Stream r(*tdmh);
     server.accept(r);
     printf("[A] Accept returned! \n");
@@ -178,7 +182,8 @@ void masterApplication() {
         if(len != sizeof(data))
             printf("[E] Received wrong size data");
         else
-            printf("[A] Received id=%d time=%lld\n", data.id, data.time);
+            printf("[A] Received ID=%d Time=%lld MinHeap=%lld Heap=%lld\n",
+                   data.id, data.time, data.minHeap, data.heap);
     }
 }
 
@@ -200,12 +205,13 @@ void dynamicApplication() {
                             Period::P20,        // Period
                             1,                 // Payload size
                             Direction::TX,     // Direction
-                            Redundancy::NONE); // Redundancy
+                            Redundancy::DOUBLE); // Redundancy
             printf("[A] Stream constructor returned \n");
             while(true) {
                 Data data(ctx->getNetworkId());
                 s.send(&data, sizeof(data));
-                printf("[A] Sent id=%d time=%lld\n", data.id, data.time); 
+                printf("[A] Sent ID=%d Time=%lld MinHeap=%lld Heap%lld\n",
+                       data.id, data.time, data.minHeap, data.heap);
             }
         } catch(exception& e) {
             cerr<<"\nException thrown: "<<e.what()<<endl;
@@ -215,8 +221,8 @@ void dynamicApplication() {
 
 int main()
 {
-    //    auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-                  auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1,1), Thread::JOINABLE);
+    //          auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+            auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1,1), Thread::JOINABLE);
 //     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2,3), Thread::JOINABLE);
 //     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,1), Thread::JOINABLE);
 //     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(4,2), Thread::JOINABLE);
