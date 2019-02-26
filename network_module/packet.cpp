@@ -58,9 +58,13 @@ void Packet::send(MACContext& ctx, long long sendTime) const {
     }
     if (now < wuTime)
         ctx.sleepUntil(wuTime);
+#ifdef _MIOSIX
     redLed::high();
+#endif
     ctx.sendAt(packet.data(), dataSize, sendTime);
+#ifdef _MIOSIX
     redLed::low();
+#endif
 }
 
 RecvResult Packet::recv(MACContext& ctx, long long tExpected, function<bool (const Packet& p, RecvResult r)> pred, Transceiver::Correct corr) {
@@ -79,9 +83,13 @@ RecvResult Packet::recv(MACContext& ctx, long long tExpected, function<bool (con
             ctx.sleepUntil(wakeUpTimeout.first);
     }
     for(;;) {
+#ifdef _MIOSIX
         redLed::high();
+#endif
         result = ctx.recv(packet.data(), packet.size(), timeout, corr);
+#ifdef _MIOSIX
         redLed::low();
+#endif
         if (ENABLE_PKT_INFO_DBG) {
             if(result.size) {
                 print_dbg("Packet::recv: Received packet, error %d, size %d, timestampValid %d: ",
