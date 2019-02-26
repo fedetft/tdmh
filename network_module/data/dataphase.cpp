@@ -73,7 +73,13 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     auto rcvResult = pkt.recv(ctx, slotStart);
     ctx.transceiverIdle();
-    stream.putBuffer(id, pkt);
+    if(rcvResult.error == RecvResult::ErrorCode::OK)
+        stream.putBuffer(id, pkt);
+    // Avoid overwriting valid data
+    else {
+        Packet emptyPkt;
+        stream.putBuffer(id, emptyPkt);
+    }
 }
 void DataPhase::sendFromBuffer(long long slotStart) {
     ctx.configureTransceiver(ctx.getTransceiverConfig());

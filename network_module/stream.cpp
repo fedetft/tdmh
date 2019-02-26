@@ -177,7 +177,9 @@ void Stream::putRecvBuffer(Packet& pkt) {
 #else
     std::unique_lock<std::mutex> lck(recv_mutex);
 #endif
-    recvBuffer = pkt;
+    // Avoid overwriting valid data
+    if(pkt.size() != 0)
+        recvBuffer = pkt;
     // No redundancy: notify right away
     if(r == Redundancy::NONE) {
         // Wake up the Application thread calling the recv
