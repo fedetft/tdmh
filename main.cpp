@@ -41,14 +41,27 @@ using namespace miosix;
 
 const int maxNodes = 32;
 
+FastMutex m;
 MediumAccessController *tdmh = nullptr;
 
+/* Arguments passed to the TDMH thread */
 class Arg
 {
 public:
     Arg(unsigned char id, unsigned char hop=false) : id(id), hop(hop) {}
     const unsigned char id, hop;
 };
+
+/* Class containing Period and Redundancy of the Stream opened by the Dynamic nodes */
+class Par
+{
+public:
+    Par(Redundancy redundancy=Redundancy::NONE, Period period=Period::P20) :
+        redundancy(redundancy), period(period) {}
+    const Redundancy redundancy;
+    const Period period;
+};
+
 
 inline int maxForwardedTopologiesFromMaxNumNodes(int maxNumNodes)
 {
@@ -72,7 +85,7 @@ void masterNode(void*)
         printf("Master node\n");
         const NetworkConfiguration config(
             6,             //maxHops
-            maxNodes,            //maxNodes
+            maxNodes,      //maxNodes
             0,             //networkId
             false,         //staticHop
             6,             //panId
@@ -126,7 +139,10 @@ void dynamicNode(void* argv)
         );
         printf("Starting TDMH with maxForwardedTopologies=%d\n", maxForwardedTopologiesFromMaxNumNodes(maxNodes));
         DynamicMediumAccessController controller(Transceiver::instance(), config);
-        tdmh = &controller;
+        {
+            Lock<FastMutex> l(m);
+            tdmh = &controller;
+        }
         controller.run();
     } catch(exception& e) {
         for(;;)
@@ -145,20 +161,49 @@ void blinkThread(void *)
         Thread::sleep(10);
         redLed::low();
         Thread::sleep(990);
+   }
+}
+
+void statThread(void *)
+{
+    for(;;)
+    {
+        printf("[H] Time=%lld MinHeap=%u Heap=%u\n", miosix::getTime(),
+               miosix::MemoryProfiling::getAbsoluteFreeHeap(),
+               miosix::MemoryProfiling::getCurrentFreeHeap());
+        Thread::sleep(2000);
     }
 }
 
 struct Data
 {
     Data() {}
-    Data(int id) : id(id), time(miosix::getTime()),
-                   minHeap(miosix::MemoryProfiling::getAbsoluteFreeStack()),
-                   heap(miosix::MemoryProfiling::getCurrentFreeStack()) {}
+    Data(int id, unsigned int counter) : id(id), time(miosix::getTime()),
+                   minHeap(miosix::MemoryProfiling::getAbsoluteFreeHeap()),
+                   heap(miosix::MemoryProfiling::getCurrentFreeHeap()),
+                   counter(counter){}
     unsigned char id;
     long long time;
-    long long minHeap;
-    long long heap;
+    unsigned int minHeap;
+    unsigned int heap;
+    unsigned int counter;
 }__attribute__((packed));
+
+void streamThread(void *arg)
+{
+    auto *s = reinterpret_cast<Stream*>(arg);
+    printf("[A] Accept returned! \n");
+    while(!s->isClosed()){
+        Data data;
+        int len = s->recv(&data, sizeof(data));
+        if(len != sizeof(data))
+            printf("[E] Received wrong size data");
+        else
+            printf("[A] Received ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
+                   data.id, data.time, data.minHeap, data.heap, data.counter);
+    }
+    delete s;
+}
 
 void masterApplication() {
     /* Wait for TDMH to become ready */
@@ -169,25 +214,18 @@ void masterApplication() {
     /* Open a StreamServer to listen for incoming streams */
     mxnet::StreamServer server(*tdmh,      // Pointer to MediumAccessController
                                0,                 // Destination port
-                               Period::P20,        // Period
+                               Period::P1,        // Period
                                1,                 // Payload size
                                Direction::TX,     // Direction
-                               Redundancy::DOUBLE); // Redundancy
-    Stream r(*tdmh);
-    server.accept(r);
-    printf("[A] Accept returned! \n");
-    while(2.0){
-        Data data;
-        int len = r.recv(&data, sizeof(data));
-        if(len != sizeof(data))
-            printf("[E] Received wrong size data");
-        else
-            printf("[A] Received ID=%d Time=%lld MinHeap=%lld Heap=%lld\n",
-                   data.id, data.time, data.minHeap, data.heap);
+                               Redundancy::TRIPLE_SPATIAL); // Redundancy
+    while(true) {
+        Stream *s = new Stream(*tdmh);
+        server.accept(*s);
+        Thread::create(streamThread, 2048, MAIN_PRIORITY, s);
     }
 }
 
-void dynamicApplication() {
+void dynamicApplication(Par p) {
     /* Wait for TDMH to become ready */
     MACContext* ctx = tdmh->getMACContext();
     while(!ctx->isReady()) {
@@ -202,16 +240,18 @@ void dynamicApplication() {
             mxnet::Stream s(*tdmh,            // Pointer to MediumAccessController
                             0,                 // Destination node
                             0,                 // Destination port
-                            Period::P20,        // Period
+                            p.period,          // Period
                             1,                 // Payload size
                             Direction::TX,     // Direction
-                            Redundancy::DOUBLE); // Redundancy
+                            p.redundancy);     // Redundancy
             printf("[A] Stream constructor returned \n");
+            unsigned int counter = 0;
             while(true) {
-                Data data(ctx->getNetworkId());
+                Data data(ctx->getNetworkId(), counter);
                 s.send(&data, sizeof(data));
-                printf("[A] Sent ID=%d Time=%lld MinHeap=%lld Heap%lld\n",
-                       data.id, data.time, data.minHeap, data.heap);
+                printf("[A] Sent ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
+                       data.id, data.time, data.minHeap, data.heap, data.counter);
+                counter++;
             }
         } catch(exception& e) {
             cerr<<"\nException thrown: "<<e.what()<<endl;
@@ -221,26 +261,28 @@ void dynamicApplication() {
 
 int main()
 {
-    //          auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-            auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1,1), Thread::JOINABLE);
-//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2,3), Thread::JOINABLE);
-//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,1), Thread::JOINABLE);
-//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(4,2), Thread::JOINABLE);
-//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(5,1), Thread::JOINABLE);
-//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(6,3), Thread::JOINABLE);
-//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(7,1), Thread::JOINABLE);
-//     auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(8,2), Thread::JOINABLE);
-    
-    Thread::create(blinkThread,STACK_MIN,PRIORITY_MAX-1);
+    Par p; // Stream parameters
 
-    while(tdmh==nullptr) ;
+    //auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+    auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1,1), Thread::JOINABLE);
+    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2,1), Thread::JOINABLE);
+    //p.redundancy=Redundancy::TRIPLE_SPATIAL; auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,2), Thread::JOINABLE);
+
+    //Thread::create(blinkThread,STACK_MIN,MAIN_PRIORITY);
+    for(;;)
+    {
+        Lock<FastMutex> l(m);
+        if(tdmh) break;
+    }
     Thread::sleep(5000);
     MACContext* ctx = tdmh->getMACContext();
     // Master node code
-    if(ctx->getNetworkId() == 0)
+    if(ctx->getNetworkId() == 0) {
+        Thread::create(statThread, 2048, MAIN_PRIORITY);
         masterApplication();
+    }
     else
-        dynamicApplication();
+        dynamicApplication(p);
 
 
 //     t1->join();

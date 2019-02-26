@@ -82,7 +82,6 @@ void ScheduleComputation::run() {
             // Wait for beginScheduling()
             sched_cv.wait(lck);
             while(stream_mgmt.getStreamNumber() == 0) {
-                printf("-");
                 // Condition variable to wait for streams to schedule.
                 sched_cv.wait(lck);
             }
@@ -91,7 +90,6 @@ void ScheduleComputation::run() {
             if(topology_ctx.getTopologyMap().isEmpty() ||
                !(topology_ctx.getTopologyMap().wasModified() ||
                  stream_mgmt.wasModified())) {
-                printf("-");
                 continue;
             }
             // ELSE we can begin scheduling 

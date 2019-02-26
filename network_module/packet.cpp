@@ -58,7 +58,9 @@ void Packet::send(MACContext& ctx, long long sendTime) const {
     }
     if (now < wuTime)
         ctx.sleepUntil(wuTime);
+    redLed::high();
     ctx.sendAt(packet.data(), dataSize, sendTime);
+    redLed::low();
 }
 
 RecvResult Packet::recv(MACContext& ctx, long long tExpected, function<bool (const Packet& p, RecvResult r)> pred, Transceiver::Correct corr) {
@@ -77,7 +79,9 @@ RecvResult Packet::recv(MACContext& ctx, long long tExpected, function<bool (con
             ctx.sleepUntil(wakeUpTimeout.first);
     }
     for(;;) {
+        redLed::high();
         result = ctx.recv(packet.data(), packet.size(), timeout, corr);
+        redLed::low();
         if (ENABLE_PKT_INFO_DBG) {
             if(result.size) {
                 print_dbg("Packet::recv: Received packet, error %d, size %d, timestampValid %d: ",

@@ -65,6 +65,11 @@ public:
     void send(const void* data, int size);
     /* Get data received from this stream */
     int recv(void* data, int maxSize);
+    /* Return true if stream has been closed or rejected */
+    bool isClosed() {
+        return ((info.getStatus() == StreamStatus::CLOSED) ||
+                (info.getStatus() == StreamStatus::REJECTED));
+    }
 
     /* ### Not to be called by the end user ### */
     /* Used by the StreamManager class to get data from buffer */
