@@ -166,7 +166,11 @@ void StreamManager::notifyStreams(const std::vector<ExplicitScheduleElement>& sc
             found |= (elem.getStreamId() == stream.first);
         if(!found && stream.second.getStatus() == StreamStatus::ESTABLISHED) {
             stream.second.setStatus(StreamStatus::CLOSED);
-            clientMap[stream.first]->notifyStream(StreamStatus::CLOSED);
+            if(clientMap.find(stream.first) != clientMap.end())
+                clientMap[stream.first]->notifyStream(StreamStatus::CLOSED);
+            else
+                print_dbg("[SM] Cannot close Stream (%d,%d) in node %d: not found\n",
+                          stream.first.src, stream.first.dst, myId);
         }
     }
 }

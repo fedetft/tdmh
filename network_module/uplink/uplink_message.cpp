@@ -39,7 +39,7 @@ void UplinkMessage::serialize(Packet& pkt) const {
 }
 
 UplinkMessage UplinkMessage::deserialize(Packet& pkt, const NetworkConfiguration& config) {
-    TopologyMessage* msg = nullptr;
+    TopologyMessage* msg;
     // Extract assignee and hop
     UplinkMessagePkt header;
     pkt.get(&header, sizeof(UplinkMessagePkt));
@@ -50,6 +50,8 @@ UplinkMessage UplinkMessage::deserialize(Packet& pkt, const NetworkConfiguration
     case NetworkConfiguration::ROUTING_VECTOR:
         msg = RoutingVector::deserialize(pkt, config);
         break;
+    default:
+        assert(false);
     }
     UplinkMessage retval(msg);
     retval.content = header;
