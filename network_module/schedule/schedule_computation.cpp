@@ -43,10 +43,10 @@
 namespace mxnet {
 
 ScheduleComputation::ScheduleComputation(MACContext& mac_ctx, MasterMeshTopologyContext& topology_ctx) : 
+    stream_mgmt(0), // Initialize StreamManager with ID=0 (Master node)
     topology_ctx(topology_ctx), mac_ctx(mac_ctx), netconfig(mac_ctx.getNetworkConfig()),
     superframe(netconfig.getControlSuperframeStructure()),
-    topology_map(mac_ctx.getNetworkConfig().getMaxNodes()),
-    stream_mgmt(0) // Initialize StreamManager with ID=0 (Master node)
+    topology_map(mac_ctx.getNetworkConfig().getMaxNodes()) 
 {
     // schedule_size must always be initialized to the number of tiles in superframe
     schedule_size = superframe.size();
