@@ -76,15 +76,26 @@ void RootNode::application() {
     /* Open a StreamServer to listen for incoming streams */
     mxnet::StreamServer server(*tdmh,      // Pointer to MediumAccessController
                  0,                 // Destination port
-                 Period::P2,        // Period
+                 Period::P1,        // Period
                  1,                 // Payload size
                  Direction::TX,     // Direction
-                 Redundancy::DOUBLE); // Redundancy
-    Stream r(*tdmh);
-    server.accept(r);
-    vector<char> data;
-    data.resize(125);
-    data.resize(r.recv(data.data(), data.size()));
-    printf("[A] Received data \n");
-    miosix::memDump(data.data(), data.size());
+                 Redundancy::TRIPLE_SPATIAL); // Redundancy
+    while(true) {
+        Stream *s = new Stream(*tdmh);
+        server.accept(*s);
+        thread t1(&RootNode::streamThread, this, s);
+    }
+}
+
+void RootNode::streamThread(void *arg) {
+    auto *s = reinterpret_cast<Stream*>(arg);
+    printf("[A] Accept returned! \n");
+    while(!s->isClosed()){
+        vector<char> data;
+        data.resize(125);
+        data.resize(s->recv(data.data(), data.size()));
+        printf("[A] Received data \n");
+        miosix::memDump(data.data(), data.size());
+    }
+    delete s;
 }

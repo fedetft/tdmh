@@ -32,6 +32,8 @@ public:
 protected:
     virtual void activity();
     void application();
+    void streamThread(void *arg);
+
 
     /* Pointer to tdmh class for opening streams */
     mxnet::MediumAccessController* tdmh = nullptr;

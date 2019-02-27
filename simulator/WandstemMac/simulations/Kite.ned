@@ -21,6 +21,9 @@ import wandstemmac.RootNode;
 
 network Kite
 {
+    parameters:
+        n*.nodes = 8;
+        n*.hops = 6;
     @display("bgb=517,501");
     submodules:
         n0: RootNode {

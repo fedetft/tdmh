@@ -56,7 +56,7 @@ void TopologyMap::addEdge(unsigned char a, unsigned char b) {
     modified_flag = true;
 }
 
-std::vector<std::pair<unsigned char, unsigned char>> TopologyMap::getEdges() const {
+std::vector<std::pair<unsigned char, unsigned char>> TopologyMap::getUniqueEdges() const {
     std::vector<std::pair<unsigned char, unsigned char>> v;
     for(auto& el : edges) {
         // Start for cycle from a+1 of (a,b) to avoid printing duplicate links
@@ -67,6 +67,17 @@ std::vector<std::pair<unsigned char, unsigned char>> TopologyMap::getEdges() con
     }
     return v;
 }
+
+std::vector<std::pair<unsigned char, unsigned char>> TopologyMap::getEdges() const {
+    std::vector<std::pair<unsigned char, unsigned char>> v;
+    for(auto& el : edges) {
+        for (unsigned i = 0; i < el.second.bitSize(); i++) {
+            if(el.second[i]) v.push_back(std::make_pair(el.first, i));
+        }
+    }
+    return v;
+}
+
 
 std::vector<unsigned char> TopologyMap::getEdges(unsigned char a) const {
     std::vector<unsigned char> v;

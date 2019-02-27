@@ -66,6 +66,12 @@ public:
      * one per link. Therefore if the pair (a, b) is present, the pair (b, a) will not.
      * @return the list of pairs of network addresses
      */
+    std::vector<std::pair<unsigned char, unsigned char>> getUniqueEdges() const;
+
+    /**
+     * Returns the list of edges the composing the network graph,
+     * including duplicate links
+     */
     std::vector<std::pair<unsigned char, unsigned char>> getEdges() const;
 
     /**

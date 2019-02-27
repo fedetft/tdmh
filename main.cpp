@@ -197,7 +197,7 @@ void streamThread(void *arg)
         Data data;
         int len = s->recv(&data, sizeof(data));
         if(len != sizeof(data))
-            printf("[E] Received wrong size data");
+            printf("[E] Received wrong size data\n");
         else
             printf("[A] Received ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
                    data.id, data.time, data.minHeap, data.heap, data.counter);
