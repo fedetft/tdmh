@@ -140,6 +140,26 @@ void ScheduleComputation::run() {
             // schedule_size must always be initialized to the number of tiles in superframe
             schedule_size = superframe.size();
             auto new_schedule = routeAndScheduleStreams(established_streams);
+            /* Evaluate previously ESTABLISHED streams status */
+            // Check for ESTABLISHED streams that failed the last scheduling
+            // Temporarily mark ESTABLISHED Streams as CLOSED in stream_snapshot
+            for(auto& stream: stream_snapshot.getStreams()) {
+                if(stream.getStatus() == StreamStatus::ESTABLISHED)
+                    stream_snapshot.setStreamStatus(stream.getStreamId(), StreamStatus::CLOSED);
+            }
+            // Mark successfully scheduled Streams as ESTABLISHED in stream_snapshot and stream_mgmt
+            for(auto& sched: new_schedule) {
+                if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                    printf("Setting stream (%d,%d) to ESTABLISHED\n", sched.getSrc(), sched.getDst());
+                stream_snapshot.setStreamStatus(sched.getStreamId(), StreamStatus::ESTABLISHED);
+                stream_mgmt.setStreamStatus(sched.getStreamId(), StreamStatus::ESTABLISHED);
+            }
+            // Mark remaining CLOSED streams in stream_snapshot as CLOSED in stream_mgmt
+            for(auto& stream: stream_snapshot.getStreams()) {
+                if(stream.getStatus() == StreamStatus::CLOSED)
+                    stream_mgmt.setStreamStatus(stream.getStreamId(), StreamStatus::CLOSED);
+            }
+            /* Apply new schedule */
             schedule = std::move(new_schedule);
             changed = true;
         }
@@ -163,22 +183,13 @@ void ScheduleComputation::run() {
             auto new_schedule = routeAndScheduleStreams(accepted_streams);
             schedule.insert(schedule.end(), new_schedule.begin(), new_schedule.end());
             changed = true;
-            // Temporarily mark ESTABLISHED Streams as CLOSED in stream_snapshot
-            for(auto& stream: stream_snapshot.getStreams()) {
-                if(stream.getStatus() == StreamStatus::ESTABLISHED)
-                    stream_snapshot.setStreamStatus(stream.getStreamId(), StreamStatus::CLOSED);
-            }
+            /* Evaluate previously ACCEPTED streams status */
             // Mark successfully scheduled Streams as ESTABLISHED in stream_snapshot and stream_mgmt
             for(auto& sched: new_schedule) {
                 if(ENABLE_SCHEDULE_COMP_INFO_DBG)
-                    printf("Setting stream %d to ESTABLISHED\n", sched.getKey());
+                    printf("Setting stream (%d,%d) to ESTABLISHED\n", sched.getSrc(), sched.getDst());
                 stream_snapshot.setStreamStatus(sched.getStreamId(), StreamStatus::ESTABLISHED);
                 stream_mgmt.setStreamStatus(sched.getStreamId(), StreamStatus::ESTABLISHED);
-            }
-            // Mark remaining CLOSED streams in stream_snapshot as CLOSED in stream_mgmt
-            for(auto& stream: stream_snapshot.getStreams()) {
-                if(stream.getStatus() == StreamStatus::CLOSED)
-                    stream_mgmt.setStreamStatus(stream.getStreamId(), StreamStatus::CLOSED);
             }
             // Mark Streams ACCEPTED but not scheduled as REJECTED
             for(auto& stream: stream_snapshot.getStreams()) {
