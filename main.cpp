@@ -246,7 +246,7 @@ void dynamicApplication(Par p) {
                             p.redundancy);     // Redundancy
             printf("[A] Stream constructor returned \n");
             unsigned int counter = 0;
-            while(!s->isClosed()) {
+            while(!s.isClosed()) {
                 Data data(ctx->getNetworkId(), counter);
                 s.send(&data, sizeof(data));
                 printf("[A] Sent ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
@@ -263,10 +263,10 @@ int main()
 {
     Par p; // Stream parameters
 
-    //auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+    auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
     //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1,1), Thread::JOINABLE);
     //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2,1), Thread::JOINABLE);
-    p.redundancy=Redundancy::TRIPLE_SPATIAL; auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,2), Thread::JOINABLE);
+    //p.redundancy=Redundancy::TRIPLE_SPATIAL; auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,2), Thread::JOINABLE);
 
     //Thread::create(blinkThread,STACK_MIN,MAIN_PRIORITY);
     for(;;)

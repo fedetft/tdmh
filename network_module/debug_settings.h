@@ -46,7 +46,7 @@ const bool ENABLE_TIMESYNC_DL_INFO_DBG = MASTERNODE;
 const bool ENABLE_TIMESYNC_ERROR_DBG = true;
 
 //prints the roundtrip subphase debug info
-const bool ENABLE_ROUNDTRIP_INFO_DBG = true;
+const bool ENABLE_ROUNDTRIP_INFO_DBG = false;
 
 //prints the roundtrip subphase errors
 const bool ENABLE_ROUNDTRIP_ERROR_DBG = true;
@@ -104,5 +104,11 @@ void print_dbg(const char *fmt, ...);
  */
 void throwLogicError(const char *fmt, ...);
 
+/**
+ * Throw runtime error with format string, limited to 128 characters
+ */
+void throwRuntimeError(const char *fmt, ...);
+
 }
+
 

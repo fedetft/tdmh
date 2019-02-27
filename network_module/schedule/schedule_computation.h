@@ -64,7 +64,7 @@ public:
      */
     void receiveSMEs(const std::vector<StreamManagementElement>& smes);
 
-    void open(const StreamInfo& sme);
+    void open(const StreamInfo& stream);
 
     StreamManager* getStreamManager() {
         return &stream_mgmt;

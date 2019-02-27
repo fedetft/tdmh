@@ -163,14 +163,24 @@ void ScheduleComputation::run() {
             auto new_schedule = routeAndScheduleStreams(accepted_streams);
             schedule.insert(schedule.end(), new_schedule.begin(), new_schedule.end());
             changed = true;
-            //Mark successfully scheduled streams as established
-            for(auto& stream: new_schedule) {
-                if(ENABLE_SCHEDULE_COMP_INFO_DBG)
-                    printf("Setting stream %d to ESTABLISHED\n", stream.getKey());
-                stream_snapshot.setStreamStatus(stream.getStreamId(), StreamStatus::ESTABLISHED);
-                stream_mgmt.setStreamStatus(stream.getStreamId(), StreamStatus::ESTABLISHED);
+            // Temporarily mark ESTABLISHED Streams as CLOSED in stream_snapshot
+            for(auto& stream: stream_snapshot.getStreams()) {
+                if(stream.getStatus() == StreamStatus::ESTABLISHED)
+                    stream_snapshot.setStreamStatus(stream.getStreamId(), StreamStatus::CLOSED);
             }
-            // Mark streams in snapshot that are ACCEPTED but not scheduled as REJECTED
+            // Mark successfully scheduled Streams as ESTABLISHED in stream_snapshot and stream_mgmt
+            for(auto& sched: new_schedule) {
+                if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+                    printf("Setting stream %d to ESTABLISHED\n", sched.getKey());
+                stream_snapshot.setStreamStatus(sched.getStreamId(), StreamStatus::ESTABLISHED);
+                stream_mgmt.setStreamStatus(sched.getStreamId(), StreamStatus::ESTABLISHED);
+            }
+            // Mark remaining CLOSED streams in stream_snapshot as CLOSED in stream_mgmt
+            for(auto& stream: stream_snapshot.getStreams()) {
+                if(stream.getStatus() == StreamStatus::CLOSED)
+                    stream_mgmt.setStreamStatus(stream.getStreamId(), StreamStatus::CLOSED);
+            }
+            // Mark Streams ACCEPTED but not scheduled as REJECTED
             for(auto& stream: stream_snapshot.getStreams()) {
                 if(stream.getStatus() == StreamStatus::ACCEPTED) {
                     // setStreamStatus handles notifying the constructor
@@ -306,6 +316,9 @@ void ScheduleComputation::receiveSMEs(const std::vector<StreamManagementElement>
             // Mark stream as CLOSED
             stream_mgmt.setStreamStatus(id, StreamStatus::CLOSED);
             break;
+        default:
+            // SME with invalid Status, do nothing
+            printf("[SC] Received SME with invalid status");
         }
     }
     // To avoid caching of stdout
@@ -845,7 +858,7 @@ void Router::dfsRun(unsigned char start, unsigned char target, unsigned int limi
 
 std::list<unsigned char> Router::findShortestPath(const std::list<std::list<unsigned char>>& path_list) {
     unsigned int min = path_list.front().size();
-    std::list<unsigned char> result;
+    std::list<unsigned char> result = path_list.front();
     for(auto& path : path_list) {
         if(path.size() < min) {
             min = path.size();

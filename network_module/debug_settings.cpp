@@ -145,4 +145,15 @@ void throwLogicError(const char *fmt, ...)
     throw logic_error(errorstr);
 }
 
+void throwRuntimeError(const char *fmt, ...)
+{
+    va_list arg;
+    char errorstr[128];
+    va_start(arg, fmt);
+    vsnprintf(errorstr, sizeof(errorstr)-1, fmt, arg);
+    va_end(arg);
+    errorstr[sizeof(errorstr)-1]='\0';
+    throw runtime_error(errorstr);
+}
+
 }

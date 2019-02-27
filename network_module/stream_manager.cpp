@@ -200,7 +200,7 @@ void StreamManager::setStreamStatus(StreamId id, StreamStatus status) {
 #endif
     // Check if stream exists
     if (streamMap.find(id) != streamMap.end()) {
-        print_dbg("[SM] Stream found, changing status\n");
+        print_dbg("[SM] Setting Stream (%d,%d) to status %d\n", id.src, id.dst, status);
         streamMap[id].setStatus(status);
         // Change status in stream class if local
         if(clientMap.find(id) != clientMap.end())
@@ -213,7 +213,7 @@ void StreamManager::setStreamStatus(StreamId id, StreamStatus status) {
             removed_flag = true;
     }
     else {
-        print_dbg("[SM] Stream not found\n");
+        print_dbg("[SM] Stream (%d,%d) not found in node %d\n", id.src, id.dst, myId);
     }
 }
 

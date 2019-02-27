@@ -107,16 +107,16 @@ public:
     void notifyStreams(const std::vector<ExplicitScheduleElement>& schedule);
     // Used by the DataPhase to put/get data to/from buffers
     void putBuffer(StreamId id, Packet& pkt) {
-        if (clientMap.find(id) != clientMap.end())
-            clientMap[id]->putRecvBuffer(pkt);
-        else
-            throw std::runtime_error("DataPhase tried to receive on a node not registered in StreamManager");
+        if (clientMap.find(id) == clientMap.end())
+            throwRuntimeError("DataPhase::receiveToStream: stream (%d,%d) is not registered in node %d",
+                              id.src, id.dst, myId);
+        clientMap[id]->putRecvBuffer(pkt);
     }
     Packet getBuffer(StreamId id) {
-        if (clientMap.find(id) != clientMap.end())
-            return clientMap[id]->getSendBuffer();
-        else
-            throw std::runtime_error("DataPhase tried to sen on a node not registered in StreamManager");
+        if (clientMap.find(id) == clientMap.end())
+            throwRuntimeError("DataPhase::sendFromStream: stream (%d,%d) is not registered in node %d",
+                              id.src, id.dst, myId);
+        return clientMap[id]->getSendBuffer();
     }
     /**
      * @return the number of Streams saved, not counting LISTEN requests

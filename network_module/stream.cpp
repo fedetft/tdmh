@@ -97,12 +97,15 @@ void Stream::send(const void* data, int size) {
 #else
     std::unique_lock<std::mutex> lck(send_mutex);
 #endif
-    // Wait for sendBuffer to be empty
-    while(sendBuffer.size() != 0) {
+    // Wait for sendBuffer to be empty or stream CLOSED
+    while(sendBuffer.size() != 0 || info.getStatus() == StreamStatus::CLOSED) {
         // Condition variable to wait for buffer to be empty
         send_cv.wait(lck);
     }
-    sendBuffer.put(data, size);
+    if(info.getStatus() == StreamStatus::CLOSED)
+        return;
+    else
+        sendBuffer.put(data, size);
 }
 
 int Stream::recv(void* data, int maxSize) {
@@ -112,13 +115,17 @@ int Stream::recv(void* data, int maxSize) {
     std::unique_lock<std::mutex> lck(recv_mutex);
 #endif
     // Wait for recvBuffer to be non empty
-    while(recvBuffer.size() == 0) {
+    while(recvBuffer.size() == 0 || info.getStatus() == StreamStatus::CLOSED) {
         // Condition variable to wait for buffer to be non empty
         recv_cv.wait(lck);
     }
-    auto size = std::min<int>(maxSize, recvBuffer.size());
-    recvBuffer.get(data, size);
-    return size;
+    if(info.getStatus() == StreamStatus::CLOSED)
+        return -1;
+    else {
+        auto size = std::min<int>(maxSize, recvBuffer.size());
+        recvBuffer.get(data, size);
+        return size;
+    }
 }
 
 
