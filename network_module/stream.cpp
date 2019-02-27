@@ -83,11 +83,19 @@ void Stream::notifyStream(StreamStatus s) {
     print_dbg("[S] Calling notifyStream with status %d\n", s);
     // Update the stream status
     info.setStatus(s);
-    // Wake up the Stream thread
+    // Wake up the constructor
 #ifdef _MIOSIX
     stream_cv.signal();
 #else
     stream_cv.notify_one();
+#endif
+    // Wake up the send and receive methods
+#ifdef _MIOSIX
+    send_cv.signal();
+    recv_cv.signal();
+#else
+    send_cv.notify_one();
+    recv_cv.notify_one();
 #endif
 }
 
@@ -98,7 +106,7 @@ void Stream::send(const void* data, int size) {
     std::unique_lock<std::mutex> lck(send_mutex);
 #endif
     // Wait for sendBuffer to be empty or stream CLOSED
-    while(sendBuffer.size() != 0 || info.getStatus() == StreamStatus::CLOSED) {
+    while(sendBuffer.size() != 0 && info.getStatus() != StreamStatus::CLOSED) {
         // Condition variable to wait for buffer to be empty
         send_cv.wait(lck);
     }
@@ -115,7 +123,7 @@ int Stream::recv(void* data, int maxSize) {
     std::unique_lock<std::mutex> lck(recv_mutex);
 #endif
     // Wait for recvBuffer to be non empty
-    while(recvBuffer.size() == 0 || info.getStatus() == StreamStatus::CLOSED) {
+    while(recvBuffer.size() == 0 && info.getStatus() != StreamStatus::CLOSED) {
         // Condition variable to wait for buffer to be non empty
         recv_cv.wait(lck);
     }
@@ -127,7 +135,6 @@ int Stream::recv(void* data, int maxSize) {
         return size;
     }
 }
-
 
 Packet Stream::getSendBuffer() {
     Redundancy r = info.getRedundancy();

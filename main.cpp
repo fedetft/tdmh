@@ -244,7 +244,7 @@ void dynamicApplication(Par p) {
                             1,                 // Payload size
                             Direction::TX,     // Direction
                             p.redundancy);     // Redundancy
-            printf("[A] Stream constructor returned \n");
+            printf("[A] Stream opened \n");
             unsigned int counter = 0;
             while(!s.isClosed()) {
                 Data data(ctx->getNetworkId(), counter);
@@ -253,6 +253,7 @@ void dynamicApplication(Par p) {
                        data.id, data.time, data.minHeap, data.heap, data.counter);
                 counter++;
             }
+            printf("[A] Stream was closed, reopening it \n");
         } catch(exception& e) {
             cerr<<"\nException thrown: "<<e.what()<<endl;
         }

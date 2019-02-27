@@ -159,6 +159,16 @@ void StreamManager::notifyStreams(const std::vector<ExplicitScheduleElement>& sc
             streamMap[id].setStatus(StreamStatus::ESTABLISHED);
         }
     }
+    /* Close local ESTABLISHED streams not present in schedule */
+    for(auto& stream : streamMap) {
+        bool found = false;
+        for(auto& elem : schedule)
+            found |= (elem.getStreamId() == stream.first);
+        if(!found && stream.second.getStatus() == StreamStatus::ESTABLISHED) {
+            stream.second.setStatus(StreamStatus::CLOSED);
+            clientMap[stream.first]->notifyStream(StreamStatus::CLOSED);
+        }
+    }
 }
 
 bool isNotListen(std::pair<StreamId,StreamInfo> stream) {
@@ -330,15 +340,19 @@ void StreamManager::receiveInfo() {
     while(!infoQueue.empty()) {
         InfoElement info = infoQueue.front();
         StreamId id = info.getStreamId();
-        //Check if stream exists
+        // Check if stream exists
         if (streamMap.find(id) != streamMap.end()) {
             switch(info.getType()){
             case InfoType::ACK_LISTEN:
                 if(streamMap[id].getStatus() == StreamStatus::LISTEN_REQ) {
                     streamMap[id].setStatus(StreamStatus::LISTEN);
                     // Notify Server thread
-                    print_dbg("[SM] StreamServer %d->%d LISTEN\n", id.src, id.dst);
-                    serverMap[id]->notifyServer(StreamStatus::LISTEN);
+                    if(serverMap.find(id) != serverMap.end()) {
+                        print_dbg("[SM] StreamServer %d->%d LISTEN\n", id.src, id.dst);
+                        serverMap[id]->notifyServer(StreamStatus::LISTEN);
+                    }
+                    else
+                        print_dbg("[SM] StreamServer %d->%d not present in serverMap. InfoType=LISTEN\n", id.src, id.dst);
                 }
                 break;
             case InfoType::NACK_CONNECT:
@@ -346,7 +360,10 @@ void StreamManager::receiveInfo() {
                     streamMap[id].setStatus(StreamStatus::REJECTED);
                     // Notify Stream thread
                     print_dbg("[SM] Stream %d->%d REJECTED\n", id.src, id.dst);
-                    clientMap[id]->notifyStream(StreamStatus::REJECTED);
+                    if(clientMap.find(id) != clientMap.end())
+                        clientMap[id]->notifyStream(StreamStatus::REJECTED);
+                    else
+                        print_dbg("[SM] Stream %d->%d not present in clientMap. InfoType=NACK_CONNECT\n", id.src, id.dst);
                 }
                 break;
             }

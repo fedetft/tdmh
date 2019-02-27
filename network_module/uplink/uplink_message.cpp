@@ -39,7 +39,7 @@ void UplinkMessage::serialize(Packet& pkt) const {
 }
 
 UplinkMessage UplinkMessage::deserialize(Packet& pkt, const NetworkConfiguration& config) {
-    TopologyMessage* msg;
+    TopologyMessage* msg = nullptr;
     // Extract assignee and hop
     UplinkMessagePkt header;
     pkt.get(&header, sizeof(UplinkMessagePkt));
