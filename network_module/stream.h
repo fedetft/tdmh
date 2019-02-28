@@ -76,6 +76,11 @@ public:
     Packet getSendBuffer();
     /* Used by the StreamManager class to put data to buffer */
     void putRecvBuffer(Packet& pkt);
+    /* Used by the StreamManager to update the stream parameters to the
+     * effective parameters decided by the master after negotiation */
+    void setStreamInfo(StreamInfo newInfo) {
+        info = newInfo;
+    }
 
 private:
     /* Used by the constructor to register the Stream in the StreamManager */
