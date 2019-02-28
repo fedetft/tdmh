@@ -114,7 +114,12 @@ void MasterMeshTopologyContext::receivedMessage(UplinkMessage msg, unsigned char
 void MasterMeshTopologyContext::manageTopologyUpdate(unsigned char sender, NeighborTable neighbors) {
     auto newNeighbors = neighbors.getNeighbors();
     auto oldNeighbors = topology.getEdges(sender);
-    setDifferenceDo<std::vector<unsigned char>::iterator, std::vector<unsigned char>::iterator>(oldNeighbors.begin(), oldNeighbors.end(), newNeighbors.begin(), newNeighbors.end(), [this, sender](unsigned char id) {
+    setDifferenceDo<std::vector<unsigned char>::iterator,
+                    std::vector<unsigned char>::iterator>(oldNeighbors.begin(),
+                                                          oldNeighbors.end(),
+                                                          newNeighbors.begin(),
+                                                          newNeighbors.end(),
+                                                          [this, sender](unsigned char id) {
             //this is not as easy as that. TODO add check for orphaned links, ex kite with first hop dying
         topology.removeEdge(sender, id);
     });

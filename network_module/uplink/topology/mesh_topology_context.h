@@ -101,7 +101,8 @@ public:
 
     template<class InputIt1, class InputIt2>
     static void setDifferenceDo(InputIt1 first1, InputIt1 last1,
-            InputIt2 first2, InputIt2 last2, std::function<void(typename std::iterator_traits<InputIt1>::value_type)> fun) {
+                                InputIt2 first2, InputIt2 last2,
+                                std::function<void(typename std::iterator_traits<InputIt1>::value_type)> fun) {
         while (first1 != last1) {
             if (first2 == last2) {
                 while (first1 != last1)
