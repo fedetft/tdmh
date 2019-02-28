@@ -131,8 +131,11 @@ void MasterTopologyContext::unreceivedMessage(unsigned char sender) {
 #endif
 
     if (neighborsUnseenFor.find(sender) == neighborsUnseenFor.end()) return;
-    if (++neighborsUnseenFor[sender] > ctx.getNetworkConfig().getMaxRoundsUnavailableBecomesDead())
+    if (++neighborsUnseenFor[sender] > ctx.getNetworkConfig().getMaxRoundsUnavailableBecomesDead()) {
         topology.removeEdge(sender, 0);
+        if(!topology.hasNode(sender))
+            neighborsUnseenFor.erase(sender);
+    }
 }
 
 } /* namespace mxnet */
