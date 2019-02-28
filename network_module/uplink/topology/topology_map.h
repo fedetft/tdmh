@@ -122,7 +122,7 @@ public:
     };
 
     /**
-     * Removes a connection between two nodes.
+     * Removes the link (a,b) and (b,a) between two nodes.
      * @param a the node of an edge
      * @param b the node of the other edge
      * @return if the node is present

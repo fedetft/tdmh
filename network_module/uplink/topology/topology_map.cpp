@@ -108,18 +108,16 @@ bool TopologyMap::hasNode(unsigned char a) const {
 bool TopologyMap::removeEdge(unsigned char a, unsigned char b) {
     if(a == b) throw std::logic_error("TopologyMap.removeEdge() does not accept auto-edges");
 
+    // Remove the edge (a,b)
     auto it = edges.find(a);
     if(it == edges.end()) return false;
     else {
         it->second[b] = false;
     }
     // If the BitVector is empty, delete it
-    bool empty = true;
-    for (unsigned i = 0; i < it->second.bitSize(); i++) {
-        empty |= it->second[i];
-    }
-    if(empty) edges.erase(it);
+    if(it->second.empty()) edges.erase(it);
 
+    // Remove the edge (b,a)
     it = edges.find(b);
     // To end up here you must have found (a,b), so return true
     if(it == edges.end()) return true;
@@ -127,11 +125,7 @@ bool TopologyMap::removeEdge(unsigned char a, unsigned char b) {
         it->second[a] = false;
     }
     // If the BitVector is empty, delete it
-    empty = true;
-    for (unsigned i = 0; i < it->second.bitSize(); i++) {
-        empty |= it->second[i];
-    }
-    if(empty) edges.erase(it);
+    if(it->second.empty()) edges.erase(it);
 
     modified_flag = true;
     return true;
@@ -147,11 +141,7 @@ bool TopologyMap::removeNode(unsigned char a) {
     for(auto& el : edges) {
         el.second[a]=false;
         // Remove empty BitVectors
-        bool empty = true;
-        for (unsigned i = 0; i < el.second.bitSize(); i++) {
-            empty |= el.second[i];
-        }
-        if(empty) edges.erase(el.first);
+        if(el.second.empty()) edges.erase(el.first);
     }
     modified_flag = true;
     return true;

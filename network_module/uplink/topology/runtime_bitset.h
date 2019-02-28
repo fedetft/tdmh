@@ -65,7 +65,10 @@ public:
 #ifdef _ARCH_CORTEXM3_EFM32GG
     , bbData(reinterpret_cast<unsigned*>(((reinterpret_cast<unsigned long>(content) - sramBase) << 5) + bitBandBase))
 #endif
-    {}
+    {
+        // Make sure that size is a multiple of 8, otherwise the RuntimeBitset won't work
+        assert((size & 0b111) == 0);
+    }
 
     /**
      * Creates an array of size bits, initializing it with a given value.
@@ -73,6 +76,8 @@ public:
      * @param init the value with which it is initialized
      */
     RuntimeBitset(std::size_t size, bool init) : RuntimeBitset(size) {
+        // Make sure that size is a multiple of 8, otherwise the RuntimeBitset won't work
+        assert((size & 0b111) == 0);
         memset(content, init? ~0 : 0, this->size());
     }
 
@@ -221,6 +226,11 @@ public:
     void setAll(bool value) {
         memset(content, value? ~0 : 0, size());
     }
+
+    /**
+     * @return true if the BitVector is empty
+     */
+    bool empty();
 
     /**
      * Accesses the memory area behind the array directly
