@@ -98,6 +98,10 @@ void ScheduleComputation::run() {
                 printf("\n[SC] Stream number in master: %d\n", stream_mgmt.getStreamNumber());
             stream_snapshot = stream_mgmt.getSnapshot();
             topology_map = topology_ctx.getTopologyMap();
+
+            // Clear modified bit to detect changes to topology or streams
+            topology_ctx.clearModifiedFlag();
+            stream_mgmt.clearFlags();
         }
         /* IMPORTANT!: From now on use only the snapshot class `stream_snapshot` */
 
@@ -225,10 +229,6 @@ void ScheduleComputation::run() {
 
         // To avoid caching of stdout
         fflush(stdout);
-
-        // Clear modified bit to detect changes to topology or streams
-        topology_ctx.clearModifiedFlag();
-        stream_mgmt.clearFlags();
     }
 }
 
@@ -683,7 +683,21 @@ std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamInfo>&
                     printf("Secondary Paths after removing primary path: \n");
                     printPathList(extra_paths);
                 }
-                // FInd paths without intermediate nodes in common with primary path
+                // If the only path is the primary path (extra_paths empty)
+                if(!extra_paths.size()) {
+                    printf("The only path is the primary path.\nDowngrading from spatial to temporal redundancy\n");
+                    // Downgrade spatial redundancies to non spatial ones
+                    if (redundancy == Redundancy::DOUBLE_SPATIAL) {
+                        redundancy = Redundancy::DOUBLE;
+                        routed_streams.push_back(schedule);
+                    }
+                    if (redundancy == Redundancy::TRIPLE_SPATIAL) {
+                        redundancy = Redundancy::TRIPLE;
+                        routed_streams.push_back(schedule);
+                    }
+                    continue;
+                }
+                // Find paths without intermediate nodes in common with primary path
                 std::list<std::list<unsigned char>> indip_paths = findIndependentPaths(extra_paths, path);
                 // If the independent set is not empty choose shortest solution
                 std::list<unsigned char> solution;
