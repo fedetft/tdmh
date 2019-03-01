@@ -64,21 +64,27 @@ public:
     virtual long long getSlotframeStart() const { return measuredFrameStart - (ctx.getHop() - 1) * rebroadcastInterval; }
 protected:
     void rebroadcast(const Packet& pkt, long long arrivalTs);
+    /* Similar to isSyncPacket but checks also rssi to be above the threshold */
+    bool isResyncPacket(const Packet& packet, miosix::RecvResult r) {
+        if(r.rssi < ctx.getNetworkConfig().getMinNeighborRSSI())
+            return false;
+        return isSyncPacket(packet, r, false);
+    }
     bool isSyncPacket(const Packet& packet, miosix::RecvResult r, bool synchronized) {
         auto panId = networkConfig.getPanId();
         // Ignore low RSSI packets if not syncronyzed
         if(synchronized == false && r.rssi<networkConfig.getMinNeighborRSSI())
             return false;
         return  r.timestampValid && packet.size() == syncPacketSize
-                && packet[0] == 0x46 && packet[1] == 0x08
-                && (synchronized?
-                        ctx.getHop() == packet[2] + 1:
-                        (networkConfig.getStaticHop() == 0 || packet[2] + 1 == networkConfig.getStaticHop()))
-                && packet[3] == static_cast<unsigned char>(panId >> 8)
-                && packet[4] == static_cast<unsigned char>(panId & 0xff)
-                && packet[5] == 0xff && packet[6] == 0xff;
+            && packet[0] == 0x46 && packet[1] == 0x08
+            && (synchronized?
+                ctx.getHop() == packet[2] + 1:
+                (networkConfig.getStaticHop() == 0 || packet[2] + 1 == networkConfig.getStaticHop()))
+            && packet[3] == static_cast<unsigned char>(panId >> 8)
+            && packet[4] == static_cast<unsigned char>(panId & 0xff)
+            && packet[5] == 0xff && packet[6] == 0xff;
     }
-    
+
     /**
      * Since the node is synchronized, it performs the step in the FLOPSYNC-2 controller
      */

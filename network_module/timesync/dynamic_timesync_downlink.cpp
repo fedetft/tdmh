@@ -102,7 +102,7 @@ void DynamicTimesyncDownlink::resync() {
 
     Packet pkt;
     using namespace std::placeholders;
-    auto pred = std::bind(&DynamicTimesyncDownlink::isSyncPacket, this, _1, _2, false);
+    auto pred = std::bind(&DynamicTimesyncDownlink::isResyncPacket, this, _1, _2);
     auto rcvResult = pkt.recv(ctx, infiniteTimeout, pred, Transceiver::Correct::UNCORR);
 
     greenLed::low();
