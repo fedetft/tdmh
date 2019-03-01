@@ -84,6 +84,7 @@ void RootNode::application() {
         Stream *s = new Stream(*tdmh);
         server.accept(*s);
         thread t1(&RootNode::streamThread, this, s);
+        t1.detach();
     }
 }
 
