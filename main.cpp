@@ -40,6 +40,8 @@ using namespace mxnet;
 using namespace miosix;
 
 const int maxNodes = 32;
+const Period defaultPeriod = Period::P20;
+const Redundancy defaultRedundancy = Redundancy::NONE;
 
 FastMutex m;
 MediumAccessController *tdmh = nullptr;
@@ -56,7 +58,7 @@ public:
 class Par
 {
 public:
-    Par(Redundancy redundancy=Redundancy::NONE, Period period=Period::P20) :
+    Par(Redundancy redundancy=defaultRedundancy, Period period=defaultPeriod) :
         redundancy(redundancy), period(period) {}
     Redundancy redundancy;
     Period period;
