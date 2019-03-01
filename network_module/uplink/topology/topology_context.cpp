@@ -125,7 +125,9 @@ void MasterTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sen
       topology.hasEdge here, so that in this case we will add the node also in
       neighborsUnseenFor, this is done so neighborsUnseenFor and topology will be coherent.
      */
-    if(!topology.hasEdge(sender,0)) {
+    /* FIXME: This code should be if(!topology.hasEdge(sender,0)) because of the
+       note above but it breaks the topology. TODO: discover why */
+    if(neighborsUnseenFor.find(sender) == neighborsUnseenFor.end()) {
         if(rssi < ctx.getNetworkConfig().getMinNeighborRSSI()) return;
         topology.addEdge(sender,0);
     }
