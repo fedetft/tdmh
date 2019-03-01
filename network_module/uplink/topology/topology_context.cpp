@@ -112,14 +112,24 @@ MasterTopologyContext::MasterTopologyContext(MACContext& ctx) : TopologyContext(
 void MasterTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
     // Lock mutex because TopologyMap is shared with ScheduleComputation thread
 #ifdef _MIOSIX
-        miosix::Lock<miosix::Mutex> lck(sched_mutex);
+    miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
-        std::unique_lock<std::mutex> lck(sched_mutex);
+    std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-        if (neighborsUnseenFor.find(sender) == neighborsUnseenFor.end()) {
-            topology.addEdge(sender, 0);
-        }
-        neighborsUnseenFor[sender] = 0;
+    /*
+      NOTE: there is a corner case in which a node can decide to belong to hop 1
+      because from his side the RSSI is high enough, but the master has not (yet)
+      received a message with high enough RSSI. In this case, due to topology
+      forwarding the edge will eventually end up in the topology, without being
+      added through receivedMessage. For this reason, we MUST check with
+      topology.hasEdge here, so that in this case we will add the node also in
+      neighborsUnseenFor, this is done so neighborsUnseenFor and topology will be coherent.
+     */
+    if(!topology.hasEdge(sender,0)) {
+        if(rssi < ctx.getNetworkConfig().getMinNeighborRSSI()) return;
+        topology.addEdge(sender,0);
+    }
+    neighborsUnseenFor[sender] = 0;
 }
 
 void MasterTopologyContext::unreceivedMessage(unsigned char sender) {

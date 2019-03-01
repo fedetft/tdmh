@@ -44,6 +44,8 @@ void DynamicMeshTopologyContext::receivedMessage(UplinkMessage msg, unsigned cha
         neighbors.addNeighbor(sender);
         neighborsUnseenFor[sender] = 0;
     }
+    /* 28/20/2019 Fede&Izzo: the forwarded Topologies and SME
+       do not need the check on RSSI because this information is received from other nodes */
     auto it = neighborsUnseenFor.find(sender);
     if (it != neighborsUnseenFor.end())
         it->second = 0;
@@ -101,6 +103,8 @@ void DynamicMeshTopologyContext::checkEnqueueOrUpdate(ForwardedNeighborMessage* 
 
 void MasterMeshTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
     MasterTopologyContext::receivedMessage(msg, sender, rssi);
+    /* 28/20/2019 Fede&Izzo: the manageTopologyUpdate does not need the check on RSSI because
+       this topology information is received from other nodes */
     auto tMsg = static_cast<NeighborMessage*>(msg.getTopologyMessage());
     manageTopologyUpdate(sender, tMsg->getNeighbors());
     std::vector<ForwardedNeighborMessage*> fwds = tMsg->getForwardedTopologies();
