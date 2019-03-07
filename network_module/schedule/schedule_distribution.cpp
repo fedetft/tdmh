@@ -42,37 +42,24 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
     result.resize(scheduleSlots, ExplicitScheduleElement());
     // Scan implicit schedule for element that imply the node action
     for(auto e : schedule) {
+        // Period is normally expressed in tiles, get period in slots
+        auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
+        Action action = Action::SLEEP;
         // Send from stream case
-        if(e.getSrc() == nodeID && e.getTx() == nodeID) {
-            // Period is normally expressed in tiles, get period in slots
-            auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
-            for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                result[slot] = ExplicitScheduleElement(Action::SENDSTREAM, e.getStreamInfo()); 
-            }
-        }
+        if(e.getSrc() == nodeID && e.getTx() == nodeID)
+            action = Action::SENDSTREAM;
         // Receive to stream case
-        if(e.getDst() == nodeID && e.getRx() == nodeID) {
-            // Period is normally expressed in tiles, get period in slots
-            auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
-            for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                result[slot] = ExplicitScheduleElement(Action::RECVSTREAM, e.getStreamInfo()); 
-            }
-        }
+        if(e.getDst() == nodeID && e.getRx() == nodeID)
+            action = Action::RECVSTREAM;
         // Send from buffer case (send saved multi-hop packet)
-        if(e.getSrc() != nodeID && e.getTx() == nodeID) {
-            // Period is normally expressed in tiles, get period in slots
-            auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
-            for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                result[slot] = ExplicitScheduleElement(Action::SENDBUFFER, e.getStreamInfo()); 
-            }
-        }
+        if(e.getSrc() != nodeID && e.getTx() == nodeID)
+            action = Action::SENDBUFFER;
         // Receive to buffer case (receive and save multi-hop packet)
-        if(e.getDst() != nodeID && e.getRx() == nodeID) {
-            // Period is normally expressed in tiles, get period in slots
-            auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
-            for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                result[slot] = ExplicitScheduleElement(Action::RECVBUFFER, e.getStreamInfo()); 
-            }
+        if(e.getDst() != nodeID && e.getRx() == nodeID)
+            action = Action::RECVBUFFER;
+        // Apply action to the right slots
+        for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
+            result[slot] = ExplicitScheduleElement(action, e.getStreamInfo()); 
         }
     }
     return result;
