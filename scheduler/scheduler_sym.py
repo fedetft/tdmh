@@ -15,7 +15,7 @@ multipath = True
 # max hop difference between first and redundant solution
 more_hops = 2
 bfs_debug = False
-sch_debug = False
+sch_debug = True
 sch_raw_print = False
 
 ### GREEDY SCHEDULING ALGORITHM
@@ -113,16 +113,14 @@ def breadth_first_search(topology, stream, avoid):
         print('Starting Breadth First search')
     # Data structures
     open_set = queue.Queue()
-    visited = set()       # Can be turned to a bit-vector to save space
-    parent_of = dict()  # key:node -> parent node
+    visited = set()
+    parent_of = dict()  # key:node value:parent node
     src, dst = stream;
     
     root = src
     parent_of[root] = None
     open_set.put(root)
-    #TODO: check if needed
-    #visited.add(root)
-    
+
     while not open_set.empty():
         if bfs_debug:
             print('bfs open set: ' + repr(list(open_set.queue)))
@@ -145,7 +143,7 @@ def construct_path(node, parent_of):
     # Append destination node to avoid losing it
     path.append(node)
     while parent_of[node] is not None:
-        # This code skips 'node' that is saved above (destination)
+        # Skip the destination node saved above
         node = parent_of[node]
         path.append(node)
     path.reverse()    
@@ -186,14 +184,17 @@ def scheduler(topology, req_streams, data_slots):
     schedule = []
     schedule_human = [] #Just for printing purposes
     for stream_block in req_streams:
-        # last_ts guarantees sequentiality in blocks and avoid conflicts between
-        # two consecutive streams in a block.
+        # last_ts guarantees sequentiality in blocks 
+        # and avoid conflicts between two consecutive 
+        # streams in a block.
         last_ts = 0
-        # If a stream in a block cannot be scheduled, undo the whole block
+        # If a stream in a block cannot be scheduled, 
+        #undo the whole block
         err_block = False;
         num_streams_in_block = 0;
         for stream in stream_block:
-            # If a stream in a block cannot be scheduled, undo the whole block,
+            # If a stream in a block cannot be scheduled, 
+            # undo the whole block,
             # then break block cycle
             if err_block:
                 if sch_debug:
