@@ -27,6 +27,14 @@ Define_Module(RootNode);
 using namespace std;
 using namespace mxnet;
 
+struct Data
+{
+    Data() {}
+    Data(int id, unsigned int counter) : id(id), counter(counter){}
+    unsigned char id;
+    unsigned int counter;
+}__attribute__((packed));
+
 void RootNode::activity()
 {
     using namespace miosix;
@@ -92,11 +100,14 @@ void RootNode::streamThread(void *arg) {
     auto *s = reinterpret_cast<Stream*>(arg);
     printf("[A] Accept returned! \n");
     while(!s->isClosed()){
-        vector<char> data;
-        data.resize(125);
-        data.resize(s->recv(data.data(), data.size()));
-        printf("[A] Received data \n");
-        miosix::memDump(data.data(), data.size());
+        Data data;
+        int len = s->recv(&data, sizeof(data));
+        if(len != sizeof(data))
+            printf("[E] Received wrong size data\n");
+        else
+            printf("[A] Received ID=%d Counter=%u\n",
+                   data.id, data.counter);
     }
     delete s;
+
 }

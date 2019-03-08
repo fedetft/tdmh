@@ -29,6 +29,15 @@ using namespace std;
 using namespace miosix;
 using namespace mxnet;
 
+struct Data
+{
+    Data() {}
+    Data(int id, unsigned int counter) : id(id), counter(counter){}
+    unsigned char id;
+    unsigned int counter;
+}__attribute__((packed));
+
+
 void Node::initialize()
 {
     NodeBase::initialize();
@@ -108,10 +117,75 @@ void Node::application() {
                                 1,                 // Payload size
                                 Direction::TX,     // Direction
                                 Redundancy::NONE); // Redundancy
-                vector<char> data={1,2,3,4};
-                s.send(data.data(), data.size());
-                printf("[A] Sent data 1234\n");
-                break;
+                printf("[A] Stream opened \n");
+                unsigned int counter = 0;
+                while(!s.isClosed()) {
+                    Data data(ctx->getNetworkId(), counter);
+                    s.send(&data, sizeof(data));
+                    //printf("[A] Sent ID=%d Counter=%u\n", data.id, data.counter);
+                    counter++;
+                }
+                printf("[A] Stream was closed, reopening it \n");
+            } catch(exception& e) {
+                //Note: omnet++ seems to terminate coroutines with an exception
+                //of type cStackCleanupException. Squelch these
+                if(string(typeid(e).name()).find("cStackCleanupException")==string::npos)
+                    cerr<<"\nException thrown: "<<e.what()<<endl;
+            }
+        }
+    }
+    /* Open Stream from node 2 */
+    if(address == 2) {
+        while(true){
+            try{
+                /* Open a Stream to another node */
+                mxnet::Stream s(*tdmh,            // Pointer to MediumAccessController
+                                0,                 // Destination node
+                                0,                 // Destination port
+                                Period::P20,        // Period
+                                1,                 // Payload size
+                                Direction::TX,     // Direction
+                                Redundancy::NONE); // Redundancy
+                printf("[A] Stream opened \n");
+                unsigned int counter = 0;
+                while(!s.isClosed()) {
+                    Data data(ctx->getNetworkId(), counter);
+                    s.send(&data, sizeof(data));
+                    //printf("[A] Sent ID=%d Counter=%u\n", data.id, data.counter);
+                    counter++;
+                    //if(counter == 100)
+                    //    break;
+                }
+                printf("[A] Stream was closed, reopening it \n");
+            } catch(exception& e) {
+                //Note: omnet++ seems to terminate coroutines with an exception
+                //of type cStackCleanupException. Squelch these
+                if(string(typeid(e).name()).find("cStackCleanupException")==string::npos)
+                    cerr<<"\nException thrown: "<<e.what()<<endl;
+            }
+        }
+    }
+    /* Open Stream from node 3 */
+    if(address == 3) {
+        while(true){
+            try{
+                /* Open a Stream to another node */
+                mxnet::Stream s(*tdmh,            // Pointer to MediumAccessController
+                                0,                 // Destination node
+                                0,                 // Destination port
+                                Period::P20,        // Period
+                                1,                 // Payload size
+                                Direction::TX,     // Direction
+                                Redundancy::TRIPLE_SPATIAL); // Redundancy
+                printf("[A] Stream opened \n");
+                unsigned int counter = 0;
+                while(!s.isClosed()) {
+                    Data data(ctx->getNetworkId(), counter);
+                    s.send(&data, sizeof(data));
+                    //printf("[A] Sent ID=%d Counter=%u\n", data.id, data.counter);
+                    counter++;
+                }
+                printf("[A] Stream was closed, reopening it \n");
             } catch(exception& e) {
                 //Note: omnet++ seems to terminate coroutines with an exception
                 //of type cStackCleanupException. Squelch these
