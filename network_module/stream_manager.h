@@ -107,12 +107,24 @@ public:
     void notifyStreams(const std::vector<ExplicitScheduleElement>& schedule);
     // Used by the DataPhase to put/get data to/from buffers
     void putBuffer(StreamId id, Packet& pkt) {
+        // Mutex lock to access the Stream map from the application thread.
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
+#else
+        std::unique_lock<std::mutex> lck(streamMgr_mutex);
+#endif
         if (clientMap.find(id) == clientMap.end())
             throwRuntimeError("DataPhase::receiveToStream: stream (%d,%d) is not registered in node %d",
                               id.src, id.dst, myId);
         clientMap[id]->putRecvBuffer(pkt);
     }
     Packet getBuffer(StreamId id) {
+        // Mutex lock to access the Stream map from the application thread.
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
+#else
+        std::unique_lock<std::mutex> lck(streamMgr_mutex);
+#endif
         if (clientMap.find(id) == clientMap.end())
             throwRuntimeError("DataPhase::sendFromStream: stream (%d,%d) is not registered in node %d",
                               id.src, id.dst, myId);

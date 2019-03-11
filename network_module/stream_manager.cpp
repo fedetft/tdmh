@@ -28,6 +28,7 @@
 #include "stream_manager.h"
 #include "debug_settings.h"
 #include <algorithm>
+#include <set>
 
 namespace mxnet {
 
@@ -89,11 +90,14 @@ void StreamManager::deregisterStream(StreamInfo info) {
 #else
     std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
+    StreamId id = info.getStreamId();
     // Remove Stream class pointer in stream map
     clientMap.erase(info.getStreamId());
     // Mark Stream as closed
-    streamMap[info.getStreamId()].setStatus(StreamStatus::CLOSED);
-    // Send SME only if we are in a dynamic node
+    if(streamMap.find(id) != streamMap.end())
+        streamMap[info.getStreamId()].setStatus(StreamStatus::CLOSED);
+    // Send SME only if we are in a dynamic node to notify the master node
+    // of the stream being closed
     if(myId != 0) {
         // Push corresponding SME on the queue
         smeQueue.push(StreamManagementElement(info, StreamStatus::CLOSED));
@@ -132,11 +136,24 @@ void StreamManager::registerStreamServer(StreamInfo info, StreamServer* server) 
 }
 
 void StreamManager::notifyStreams(const std::vector<ExplicitScheduleElement>& schedule) {
+    // Mutex lock to access the Stream map from the application thread.
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
+#else
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
+#endif
+    /* This set is used to avoid notifying multiple times the streams,
+       this happens when we have more than a ExplicitScheduleElement for Stream,
+       for example in case of multi-hop streams or redundancy */
+    std::set<StreamId> alreadyNotified;
     for(auto& elem : schedule) {
         /* If schedule element action is SLEEP, ignore */
         if(elem.getAction() == Action::SLEEP)
             continue;
         StreamId id = elem.getStreamId();
+        if(alreadyNotified.count(id))
+            continue;
+        alreadyNotified.insert(id);
         StreamInfo info = elem.getStreamInfo();
         print_dbg("[SM] node %d: Notifying stream %d,%d\n", myId, id.src, id.dst);
         StreamId listenId(id.dst, id.dst, 0, id.dstPort);

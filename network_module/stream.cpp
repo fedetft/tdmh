@@ -78,6 +78,16 @@ void Stream::registerStream(StreamInfo i) {
         throw std::runtime_error("The stream cannot be routed or scheduled");
 }
 
+void Stream::deregisterStream() {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(stream_mutex);
+#else
+        std::unique_lock<std::mutex> lck(stream_mutex);
+#endif
+        // Deregister Stream from StreamManager
+        streamMgr->deregisterStream(info);
+}
+
 void Stream::notifyStream(StreamStatus s) {
     //FIXME: remove this print_dbg
     print_dbg("[S] Calling notifyStream with status %d\n", s);

@@ -56,7 +56,9 @@ public:
            Direction direction, Redundancy redundancy);
     /* Used to create an empty (CLOSED) stream to open with accept */
     Stream(MediumAccessController& tdmh);
-    ~Stream() {};
+    ~Stream() {
+        deregisterStream();
+    }
 
     /* Called from StreamManager, to update the status of the Stream
      * and wake up the Stream thread */
@@ -83,8 +85,10 @@ public:
     }
 
 private:
-    /* Used by the constructor to register the Stream in the StreamManager */
+    /* Used by the class constructor to register the Stream in the StreamManager */
     void registerStream(StreamInfo i);
+    /* Used by the class destructor to deregister the Stream from the StreamManager */
+    void deregisterStream();
     /* Reference to MediumAccessController */
     MediumAccessController& tdmh;
     /* Reference to StreamManager */
