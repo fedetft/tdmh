@@ -21,6 +21,8 @@
 #include <iostream>
 #include <stdexcept>
 #include <chrono>
+#include <list>
+#include <memory>
 
 Define_Module(RootNode);
 
@@ -59,7 +61,7 @@ void RootNode::activity()
     MasterMediumAccessController controller(Transceiver::instance(), config);
 
     tdmh = &controller;
-    thread t(&RootNode::application, this);
+    auto *t = new thread(&RootNode::application, this);
     try {
         controller.run();
     } catch(exception& e) {
@@ -68,18 +70,22 @@ void RootNode::activity()
         if(string(typeid(e).name()).find("cStackCleanupException")==string::npos)
             cerr<<"\nException thrown: "<<e.what()<<endl;
         quit.store(true);
-        t.join();
+        t->join();
+        throw;
+    } catch(...) {
+        quit.store(true);
+        t->join();
+        cerr<<"\nUnnamed exception thrown"<<endl;
         throw;
     }
     quit.store(true);
-    t.join();
+    t->join();
 }
 
 void RootNode::application() {
     /* Wait for TDMH to become ready */
     MACContext* ctx = tdmh->getMACContext();
     while(!ctx->isReady()) {
-        this_thread::sleep_for(chrono::seconds(1));
     }
     /* Open a StreamServer to listen for incoming streams */
     mxnet::StreamServer server(*tdmh,      // Pointer to MediumAccessController
@@ -89,10 +95,12 @@ void RootNode::application() {
                  Direction::TX,     // Direction
                  Redundancy::TRIPLE_SPATIAL); // Redundancy
     while(true) {
-        Stream *s = new Stream(*tdmh);
-        server.accept(*s);
-        thread t1(&RootNode::streamThread, this, s);
-        t1.detach();
+        std::list<std::shared_ptr<Stream>> streamList;
+        server.accept(streamList);
+        for(auto& stream : streamList){
+            thread t1(&RootNode::streamThread, this, stream.get());
+            t1.detach();
+        }
     }
 }
 

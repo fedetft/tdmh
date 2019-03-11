@@ -31,6 +31,7 @@
 #include "packet.h"
 #include "uplink/stream_management/stream_management_element.h"
 #include <queue>
+#include <memory>
 #ifdef _MIOSIX
 #include <miosix.h>
 #else
@@ -136,14 +137,18 @@ public:
      * and wake up the StreamServer thread */
     void notifyServer(StreamStatus s);
     /**
-     * Called from StreamManager, to notify the StreamServer that a Stream
-     * has been opened and wake up the StreamServer thread */
+     * Called from StreamManager, add a Stream to the queue
+     * of Streams ready to be opened */
     void openStream(StreamInfo info);
+    /**
+     * To be called from StreamManager after all the openStream() have been called,
+     * wakes up the StreamServer thread */
+    void wakeAccept();
     /**
      * Opens a Stream object by modifying an empty stream.
      * This function blocks unless a stream is opened
      */
-    void accept(Stream& stream);
+    void accept(std::list<std::shared_ptr<Stream>>& stream);
 
 private:
     /* Reference to MediumAccessController */

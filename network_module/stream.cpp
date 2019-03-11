@@ -280,15 +280,18 @@ void StreamServer::notifyServer(StreamStatus s) {
 void StreamServer::openStream(StreamInfo info) {
     // Push new stream info to queue
     streamQueue.push(info);
+}
+
+void StreamServer::wakeAccept() {
     // Wake up the Stream thread
 #ifdef _MIOSIX
     stream_cv.signal();
 #else
     stream_cv.notify_one();
-#endif
+#endif 
 }
 
-void StreamServer::accept(Stream& stream) {
+void StreamServer::accept(std::list<std::shared_ptr<Stream>>& stream) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(server_mutex);
 #else
@@ -299,10 +302,15 @@ void StreamServer::accept(Stream& stream) {
         // Condition variable to wait for opened streams
         stream_cv.wait(lck);
     }
-    print_dbg("[S] StreamServer: Accepted a stream\n");
-    StreamInfo info = streamQueue.front();
-    streamQueue.pop();
-    stream.registerStream(info);
+    while(!streamQueue.empty()) {
+        print_dbg("[S] StreamServer: Accepted the stream (%d,%d)\n");
+        StreamInfo info = streamQueue.front();
+        streamQueue.pop();
+        auto* newStream = new Stream(tdmh);
+        newStream->registerStream(info);
+        std::shared_ptr<Stream> ptr(newStream);
+        stream.push_back(ptr);
+    }
 }
 
 }

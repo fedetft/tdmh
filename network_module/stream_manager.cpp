@@ -144,16 +144,18 @@ void StreamManager::notifyStreams(const std::vector<ExplicitScheduleElement>& sc
 #endif
     /* This set is used to avoid notifying multiple times the streams,
        this happens when we have more than a ExplicitScheduleElement for Stream,
-       for example in case of multi-hop streams or redundancy */
-    std::set<StreamId> alreadyNotified;
+       for example in case of multi-hop streams or redundancy
+       It is also used to wakeup the StreamServers on which we have done an
+       openStreams. Used to accept multiple streams at the same time */
+    std::map<StreamId, bool> visitedStreams;
     for(auto& elem : schedule) {
         /* If schedule element action is SLEEP, ignore */
         if(elem.getAction() == Action::SLEEP)
             continue;
         StreamId id = elem.getStreamId();
-        if(alreadyNotified.count(id))
+        if(visitedStreams.count(id))
             continue;
-        alreadyNotified.insert(id);
+        visitedStreams[id] = false;
         StreamInfo info = elem.getStreamInfo();
         print_dbg("[SM] node %d: Notifying stream %d,%d\n", myId, id.src, id.dst);
         StreamId listenId(id.dst, id.dst, 0, id.dstPort);
@@ -176,9 +178,20 @@ void StreamManager::notifyStreams(const std::vector<ExplicitScheduleElement>& sc
             (clientMap.find(id) == clientMap.end())) {
             info.setStatus(StreamStatus::ESTABLISHED);
             serverMap[listenId]->openStream(info);
+            /* Flag the StreamServer to wake it up after all the openStream() calls */
+            visitedStreams[id] = true;
             print_dbg("[SM] node %d: Server-side Stream %d,%d opened!\n",myId, id.src, id.dst);
             streamMap[id].setStatus(StreamStatus::ESTABLISHED);
         }
+    }
+    /* Wake up Accept in StreamServer in which we called openStream() */
+    for(auto& visited : visitedStreams){
+        if(!visited.second)
+            continue;
+        StreamId id = visited.first;
+        StreamId listenId(id.dst, id.dst, 0, id.dstPort);
+        if(serverMap.find(listenId) != serverMap.end())
+            serverMap[listenId]->wakeAccept();
     }
     /* Close local ESTABLISHED streams not present in schedule */
     for(auto& stream : streamMap) {
