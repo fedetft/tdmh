@@ -62,13 +62,7 @@ std::vector<StreamInfo> StreamCollection::getStreamsWithStatus(StreamStatus s) {
 }
 
 void StreamManager::closeAllStreams() {
-    // Mutex lock to access the Stream map from the application thread.
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-    print_dbg("[SM] Closing all Streams\n");
+    print_dbg("[SM] Node %d: Closing all Streams\n", myId);
     for(auto& stream: streamMap) {
         setStreamStatus(stream.first, StreamStatus::CLOSED);
     }

@@ -17,6 +17,7 @@
 
 #include "NodeBase.h"
 #include "network_module/tdmh.h"
+#include "network_module/stream.h"
 #include <thread>
 
 /**
@@ -33,6 +34,7 @@ protected:
     virtual void initialize();
     virtual void activity();
     void application();
+    void sendData(mxnet::MACContext* ctx, mxnet::Period period, mxnet::Redundancy redundancy);
 
     /* Pointer to tdmh class for opening streams */
     mxnet::MediumAccessController* tdmh = nullptr;
