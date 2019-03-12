@@ -115,6 +115,12 @@ public:
     void notifyStreams(const std::vector<ExplicitScheduleElement>& schedule);
     // Used by the DataPhase to put/get data to/from buffers
     void putBuffer(StreamId id, Packet& pkt) {
+        // NOTE: call getStreamStatus before mutex to avoid a deadlock
+        if(getStreamStatus(id) == StreamStatus::CLOSED) {
+            print_dbg("DataPhase::receiveToStream: Stream (%d,%d) is CLOSED",
+                      id.src, id.dst);
+            return;
+        }
         // Mutex lock to access the Stream map from the application thread.
 #ifdef _MIOSIX
         miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
@@ -127,6 +133,13 @@ public:
         clientMap[id]->putRecvBuffer(pkt);
     }
     Packet getBuffer(StreamId id) {
+        // NOTE: call getStreamStatus before mutex to avoid a deadlock
+        if(getStreamStatus(id) == StreamStatus::CLOSED) {
+            print_dbg("DataPhase::sendFromStream: Stream (%d,%d) is CLOSED",
+                      id.src, id.dst);
+            Packet empty;
+            return empty;
+        }
         // Mutex lock to access the Stream map from the application thread.
 #ifdef _MIOSIX
         miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
