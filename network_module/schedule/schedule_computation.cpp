@@ -144,24 +144,18 @@ void ScheduleComputation::run() {
             // schedule_size must always be initialized to the number of tiles in superframe
             schedule_size = superframe.size();
             auto new_schedule = routeAndScheduleStreams(established_streams);
-            /* Evaluate previously ESTABLISHED streams status */
-            // Check for ESTABLISHED streams that failed the last scheduling
-            // Temporarily mark ESTABLISHED Streams as CLOSED in stream_snapshot
-            for(auto& stream: stream_snapshot.getStreams()) {
-                if(stream.getStatus() == StreamStatus::ESTABLISHED)
-                    stream_snapshot.setStreamStatus(stream.getStreamId(), StreamStatus::CLOSED);
-            }
-            // Mark successfully scheduled Streams as ESTABLISHED in stream_snapshot and stream_mgmt
+            /* NOTE: Here we need to set the streams which were successfully scheduled
+               as ESTABLISHED in stream_snapshot.
+               We do so to be able to set later the streams that were not scheduled
+               (still ACCEPTED after scheduling) as REJECTED.
+
+               NOTE: Do NOT ever change the status of the streams here in StreamManager,
+               because doing so would mean applying the schedule before its activation time.
+               The status in StreamManager must be changed ONLY in the ScheduleDistribution */
+              
+            // Mark successfully scheduled Streams as ESTABLISHED in stream_snapshot
             for(auto& sched: new_schedule) {
-                if(ENABLE_SCHEDULE_COMP_INFO_DBG)
-                    printf("Setting stream (%d,%d) to ESTABLISHED\n", sched.getSrc(), sched.getDst());
                 stream_snapshot.setStreamStatus(sched.getStreamId(), StreamStatus::ESTABLISHED);
-                stream_mgmt.setStreamStatus(sched.getStreamId(), StreamStatus::ESTABLISHED);
-            }
-            // Mark remaining CLOSED streams in stream_snapshot as CLOSED in stream_mgmt
-            for(auto& stream: stream_snapshot.getStreams()) {
-                if(stream.getStatus() == StreamStatus::CLOSED)
-                    stream_mgmt.setStreamStatus(stream.getStreamId(), StreamStatus::CLOSED);
             }
             /* Apply new schedule */
             schedule = std::move(new_schedule);
@@ -187,15 +181,17 @@ void ScheduleComputation::run() {
             auto new_schedule = routeAndScheduleStreams(accepted_streams);
             schedule.insert(schedule.end(), new_schedule.begin(), new_schedule.end());
             changed = true;
-            /* Evaluate previously ACCEPTED streams status */
-            // Mark successfully scheduled Streams as ESTABLISHED in stream_snapshot and stream_mgmt
-            for(auto& sched: new_schedule) {
-                if(ENABLE_SCHEDULE_COMP_INFO_DBG)
-                    printf("Setting stream (%d,%d) to ESTABLISHED\n", sched.getSrc(), sched.getDst());
-                stream_snapshot.setStreamStatus(sched.getStreamId(), StreamStatus::ESTABLISHED);
-                stream_mgmt.setStreamStatus(sched.getStreamId(), StreamStatus::ESTABLISHED);
-            }
-            // Mark Streams ACCEPTED but not scheduled as REJECTED
+            /* NOTE: Here we find the ACCEPTED streams that were not scheduled
+               so we did not mark them as ESTABLISHED before.
+               For those streams set status and send INFO element to notify
+               remote nodes.
+               We are setting the status also in stream_mgmt as an exception to the NOTE above
+               because a node cannot tell if its connect request was rejected by looking at
+               the schedule.
+               We are setting the status of the REJECTED streams before the schedule
+               activation time but this should not have unwanted side effects */
+
+            // Mark streams that are still ACCEPTED after scheduling as REJECTED
             for(auto& stream: stream_snapshot.getStreams()) {
                 if(stream.getStatus() == StreamStatus::ACCEPTED) {
                     // setStreamStatus handles notifying the constructor

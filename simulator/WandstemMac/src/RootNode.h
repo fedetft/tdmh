@@ -17,8 +17,10 @@
 
 #include "NodeBase.h"
 #include "network_module/tdmh.h"
+#include "network_module/stream.h"
 #include <thread>
 #include <atomic>
+#include <memory>
 
 /**
  * The Root Node of the Wandstem Mac.
@@ -32,7 +34,7 @@ public:
 protected:
     virtual void activity();
     void application();
-    void streamThread(void *arg);
+    void streamThread(std::shared_ptr<mxnet::Stream> s);
 
 
     /* Pointer to tdmh class for opening streams */

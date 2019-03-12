@@ -303,8 +303,9 @@ void StreamServer::accept(std::list<std::shared_ptr<Stream>>& stream) {
         stream_cv.wait(lck);
     }
     while(!streamQueue.empty()) {
-        print_dbg("[S] StreamServer: Accepted the stream (%d,%d)\n");
         StreamInfo info = streamQueue.front();
+        StreamId id = info.getStreamId();
+        print_dbg("[S] StreamServer: Accepted the stream (%d,%d)\n", id.src, id.dst);
         streamQueue.pop();
         auto* newStream = new Stream(tdmh);
         newStream->registerStream(info);

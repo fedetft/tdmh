@@ -80,12 +80,15 @@ try {
         scheduleAt(SimTime(disconnectTime, SIMTIME_NS), new DisconnectMessage);
     }
     
+    thread *t = nullptr;
     try {
-        thread t(&Node::application, this);
+        t = new thread(&Node::application, this);
         controller.run();
         quit.store(true);
-        t.join();
+        t->join();
     } catch(DisconnectException&) {
+        quit.store(true);
+        t->join();
         print_dbg("===> Stopping @ %lld (disconnecTime %lld)\n",getTime(),disconnectTime);
     }
     
@@ -100,11 +103,7 @@ try {
 void Node::application() {
     /* Wait for TDMH to become ready */
     MACContext* ctx = tdmh->getMACContext();
-    while(!ctx->isReady()) {
-        this_thread::sleep_for(chrono::seconds(1));
-    }
-    /* Delay the Stream opening so it gets opened after the StreamServer */
-    this_thread::sleep_for(chrono::seconds(1));
+    while(!ctx->isReady()) ;
     /* Open Stream from node 1 */
     if(address == 1) {
         while(true){
@@ -153,8 +152,6 @@ void Node::application() {
                     s.send(&data, sizeof(data));
                     //printf("[A] Sent ID=%d Counter=%u\n", data.id, data.counter);
                     counter++;
-                    //if(counter == 100)
-                    //    break;
                 }
                 printf("[A] Stream was closed, reopening it \n");
             } catch(exception& e) {

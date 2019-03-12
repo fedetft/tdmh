@@ -17,12 +17,10 @@
 
 #include "network_module/master_tdmh.h"
 #include "network_module/network_configuration.h"
-#include "network_module/stream.h"
 #include <iostream>
 #include <stdexcept>
 #include <chrono>
 #include <list>
-#include <memory>
 
 Define_Module(RootNode);
 
@@ -95,27 +93,28 @@ void RootNode::application() {
                  Direction::TX,     // Direction
                  Redundancy::TRIPLE_SPATIAL); // Redundancy
     while(true) {
-        std::list<std::shared_ptr<Stream>> streamList;
+        std::list<shared_ptr<Stream>> streamList;
         server.accept(streamList);
         for(auto& stream : streamList){
-            thread t1(&RootNode::streamThread, this, stream.get());
+            thread t1(&RootNode::streamThread, this, stream);
             t1.detach();
         }
     }
 }
 
-void RootNode::streamThread(void *arg) {
-    auto *s = reinterpret_cast<Stream*>(arg);
-    printf("[A] Accept returned! \n");
-    while(!s->isClosed()){
-        Data data;
-        int len = s->recv(&data, sizeof(data));
-        if(len != sizeof(data))
-            printf("[E] Received wrong size data\n");
-        else
-            printf("[A] Received ID=%d Counter=%u\n",
-                   data.id, data.counter);
+void RootNode::streamThread(shared_ptr<Stream> s) {
+    try{
+        printf("[A] Accept returned! \n");
+        while(!s->isClosed()){
+            Data data;
+            int len = s->recv(&data, sizeof(data));
+            if(len != sizeof(data))
+                printf("[E] Received wrong size data\n");
+            else
+                printf("[A] Received ID=%d Counter=%u\n",
+                       data.id, data.counter);
+        }
+    }catch(...){
+        printf("Exception thrown in streamThread\n");
     }
-    delete s;
-
 }
