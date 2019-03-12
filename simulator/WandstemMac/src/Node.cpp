@@ -84,12 +84,10 @@ try {
     try {
         t = new thread(&Node::application, this);
         controller.run();
-        quit.store(true);
         t->join();
     } catch(DisconnectException&) {
-        quit.store(true);
-        t->join();
         print_dbg("===> Stopping @ %lld (disconnecTime %lld)\n",getTime(),disconnectTime);
+        t->join();
     }
     
 } catch(exception& e) {

@@ -131,7 +131,11 @@ public:
     StreamServer(MediumAccessController& tdmh, unsigned char dstPort,
                  Period period, unsigned char payloadSize,
                  Direction direction, Redundancy redundancy);
-    ~StreamServer() {};
+    ~StreamServer() {
+        deregisterStreamServer();
+    }
+    /* Used by the class destructor to deregister the Stream from the StreamManager */
+    void deregisterStreamServer();
     /**
      * Called from StreamManager, to update the status of the StreamServer
      * and wake up the StreamServer thread */
@@ -149,6 +153,10 @@ public:
      * This function blocks unless a stream is opened
      */
     void accept(std::list<std::shared_ptr<Stream>>& stream);
+    /* Return true if StreamServer has been closed */
+    bool isClosed() {
+        return (info.getStatus() == StreamStatus::CLOSED);
+    }
 
 private:
     /* Reference to MediumAccessController */

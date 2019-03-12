@@ -92,14 +92,22 @@ private:
 class StreamManager {
 public:
     StreamManager(unsigned char id) : myId(id) {};
-    ~StreamManager() {};
+    ~StreamManager() {
+        closeAllStreams();
+    }
 
+    // Used by StreamManager destructor and when TDMH is shutting down
+    void closeAllStreams();
+    // Used by Scheduler when receiving StreamServer closing SME to close related streams
+    void closeStreamsRelatedToServer(StreamId id);
     // Used by the Stream class to register itself in the Stream Map
     void registerStream(StreamInfo info, Stream* client);
     // Used by the Stream class to get removed from the Stream Map
     void deregisterStream(StreamInfo info);
     // Used by the StreamServer class to register itself in the Server Map
     void registerStreamServer(StreamInfo info, StreamServer* server);
+    // Used by the StreamServer class to get removed from the Stream Map
+    void deregisterStreamServer(StreamInfo info);
     /** Used to update the status of the Stream and wake up the corresponding thread
      *  when receiving a new schedule containing that Stream.
      *  used by the DynamicScheduleDownlinkPhase
@@ -224,7 +232,7 @@ protected:
     std::map<StreamId, StreamServer*> serverMap;
     /* Map containing pointers to Stream classes in this node */
     std::map<StreamId, Stream*> clientMap;
-    /* Map containing information about Streams related to this node */
+    /* Map containing information about Streams and StreamServers related to this node */
     std::map<StreamId, StreamInfo> streamMap;
     /* FIFO queue of SME to send from the nodes to the master */
     std::queue<StreamManagementElement> smeQueue;

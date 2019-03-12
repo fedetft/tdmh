@@ -18,7 +18,6 @@
 #include "NodeBase.h"
 #include "network_module/tdmh.h"
 #include <thread>
-#include <atomic>
 
 /**
  * A generic node in the Wandstem Mac.
@@ -27,7 +26,7 @@
 class Node : public NodeBase
 {
 public:
-    Node() : quit(false) {};
+    Node() {};
 
 protected:
     long long connectTime, disconnectTime; ///< These allow to simulate nodes joining/node failure
@@ -37,6 +36,5 @@ protected:
 
     /* Pointer to tdmh class for opening streams */
     mxnet::MediumAccessController* tdmh = nullptr;
-    std::atomic<bool> quit;
 };
 

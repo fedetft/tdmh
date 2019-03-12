@@ -266,6 +266,16 @@ StreamServer::StreamServer(MediumAccessController& tdmh, unsigned char dstPort,
         throw std::runtime_error("Server opening failed!");
 }
 
+void StreamServer::deregisterStreamServer() {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(server_mutex);
+#else
+    std::unique_lock<std::mutex> lck(server_mutex);
+#endif
+    // Deregister StreamServer from StreamManager
+    streamMgr->deregisterStreamServer(info);
+}
+
 void StreamServer::notifyServer(StreamStatus s) {
     // Update the stream status
     info.setStatus(s);
@@ -302,6 +312,9 @@ void StreamServer::accept(std::list<std::shared_ptr<Stream>>& stream) {
         // Condition variable to wait for opened streams
         stream_cv.wait(lck);
     }
+    // The StreamServer was closed
+    if(info.getStatus() == StreamStatus::CLOSED)
+        return;
     while(!streamQueue.empty()) {
         StreamInfo info = streamQueue.front();
         StreamId id = info.getStreamId();

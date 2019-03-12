@@ -92,7 +92,7 @@ void RootNode::application() {
                  1,                 // Payload size
                  Direction::TX,     // Direction
                  Redundancy::TRIPLE_SPATIAL); // Redundancy
-    while(true) {
+    while(!server.isClosed()) {
         std::list<shared_ptr<Stream>> streamList;
         server.accept(streamList);
         for(auto& stream : streamList){

@@ -61,6 +61,36 @@ std::vector<StreamInfo> StreamCollection::getStreamsWithStatus(StreamStatus s) {
     return result;
 }
 
+void StreamManager::closeAllStreams() {
+    // Mutex lock to access the Stream map from the application thread.
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
+#else
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
+#endif
+    print_dbg("[SM] Closing all Streams\n");
+    for(auto& stream: streamMap) {
+        setStreamStatus(stream.first, StreamStatus::CLOSED);
+    }
+}
+
+void StreamManager::closeStreamsRelatedToServer(StreamId id) {
+    // Mutex lock to access the Stream map from the application thread.
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
+#else
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
+#endif
+    print_dbg("[SM] Closing Streams related to StreamServer (%d,%d,%d,%d)\n",
+              id.src, id.dst, id.srcPort, id.dstPort);
+    for(auto& stream: streamMap) {
+        // StreamId used to match LISTEN Streams StreamId(dst, dst, 0, dstPort)
+        StreamId listenId(id.dst, id.dst, 0, id.dstPort);
+        if(listenId == id)
+            setStreamStatus(stream.first, StreamStatus::CLOSED);
+    }
+}
+
 void StreamManager::registerStream(StreamInfo info, Stream* client) {
     print_dbg("[SM] Stream registered! \n");
     // Mutex lock to access the Stream map from the application thread.
@@ -92,10 +122,10 @@ void StreamManager::deregisterStream(StreamInfo info) {
 #endif
     StreamId id = info.getStreamId();
     // Remove Stream class pointer in stream map
-    clientMap.erase(info.getStreamId());
+    clientMap.erase(id);
     // Mark Stream as closed
     if(streamMap.find(id) != streamMap.end())
-        streamMap[info.getStreamId()].setStatus(StreamStatus::CLOSED);
+        streamMap[id].setStatus(StreamStatus::CLOSED);
     // Send SME only if we are in a dynamic node to notify the master node
     // of the stream being closed
     if(myId != 0) {
@@ -133,6 +163,30 @@ void StreamManager::registerStreamServer(StreamInfo info, StreamServer* server) 
     // Set flags
     modified_flag = true;
     added_flag = true;
+}
+
+void StreamManager::deregisterStreamServer(StreamInfo info) {
+    // Mutex lock to access the Stream map from the application thread.
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
+#else
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
+#endif
+    StreamId id = info.getStreamId();
+    // Remove StreamServer class pointer in stream map
+    serverMap.erase(id);
+    // Mark Stream as closed
+    if(streamMap.find(id) != streamMap.end())
+        streamMap[id].setStatus(StreamStatus::CLOSED);
+    // Send SME only if we are in a dynamic node to notify the master node
+    // of the stream being closed
+    if(myId != 0) {
+        // Push corresponding SME on the queue
+        smeQueue.push(StreamManagementElement(info, StreamStatus::CLOSED));
+    }
+    // Set flags
+    modified_flag = true;
+    removed_flag = true;
 }
 
 void StreamManager::notifyStreams(const std::vector<ExplicitScheduleElement>& schedule) {
@@ -248,11 +302,19 @@ void StreamManager::setStreamStatus(StreamId id, StreamStatus status) {
 #endif
     // Check if stream exists
     if (streamMap.find(id) != streamMap.end()) {
-        print_dbg("[SM] Setting Stream (%d,%d) to status %d\n", id.src, id.dst, status);
         streamMap[id].setStatus(status);
-        // Change status in stream class if local
-        if(clientMap.find(id) != clientMap.end())
+        // If id corresponds to local Stream
+        if(clientMap.find(id) != clientMap.end()) {            
+            print_dbg("[SM] Setting Stream (%d,%d) to status %d\n",
+                      id.src, id.dst, status);
             clientMap[id]->notifyStream(status);
+        }
+        // If id corresponds to local StreamServer
+        else if(serverMap.find(id) != serverMap.end()) {
+            print_dbg("[SM] Setting StreamServer (%d,%d,%d,%d) to status %d\n",
+                      id.src, id.dst, id.srcPort, id.dstPort, status);        
+            clientMap[id]->notifyStream(status);
+        }
         // Set flags
         modified_flag = true;
         if(status == StreamStatus::ACCEPTED)
@@ -261,7 +323,7 @@ void StreamManager::setStreamStatus(StreamId id, StreamStatus status) {
             removed_flag = true;
     }
     else {
-        print_dbg("[SM] Stream (%d,%d) not found in node %d\n", id.src, id.dst, myId);
+        print_dbg("[SM] Stream or StreamServer with id(%d,%d) not found in node %d\n", id.src, id.dst, myId);
     }
 }
 

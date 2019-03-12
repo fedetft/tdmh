@@ -35,8 +35,14 @@ MediumAccessController::~MediumAccessController() {
 }
 
 void MediumAccessController::run() {
-    async = false;
-    ctx->run();
+    try{
+        async = false;
+        ctx->run();
+    }
+    catch(...){
+        ctx->getStreamManager()->closeAllStreams();
+        throw;
+    }
 }
 
 void MediumAccessController::runAsync() {
