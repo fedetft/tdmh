@@ -64,24 +64,21 @@ std::vector<StreamInfo> StreamCollection::getStreamsWithStatus(StreamStatus s) {
 void StreamManager::closeAllStreams() {
     print_dbg("[SM] Node %d: Closing all Streams\n", myId);
     for(auto& stream: streamMap) {
-        setStreamStatus(stream.first, StreamStatus::CLOSED);
+        if(getStreamStatus(stream.first) != StreamStatus::CLOSED)
+            setStreamStatus(stream.first, StreamStatus::CLOSED);
     }
 }
 
-void StreamManager::closeStreamsRelatedToServer(StreamId id) {
-    // Mutex lock to access the Stream map from the application thread.
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
+void StreamManager::closeStreamsRelatedToServer(StreamId serverId) {
     print_dbg("[SM] Closing Streams related to StreamServer (%d,%d,%d,%d)\n",
-              id.src, id.dst, id.srcPort, id.dstPort);
+              serverId.src, serverId.dst, serverId.srcPort, serverId.dstPort);
     for(auto& stream: streamMap) {
-        // StreamId used to match LISTEN Streams StreamId(dst, dst, 0, dstPort)
+        StreamId id = stream.first;
+        // StreamId used to match Stream with StreamServer
         StreamId listenId(id.dst, id.dst, 0, id.dstPort);
-        if(listenId == id)
-            setStreamStatus(stream.first, StreamStatus::CLOSED);
+        // Close related streams but NOT StreamServer
+        if((listenId == serverId) && !(id == serverId))
+            setStreamStatus(id, StreamStatus::CLOSED);
     }
 }
 
@@ -307,7 +304,7 @@ void StreamManager::setStreamStatus(StreamId id, StreamStatus status) {
         else if(serverMap.find(id) != serverMap.end()) {
             print_dbg("[SM] Setting StreamServer (%d,%d,%d,%d) to status %d\n",
                       id.src, id.dst, id.srcPort, id.dstPort, status);        
-            clientMap[id]->notifyStream(status);
+            serverMap[id]->notifyServer(status);
         }
         // Set flags
         modified_flag = true;

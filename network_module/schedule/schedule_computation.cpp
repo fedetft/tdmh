@@ -324,12 +324,12 @@ void ScheduleComputation::receiveSMEs(const std::vector<StreamManagementElement>
             break;
             // If status == CLOSE, close the corresponding connection
         case StreamStatus::CLOSED:
-            // Mark stream as CLOSED
-            stream_mgmt.setStreamStatus(id, StreamStatus::CLOSED);
-            // If the SME corresponds to a StreamServer, close all correlated Streams
+            // If the SME corresponds to a StreamServer, close all related Streams
             if(id == listenId) {
                 stream_mgmt.closeStreamsRelatedToServer(id);
             }
+            // Mark stream as CLOSED
+            stream_mgmt.setStreamStatus(id, StreamStatus::CLOSED);
             break;
         default:
             // SME with invalid Status, do nothing

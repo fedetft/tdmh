@@ -89,8 +89,7 @@ try {
         t->join();
         // Here we wait forever because terminating the node would cause errors on sendAt
         // targeted to the terminated node
-        cQueue queue;
-        while(true) waitAndEnqueue(SimTime(1000e9, SIMTIME_NS),&queue);
+        while(true) delete receive();
     }
     
 } catch(exception& e) {
