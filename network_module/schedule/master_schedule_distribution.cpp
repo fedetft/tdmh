@@ -50,11 +50,20 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     // Check for new schedule
     if(schedule_comp.getScheduleID() != header.getScheduleID()) { 
         getCurrentSchedule(slotStart);
+        printSchedule(0);
+        if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) {
+            // Print schedule packet report
+            print_dbg("[SD] Schedule Packet structure:\n");
+            print_dbg("[SD] %d packet capacity\n", packetCapacity);
+            print_dbg("[SD] %d schedule element\n", schedule.size());
+        }
         // Reset variable for splitting schedule in packets
         position = 0;
-        // Print explicit schedule of every node
-        if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)
+        // Print explicit schedule of every node only on simulator
+#ifndef _MIOSIX
+        if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)        
             printCompleteSchedule();
+#endif
     }
     // ScheduleID = 0 means the first schedule is not ready
     if(header.getScheduleID() == 0) {

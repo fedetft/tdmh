@@ -118,6 +118,9 @@ void ScheduleDownlinkPhase::printExplicitSchedule(unsigned char nodeID, bool pri
 }
 
 void ScheduleDownlinkPhase::printCompleteSchedule() {
+#ifdef _MIOSIX
+    print_dbg("[SD] Warning!: printing complete schedule on real hardware delays the TDMH thread and can cause <too late to send> errors! \n");
+#endif
     auto myID = ctx.getNetworkId();
     if(myID == 0)
         print_dbg("[SD] ### Schedule distribution, Master node\n");
