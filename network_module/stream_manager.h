@@ -110,9 +110,9 @@ public:
     void deregisterStreamServer(StreamInfo info);
     /** Used to update the status of the Stream and wake up the corresponding thread
      *  when receiving a new schedule containing that Stream.
-     *  used by the DynamicScheduleDownlinkPhase
+     *  used by the DataPhase called by ScheduleDownlink
      */
-    void notifyStreams(const std::vector<ExplicitScheduleElement>& schedule);
+    void notifyStreams(const std::vector<ScheduleElement>& schedule);
     // Used by the DataPhase to put/get data to/from buffers
     void putBuffer(StreamId id, Packet& pkt) {
         // NOTE: call getStreamStatus before mutex to avoid a deadlock

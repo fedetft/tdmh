@@ -147,7 +147,7 @@ void ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
         assert (currentTile == header.getActivationTile());
         if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
             print_dbg("[SD] Activating schedule n.%2lu\n", explicitScheduleID);
-        dataPhase->setSchedule(explicitSchedule);
+        dataPhase->setSchedule(explicitSchedule, schedule);
         dataPhase->setScheduleTiles(header.getScheduleTiles());
         dataPhase->setScheduleActivationTile(header.getActivationTile());
         dataPhase->setScheduleID(explicitScheduleID);

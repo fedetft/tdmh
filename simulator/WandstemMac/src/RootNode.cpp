@@ -104,15 +104,18 @@ void RootNode::application() {
 
 void RootNode::streamThread(shared_ptr<Stream> s) {
     try{
-        printf("[A] Accept returned! \n");
+        StreamInfo info = s->getStreamInfo();
+        StreamId id = info.getStreamId();
+        printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
         while(!s->isClosed()){
             Data data;
             int len = s->recv(&data, sizeof(data));
             if(len != sizeof(data))
-                printf("[E] Received wrong size data: %d\n", len);
+                printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
+                        id.src, id.dst, len);
             else
-                printf("[A] Received ID=%d Counter=%u\n",
-                       data.id, data.counter);
+                printf("[A] Received data from Stream (%d,%d): ID=%d Counter=%u\n",
+                       id.src, id.dst, data.id, data.counter);
         }
     }catch(...){
         printf("Exception thrown in streamThread\n");

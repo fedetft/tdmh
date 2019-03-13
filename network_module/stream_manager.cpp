@@ -180,7 +180,7 @@ void StreamManager::deregisterStreamServer(StreamInfo info) {
     removed_flag = true;
 }
 
-void StreamManager::notifyStreams(const std::vector<ExplicitScheduleElement>& schedule) {
+void StreamManager::notifyStreams(const std::vector<ScheduleElement>& schedule) {
     // Mutex lock to access the Stream map from the application thread.
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
@@ -188,18 +188,16 @@ void StreamManager::notifyStreams(const std::vector<ExplicitScheduleElement>& sc
     std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
     /* This set is used to avoid notifying multiple times the streams,
-       this happens when we have more than a ExplicitScheduleElement for Stream,
+       this happens when we have more than a ScheduleElement for Stream,
        for example in case of multi-hop streams or redundancy
        It is also used to wakeup the StreamServers on which we have done an
        openStreams. Used to accept multiple streams at the same time */
     std::map<StreamId, bool> visitedStreams;
     for(auto& elem : schedule) {
-        /* If schedule element action is SLEEP, ignore */
-        if(elem.getAction() == Action::SLEEP)
-            continue;
         StreamId id = elem.getStreamId();
         if(visitedStreams.count(id))
             continue;
+        // Add stream to visitedStreams but set the flag to false
         visitedStreams[id] = false;
         StreamInfo info = elem.getStreamInfo();
         print_dbg("[SM] node %d: Notifying stream %d,%d\n", myId, id.src, id.dst);
@@ -207,12 +205,10 @@ void StreamManager::notifyStreams(const std::vector<ExplicitScheduleElement>& sc
         // If Client-side Stream is registered on this node, set status to ESTABLISHED
         if ((serverMap.find(listenId) == serverMap.end()) &&
             (clientMap.find(id) != clientMap.end())) {
-            // Update stream parameters
+            // Update stream parameters (with the ones decided by Master node) and status
             streamMap[id] = info;
             clientMap[id]->setStreamInfo(info);
-            // Set status as ESTABLISHED
-            streamMap[id].setStatus(StreamStatus::ESTABLISHED);
-            clientMap[id]->notifyStream(StreamStatus::ESTABLISHED);
+            clientMap[id]->notifyStream(info.getStatus());
             print_dbg("[SM] node %d: Client-side Stream %d,%d woke up!\n", myId, id.src, id.dst);
         }
         // If StreamServer (LISTEN) is registered on this node,
@@ -241,8 +237,9 @@ void StreamManager::notifyStreams(const std::vector<ExplicitScheduleElement>& sc
     /* Close local ESTABLISHED streams not present in schedule */
     for(auto& stream : streamMap) {
         bool found = false;
-        for(auto& elem : schedule)
+        for(auto& elem : schedule){
             found |= (elem.getStreamId() == stream.first);
+        }
         if(!found && stream.second.getStatus() == StreamStatus::ESTABLISHED) {
             stream.second.setStatus(StreamStatus::CLOSED);
             if(clientMap.find(stream.first) != clientMap.end())

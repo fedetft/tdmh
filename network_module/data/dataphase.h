@@ -72,11 +72,14 @@ public:
     void receiveToBuffer(long long slotStart);
     /* Called from ScheduleDownlinkPhase class on the first downlink slot
      * of the new schedule, to replace the currentSchedule,
-     * taking effect in the next dataphase */
-    void setSchedule(const std::vector<ExplicitScheduleElement>& newSchedule) {
+     * taking effect in the next dataphase
+     * NOTE: we call notifyStreams on the implicitSchedule to save time
+     * scanning implicit schedule, which is much smaller than explicit one */
+    void setSchedule(const std::vector<ExplicitScheduleElement>& newSchedule,
+                     const std::vector<ScheduleElement>& newImplicitSchedule) {
         currentSchedule = newSchedule;
         /* Notify streams based on schedule results */
-        stream.notifyStreams(newSchedule);
+        stream.notifyStreams(newImplicitSchedule);
         /* Elaborate Info elements enqueued in Stream Manager */
         stream.receiveInfo();
     }

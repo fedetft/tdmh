@@ -40,7 +40,7 @@ using namespace mxnet;
 using namespace miosix;
 
 const int maxNodes = 32;
-const Period defaultPeriod = Period::P20;
+const Period defaultPeriod = Period::P2;
 const Redundancy defaultRedundancy = Redundancy::NONE;
 
 FastMutex m;
@@ -62,6 +62,13 @@ public:
         redundancy(redundancy), period(period) {}
     Redundancy redundancy;
     Period period;
+};
+
+class StreamThreadPar
+{
+public:
+    StreamThreadPar(shared_ptr<Stream>& stream) : stream(stream) {}
+    shared_ptr<Stream> stream;
 };
 
 
@@ -193,11 +200,11 @@ struct Data
 
 void streamThread(void *arg)
 {
-    auto *s = reinterpret_cast<Stream*>(arg);
+    auto *s = reinterpret_cast<StreamThreadPar*>(arg);
     printf("[A] Accept returned! \n");
-    while(!s->isClosed()){
+    while(!s->stream->isClosed()){
         Data data;
-        int len = s->recv(&data, sizeof(data));
+        int len = s->stream->recv(&data, sizeof(data));
         if(len != sizeof(data))
             printf("[E] Received wrong size data\n");
         else
@@ -220,10 +227,12 @@ void masterApplication() {
                                1,                 // Payload size
                                Direction::TX,     // Direction
                                Redundancy::TRIPLE_SPATIAL); // Redundancy
-    while(true) {
-        Stream *s = new Stream(*tdmh);
-        server.accept(*s);
-        Thread::create(streamThread, 2048, MAIN_PRIORITY, s);
+    while(!server.isClosed()) {
+        std::list<shared_ptr<Stream>> streamList;
+        server.accept(streamList);
+        for(auto& stream : streamList){
+            Thread::create(streamThread, 2048, MAIN_PRIORITY, new StreamThreadPar(stream));
+        }
     }
 }
 

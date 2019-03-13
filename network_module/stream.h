@@ -73,6 +73,10 @@ public:
         return ((info.getStatus() == StreamStatus::CLOSED) ||
                 (info.getStatus() == StreamStatus::REJECTED));
     }
+    /* Return the StreamInfo containing endpoints and status */
+    StreamInfo getStreamInfo() {
+        return info;
+    }
 
     /* ### Not to be called by the end user ### */
     /* Used by the StreamManager class to get data from buffer */

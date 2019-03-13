@@ -73,7 +73,8 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
             explicitSchedule = std::move(newExplicitSchedule);
             explicitScheduleID = header.getScheduleID();
             if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) {
-                print_dbg("[SD] Calculated explicit schedule n.%2lu\n", explicitScheduleID);
+                print_dbg("[SD] Calculated explicit schedule n.%2lu, tiles:%d, slots:%d\n",
+                          explicitScheduleID, header.getScheduleTiles(), explicitSchedule.size());
                 printExplicitSchedule(myID, true, explicitSchedule);
             }
         }

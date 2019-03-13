@@ -337,8 +337,6 @@ void ScheduleComputation::receiveSMEs(const std::vector<StreamManagementElement>
             printf("[SC] Received SME with invalid status");
         }
     }
-    // To avoid caching of stdout
-    fflush(stdout);
     // Enqueue vector of InfoElement
     stream_mgmt.enqueueInfo(infos);
 }
