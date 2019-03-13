@@ -109,7 +109,7 @@ void RootNode::streamThread(shared_ptr<Stream> s) {
             Data data;
             int len = s->recv(&data, sizeof(data));
             if(len != sizeof(data))
-                printf("[E] Received wrong size data %d\n", len);
+                printf("[E] Received wrong size data: %d\n", len);
             else
                 printf("[A] Received ID=%d Counter=%u\n",
                        data.id, data.counter);

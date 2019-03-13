@@ -71,7 +71,7 @@ void ScheduleComputation::beginScheduling() {
 }
 
 void ScheduleComputation::run() {
-    for(;;) {   
+    for(;;) {
         // Mutex lock to access stream list.
         {
 #ifdef _MIOSIX
@@ -81,7 +81,8 @@ void ScheduleComputation::run() {
 #endif
             // Wait for beginScheduling()
             sched_cv.wait(lck);
-            while(stream_mgmt.getStreamNumber() == 0) {
+            // Wait until topology changed or stream list is modified
+            while(!topology_map.wasModified() && !stream_mgmt.wasModified()) {
                 // Condition variable to wait for streams to schedule.
                 sched_cv.wait(lck);
             }
@@ -109,7 +110,7 @@ void ScheduleComputation::run() {
         if(ENABLE_SCHEDULE_COMP_INFO_DBG)
             printf("\n#### Starting schedule computation ####\n");
 
-        // Used to check if the schedule has been modified or not
+        // Used by the ScheduleDistribution to check if a new schedule is ready
         bool changed = false;
         // NOTE: Debug topology print
         if(ENABLE_SCHEDULE_COMP_INFO_DBG) {
