@@ -191,6 +191,12 @@ private:
     // Classes containing information about Streams
     StreamManager stream_mgmt;
     StreamCollection stream_snapshot;
+    /** NOTE: we need to keep a copy of the stream_snapshot after completing a schedule,
+        because in case we need to schedule again before the first schedule is applied,
+        the ESTABLISHED streams of the first schedule would be scheduled two times since
+        they are still marked as ACCEPTED in the stream_mgmt
+        (which is updated only when the schedule is applied). */
+    StreamCollection last_snapshot;
     // Class containing latest schedule, size in tiles and schedule ID
     Schedule schedule;
 

@@ -32,6 +32,10 @@
 
 namespace mxnet {
 
+StreamStatus StreamCollection::getStreamStatus(StreamId id) {
+    return collection[id].getStatus();
+}
+
 void StreamCollection::setStreamStatus(StreamId id, StreamStatus status) {
     collection[id].setStatus(status);
 }

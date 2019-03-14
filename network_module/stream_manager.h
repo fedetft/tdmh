@@ -62,6 +62,10 @@ public:
      */
     unsigned char getStreamNumber() { return collection.size(); }
     /**
+     * get the status of a given Stream
+     */
+    StreamStatus getStreamStatus(StreamId id);
+    /**
      * change the state of the saved Stream
      */
     void setStreamStatus(StreamId id, StreamStatus status);

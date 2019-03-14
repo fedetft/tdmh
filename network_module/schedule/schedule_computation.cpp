@@ -138,6 +138,9 @@ void ScheduleComputation::run() {
             updateStreams(newSchedule.schedule);
             // Overwrite current schedule with new one
             schedule.swap(newSchedule);
+            // Keep a copy of the stream_snapshot to avoid double scheduling
+            //TODO: maybe a std::move or swap would be more efficient
+            last_snapshot = stream_snapshot;
         }
         finalPrint();
     }
@@ -181,15 +184,22 @@ void ScheduleComputation::scheduleAcceptedStreams(Schedule& currSchedule) {
         printf("[SC] Scheduling accepted streams\n");
     // Get ACCEPTED streams, to schedule
     auto accepted_streams = stream_snapshot.getStreamsWithStatus(StreamStatus::ACCEPTED);
-    if(ENABLE_SCHEDULE_COMP_INFO_DBG)
-        printf("[SC] Accepted streams: %u\n", accepted_streams.size());
+    // Remove ACCEPTED streams already marked as ESTABLISHED in last_snapshot
+    // Because they have already been schedule but the schedule has not been applied yet
+    accepted_streams.erase(std::remove_if(accepted_streams.begin(),
+                                          accepted_streams.end(),
+                                          [&](StreamInfo i){
+                                              return(last_snapshot.getStreamStatus(i.getStreamId())==StreamStatus::ESTABLISHED);
+                                          }),accepted_streams.end());
     //Sort accepted streams based on highest period first
     std::sort(accepted_streams.begin(), accepted_streams.end(),
               [](StreamInfo a, StreamInfo b) {
                   return toInt(a.getPeriod()) > toInt(b.getPeriod());});
+    if(ENABLE_SCHEDULE_COMP_INFO_DBG)
+        printf("[SC] Accepted streams: %u\n", accepted_streams.size());
     auto extraSchedulePair = routeAndScheduleStreams(accepted_streams,
-                                                 currSchedule.schedule,
-                                                 currSchedule.tiles);
+                                                     currSchedule.schedule,
+                                                     currSchedule.tiles);
     // Insert computed schedule elements
     currSchedule.schedule.insert(currSchedule.schedule.end(), extraSchedulePair.first.begin(),
                               extraSchedulePair.first.end());
