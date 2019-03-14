@@ -49,6 +49,27 @@ namespace mxnet {
 class MasterTopologyContext;
 class MACContext;
 
+// Used by the ScheduleDownlink to get all data related to schedule at once
+class Schedule {
+public:
+    Schedule() {}
+    Schedule(unsigned long id, unsigned int tiles) : id(id), tiles(tiles) {}
+    Schedule(std::vector<ScheduleElement> schedule, unsigned long id,
+              unsigned int tiles) : schedule(schedule), id(id), tiles(tiles) {}
+    void swap(Schedule& rhs) {
+        schedule.swap(rhs.schedule);
+        std::swap(id, rhs.id);
+        std::swap(tiles, rhs.tiles);
+    }
+
+    std::vector<ScheduleElement> schedule;
+    // NOTE: schedule with id=0 are not sent in MasterScheduleDistribution
+    unsigned long id;
+    // schedule_size must always be initialized to the number of tiles in superframe
+    // it can be obtained with superframe.size()
+    unsigned int tiles;
+};
+
 class ScheduleComputation {
     friend class Router;
     friend class MasterScheduleDownlinkPhase;
@@ -73,9 +94,41 @@ public:
 private: 
     void run();
 
-    std::vector<ScheduleElement> routeAndScheduleStreams(const std::vector<StreamInfo>& stream_list);
-    
-    std::vector<ScheduleElement> scheduleStreams(const std::list<std::list<ScheduleElement>>& routed_streams);
+    void initialPrint();
+
+    /**
+     * @return a schedule class containing schedule, tile number and ID
+     * Reschedule and route already ESTABLISHED streams
+     */
+    Schedule scheduleEstablishedStreams(unsigned long id);
+    /**
+     * Updates a Schedule class
+     * Schedule and route ACCEPTED streams
+     */
+    void scheduleAcceptedStreams(Schedule& currSchedule);
+    /**
+     * Updates stream_snapshot with results of scheduling,
+     * notifies REJECTED streams
+     */
+    void updateStreams(const std::vector<ScheduleElement>& final_schedule);
+
+    void finalPrint();
+    /**
+     * @return a pair of schedule and schedule_size
+     * Runs the Router and the Scheduler to produce a new schedule
+     */
+    std::pair<std::vector<ScheduleElement>,
+              unsigned int> routeAndScheduleStreams(const std::vector<StreamInfo>& stream_list,
+                                                    const std::vector<ScheduleElement>& current_schedule,
+                                                    const unsigned int sched_size);
+    /**
+     * @return a pair of schedule and schedule_size.
+     * Runs the Scheduler to schedule routed streams
+     */
+    std::pair<std::vector<ScheduleElement>,
+              unsigned int> scheduleStreams(const std::list<std::list<ScheduleElement>>& routed_streams,
+                                            const std::vector<ScheduleElement>& current_schedule,
+                                            const unsigned int sched_size);
 
     bool checkAllConflicts(std::vector<ScheduleElement> other_streams, const ScheduleElement& transmission, unsigned offset, unsigned tile_size);
 
@@ -89,18 +142,32 @@ private:
 
     bool checkInterferenceConflict(const ScheduleElement& new_transmission, const ScheduleElement& old_transmission);
 
-    void printSchedule();
-
-    std::vector<ScheduleElement> getSchedule() {
+    void printSchedule(const Schedule& sched);
+    /**
+     * Used by the ScheduleDownlink class to get the latest schedule
+     * @return a Schedule class containing schedule, size, id
+     */
+    Schedule getSchedule() {
+        // Mutex lock to access schedule (shared with ScheduleDownlink).
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+        std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
         return schedule;
     }
-
+    /**
+     * Used by the ScheduleDownlink class to know if a newer schedule is available
+     * @return the latest scheduleID
+     */
     unsigned long getScheduleID() {
-        return scheduleID;
-    }
-
-    unsigned int getScheduleTiles() {
-        return schedule_size;
+        // Mutex lock to access schedule (shared with ScheduleDownlink).
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+        std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
+        return schedule.id;
     }
 
     void printStreams(const std::vector<StreamInfo>& stream_list);
@@ -124,15 +191,8 @@ private:
     // Classes containing information about Streams
     StreamManager stream_mgmt;
     StreamCollection stream_snapshot;
-    // Final stream list after scheduling
-    std::vector<ScheduleElement> schedule;
-    // Used to check if a (new) schedule is available
-    unsigned long scheduleID = 0;
-    // Schedulesize value is equal to lcm(p1,p2,...,pn) or p1 for a single stream
-    unsigned int schedule_size;
-    // Schedule size of last stream, used if the scheduling of a stream has failed
-    // and we need to rollback the size to the old value
-    unsigned int last_schedule_size;
+    // Class containing latest schedule, size in tiles and schedule ID
+    Schedule schedule;
 
     // References to other classes
     MasterMeshTopologyContext& topology_ctx;

@@ -112,9 +112,9 @@ MasterTopologyContext::MasterTopologyContext(MACContext& ctx) : TopologyContext(
 void MasterTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sender, short rssi) {
     // Lock mutex because TopologyMap is shared with ScheduleComputation thread
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(sched_mutex);
+    miosix::Lock<miosix::Mutex> lck(topology_mutex);
 #else
-    std::unique_lock<std::mutex> lck(sched_mutex);
+    std::unique_lock<std::mutex> lck(topology_mutex);
 #endif
     /*
       NOTE: there is a corner case in which a node can decide to belong to hop 1
@@ -137,9 +137,9 @@ void MasterTopologyContext::receivedMessage(UplinkMessage msg, unsigned char sen
 void MasterTopologyContext::unreceivedMessage(unsigned char sender) {
     // Lock mutex because TopologyMap is shared with ScheduleComputation thread
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(sched_mutex);
+    miosix::Lock<miosix::Mutex> lck(topology_mutex);
 #else
-    std::unique_lock<std::mutex> lck(sched_mutex);
+    std::unique_lock<std::mutex> lck(topology_mutex);
 #endif
 
     if (neighborsUnseenFor.find(sender) == neighborsUnseenFor.end()) return;

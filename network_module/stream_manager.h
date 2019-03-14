@@ -50,9 +50,11 @@ namespace mxnet {
 class StreamCollection {
 public:
     StreamCollection() {};
-    StreamCollection(std::map<StreamId, StreamInfo> map) {
-        collection = map;
-    };
+    StreamCollection(std::map<StreamId, StreamInfo> map, bool modified,
+                     bool removed, bool added) : collection(map),
+                                                 modified_flag(modified),
+                                                 removed_flag(removed),
+                                                 added_flag(added) {}
     ~StreamCollection() {};
 
     /**
@@ -75,10 +77,32 @@ public:
      * @return true if there are streams not yet scheduled
      */
     bool hasSchedulableStreams();
+    /**
+     * @return true if the stream list was modified since last time the flag was cleared 
+     */
+    bool wasModified() const {
+        return modified_flag;
+    };
+    /**
+     * @return true if any stream was removed since last time the flag was cleared 
+     */
+    bool wasRemoved() const {
+        return removed_flag;
+    };
+    /**
+     * @return true if any stream was added since last time the flag was cleared 
+     */
+    bool wasAdded() const {
+        return added_flag;
+    };
 
 private:
     /* Map containing information about Streams related to this node */
     std::map<StreamId, StreamInfo> collection;
+    /* Snapshot copy of the bits in StreamManager */
+    bool modified_flag = false;
+    bool removed_flag = false;
+    bool added_flag = false;
 };
 
 /**
@@ -214,25 +238,25 @@ public:
     /**
      * @return true if the stream list was modified since last time the flag was cleared 
      */
-    bool wasModified() const {
+    bool wasModified() const{
+        // Mutex lock to access the Stream map from the application thread.
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
+#else
+        std::unique_lock<std::mutex> lck(streamMgr_mutex);
+#endif
         return modified_flag;
-    };
-    /**
-     * @return true if any stream was removed since last time the flag was cleared 
-     */
-    bool wasRemoved() const {
-        return removed_flag;
-    };
-    /**
-     * @return true if any stream was added since last time the flag was cleared 
-     */
-    bool wasAdded() const {
-        return added_flag;
     };
     /**
      * Set all flags to false
      */
     void clearFlags() {
+        // Mutex lock to access the Stream map from the application thread.
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
+#else
+        std::unique_lock<std::mutex> lck(streamMgr_mutex);
+#endif
         modified_flag = false;
         removed_flag = false;
         added_flag = false;
@@ -253,9 +277,9 @@ protected:
     std::queue<InfoElement> infoQueue;
     /* Thread synchronization */
 #ifdef _MIOSIX
-    miosix::Mutex streamMgr_mutex;
+    mutable miosix::Mutex streamMgr_mutex;
 #else
-    std::mutex streamMgr_mutex;
+    mutable std::mutex streamMgr_mutex;
 #endif
     /* Flags used by the master node to get whether the streams were changed
        IMPORTANT: this bit must be set to true whenever the data structure is modified */

@@ -106,13 +106,14 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
 }
 
 void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {
-    schedule = schedule_comp.getSchedule();
+    Schedule sched = schedule_comp.getSchedule();
+    schedule = sched.schedule;
     auto currentTile = ctx.getCurrentTile(slotStart);
     auto activationTile = 0;
     unsigned numPackets = (schedule.size() / packetCapacity) + 1;
     auto tilesToDistributeSchedule = getTilesToDistributeSchedule(numPackets);
     // First schedule activation time
-    if(schedule_comp.getScheduleID() == 1){
+    if(sched.id == 1){
         auto superframeSize = ctx.getNetworkConfig().getControlSuperframeStructure().size();
         auto align = currentTile % superframeSize;
         if(align) currentTile += superframeSize - align;        
@@ -137,9 +138,9 @@ void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {
     ScheduleHeader newheader(
                              numPackets,                         // totalPacket
                              0,                                  // currentPacket
-                             schedule_comp.getScheduleID(),      // scheduleID
+                             sched.id,      // scheduleID
                              activationTile,                     // activationTile
-                             schedule_comp.getScheduleTiles());  // scheduleTiles
+                             sched.tiles);  // scheduleTiles
     header = newheader;
 }
 

@@ -335,7 +335,7 @@ StreamCollection StreamManager::getSnapshot() {
 #else
     std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
-    return StreamCollection(streamMap);
+    return StreamCollection(streamMap, modified_flag, removed_flag, added_flag);
 }
 
 unsigned char StreamManager::getNumSME() {

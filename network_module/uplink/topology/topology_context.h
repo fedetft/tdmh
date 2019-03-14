@@ -117,6 +117,12 @@ public:
      * Returns a reference to the topology map
      */
     const TopologyMap& getTopologyMap() const{
+        // Mutex lock to access the topology from the scheduler thread.
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(topology_mutex);
+#else
+        std::unique_lock<std::mutex> lck(topology_mutex);
+#endif
         return topology;
     }
 
@@ -124,16 +130,23 @@ public:
      * Clear modified flag in TopologyMap
      */
     void clearModifiedFlag() {
+        // Mutex lock to access the topology from the scheduler thread.
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(topology_mutex);
+#else
+        std::unique_lock<std::mutex> lck(topology_mutex);
+#endif
         topology.clearModifiedFlag();
     }
 
 protected:
     std::map<unsigned char, unsigned char> neighborsUnseenFor;
     TopologyMap topology;
+    /* Thread synchronization */
 #ifdef _MIOSIX
-    miosix::Mutex sched_mutex;
+    mutable miosix::Mutex topology_mutex;
 #else
-    std::mutex sched_mutex;
+    mutable std::mutex topology_mutex;
 #endif
 };
 
