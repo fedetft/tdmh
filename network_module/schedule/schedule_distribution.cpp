@@ -154,6 +154,8 @@ void ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
         dataPhase->setScheduleTiles(header.getScheduleTiles());
         dataPhase->setScheduleActivationTile(header.getActivationTile());
         dataPhase->setScheduleID(explicitScheduleID);
+        // NOTE: Setting this flag to false enables Schedule Computation
+        distributing = false;
     }
 }
 

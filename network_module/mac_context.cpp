@@ -189,7 +189,8 @@ void MACContext::run()
                 timesync->execute(currentNextDeadline);
                 currentNextDeadline = timesync->getSlotframeStart();
             } else {
-                beginScheduling();
+                if(!scheduleDistribution->distributingSchedule())
+                    beginScheduling();
                 scheduleDistribution->run(currentNextDeadline);
             }
             currentNextDeadline += downlinkSlotDuration;

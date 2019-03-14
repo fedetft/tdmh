@@ -99,6 +99,18 @@ public:
     bool wasAdded() const {
         return added_flag;
     };
+    void clear() {
+        collection.clear();
+        modified_flag = false;
+        removed_flag = false;
+        added_flag = false;
+    }
+    void swap(StreamCollection& rhs) {
+        collection.swap(rhs.collection);
+        std::swap(modified_flag, rhs.modified_flag);
+        std::swap(removed_flag, rhs.removed_flag);
+        std::swap(added_flag, rhs.added_flag);
+    }
 
 private:
     /* Map containing information about Streams related to this node */

@@ -72,6 +72,10 @@ public:
        if it is equal to the one in the schedule header,
        replace expanded schedule in the dataphase with the new one */
     void checkTimeSetSchedule(long long slotStart);
+    /* Used to check if the MasterScheduleDistribution is still distributing the schedule*/
+    bool distributingSchedule() {
+        return distributing;
+    };
 protected:
     // Schedule header with information on schedule distribution
     ScheduleHeader header;
@@ -81,6 +85,7 @@ protected:
     unsigned long explicitScheduleID = 0;
     std::vector<ExplicitScheduleElement> explicitSchedule;
     StreamManager* const streamMgr;
+    bool distributing = false;
 private:
     DataPhase* const dataPhase;
 };

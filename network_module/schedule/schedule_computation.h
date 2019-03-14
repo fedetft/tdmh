@@ -54,7 +54,7 @@ class Schedule {
 public:
     Schedule() {}
     Schedule(unsigned long id, unsigned int tiles) : id(id), tiles(tiles) {}
-    Schedule(std::vector<ScheduleElement> schedule, unsigned long id,
+    Schedule(std::list<ScheduleElement> schedule, unsigned long id,
               unsigned int tiles) : schedule(schedule), id(id), tiles(tiles) {}
     void swap(Schedule& rhs) {
         schedule.swap(rhs.schedule);
@@ -62,7 +62,7 @@ public:
         std::swap(tiles, rhs.tiles);
     }
 
-    std::vector<ScheduleElement> schedule;
+    std::list<ScheduleElement> schedule;
     // NOTE: schedule with id=0 are not sent in MasterScheduleDistribution
     unsigned long id;
     // schedule_size must always be initialized to the number of tiles in superframe
@@ -110,27 +110,27 @@ private:
      * Updates stream_snapshot with results of scheduling,
      * notifies REJECTED streams
      */
-    void updateStreams(const std::vector<ScheduleElement>& final_schedule);
+    void updateStreams(const std::list<ScheduleElement>& final_schedule);
 
     void finalPrint();
     /**
      * @return a pair of schedule and schedule_size
      * Runs the Router and the Scheduler to produce a new schedule
      */
-    std::pair<std::vector<ScheduleElement>,
+    std::pair<std::list<ScheduleElement>,
               unsigned int> routeAndScheduleStreams(const std::vector<StreamInfo>& stream_list,
-                                                    const std::vector<ScheduleElement>& current_schedule,
+                                                    const std::list<ScheduleElement>& current_schedule,
                                                     const unsigned int sched_size);
     /**
      * @return a pair of schedule and schedule_size.
      * Runs the Scheduler to schedule routed streams
      */
-    std::pair<std::vector<ScheduleElement>,
+    std::pair<std::list<ScheduleElement>,
               unsigned int> scheduleStreams(const std::list<std::list<ScheduleElement>>& routed_streams,
-                                            const std::vector<ScheduleElement>& current_schedule,
+                                            const std::list<ScheduleElement>& current_schedule,
                                             const unsigned int sched_size);
 
-    bool checkAllConflicts(std::vector<ScheduleElement> other_streams, const ScheduleElement& transmission, unsigned offset, unsigned tile_size);
+    bool checkAllConflicts(std::list<ScheduleElement> other_streams, const ScheduleElement& transmission, unsigned offset, unsigned tile_size);
 
     bool checkDataSlot(unsigned offset, unsigned tile_size, unsigned downlink_size, unsigned uplink_size);
 
@@ -191,12 +191,6 @@ private:
     // Classes containing information about Streams
     StreamManager stream_mgmt;
     StreamCollection stream_snapshot;
-    /** NOTE: we need to keep a copy of the stream_snapshot after completing a schedule,
-        because in case we need to schedule again before the first schedule is applied,
-        the ESTABLISHED streams of the first schedule would be scheduled two times since
-        they are still marked as ACCEPTED in the stream_mgmt
-        (which is updated only when the schedule is applied). */
-    StreamCollection last_snapshot;
     // Class containing latest schedule, size in tiles and schedule ID
     Schedule schedule;
 

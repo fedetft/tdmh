@@ -125,6 +125,12 @@ public:
 #endif
         return topology;
     }
+    /**
+     * Return true if the map was modified since last time the flag was cleared 
+     */
+    bool wasModified() const {
+        return topology.wasModified();
+    };
 
     /**
      * Clear modified flag in TopologyMap

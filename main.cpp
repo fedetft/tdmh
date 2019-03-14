@@ -39,7 +39,7 @@ using namespace std;
 using namespace mxnet;
 using namespace miosix;
 
-const int maxNodes = 32;
+const int maxNodes = 8;
 const Period defaultPeriod = Period::P2;
 const Redundancy defaultRedundancy = Redundancy::NONE;
 

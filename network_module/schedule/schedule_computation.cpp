@@ -76,10 +76,9 @@ void ScheduleComputation::run() {
 #else
             std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-            // Wait for beginScheduling()
-            sched_cv.wait(lck);
+            // This condition variable is notified in beginScheduling()
             // Wait until topology changed or stream list is modified
-            while(!topology_map.wasModified() && !stream_mgmt.wasModified()) {
+            while(!topology_ctx.wasModified() && !stream_mgmt.wasModified()) {
                 // Condition variable to wait for streams to schedule.
                 sched_cv.wait(lck);
             }
@@ -138,9 +137,6 @@ void ScheduleComputation::run() {
             updateStreams(newSchedule.schedule);
             // Overwrite current schedule with new one
             schedule.swap(newSchedule);
-            // Keep a copy of the stream_snapshot to avoid double scheduling
-            //TODO: maybe a std::move or swap would be more efficient
-            last_snapshot = stream_snapshot;
         }
         finalPrint();
     }
@@ -171,7 +167,7 @@ Schedule ScheduleComputation::scheduleEstablishedStreams(unsigned long id) {
     if(ENABLE_SCHEDULE_COMP_INFO_DBG)
         printf("[SC] Established streams: %u\n", established_streams.size());
     // We are starting from an empty schedule, no need to check for conflicts
-    std::vector<ScheduleElement> empty;
+    std::list<ScheduleElement> empty;
     // Schedule size must always be initialized to the number of tiles in superframe
     auto newSize = superframe.size();
     // Reschedule ESTABLISHED streams and return pair of schedule and schedule size
@@ -184,13 +180,6 @@ void ScheduleComputation::scheduleAcceptedStreams(Schedule& currSchedule) {
         printf("[SC] Scheduling accepted streams\n");
     // Get ACCEPTED streams, to schedule
     auto accepted_streams = stream_snapshot.getStreamsWithStatus(StreamStatus::ACCEPTED);
-    // Remove ACCEPTED streams already marked as ESTABLISHED in last_snapshot
-    // Because they have already been schedule but the schedule has not been applied yet
-    accepted_streams.erase(std::remove_if(accepted_streams.begin(),
-                                          accepted_streams.end(),
-                                          [&](StreamInfo i){
-                                              return(last_snapshot.getStreamStatus(i.getStreamId())==StreamStatus::ESTABLISHED);
-                                          }),accepted_streams.end());
     //Sort accepted streams based on highest period first
     std::sort(accepted_streams.begin(), accepted_streams.end(),
               [](StreamInfo a, StreamInfo b) {
@@ -207,7 +196,7 @@ void ScheduleComputation::scheduleAcceptedStreams(Schedule& currSchedule) {
     currSchedule.tiles = extraSchedulePair.second;
 }
 
-void ScheduleComputation::updateStreams(const std::vector<ScheduleElement>& final_schedule) {
+void ScheduleComputation::updateStreams(const std::list<ScheduleElement>& final_schedule) {
     /* NOTE: Here we need to set the streams which were successfully scheduled
        as ESTABLISHED in stream_snapshot.
        We do so to be able to set later the streams that were not scheduled
@@ -225,6 +214,12 @@ void ScheduleComputation::updateStreams(const std::vector<ScheduleElement>& fina
        We are setting the status of the REJECTED streams before the schedule
        activation time but this should not have unwanted side effects */
 
+    // Temporarily mark all ESTABLISHED streams as CLOSED in stream_snapshot
+    for(auto& stream: stream_snapshot.getStreams()) {
+        if(stream.getStatus() == StreamStatus::ESTABLISHED) {
+            stream_snapshot.setStreamStatus(stream.getStreamId(), StreamStatus::CLOSED);
+        }
+    }
     // Mark successfully scheduled Streams as ESTABLISHED in stream_snapshot
     for(auto& sched: final_schedule) {
         stream_snapshot.setStreamStatus(sched.getStreamId(), StreamStatus::ESTABLISHED);
@@ -257,14 +252,14 @@ void ScheduleComputation::finalPrint() {
     fflush(stdout);
 }
 
-std::pair<std::vector<ScheduleElement>,
+std::pair<std::list<ScheduleElement>,
           unsigned int> ScheduleComputation::routeAndScheduleStreams(const std::vector<StreamInfo>& stream_list,
-                                                                     const std::vector<ScheduleElement>& current_schedule,
+                                                                     const std::list<ScheduleElement>& current_schedule,
                                                                      const unsigned int schedSize) {
     if(stream_list.empty()) {
         if(ENABLE_SCHEDULE_COMP_INFO_DBG)
             printf("[SC] Stream list empty, scheduling done.\n");
-        std::vector<ScheduleElement> empty;
+        std::list<ScheduleElement> empty;
         return make_pair(empty, schedSize);
     }
     Router router(*this, 1);
@@ -371,9 +366,9 @@ void ScheduleComputation::open(const StreamInfo& stream) {
     stream_mgmt.addStream(stream);
 }
 
-std::pair<std::vector<ScheduleElement>,
+std::pair<std::list<ScheduleElement>,
           unsigned int> ScheduleComputation::scheduleStreams(const std::list<std::list<ScheduleElement>>& routed_streams,
-                                                             const std::vector<ScheduleElement>& current_schedule,
+                                                             const std::list<ScheduleElement>& current_schedule,
                                                              const unsigned int schedSize) {
     unsigned tile_size = mac_ctx.getSlotsInTileCount();
     unsigned dataslots_downlinktile = mac_ctx.getDataSlotsInDownlinkTileCount();
@@ -384,7 +379,7 @@ std::pair<std::vector<ScheduleElement>,
         printf("[SC] Network configuration:\n- tile_size: %d\n- downlink_size: %d\n- uplink_size: %d\n",
            tile_size, downlink_size, uplink_size);
     // Start with an empty schedule, this schedule will be returned
-    std::vector<ScheduleElement> scheduled_transmissions;
+    std::list<ScheduleElement> scheduled_transmissions;
     // Schedule size of last stream, used if the scheduling of a stream has failed
     // and we need to rollback the size to the old value
     auto lastSize = schedSize;
@@ -446,7 +441,7 @@ std::pair<std::vector<ScheduleElement>,
                         printf("[SC] Schedule size, before:%d ", newSize);
                     newSize = lcm(newSize, period);
                     if(ENABLE_SCHEDULE_COMP_INFO_DBG)
-                        printf("[SC] after:%d \n", newSize);
+                        printf("after:%d \n", newSize);
                     // Add transmission to schedule, and set schedule offset
                     scheduled_transmissions.push_back(transmission);
                     scheduled_transmissions.back().setOffset(offset);
@@ -475,7 +470,7 @@ std::pair<std::vector<ScheduleElement>,
     return make_pair(scheduled_transmissions, newSize);
 }
 
-bool ScheduleComputation::checkAllConflicts(std::vector<ScheduleElement> other_streams, const ScheduleElement& transmission, unsigned offset, unsigned tile_size) {
+bool ScheduleComputation::checkAllConflicts(std::list<ScheduleElement> other_streams, const ScheduleElement& transmission, unsigned offset, unsigned tile_size) {
     bool conflict = false;
     for(auto& elem : other_streams) {
         // conflictPossible is a simple condition used to reduce number of conflict checks

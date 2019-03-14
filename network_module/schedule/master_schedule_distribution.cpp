@@ -48,7 +48,8 @@ MasterScheduleDownlinkPhase::MasterScheduleDownlinkPhase(MACContext& ctx, Schedu
 
 void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     // Check for new schedule
-    if(schedule_comp.getScheduleID() != header.getScheduleID()) { 
+    if(schedule_comp.getScheduleID() != header.getScheduleID()) {
+        distributing = true;
         getCurrentSchedule(slotStart);
         printSchedule(0);
         if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) {
@@ -107,7 +108,9 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
 
 void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {
     Schedule sched = schedule_comp.getSchedule();
-    schedule = sched.schedule;
+    schedule.clear();
+    schedule.reserve(sched.schedule.size());
+    std::copy(sched.schedule.begin(),sched.schedule.end(),std::back_inserter(schedule));
     auto currentTile = ctx.getCurrentTile(slotStart);
     auto activationTile = 0;
     unsigned numPackets = (schedule.size() / packetCapacity) + 1;
