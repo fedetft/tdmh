@@ -143,15 +143,13 @@ void ScheduleComputation::run() {
 }
 
 void ScheduleComputation::initialPrint() {
-    if(ENABLE_SCHEDULE_COMP_INFO_DBG || ENABLE_STREAM_LIST_INFO_DBG)
+    if(ENABLE_SCHEDULE_COMP_INFO_DBG || ENABLE_STREAM_LIST_INFO_DBG) {
         printf("\n[SC] #### Starting schedule computation ####\n");
-    if(ENABLE_SCHEDULE_COMP_INFO_DBG){ 
-    // NOTE: Debug topology print
-        printf("[SC] Topology:\n");
+        // NOTE: Debug topology print
+        printf("[SC] Begin Topology\n");
         for(auto it : topology_map.getEdges())
             printf("[%d - %d]\n", it.first, it.second);
-    }
-    if(ENABLE_STREAM_LIST_INFO_DBG){
+        printf("[SC] End Topology\n");
         printf("[SC] Stream list before scheduling:\n");
         printStreams(stream_snapshot.getStreams());
     }
