@@ -44,7 +44,7 @@ void Packet::put(const void* data, int size) {
 
 void Packet::get(void* data, int size) {
     if(size > (dataSize - dataStart))
-        throw range_error("Packet::get: Underflow!");
+        throw PacketUnderflowException("Packet::get: Underflow!");
     memcpy(data, packet.data()+dataStart, size);
     dataStart += size;
 }

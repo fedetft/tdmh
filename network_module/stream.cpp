@@ -141,8 +141,14 @@ int Stream::recv(void* data, int maxSize) {
         return -1;
     else {
         auto size = std::min<int>(maxSize, recvBuffer.size());
-        recvBuffer.get(data, size);
-        return size;
+        try {
+            recvBuffer.get(data, size);
+            return size;
+        }
+        // Received wrong size packet
+        catch(PacketUnderflowException& ){
+            return -1;
+        }
     }
 }
 
