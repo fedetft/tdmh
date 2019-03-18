@@ -18,6 +18,8 @@ totpackets = dict()
 errors = dict()
 reliability = dict()
 
+print("Analyzing log file:{}".format(file_path))
+
 # Extract ID and counter from log lines
 if os.path.exists(file_path):
     with open(file_path, "r") as file:
