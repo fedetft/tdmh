@@ -237,12 +237,10 @@ void ScheduleComputation::updateStreams(const std::list<ScheduleElement>& final_
 }
 
 void ScheduleComputation::finalPrint() {
-    if(ENABLE_SCHEDULE_COMP_INFO_DBG) {
+    if(ENABLE_STREAM_LIST_INFO_DBG) {
         printf("[SC] ## Results ##\n");
         printf("[SC] Final schedule, ID:%lu\n", schedule.id);
         printSchedule(schedule);
-    }
-    if(ENABLE_STREAM_LIST_INFO_DBG){
         printf("[SC] Stream list after scheduling:\n");
         printStreams(stream_snapshot.getStreams());
     }

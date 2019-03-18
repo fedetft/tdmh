@@ -174,7 +174,7 @@ Packet Stream::getSendBuffer() {
     // Double redundancy: send value twice before clear and notify
     else if((r == Redundancy::DOUBLE) ||
        (r == Redundancy::DOUBLE_SPATIAL)) {
-        if(++timesSent == 2){
+        if(++timesSent >= 2){
             timesSent = 0;
             sendBuffer.clear();
 #ifdef _MIOSIX
@@ -187,7 +187,7 @@ Packet Stream::getSendBuffer() {
     // Triple redundancy: send value three times before clear and notify
     else if((r == Redundancy::TRIPLE) ||
        (r == Redundancy::TRIPLE_SPATIAL)) {
-        if(++timesSent == 3){ 
+        if(++timesSent >= 3){ 
             timesSent = 0;
             sendBuffer.clear();
 #ifdef _MIOSIX
@@ -222,8 +222,9 @@ void Stream::putRecvBuffer(Packet& pkt) {
     // Double redundancy: notify after receiving twice
     else if((r == Redundancy::DOUBLE) ||
        (r == Redundancy::DOUBLE_SPATIAL)) {
-        if(++timesRecv == 2){
+        if(++timesRecv >= 2){
             timesRecv = 0;
+            recvBuffer.clear();
 #ifdef _MIOSIX
             recv_cv.signal();
 #else
@@ -234,8 +235,9 @@ void Stream::putRecvBuffer(Packet& pkt) {
     // Triple redundancy: notify after receiving three times
     else if((r == Redundancy::TRIPLE) ||
        (r == Redundancy::TRIPLE_SPATIAL)) {
-        if(++timesRecv == 3){ 
+        if(++timesRecv >= 3){ 
             timesRecv = 0;
+            recvBuffer.clear();
 #ifdef _MIOSIX
             recv_cv.signal();
 #else

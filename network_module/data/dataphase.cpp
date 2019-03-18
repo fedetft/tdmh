@@ -79,6 +79,8 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
     else {
         Packet emptyPkt;
         stream.putBuffer(id, emptyPkt);
+        if(ENABLE_DATA_ERROR_DBG)
+            print_dbg("[D] (%d,%d) missed slot\n", id.src, id.dst);
     }
 }
 void DataPhase::sendFromBuffer(long long slotStart) {
