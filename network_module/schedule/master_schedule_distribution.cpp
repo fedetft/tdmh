@@ -115,26 +115,27 @@ void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {
     auto activationTile = 0;
     unsigned numPackets = (schedule.size() / packetCapacity) + 1;
     auto tilesToDistributeSchedule = getTilesToDistributeSchedule(numPackets);
-    // First schedule activation time
-    if(sched.id == 1){
+    // Get scheduleTiles of the previous schedule (still saved in header)
+    auto lastScheduleTiles = header.getScheduleTiles();
+    // If last schedule is empty, skip schedule alignment
+    if(lastScheduleTiles == 0) {
         auto superframeSize = ctx.getNetworkConfig().getControlSuperframeStructure().size();
         auto align = currentTile % superframeSize;
         if(align) currentTile += superframeSize - align;        
         activationTile = currentTile + tilesToDistributeSchedule;
     }
-    // Subsequent schedules activation time
+    // Align new schedule to last schedule
     else {
-        // Use activationTile and scheduleTiles of the previous schedule (still saved in header)
-        auto scheduleTiles = header.getScheduleTiles();
+        // Use activationTile of the previous schedule (still saved in header)
         auto currentScheduleTile = (currentTile - header.getActivationTile()) %
-                                   scheduleTiles;
-        auto remainingScheduleTiles = scheduleTiles - currentScheduleTile;
+                                   lastScheduleTiles;
+        auto remainingScheduleTiles = lastScheduleTiles - currentScheduleTile;
         activationTile = currentTile + remainingScheduleTiles;
-        // Add multiples of scheduleTiles to allow schedule distribution
+        // Add multiples of lastScheduleTiles to allow schedule distribution
         if ((activationTile - currentTile) < tilesToDistributeSchedule) {
             auto moreTiles = (tilesToDistributeSchedule - (activationTile - currentTile));
-            auto align = moreTiles % scheduleTiles;
-            activationTile += moreTiles + (align ? scheduleTiles-align : 0);
+            auto align = moreTiles % lastScheduleTiles;
+            activationTile += moreTiles + (align ? lastScheduleTiles-align : 0);
         }
     }
     // Build a header for the new schedule
