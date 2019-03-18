@@ -40,7 +40,7 @@ using namespace mxnet;
 using namespace miosix;
 
 const int maxNodes = 8;
-const Period defaultPeriod = Period::P2;
+const Period defaultPeriod = Period::P1;
 const Redundancy defaultRedundancy = Redundancy::NONE;
 
 FastMutex m;
@@ -201,15 +201,18 @@ struct Data
 void streamThread(void *arg)
 {
     auto *s = reinterpret_cast<StreamThreadPar*>(arg);
-    printf("[A] Accept returned! \n");
+    StreamInfo info = s->stream->getStreamInfo();
+    StreamId id = info.getStreamId();
+    printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
     while(!s->stream->isClosed()){
         Data data;
         int len = s->stream->recv(&data, sizeof(data));
         if(len != sizeof(data))
-            printf("[E] Received wrong size data\n");
+            printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
+                   id.src, id.dst, len);
         else
-            printf("[A] Received ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
-                   data.id, data.time, data.minHeap, data.heap, data.counter);
+            printf("[A] Received data from (%d,%d): ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
+                   id.src, id.dst, data.id, data.time, data.minHeap, data.heap, data.counter);
     }
     delete s;
 }
@@ -279,6 +282,7 @@ int main()
     //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1,1), Thread::JOINABLE);
     //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2,1), Thread::JOINABLE);
     //p.redundancy=Redundancy::TRIPLE_SPATIAL; auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,2), Thread::JOINABLE);
+    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,2), Thread::JOINABLE);
 
     //Thread::create(blinkThread,STACK_MIN,MAIN_PRIORITY);
     for(;;)
