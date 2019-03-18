@@ -143,6 +143,7 @@ int Stream::recv(void* data, int maxSize) {
         auto size = std::min<int>(maxSize, recvBuffer.size());
         try {
             recvBuffer.get(data, size);
+            recvBuffer.clear();
             return size;
         }
         // Received wrong size packet
@@ -224,7 +225,6 @@ void Stream::putRecvBuffer(Packet& pkt) {
        (r == Redundancy::DOUBLE_SPATIAL)) {
         if(++timesRecv >= 2){
             timesRecv = 0;
-            recvBuffer.clear();
 #ifdef _MIOSIX
             recv_cv.signal();
 #else
@@ -237,7 +237,6 @@ void Stream::putRecvBuffer(Packet& pkt) {
        (r == Redundancy::TRIPLE_SPATIAL)) {
         if(++timesRecv >= 3){ 
             timesRecv = 0;
-            recvBuffer.clear();
 #ifdef _MIOSIX
             recv_cv.signal();
 #else
