@@ -39,9 +39,9 @@ using namespace std;
 using namespace mxnet;
 using namespace miosix;
 
-const int maxNodes = 8;
-const Period defaultPeriod = Period::P1;
-const Redundancy defaultRedundancy = Redundancy::NONE;
+const int maxNodes = 16;
+const Period defaultPeriod = Period::P20;
+const Redundancy defaultRedundancy = Redundancy::TRIPLE_SPATIAL;
 
 FastMutex m;
 MediumAccessController *tdmh = nullptr;
@@ -131,7 +131,7 @@ void dynamicNode(void* argv)
         printf("\n");
         const NetworkConfiguration config(
             6,             //maxHops
-            maxNodes,            //maxNodes
+            maxNodes,      //maxNodes
             arg->id,       //networkId
             arg->hop,      //staticHop
             6,             //panId
@@ -278,11 +278,23 @@ int main()
 {
     Par p; // Stream parameters
 
-    auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+    /* Thread configurations for redundancy test with 4 nodes */
+    //auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
     //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1,1), Thread::JOINABLE);
     //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2,1), Thread::JOINABLE);
     //p.redundancy=Redundancy::TRIPLE_SPATIAL; auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,2), Thread::JOINABLE);
     //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,2), Thread::JOINABLE);
+
+    /* Thread configurations for redundancy test with 9 nodes */
+    auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1), Thread::JOINABLE);
+    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2), Thread::JOINABLE);
+    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
+    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(4), Thread::JOINABLE);
+    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(5), Thread::JOINABLE);
+    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(6), Thread::JOINABLE);
+    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(7), Thread::JOINABLE);
+    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(8), Thread::JOINABLE);
 
     //Thread::create(blinkThread,STACK_MIN,MAIN_PRIORITY);
     for(;;)

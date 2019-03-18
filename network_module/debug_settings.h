@@ -52,7 +52,7 @@ const bool ENABLE_ROUNDTRIP_INFO_DBG = false;
 const bool ENABLE_ROUNDTRIP_ERROR_DBG = true;
 
 //prints the uplink phase debug info
-const bool ENABLE_UPLINK_INFO_DBG = MASTERNODE;
+const bool ENABLE_UPLINK_INFO_DBG = false;
 
 //prints the uplink phase debug verbose info
 const bool ENABLE_UPLINK_VERB_DBG = false;
@@ -73,13 +73,13 @@ const bool ENABLE_STREAM_INFO_DBG = true;
 const bool ENABLE_STREAM_LIST_INFO_DBG = true;
 
 //prints the schedule computation info in the master node
-const bool ENABLE_SCHEDULE_COMP_INFO_DBG = true;
+const bool ENABLE_SCHEDULE_COMP_INFO_DBG = false;
 
 //prints the schedule distribution info in the master node
-const bool ENABLE_SCHEDULE_DIST_MAS_INFO_DBG = true;
+const bool ENABLE_SCHEDULE_DIST_MAS_INFO_DBG = false;
 
 //prints the schedule distribution info in the dynamic nodes
-const bool ENABLE_SCHEDULE_DIST_DYN_INFO_DBG = true;
+const bool ENABLE_SCHEDULE_DIST_DYN_INFO_DBG = false;
 
 //prints the data phase debug info
 const bool ENABLE_DATA_INFO_DBG = MASTERNODE;
