@@ -40,6 +40,7 @@ using namespace mxnet;
 using namespace miosix;
 
 const int maxNodes = 16;
+const int maxHops = 6;
 const Period defaultPeriod = Period::P20;
 const Redundancy defaultRedundancy = Redundancy::TRIPLE_SPATIAL;
 
@@ -93,7 +94,7 @@ void masterNode(void*)
     try {
         printf("Master node\n");
         const NetworkConfiguration config(
-            6,             //maxHops
+            maxHops,       //maxHops
             maxNodes,      //maxNodes
             0,             //networkId
             false,         //staticHop
@@ -130,7 +131,7 @@ void dynamicNode(void* argv)
         if(arg->hop) printf(" forced hop %d",arg->hop);
         printf("\n");
         const NetworkConfiguration config(
-            6,             //maxHops
+            maxHops,       //maxHops
             maxNodes,      //maxNodes
             arg->id,       //networkId
             arg->hop,      //staticHop
