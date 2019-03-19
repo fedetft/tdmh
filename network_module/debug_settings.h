@@ -39,10 +39,10 @@ const bool ENABLE_PKT_DUMP_DBG = false;
 //prints the exception if any while using the radio
 const bool ENABLE_RADIO_EXCEPTION_DBG = true;
 
-//prints the topology downlink phase debug info
+//prints the timesync downlink phase debug info
 const bool ENABLE_TIMESYNC_DL_INFO_DBG = MASTERNODE;
 
-//prints the topology downlink phase errors
+//prints the timesync downlink phase errors
 const bool ENABLE_TIMESYNC_ERROR_DBG = true;
 
 //prints the roundtrip subphase debug info
@@ -60,7 +60,7 @@ const bool ENABLE_UPLINK_VERB_DBG = false;
 //prints the uplink phase errors
 const bool ENABLE_UPLINK_ERROR_DBG = true;
 
-//prints the topology context debug info
+//prints the topology map at each uplink phase
 const bool ENABLE_TOPOLOGY_INFO_DBG = false;
 
 //prints the slot number, if packets received and RSSI
@@ -82,7 +82,7 @@ const bool ENABLE_SCHEDULE_DIST_MAS_INFO_DBG = false;
 const bool ENABLE_SCHEDULE_DIST_DYN_INFO_DBG = false;
 
 //prints the data phase debug info
-const bool ENABLE_DATA_INFO_DBG = MASTERNODE;
+const bool ENABLE_DATA_INFO_DBG = false;
 
 //prints the data phase errors
 const bool ENABLE_DATA_ERROR_DBG = true;
