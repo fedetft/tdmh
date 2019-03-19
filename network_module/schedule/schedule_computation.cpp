@@ -251,7 +251,7 @@ void ScheduleComputation::finalPrint() {
 }
 
 std::pair<std::list<ScheduleElement>,
-          unsigned int> ScheduleComputation::routeAndScheduleStreams(const std::vector<StreamInfo>& stream_list,
+          unsigned int> ScheduleComputation::routeAndScheduleStreams(std::vector<StreamInfo>& stream_list,
                                                                      const std::list<ScheduleElement>& current_schedule,
                                                                      const unsigned int schedSize) {
     if(stream_list.empty()) {
@@ -624,7 +624,7 @@ void ScheduleComputation::printStreamList(const std::list<std::list<ScheduleElem
                                        stream.getRx(), toInt(stream.getPeriod()));
 }
 
-std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamInfo>& stream_list) {
+std::list<std::list<ScheduleElement>> Router::run(std::vector<StreamInfo>& stream_list) {
     std::list<std::list<ScheduleElement>> routed_streams;
     if(ENABLE_SCHEDULE_COMP_INFO_DBG)
         printf("[SC] Routing %d stream requests\n", stream_list.size());
@@ -640,10 +640,19 @@ std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamInfo>&
             // Add stream as is to final List
             if(ENABLE_SCHEDULE_COMP_INFO_DBG)
                 printf("[SC] Stream %d->%d is single hop\n", src, dst);
+            Redundancy redundancy = stream.getRedundancy();
+            // Single-hop stream, downgrade spatial redundancies to non spatial ones
+            if (redundancy == Redundancy::DOUBLE_SPATIAL) {
+                redundancy = Redundancy::DOUBLE;
+                stream.setRedundancy(redundancy);
+            }
+            if (redundancy == Redundancy::TRIPLE_SPATIAL) {
+                redundancy = Redundancy::TRIPLE;
+                stream.setRedundancy(redundancy);
+            }
             std::list<ScheduleElement> single_hop;
             single_hop.push_back(ScheduleElement(stream));
             routed_streams.push_back(single_hop);
-            Redundancy redundancy = stream.getRedundancy();
             // Temporal redundancy
             if(redundancy == Redundancy::DOUBLE)
                 routed_streams.push_back(single_hop);
@@ -707,10 +716,12 @@ std::list<std::list<ScheduleElement>> Router::run(const std::vector<StreamInfo>&
                     // Downgrade spatial redundancies to non spatial ones
                     if (redundancy == Redundancy::DOUBLE_SPATIAL) {
                         redundancy = Redundancy::DOUBLE;
+                        stream.setRedundancy(redundancy);
                         routed_streams.push_back(schedule);
                     }
                     if (redundancy == Redundancy::TRIPLE_SPATIAL) {
                         redundancy = Redundancy::TRIPLE;
+                        stream.setRedundancy(redundancy);
                         routed_streams.push_back(schedule);
                     }
                     continue;

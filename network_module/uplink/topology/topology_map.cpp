@@ -132,16 +132,18 @@ bool TopologyMap::removeEdge(unsigned char a, unsigned char b) {
     // NOTE: no need to change the `modified` or `present` variables after here,
     // because they should already have the right value if the topology is coherent.
 
-    // Remove the edge (b,a)
-    it = edges.find(b);
-    // To end up here you must have found (a,b), so return true
-    if(it != edges.end()) {
-        // If edge is present, remove it
-        if(it->second[a] == true) {
-            it->second[a] = false;
+    if(present == true) {
+        // Remove the edge (b,a)
+        it = edges.find(b);
+        // To end up here you must have found (a,b), so return true
+        if(it != edges.end()) {
+            // If edge is present, remove it
+            if(it->second[a] == true) {
+                it->second[a] = false;
+            }
+            // If the BitVector is empty, delete it
+            if(it->second.empty()) edges.erase(it);
         }
-        // If the BitVector is empty, delete it
-        if(it->second.empty()) edges.erase(it);
     }
     if(modified)
         modified_flag = true;
@@ -149,19 +151,28 @@ bool TopologyMap::removeEdge(unsigned char a, unsigned char b) {
 }
 
 bool TopologyMap::removeNode(unsigned char a) {
+    bool present = false;
+    bool modified = false;
+
     // Remove edges (a,*)
     auto it = edges.find(a);
-    if(it == edges.end()) return false;
-    else edges.erase(it);
-
-    // Remove edges (*,a)
-    for(auto& el : edges) {
-        el.second[a]=false;
-        // Remove empty BitVectors
-        if(el.second.empty()) edges.erase(el.first);
+    if(it != edges.end()) {
+        edges.erase(it);
+        present = true;
+        modified = true;
     }
-    modified_flag = true;
-    return true;
+
+    if(present == true) {
+        // Remove edges (*,a)
+        for(auto& el : edges) {
+            el.second[a]=false;
+            // Remove empty BitVectors
+            if(el.second.empty()) edges.erase(el.first);
+        }
+    }
+    if(modified)
+        modified_flag = true;
+    return present;
 }
 
 } /* namespace mxnet */

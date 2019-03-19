@@ -118,7 +118,7 @@ private:
      * Runs the Router and the Scheduler to produce a new schedule
      */
     std::pair<std::list<ScheduleElement>,
-              unsigned int> routeAndScheduleStreams(const std::vector<StreamInfo>& stream_list,
+              unsigned int> routeAndScheduleStreams(std::vector<StreamInfo>& stream_list,
                                                     const std::list<ScheduleElement>& current_schedule,
                                                     const unsigned int sched_size);
     /**
@@ -226,7 +226,7 @@ public:
         scheduler(scheduler), more_hops(more_hops) {};
     virtual ~Router() {};
 
-    std::list<std::list<ScheduleElement>> run(const std::vector<StreamInfo>& stream_list);
+    std::list<std::list<ScheduleElement>> run(std::vector<StreamInfo>& stream_list);
 
 private:
     std::list<unsigned char> breadthFirstSearch(StreamInfo stream);
