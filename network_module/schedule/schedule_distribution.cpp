@@ -57,9 +57,11 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
         // Receive to buffer case (receive and save multi-hop packet)
         if(e.getDst() != nodeID && e.getRx() == nodeID)
             action = Action::RECVBUFFER;
-        // Apply action to the right slots
-        for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-            result[slot] = ExplicitScheduleElement(action, e.getStreamInfo()); 
+        // Apply action if different than SLEEP (to avoid overwriting already scheduled slots)
+        if(action != Action::SLEEP) {
+            for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
+                result[slot] = ExplicitScheduleElement(action, e.getStreamInfo()); 
+            }
         }
     }
     return result;

@@ -44,7 +44,7 @@ void DynamicMeshTopologyContext::receivedMessage(UplinkMessage msg, unsigned cha
         neighbors.addNeighbor(sender);
         neighborsUnseenFor[sender] = 0;
     }
-    /* 28/20/2019 Fede&Izzo: the forwarded Topologies and SME
+    /* 28/02/2019 Fede&Izzo: the forwarded Topologies and SME
        do not need the check on RSSI because this information is received from other nodes */
     auto it = neighborsUnseenFor.find(sender);
     if (it != neighborsUnseenFor.end())
