@@ -76,15 +76,14 @@ void ScheduleComputation::run() {
 #else
             std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-            // This condition variable is notified in beginScheduling()
-            // Wait until topology changed or stream list is modified
-            while(!topology_ctx.wasModified() && !stream_mgmt.wasModified()) {
-                // Condition variable to wait for streams to schedule.
+            // Wait for conditions to start scheduling
+            for(;;)
+            {
+                if(topology_ctx.wasModified()) break;
+                if(stream_mgmt.wasModified()) break;
+                // Condition variable to wait for beginScheduling().
                 sched_cv.wait(lck);
             }
-            // Wait for non empty topology
-            if(topology_ctx.getTopologyMap().isEmpty())
-                continue;
             // Take snapshot of stream requests and network topology
             stream_snapshot = stream_mgmt.getSnapshot();
             topology_map = topology_ctx.getTopologyMap();
@@ -145,6 +144,9 @@ void ScheduleComputation::run() {
 void ScheduleComputation::initialPrint() {
     if(ENABLE_SCHEDULE_COMP_INFO_DBG || ENABLE_STREAM_LIST_INFO_DBG) {
         printf("\n[SC] #### Starting schedule computation ####\n");
+        printf("topology changed:%s, stream changed:%s\n",
+               topology_map.wasModified()?"True":"False",
+               stream_snapshot.wasModified()?"True":"False");
         // NOTE: Debug topology print
         printf("[SC] Begin Topology\n");
         for(auto it : topology_map.getEdges())
