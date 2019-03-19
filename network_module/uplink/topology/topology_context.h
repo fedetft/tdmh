@@ -129,6 +129,12 @@ public:
      * Return true if the map was modified since last time the flag was cleared 
      */
     bool wasModified() const {
+        // Mutex lock to access the topology from the scheduler thread.
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(topology_mutex);
+#else
+        std::unique_lock<std::mutex> lck(topology_mutex);
+#endif
         return topology.wasModified();
     };
 

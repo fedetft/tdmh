@@ -32,17 +32,23 @@ namespace mxnet {
 void TopologyMap::addEdge(unsigned char a, unsigned char b) {
     if(a == b) throw std::logic_error("TopologyMap.addEdge() does not accept auto-edges");
 
+    // Bool variable to track if we modified the data structure or not
+    bool modified = false;
     auto it = edges.find(a);
     // Bitset does not exists yet, we have to create it, initializing to false;
     if(it == edges.end()) {
         auto ret = edges.insert(std::make_pair(a, RuntimeBitset(bitset_size, false)));
         // Add the new edge
         ret.first->second[b] = true;
+        modified = true;
     }
-    // Bitset already exists, just add new edge.
-    else {
+    // Bitset already exists, just add new edge if not already present.
+    else if(it->second[b] == false) {
         it->second[b] = true;
+        modified = true;
     }
+    // NOTE: no need to change the `modified` variable after here,
+    // because it should already have the right value if the topology is coherent
     it = edges.find(b);
     // Bitset does not exists yet, we have to create it, initializing to false;
     if(it == edges.end()) {
@@ -53,7 +59,8 @@ void TopologyMap::addEdge(unsigned char a, unsigned char b) {
     else {
         it->second[a] = true;
     }
-    modified_flag = true;
+    if(modified)
+        modified_flag = true;
 }
 
 std::vector<std::pair<unsigned char, unsigned char>> TopologyMap::getUniqueEdges() const {
@@ -108,27 +115,37 @@ bool TopologyMap::hasNode(unsigned char a) const {
 bool TopologyMap::removeEdge(unsigned char a, unsigned char b) {
     if(a == b) throw std::logic_error("TopologyMap.removeEdge() does not accept auto-edges");
 
+    bool present = false;
+    bool modified = false;
     // Remove the edge (a,b)
     auto it = edges.find(a);
-    if(it == edges.end()) return false;
-    else {
-        it->second[b] = false;
+    if(it != edges.end()) {
+        // If edge is present, remove it
+        if(it->second[b] == true) {
+            it->second[b] = false;
+            present = true;
+            modified = true;
+        }
+        // If the BitVector is empty, delete it
+        if(it->second.empty()) edges.erase(it);
     }
-    // If the BitVector is empty, delete it
-    if(it->second.empty()) edges.erase(it);
+    // NOTE: no need to change the `modified` or `present` variables after here,
+    // because they should already have the right value if the topology is coherent.
 
     // Remove the edge (b,a)
     it = edges.find(b);
     // To end up here you must have found (a,b), so return true
-    if(it == edges.end()) return true;
-    else {
-        it->second[a] = false;
+    if(it != edges.end()) {
+        // If edge is present, remove it
+        if(it->second[a] == true) {
+            it->second[a] = false;
+        }
+        // If the BitVector is empty, delete it
+        if(it->second.empty()) edges.erase(it);
     }
-    // If the BitVector is empty, delete it
-    if(it->second.empty()) edges.erase(it);
-
-    modified_flag = true;
-    return true;
+    if(modified)
+        modified_flag = true;
+    return present;
 }
 
 bool TopologyMap::removeNode(unsigned char a) {

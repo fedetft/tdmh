@@ -155,9 +155,7 @@ void StreamManager::registerStreamServer(StreamInfo info, StreamServer* server) 
         streamMap[info.getStreamId()] = StreamInfo(info, StreamStatus::LISTEN);
         server->notifyServer(StreamStatus::LISTEN);
     }
-    // Set flags
-    modified_flag = true;
-    added_flag = true;
+    // NOTE: Do NOT set modified flag because a Listen is NOT a Stream
 }
 
 void StreamManager::deregisterStreamServer(StreamInfo info) {
@@ -179,9 +177,7 @@ void StreamManager::deregisterStreamServer(StreamInfo info) {
         // Push corresponding SME on the queue
         smeQueue.push(StreamManagementElement(info, StreamStatus::CLOSED));
     }
-    // Set flags
-    modified_flag = true;
-    removed_flag = true;
+    // NOTE: Do NOT set modified flag because a Listen is NOT a Stream
 }
 
 void StreamManager::notifyStreams(const std::vector<ScheduleElement>& schedule) {
