@@ -99,6 +99,8 @@ void StreamManager::registerStream(StreamInfo info, Stream* client) {
     if(clientMap.find(id) == clientMap.end())
         clientMap[id] = client;
     // Register Stream information and status (if not already present)
+    // TODO: Manage coexistence of client-side and server-side stream in
+    // streamMap on node 0
     if(streamMap.find(id) == streamMap.end())
         streamMap[id] = StreamInfo(info, StreamStatus::CONNECT_REQ);
     // Push corresponding SME on the queue

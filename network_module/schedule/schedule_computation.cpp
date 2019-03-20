@@ -293,8 +293,8 @@ void ScheduleComputation::receiveSMEs(const std::vector<StreamManagementElement>
             // If status == CONNECT, check for a corresponding LISTEN
         case StreamStatus::CONNECT:
             // Search for corresponding LISTEN StreamId
-            printf("[SC] Received CONNECT, checking for LISTEN with (%d,%d,%d,%d)\n",
-                   listenId.src, listenId.dst, listenId.srcPort, listenId.dstPort);
+            printf("[SC] Received CONNECT from Stream (%d,%d), checking for LISTEN with (%d,%d,%d,%d)\n",
+                   id.src, id.dst, listenId.src, listenId.dst, listenId.srcPort, listenId.dstPort);
             if(stream_mgmt.getStreamStatus(listenId) == StreamStatus::LISTEN) {
                 // Mark stream as accepted
                 printf("[SC] LISTEN found, stream ACCEPTED\n");

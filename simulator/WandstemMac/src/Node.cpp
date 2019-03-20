@@ -121,10 +121,10 @@ void Node::application() {
 void Node::sendData(MACContext* ctx, Period period, Redundancy redundancy) {
     try{
         /* Open a Stream to another node */
-        mxnet::Stream s(*tdmh,            // Pointer to MediumAccessController
+        mxnet::Stream s(*tdmh,             // Pointer to MediumAccessController
                         0,                 // Destination node
                         0,                 // Destination port
-                        period,        // Period
+                        period,            // Period
                         1,                 // Payload size
                         Direction::TX,     // Direction
                         redundancy); // Redundancy
