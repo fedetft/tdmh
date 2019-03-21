@@ -101,7 +101,7 @@ pair<int,int> Flopsync2::lostPacket()
 //     threeSigma*=2;
 //     dw=max(min(threeSigma*varianceScaleFactor,wMax),wMin);
     //Option two, double the window
-    dw=min(2*dw,static_cast<int>(wMax));
+    dw=min<int>(1.7f*dw,static_cast<int>(wMax));
     
     //Error measure is unavailable if the packet is lost, the best we can
     //do is to reuse the past correction value
