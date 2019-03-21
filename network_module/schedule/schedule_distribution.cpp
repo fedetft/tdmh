@@ -149,7 +149,6 @@ void ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
         return;
     auto currentTile = ctx.getCurrentTile(slotStart);
     if (currentTile >= header.getActivationTile()) {
-        assert (currentTile == header.getActivationTile());
         if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
             print_dbg("[SD] Activating schedule n.%2lu\n", explicitScheduleID);
         dataPhase->setSchedule(explicitSchedule, schedule);
@@ -158,6 +157,10 @@ void ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
         dataPhase->setScheduleID(explicitScheduleID);
         // NOTE: Setting this flag to false enables Schedule Computation
         distributing = false;
+    }
+    else{
+        print_dbg("[SD] Early schedule activation! current:%2lu activation:%2lu",
+                  currentTile, header.getActivationTile());
     }
 }
 
