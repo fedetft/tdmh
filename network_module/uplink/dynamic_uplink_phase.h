@@ -28,62 +28,52 @@
 
 #pragma once
 
-#include "../mac_phase.h"
-#include "../mac_context.h"
-#include "../timesync/networktime.h"
-#include "../stream_manager.h"
+#include "../network_configuration.h"
+#include "uplink_phase.h"
+#include "../updatable_queue.h"
+#include "neighbor_table.h"
 
 namespace mxnet {
-class UplinkPhase : public MACPhase {
+
+/** The DynamicUplinkPhase is used to collect the network topology and Stream
+ *  Management Elements from the dynamic nodes and forward it to the master node.
+ *
+ *  The collection is done in a round-robin fashion, the getAndUpdateCurrentNode()
+ *  method of the base class is called at every round to determine which node
+ *  is transmitting on the current round, that node will send its Uplink Messages
+ *  with sendMyUplinkMessage, all the other nodes will listen for incoming
+ *  Uplink Messages
+ */
+class DynamicUplinkPhase : public UplinkPhase {
 public:
-    UplinkPhase() = delete;
-
-    UplinkPhase(const UplinkPhase& orig) = delete;
-
-    virtual ~UplinkPhase() {};
-
-    //TODO: check the duration calculation, it is currently hardcoded
-    static unsigned long long getDuration(unsigned char numUplinkPackets) {
-        return (packetArrivalAndProcessingTime + transmissionInterval) * numUplinkPackets;
-    }
+    DynamicUplinkPhase(MACContext& ctx, StreamManager* const streamMgr) :
+        UplinkPhase(ctx, streamMgr) {}
+    virtual ~DynamicUplinkPhase() {};
 
     /**
-     * Align uplink phase to the network time
+     * Calls getAndUpdateCurrentNode() from the base class to check if it's our turn
+     * to transmit the UplinkMessage, and depending on the returned nodeID, we call
+     * sendMyUplinkMessage() or receiveUplinkMessage().
      */
-    void alignToNetworkTime(NetworkTime nt);
+    virtual void execute(long long slotStart) override;
 
-    void advance(long long slotStart) override;
-
-    static const int transmissionInterval = 1000000; //1ms
-    static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
-    static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
-protected:
-    UplinkPhase(MACContext& ctx, StreamManager* const streamMgr) :
-            MACPhase(ctx),
-            streamMgr(streamMgr),
-            myId(ctx.getNetworkId()),
-            nodesCount(ctx.getNetworkConfig().getMaxNodes()),
-            nextNode(nodesCount - 1) {};
-    
     /**
-     * updated the internal status of the class,
-     * with the address of the node to listen
+     * Starts expecting a message from the node to which the slot is assigned
+     * and modifies the TopologyContext as needed.
      */
-    unsigned char getAndUpdateCurrentNode() {
-        auto currentNode = nextNode;
-        if (--nextNode <= 0)
-            nextNode = nodesCount - 1;
-        return currentNode;
-    }
-    /* Pointer to StreamManager class, used to get SMEs */
-    StreamManager* const streamMgr;
+    void receiveUplinkMessage(long long slotStart, unsigned char currentNode);
 
-    /* Cached NetworkId of this node */
-    unsigned char myId;
-    /* Cached NetworkConfiguration::getMaxNodes() */
-    unsigned char nodesCount;
-    /* Next node to talk in the round-robin */
-    unsigned char nextNode;
+    /**
+     * Called when it's our turn to transmit in the round-robin.
+     * It sends the UplinkMessage containing our local TopologyElement and SMEs
+     * together with forwarded TopologyElements and SMEs.
+     */
+    void sendMyUplinkMessage(long long slotStart);
+
+private:
+    UpdatableQueue<TopologyElement> topologyQueue;
+    UpdatableQueue<StreamManagementElement> smeQueue;
+    NeighborTable myNeighborTable;
 };
 
-}
+} /* namespace mxnet */
