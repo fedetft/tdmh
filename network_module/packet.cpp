@@ -49,6 +49,12 @@ void Packet::get(void* data, int size) {
     dataStart += size;
 }
 
+void Packet::discard(int size) {
+    if(size > (dataSize - dataStart))
+        throw PacketUnderflowException("Packet::discard: Underflow!");
+    dataStart += size;
+}
+
 void Packet::send(MACContext& ctx, long long sendTime) const {
     auto wuTime = ctx.getTimesync()->getSenderWakeup(sendTime);
     auto now = getTime();

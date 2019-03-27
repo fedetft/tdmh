@@ -56,6 +56,8 @@ public:
 
     void get(void* data, int size);
 
+    void discard(int size);
+
     unsigned int size() const { return (dataSize - dataStart); }
 
     unsigned int maxSize() const { return packet.size(); }
