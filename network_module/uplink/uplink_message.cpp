@@ -30,12 +30,22 @@
 
 namespace mxnet {
 
-UplinkMessage::UplinkMessage(unsigned char hop,
-                             unsigned char assignee,
-                             const TopologyElement& myTopology) :
-    header({hop, assignee, 0, 0}), myTopology(myTopology), extracted(true) {
+UplinkMessage::UplinkMessage(unsigned int numPackets, unsigned char hop,
+                             unsigned char assignee, const TopologyElement& myTopology) :
+    numPackets(numPackets), header({hop, assignee, 0, 0}), myTopology(myTopology) {
+    packet = new Packet[numPackets];
+    /* Add panHeader, UplinkHeader and myTopology to first packet */
     putHeader();
     putMyTopology();
+}
+
+UplinkMessage::UplinkMessage(unsigned int numPackets) :
+    numPackets(numPackets), header({0,0,0,0}) {
+    packet = new Packet[numPackets];
+}
+
+UplinkMessage::~UplinkMessage() {
+    delete[] packet;
 }
 
 void UplinkMessage::putHeader() {
@@ -60,7 +70,18 @@ void UplinkMessage::putMyTopology() {
     myTopology.serialize(packet);
 }
 
-bool UplinkMessage::isUplinkPacket() {
+void UplinkMessage::send(MACContext& ctx, long long sendTime) {
+    packet[currentPacket].send(ctx, sendTime);
+    if(currentPacket < numPackets) currentPacket++;
+}
+
+bool recv(MACContext& ctx, long long tExpected) {
+    packet[currentPacket].recv(ctx, tExpected);
+    valid = checkHeader() && checkPacket();
+    return valid;
+}
+
+bool UplinkMessage::checkHeader() {
     auto panId = networkConfig.getPanId();
     // Check panHeader
     if((packet[0] == 0x46 &&
@@ -69,6 +90,10 @@ bool UplinkMessage::isUplinkPacket() {
         packet[3] == static_cast<unsigned char>(panId >> 8) &&
         packet[4] == static_cast<unsigned char>(panId & 0xff)) return false;
     return true;
+}
+
+bool UplinkMessage::checkPacket() {
+    // check if UplinkHeader matches the current packet
 }
 
 void UplinkMessage::putTopologiesAndSMEs(UpdatableQueue<TopologyElement>& topologies,
@@ -83,7 +108,7 @@ void UplinkMessage::putTopologiesAndSMEs(UpdatableQueue<TopologyElement>& topolo
 
 void UplinkMessage::extract() const {
     if(!isUplinkPacket()) throw std::runtime_error("UplinkMessage: not an uplink packet");
-    //TODO: check that packet size is > panHeaderSize + UplinkHeaderSize + TopologySize
+    if(packet.size() < getMinSize()) throw std::runtime_error("UplinkMessage: packet has not enough data to extract");
 
     // Remove panHeader from the packet
     packet.discard(panHeaderSize);
@@ -94,9 +119,16 @@ void UplinkMessage::extract() const {
 }
 
 TopologyElement UplinkMessage::getForwardedTopology() {
+    if(header.numSME < 1) throw std::runtime_error("UplinkMessage: no more forwarded topologies to extract");
+    if(packet.size() < TopologyElement.size()) throw std::runtime_error("UplinkMessage: no more forwarded topologies to extract");
+    TopologyElement result;
+    packet.get(&result, sizeof(TopologyElement));
 }
 
 StreamManagementElement UplinkMessage::getSME() {
+    if(packet.size() < TopologyElement.size()) throw std::runtime_error("UplinkMessage: no more forwarded topologies to extract");
+    TopologyElement result;
+    packet.get(&result, sizeof(TopologyElement));
 }
 
 } /* namespace mxnet */

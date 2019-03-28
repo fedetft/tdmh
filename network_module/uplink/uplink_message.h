@@ -64,26 +64,32 @@ class UplinkMessage {
 public:
 
     const int panHeaderSize = 5 //panHeader size is 5 bytes
+    /**
+     * Constructor with number of uplink packets, header data
+     * and myTopology as parameters, for sending UplinkMessage
+     */
+    UplinkMessage(unsigned int numPackets, unsigned char hop,
+                      unsigned char assignee, const TopologyElement& myTopology);
 
     /**
-     * Constructor which accepts a Packet as parameter, for receiving an
-     * UplinkMessage from the radio
+     * Constructor which accepts the number of uplink packets as parameter,
+     * Used when receiving an UplinkMessage from the radio
      */
-    UplinkMessage(const Packet& pkt) : packet(pkt), extracted(false) {};
+    UplinkMessage(unsigned int numPackets);
+
+    ~UplinkMessage();
+
+    UplinkMessage(const UplinkMessage&) = delete;
+
+    UplinkMessage& operator=(const UplinkMessage&) = delete;
 
     /**
-     * Constructor with header data and myTopology as parameters,
-     * for sending UplinkMessage
+     * @return the minimum size of an UplinkPacket, which is composed of
+     * panHeader, UplinkHeader and myTopology
      */
-    UplinkMessage(unsigned char hop,
-                  unsigned char assignee,
-                  const TopologyElement& myTopology);
-
-    /**
-     * Checks the IEEE 802.15.4 header to tell if the received packet
-     * @return true if packet is an UplinkPacket, false otherwise
-     */
-    bool isUplinkPacket();
+    static unsigned int getMinSize() {
+        return panHeaderSize + sizeof(UplinkHeader) + TopologyElement.size();
+    }
 
     /**
      * Allocate into the UplinkMessage a variable number of TopologyElements and
@@ -94,59 +100,40 @@ public:
                               UpdatableQueue<StreamManagementElement>& smes);
 
     /**
-     * Extract header and myTopology from the packet.
+     * This function sends the current packet of the UplinkMessage over the radio
      */
-    void extract();
+    void send(MACContext& ctx, long long sendTime);
 
     /**
-     * @return the resulting Packet to be sent on the radio
-     * NOTE: this method must check that extracted == false, otherwise the
-     * header is missing from the Packet
+     * This function listens on the radio for the next Packet of the UplinkMessage
+     * @return if a valid packet is received.
      */
-    Packet getPacket() const {
-        if(extracted) throw std::runtime_error("UplinkMessage: can't return packet without header");
-        return packet;
-    }
+    bool recv(MACContext& ctx, long long tExpected);
 
     /**
      * @return the hop of the message sender
      */
-    unsigned char getHop() const {
-        if(!extracted) throw std::runtime_error("UplinkMessage: can't read data before extracting it from the packet");
-        return header.hop;
-    }
+    unsigned char getHop() const { return header.hop; }
 
     /**
      * @return the recipient node of the UplinkMessage
      */
-    unsigned char getAssignee() const {
-        if(!extracted) throw std::runtime_error("UplinkMessage: can't read data before extracting it from the packet");
-        return header.assignee;
-    }
+    unsigned char getAssignee() const { return header.assignee; }
 
     /**
      * @return the recipient node of the UplinkMessage
      */
-    unsigned char getNumTopology() const {
-        if(!extracted) throw std::runtime_error("UplinkMessage: can't read data before extracting it from the packet");
-        return header.assignee;
-    }
+    unsigned char getNumTopology() const { return header.assignee; }
 
     /**
      * @return the recipient node of the UplinkMessage
      */
-    unsigned char getNumSME() const {
-        if(!extracted) throw std::runtime_error("UplinkMessage: can't read data before extracting it from the packet");
-        return header.assignee;
-    }
+    unsigned char getNumSME() const { return header.assignee; }
 
     /**
      * @return the TopologyElement containing the neighbors of the sender
      */
-    TopologyElement getSenderTopology() const {
-        if(!extracted) throw std::runtime_error("UplinkMessage: can't read data before extracting it from the packet");
-        return topology;
-    }
+    TopologyElement getSenderTopology() const { return topology; }
 
     /**
      * @return the TopologyElement containing the neighbors of the sender
@@ -160,24 +147,46 @@ public:
 
 private:
     /**
+     * Checks the IEEE 802.15.4 header of the current packet.
+     * @return true if current packet is an UplinkPacket, false otherwise
+     */
+    bool checkHeader();
+
+    /**
+     * Checks the UplinkHeader of the current packet.
+     * @return true if data in UplinkHeader is valid, false otherwise
+     * firstPacket is used to check againt the correct packet type
+     */
+    bool checkPacket();
+
+    /**
      * Insert IEEE 802.15.4 header and UplinkHeader in Packet
      * NOTE: this method should check that Packet is empty
      */
     void putHeader();
+
     /**
      * Insert myTopology in Packet
      */
     void putMyTopology();
 
+    /**
+     * Extract header and myTopology from the packet.
+     */
+    void extract();
 
-    /* Packet ready to be sent */
-    Packet packet;
+    /* Bool flag to store if last received packet is valid */
+    bool valid = false;
+    /* Packet we are handling */
+    int currentPacket = 0;
+    /* Total number of packets */
+    int numPackets;
+    /* Array of Packets composing the UplinkMessage */
+    Packet *packet;
     /* Header containing information on this packet */
     UplinkHeader header;
     /* TopologyElement containing topology of node sending the packet */
     TopologyElement myTopology;
-    /* Flag = true when data has been extracted from the packet */
-    bool extracted;
 };
 
 } /* namespace mxnet */
