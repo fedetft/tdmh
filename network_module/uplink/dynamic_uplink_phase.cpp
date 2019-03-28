@@ -67,13 +67,13 @@ void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char expect
         if(message.getAssignee() == myId)
         {
             topologyQueue.enqueue(expectedNode,
-                                  TopologyElement(expectedNode,senderTopology));
+                std::move(TopologyElement(expectedNode,senderTopology)));
             
             // Code to become a method of UplinkMessage -- begin
             while(message.getNumTopology() > 0)
             {
                 auto topology = message.getForwardedTopology();
-                topologyQueue.enqueue(topology.getId(),topology);
+                topologyQueue.enqueue(topology.getId(),std::move(topology));
             }
             while(message.getNumSME() > 0)
             {
@@ -90,7 +90,7 @@ void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char expect
                 while(message.getNumTopology() > 0)
                 {
                     auto topology = message.getForwardedTopology();
-                    topologyQueue.enqueue(topology.getId(),topology);
+                    topologyQueue.enqueue(topology.getId(),std::move(topology));
                 }
                 while(message.getNumSME() > 0)
                 {

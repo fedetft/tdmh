@@ -57,6 +57,14 @@ public:
      * Adds an element to the queue, replacing a previous element with the
      * same key, if present.
      * \param key unique reference for the value
+     * \param val the value to be added/replaced
+     */
+    void enqueue(K key, V&& val);
+    
+    /**
+     * Adds an element to the queue, replacing a previous element with the
+     * same key, if present.
+     * \param key unique reference for the value
      * \param val the value to be added
      * \param f function that is called if the element to be added replaces a
      * previous element
@@ -99,6 +107,19 @@ private:
 
 template<typename K, typename V>
 void UpdatableQueue<K,V>::enqueue(K key, const V& val)
+{
+    auto it = data.find(key);
+    if(it != data.end())
+    {
+        it->second = val; //Replace
+    } else {
+        data[key] = val;
+        queue.push_front(key);
+    }
+}
+
+template<typename K, typename V>
+void UpdatableQueue<K,V>::enqueue(K key, V&& val)
 {
     auto it = data.find(key);
     if(it != data.end())
