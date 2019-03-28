@@ -157,9 +157,10 @@ V UpdatableQueue<K,V>::dequeue()
 {
     if(data.empty()) throw std::runtime_error("no element in queue");
     auto key = queue.back();
-    auto result = data[key];
+    auto it = data.find(key);
+    auto result = std::move(it->second); //Move out and rely on RVO
     queue.pop_back();
-    data.erase(key);
+    data.erase(it);
     return result;
 }
 
