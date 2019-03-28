@@ -35,20 +35,15 @@
 
 namespace mxnet {
 
-/** The DynamicUplinkPhase is used to collect the network topology and Stream
- *  Management Elements from the dynamic nodes and forward it to the master node.
- *
- *  The collection is done in a round-robin fashion, the getAndUpdateCurrentNode()
- *  method of the base class is called at every round to determine which node
- *  is transmitting on the current round, that node will send its Uplink Messages
- *  with sendMyUplinkMessage, all the other nodes will listen for incoming
- *  Uplink Messages
+/**
+ * The DynamicUplinkPhase is used to implement the uplink phase by all nodes
+ * in the network except the master.
  */
-class DynamicUplinkPhase : public UplinkPhase {
+class DynamicUplinkPhase : public UplinkPhase
+{
 public:
     DynamicUplinkPhase(MACContext& ctx, StreamManager* const streamMgr) :
         UplinkPhase(ctx, streamMgr) {}
-    virtual ~DynamicUplinkPhase() {};
 
     /**
      * Calls getAndUpdateCurrentNode() from the base class to check if it's our turn
@@ -61,19 +56,19 @@ public:
      * Starts expecting a message from the node to which the slot is assigned
      * and modifies the TopologyContext as needed.
      */
-    void receiveUplinkMessage(long long slotStart, unsigned char currentNode);
+    void receiveUplink(long long slotStart, unsigned char expectedNode);
 
     /**
      * Called when it's our turn to transmit in the round-robin.
      * It sends the UplinkMessage containing our local TopologyElement and SMEs
      * together with forwarded TopologyElements and SMEs.
      */
-    void sendMyUplinkMessage(long long slotStart);
+    void sendMyUplink(long long slotStart);
 
 private:
-    UpdatableQueue<TopologyElement> topologyQueue;
-    UpdatableQueue<StreamManagementElement> smeQueue;
+    UpdatableQueue<unsigned char,TopologyElement> topologyQueue;
+    UpdatableQueue<StreamId,StreamManagementElement> smeQueue;
     NeighborTable myNeighborTable;
 };
 
-} /* namespace mxnet */
+} // namespace mxnet

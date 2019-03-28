@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C)  2019 by Polidori Paolo, Federico Amedeo Izzo,          *
- *                                          Federico Terraneo              *
+ *                          Federico Terraneo                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -37,65 +37,100 @@ using namespace miosix;
 
 namespace mxnet {
 
-void DynamicUplinkPhase::execute(long long slotStart) {
+void DynamicUplinkPhase::execute(long long slotStart)
+{
     auto address = getAndUpdateCurrentNode();
+    
     if (ENABLE_UPLINK_VERB_DBG)
         print_dbg("[U] N=%u T=%lld\n", address, slotStart);
+    
     if (address == myId) sendMyUplink(slotStart);
-    else receiveByNode(slotStart, address);
+    else receiveUplink(slotStart, address);
 }
 
-void DynamicUplinkPhase::receiveByNode(long long slotStart, unsigned char currentNode) {
-    Packet pkt;
+void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char expectedNode)
+{
+    UplinkMessage message(ctx.getNetworkConfig());
+    
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    RecvResult rcvResult = pkt.recv(ctx, slotStart);
-    ctx.transceiverIdle();
-    if (rcvResult.error == RecvResult::ErrorCode::OK) {
-        auto msg = UplinkMessage::deserialize(pkt, ctx.getNetworkConfig());
-        topology->receivedMessage(msg, currentNode, rcvResult.rssi);
-        if(msg.getAssignee() == ctx.getNetworkId())
+    if(message.recv(ctx,expectedNode))
+    {
+        auto senderTopology = message.getSenderTopology();
+        myNeighborTable.receivedMessage(expectedNode, messsage.getHop(),
+                                    message.getRssi(), senderTopology);
+        
+        if(ENABLE_UPLINK_INFO_DBG)
+            print_dbg("[U]<-N=%u @%llu %hddBm\n",expectedNode,message.getTimestamp(),message.getRssi());
+        if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
+            print_dbg("<-%d %ddBm\n",currentNode,message.getRssi());
+    
+        if(message.getAssignee() == myId)
         {
-            auto smes = msg.getSMEs();
-            streamMgr->enqueueSMEs(smes);
+            topologyQueue.enqueue(expectedNode,
+                                  TopologyElement(expectedNode,senderTopology));
+            
+            // Code to become a method of UplinkMessage -- begin
+            while(message.getNumTopology() > 0)
+            {
+                auto topology = message.getForwardedTopology();
+                topologyQueue.enqueue(topology.getId(),topology);
+            }
+            while(message.getNumSME() > 0)
+            {
+                auto sme = getSME();
+                smeQueue.enqueue(sme.getStreamId(),sme);
+            }
+            // Code to become a method of UplinkMessage -- end
+            
+            for(unsigned char i = 1; i < numUplinkPackets; i++)
+            {
+                if(message.recv(ctx,expectedNode) == false) break;
+                
+                // Code to become a method of UplinkMessage -- begin
+                while(message.getNumTopology() > 0)
+                {
+                    auto topology = message.getForwardedTopology();
+                    topologyQueue.enqueue(topology.getId(),topology);
+                }
+                while(message.getNumSME() > 0)
+                {
+                    auto sme = getSME();
+                    smeQueue.enqueue(sme.getStreamId(),sme);
+                }
+                // Code to become a method of UplinkMessage -- end
+            }
         }
-        if (ENABLE_UPLINK_INFO_DBG)
-            print_dbg("[U]<-N=%u @%llu %hddBm\n", currentNode, rcvResult.timestamp, rcvResult.rssi);
-        if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
-            print_dbg("<-%d %ddBm\n",currentNode,rcvResult.rssi);
+        
     } else {
-        topology->unreceivedMessage(currentNode);
+        myNeighborTable.missedMessage(expectedNode);
+        
         if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
-            print_dbg("  %d\n",currentNode);
+            print_dbg("  %d\n",expectedNode);
     }
+    ctx.transceiverIdle();
 }
 
-void DynamicUplinkPhase::sendMyUplink(long long slotStart) {
-    auto* dTopology = static_cast<DynamicTopologyContext*>(topology);
-    auto& config = ctx.getNetworkConfig();
-    // Calculate max number of SME that leaves spaces for the guaranteed topologies
-    unsigned char SMEPart = MediumAccessController::maxPktSize -
-        (UplinkMessage::getMinSize() + NeighborMessage::guaranteedSize(config));
-    unsigned char maxSMEs = SMEPart / StreamManagementElement::maxSize();
-    unsigned char availableSMEs = streamMgr->getNumSME();
-    unsigned char numSMEs = std::min(maxSMEs, availableSMEs);
-    unsigned char freeBytes = (maxSMEs - numSMEs) * StreamManagementElement::maxSize();
-    unsigned char extraTopologies = freeBytes / ForwardedNeighborMessage::staticSize(config);
-    // Prepare the UplinkMessage
-    auto smes = streamMgr->dequeueSMEs(numSMEs);
-    auto* tMsg = dTopology->getMyTopologyMessage(extraTopologies);
-    UplinkMessage msg(ctx.getHop(), dTopology->getBestPredecessor(), tMsg, smes);
-    Packet pkt;
-    msg.serialize(pkt);
-    if (ENABLE_UPLINK_INFO_DBG)
+void DynamicUplinkPhase::sendMyUplink(long long slotStart)
+{
+    UplinkMessage message(ctx.getNetworkConfig(), ctx.getHop(),
+                          myNeighborTable.getBestPredecessor(),
+                          myNeighborTable.getMyTopologyElement());
+    
+    int numPackets = message.putTopologiesAndSMEs(topologyQueue,smeQueue);
+    
+    if(ENABLE_UPLINK_INFO_DBG)
         print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), slotStart);
+    
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    pkt.send(ctx, slotStart);
+    for(int i = 0; i < numPackets; i++)
+    {
+        message.send(ctx,slotStart);
+        slotStart+=packetArrivalAndProcessingTime + transmissionInterval;
+    }
     ctx.transceiverIdle();
-    tMsg->deleteForwarded();
-    delete tMsg;
-    smes.clear();
+    
     if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
         print_dbg("->%d\n",ctx.getNetworkId());
 }
 
-} /* namespace mxnet */
+} // namespace mxnet

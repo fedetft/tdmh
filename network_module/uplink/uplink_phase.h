@@ -35,14 +35,24 @@
 
 namespace mxnet {
 
+/**
+ * The UplinkPhase is used to collect the network topology and Stream Management
+ * Elements.
+ *
+ * The collection is done in a round-robin fashion, at every round a node will
+ * send its Uplink Messages, all the other nodes will listen for incoming
+ * Uplink Messages constructing their neighbor tables and forwarding them to the
+ * master.
+ */
 class UplinkPhase : public MACPhase
 {
 public:
     UplinkPhase(const UplinkPhase&) = delete;
     UplinkPhase& operator=(const UplinkPhase&) = delete;
-    virtual ~UplinkPhase() {}
 
-    //TODO: check the duration calculation, it is currently hardcoded
+    /**
+     * \return the duration in nanoseconds of an uplink slot
+     */
     static unsigned long long getDuration(unsigned char numUplinkPackets)
     {
         return (packetArrivalAndProcessingTime + transmissionInterval) * numUplinkPackets;
@@ -59,10 +69,10 @@ public:
      * state without causing packet transmissions/receptions.
      */
     void advance(long long slotStart) override { getAndUpdateCurrentNode(); }
-
+    
+    //TODO: check the duration calculation, it is currently hardcoded
     static const int transmissionInterval = 1000000; //1ms
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
-    static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
     
 protected:
     UplinkPhase(MACContext& ctx, StreamManager* const streamMgr) :
@@ -70,7 +80,8 @@ protected:
             streamMgr(streamMgr),
             myId(ctx.getNetworkId()),
             nodesCount(ctx.getNetworkConfig().getMaxNodes()),
-            nextNode(nodesCount - 1) {}
+            nextNode(nodesCount - 1),
+            numUplinkPackets(ctx.getNetworkConfig().getNumUplinkPackets()) {}
     
     /**
      * Called at every execute() or advance() updates the state of the
@@ -83,6 +94,7 @@ protected:
     unsigned char myId;       ///< Cached NetworkId of this node
     unsigned char nodesCount; ///< Cached NetworkConfiguration::getMaxNodes()
     unsigned char nextNode;   ///< Next node to talk in the round-robin
+    unsigned char numUplinkPackets; ///< Number of packets per uplink slot
 };
 
 } // namespace mxnet
