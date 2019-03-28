@@ -30,17 +30,21 @@
 
 namespace mxnet {
 
-UplinkMessage::UplinkMessage(unsigned int numPackets, unsigned char hop,
-                             unsigned char assignee, const TopologyElement& myTopology) :
-    numPackets(numPackets), header({hop, assignee, 0, 0}), myTopology(myTopology) {
+UplinkMessage::UplinkMessage(const NetworkConfiguration& config,
+                             unsigned char hop, unsigned char assignee,
+                             const TopologyElement& myTopology) :
+    maxPackets(config.getNumUplinkPackets()),
+    guaranteedTopologies(config.getGuaranteedTopologies()),
+    runtimeBitsetSize((config.getMaxNumNodes() + 7) / 8),
+    header({hop, assignee, 0, 0}), myTopology(myTopology) {
     packet = new Packet[numPackets];
-    /* Add panHeader, UplinkHeader and myTopology to first packet */
-    putHeader();
-    putMyTopology();
 }
 
-UplinkMessage::UplinkMessage(unsigned int numPackets) :
-    numPackets(numPackets), header({0,0,0,0}) {
+UplinkMessage::UplinkMessage(const NetworkConfiguration& config) :
+    maxPackets(config.getNumUplinkPackets()),
+    guaranteedTopologies(config.getGuaranteedTopologies()),
+    runtimeBitsetSize((config.getMaxNumNodes() + 7) / 8),
+    header({0,0,0,0}) {
     packet = new Packet[numPackets];
 }
 
@@ -48,27 +52,63 @@ UplinkMessage::~UplinkMessage() {
     delete[] packet;
 }
 
-void UplinkMessage::putHeader() {
-    if(packet.size() != 0) throw std::runtime_error("UplinkMessage: can't put header on non empty Packet");
-    auto panId = networkConfig.getPanId();
-    unsigned char panHeader[] = {
-                                 0x46, //frame type 0b110 (reserved), intra pan
-                                 0x08, //no source addressing, short destination addressing
-                                 0xff, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
-                                 static_cast<unsigned char>(panId>>8),
-                                 static_cast<unsigned char>(panId & 0xff), //destination pan ID
-    };
-    // Put IEEE 802.15.4 compliant header
-    packet.put(&panHeader, sizeof(panHeader));
-    // Put UplinkHeader
-    packet.put(&header, sizeof(UplinkHeader));
+int UplinkMessage::putTopologiesAndSMEs(UpdatableQueue<TopologyElement>& topologies,
+                                        UpdatableQueue<StreamManagementElement>& smes) {
+    /* We assume that putTopologiesAndSMEs is called only once per UplinkMessage */
+    if(packet[0].available() < packet[0].maxSize()) throw std::runtime_error("UplinkMessage: Trying to fill a non-empty packet");
+    /* NOTE: The packets are filled with [guaranteed, N] Topologies and
+       [0,M] SMEs, with priority to SMEs over Topologies */
+    int totAvailable = getFirstPacketCapacity() +
+        (maxPackets - 1) * getOtherPacketCapacity();
+    int minTopologySize = guaranteedTopologies * TopologyElement::maxSize();
+    int maxSMEs = (totAvailable - minTopologySize) / StreamManagementElement::maxSize();
+
+    header.numSME = maxSME
+    for(int n = currPacket; n < maxPackets; n++) {
+        // First packet of the UplinkMessage
+        if(n == 0) {
+            /* Add panHeader, UplinkHeader and myTopology to first packet */
+            putPanHeader();
+            putUplinkHeader();
+            putMyTopology(); 
+        }
+        // Other packets
+        else {
+            putSmallHeader();
+        }
+        while(packet[n].available() > ) {
+            
+        }
+    }
+
+    auto* dTopology = static_cast<DynamicTopologyContext*>(topology);
+    auto& config = ctx.getNetworkConfig();
+    // Calculate max number of SME that leaves spaces for the guaranteed topologies
+    unsigned char SMEPart = MediumAccessController::maxPktSize -
+        (UplinkMessage::getMinSize() + NeighborMessage::guaranteedSize(config));
+    unsigned char maxSMEs = SMEPart / StreamManagementElement::maxSize();
+    unsigned char availableSMEs = streamMgr->getNumSME();
+    unsigned char numSMEs = std::min(maxSMEs, availableSMEs);
+    unsigned char freeBytes = (maxSMEs - numSMEs) * StreamManagementElement::maxSize();
+    unsigned char extraTopologies = freeBytes / ForwardedNeighborMessage::staticSize(config);
+    // Prepare the UplinkMessage
+    auto smes = streamMgr->dequeueSMEs(numSMEs);
+    auto* tMsg = dTopology->getMyTopologyMessage(extraTopologies);
+    UplinkMessage msg(ctx.getHop(), dTopology->getBestPredecessor(), tMsg, smes);
+    Packet pkt;
+    msg.serialize(pkt);
+    if (ENABLE_UPLINK_INFO_DBG)
+        print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), slotStart);
+    pkt.send(ctx, slotStart);
+    tMsg->deleteForwarded();
+    delete tMsg;
+    smes.clear();
+    if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
+        print_dbg("->%d\n",ctx.getNetworkId());
+
+
 }
 
-void UplinkMessage::putMyTopology() {
-    if(packet.size() == 0) throw std::runtime_error("UplinkMessage: can't put mytopology Packet without header");
-    // Put myTopology in Packet
-    myTopology.serialize(packet);
-}
 
 void UplinkMessage::send(MACContext& ctx, long long sendTime) {
     packet[currentPacket].send(ctx, sendTime);
@@ -76,9 +116,30 @@ void UplinkMessage::send(MACContext& ctx, long long sendTime) {
 }
 
 bool recv(MACContext& ctx, long long tExpected) {
-    packet[currentPacket].recv(ctx, tExpected);
-    valid = checkHeader() && checkPacket();
+    auto rcvResult = packet[currentPacket].recv(ctx, tExpected);
+    valid = false;
+    if(rcvResult.error == RecvResult::ErrorCode::OK &&
+       checkHeader() && checkPacket())
+        valid = true;
+    else
+        valid = false;
+    currentPacket++;
     return valid;
+}
+
+TopologyElement UplinkMessage::getForwardedTopology() {
+    if(header.numSME < 1) throw std::runtime_error("UplinkMessage: no more forwarded topologies to extract");
+    if(packet.size() < TopologyElement.size()) throw std::runtime_error("UplinkMessage: no more forwarded topologies to extract");
+    TopologyElement result;
+    result = TopologyElement::deserialize(packet[currPacket]);
+    //TODO: decrement numTopology
+}
+
+StreamManagementElement UplinkMessage::getSME() {
+    if(packet.size() < TopologyElement.size()) throw std::runtime_error("UplinkMessage: no more forwarded topologies to extract");
+    StreamManagementElement result;
+    result = StreamManagementElement::deserialize(packet[currPacket]);
+    //TODO: decrement numSME
 }
 
 bool UplinkMessage::checkHeader() {
@@ -94,16 +155,38 @@ bool UplinkMessage::checkHeader() {
 
 bool UplinkMessage::checkPacket() {
     // check if UplinkHeader matches the current packet
+    // and the size is valid
 }
 
-void UplinkMessage::putTopologiesAndSMEs(UpdatableQueue<TopologyElement>& topologies,
-                                         UpdatableQueue<StreamManagementElement>& smes) {
-    if(!extracted) throw std::runtime_error("UplinkMessage: can't add Topologies and SMES without header data");
-    packet.put(&content, sizeof(UplinkMessagePkt));
-    topology->serialize(packet);
-    for (StreamManagementElement sme : smes) {
-        sme.serialize(packet);
-    }
+void UplinkMessage::putPanHeader() {
+    if(packet.size() != 0) throw std::runtime_error("UplinkMessage: can't put header on non empty Packet");
+    auto panId = networkConfig.getPanId();
+    unsigned char panHeader[] = {
+                                 0x46, //frame type 0b110 (reserved), intra pan
+                                 0x08, //no source addressing, short destination addressing
+                                 0xff, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
+                                 static_cast<unsigned char>(panId>>8),
+                                 static_cast<unsigned char>(panId & 0xff), //destination pan ID
+    };
+    // Put IEEE 802.15.4 compliant header
+    packet.put(&panHeader, sizeof(panHeader));
+}
+
+void UplinkMessage::putUplinkHeader() {
+    // Put UplinkHeader
+    packet.put(&header, sizeof(UplinkHeader));
+}
+
+void UplinkMessage::putSmallHeader() {
+    SmallHeader sh = {header.numTopology, header.numSME}
+    // Put SmallHeader
+    packet.put(&sh, sizeof(SmallHeader));
+}
+
+void UplinkMessage::putMyTopology() {
+    if(packet.size() == 0) throw std::runtime_error("UplinkMessage: can't put mytopology Packet without header");
+    // Put myTopology in Packet
+    myTopology.serialize(packet);
 }
 
 void UplinkMessage::extract() const {
@@ -115,20 +198,8 @@ void UplinkMessage::extract() const {
     // Extract UplinkHeader from the packet
     packet.get(&header, sizeof(UplinkHeader));
     // Extract myTopology from the packet
-    packet.get(&myTopology, sizeof(TopologyElement));
+    myTopology = RuntimeBitset::deserialize(packet[currPacket]);
 }
 
-TopologyElement UplinkMessage::getForwardedTopology() {
-    if(header.numSME < 1) throw std::runtime_error("UplinkMessage: no more forwarded topologies to extract");
-    if(packet.size() < TopologyElement.size()) throw std::runtime_error("UplinkMessage: no more forwarded topologies to extract");
-    TopologyElement result;
-    packet.get(&result, sizeof(TopologyElement));
-}
-
-StreamManagementElement UplinkMessage::getSME() {
-    if(packet.size() < TopologyElement.size()) throw std::runtime_error("UplinkMessage: no more forwarded topologies to extract");
-    TopologyElement result;
-    packet.get(&result, sizeof(TopologyElement));
-}
 
 } /* namespace mxnet */

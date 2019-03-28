@@ -35,11 +35,18 @@
 
 namespace mxnet {
 
+/* Header used in the first packet of the UplinkMessage */
 struct UplinkHeader {
     unsigned char hop;
     unsigned char assignee;
     unsigned char numTopology;
     unsigned char numSME;
+} __attribute__((packed));
+
+/* Header used in the second and following packets of the UplinkMessage */
+struct SmallHeader {
+     unsigned char numTopology;
+     unsigned char numSME;
 } __attribute__((packed));
 
 /** The UplinkMessage class represents the message used to send topologies and SMEs
@@ -68,14 +75,15 @@ public:
      * Constructor with number of uplink packets, header data
      * and myTopology as parameters, for sending UplinkMessage
      */
-    UplinkMessage(unsigned int numPackets, unsigned char hop,
-                      unsigned char assignee, const TopologyElement& myTopology);
+    UplinkMessage(const NetworkConfiguration& config, unsigned int numPackets,
+                  unsigned char hop, unsigned char assignee,
+                  const TopologyElement& myTopology);
 
     /**
      * Constructor which accepts the number of uplink packets as parameter,
      * Used when receiving an UplinkMessage from the radio
      */
-    UplinkMessage(unsigned int numPackets);
+    UplinkMessage(const NetworkConfiguration& config, unsigned int numPackets);
 
     ~UplinkMessage();
 
@@ -84,20 +92,13 @@ public:
     UplinkMessage& operator=(const UplinkMessage&) = delete;
 
     /**
-     * @return the minimum size of an UplinkPacket, which is composed of
-     * panHeader, UplinkHeader and myTopology
-     */
-    static unsigned int getMinSize() {
-        return panHeaderSize + sizeof(UplinkHeader) + TopologyElement.size();
-    }
-
-    /**
-     * Allocate into the UplinkMessage a variable number of TopologyElements and
+     * Allocate into the UplinkMessage packets the highest number of TopologyElements and
      * SMEs, to be forwarded to other nodes through the UplinkMessage.
      * NOTE: this method sets numTopology and numSME in the header
+     * @return the number of packets used (maximum = numPackets)
      */
-    void putTopologiesAndSMEs(UpdatableQueue<TopologyElement>& topologies,
-                              UpdatableQueue<StreamManagementElement>& smes);
+    int putTopologiesAndSMEs(UpdatableQueue<unsigned char, TopologyElement>& topologies,
+                             UpdatableQueue<StreamId, StreamManagementElement>& smes);
 
     /**
      * This function sends the current packet of the UplinkMessage over the radio
@@ -133,7 +134,7 @@ public:
     /**
      * @return the TopologyElement containing the neighbors of the sender
      */
-    TopologyElement getSenderTopology() const { return topology; }
+    RuntimeBitset getSenderTopology() const { return topology; }
 
     /**
      * @return the TopologyElement containing the neighbors of the sender
@@ -146,6 +147,25 @@ public:
     StreamManagementElement getSME();
 
 private:
+    /**
+     * @return the capacity of the first packet of an UplinkMessage, which is composed of
+     * panHeader, UplinkHeader and myTopology
+     */
+    int getFirstPacketCapacity() {
+        return Packet::maxSize() - (panHeaderSize +
+                                    sizeof(UplinkHeader) +
+                                    runtimeBitsetSize);
+    }
+
+    /**
+     * @return the capacity of the second and following packets of an UplinkMessage,
+     * which are composed of panHeader and SmallHeader
+     */
+    int getOtherPacketCapacity() {
+        return Packet::maxSize() - (panHeaderSize +
+                                    sizeof(SmallHeader));
+    }
+
     /**
      * Checks the IEEE 802.15.4 header of the current packet.
      * @return true if current packet is an UplinkPacket, false otherwise
@@ -160,10 +180,19 @@ private:
     bool checkPacket();
 
     /**
-     * Insert IEEE 802.15.4 header and UplinkHeader in Packet
-     * NOTE: this method should check that Packet is empty
+     * Insert IEEE 802.15.4 header Packet
      */
-    void putHeader();
+    void putPanHeader();
+
+    /**
+     * Insert UplinkHeader in Packet
+     */
+    void putUplinkHeader();
+
+    /**
+     * Insert UplinkHeader in Packet
+     */
+    void putSmallHeader();
 
     /**
      * Insert myTopology in Packet
@@ -174,13 +203,17 @@ private:
      * Extract header and myTopology from the packet.
      */
     void extract();
+    /* Configuration values from NetworkConfiguration */
+    const int maxPackets;
+    const int guaranteedTopologies;
+    const int runtimeBitsetSize;
 
     /* Bool flag to store if last received packet is valid */
     bool valid = false;
-    /* Packet we are handling */
-    int currentPacket = 0;
-    /* Total number of packets */
-    int numPackets;
+    /* Packet we are handling, first packet = 0 */
+    int currPacket = 0;
+    /* Number of packets used */
+    int totPackets = 0;
     /* Array of Packets composing the UplinkMessage */
     Packet *packet;
     /* Header containing information on this packet */
