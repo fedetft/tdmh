@@ -124,9 +124,9 @@ void UpdatableQueue<K,V>::enqueue(K key, V&& val)
     auto it = data.find(key);
     if(it != data.end())
     {
-        it->second = val; //Replace
+        it->second = std::move(val); //Replace
     } else {
-        data[key] = val;
+        data[key] = std::move(val);
         queue.push_front(key);
     }
 }
