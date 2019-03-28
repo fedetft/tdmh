@@ -26,63 +26,39 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#pragma once
-
-#include "../mac_phase.h"
-#include "../mac_context.h"
-#include "../timesync/networktime.h"
-#include "../stream_manager.h"
+#include "uplink_phase.h"
 
 namespace mxnet {
 
-class UplinkPhase : public MACPhase
+void UplinkPhase::alignToNetworkTime(NetworkTime nt)
 {
-public:
-    UplinkPhase(const UplinkPhase&) = delete;
-    UplinkPhase& operator=(const UplinkPhase&) = delete;
-    virtual ~UplinkPhase() {}
-
-    //TODO: check the duration calculation, it is currently hardcoded
-    static unsigned long long getDuration(unsigned char numUplinkPackets)
+    auto controlSuperframeDuration = ctx.getNetworkConfig().getControlSuperframeDuration();
+    auto tileDuration = ctx.getNetworkConfig().getTileDuration();
+    auto numUplinkPerSuperframe = ctx.getNetworkConfig().getNumUplinkSlotperSuperframe();
+    auto controlSuperframe = ctx.getNetworkConfig().getControlSuperframeStructure();
+    // NOTE: Add half slot size to make the computation more robust to noise in time
+    auto time = nt.get() + ctx.getDataSlotDuration()/2;
+    auto superframeCount = time / controlSuperframeDuration;
+    auto timeWithinSuperframe = time % controlSuperframeDuration;
+    
+    //contains the number of uplink phases already executed
+    long long phase = superframeCount * numUplinkPerSuperframe;
+    
+    for(int i = 0; i < controlSuperframe.size(); i++)
     {
-        return (packetArrivalAndProcessingTime + transmissionInterval) * numUplinkPackets;
+        if(timeWithinSuperframe < tileDuration) break;
+        timeWithinSuperframe -= tileDuration;
+        if(controlSuperframe.isControlUplink(i)) phase++;
     }
+    nextNode = nodesCount - 1 - (phase % (nodesCount - 1));
+}
 
-    /**
-     * Align uplink phase to the network time when (re)synchronizing
-     */
-    void alignToNetworkTime(NetworkTime nt);
-
-    /**
-     * Called when the node clock synchronization error is too high to operate
-     * but the node is not desynchronized. ITs purpose is to update the phase
-     * state without causing packet transmissions/receptions.
-     */
-    void advance(long long slotStart) override { getAndUpdateCurrentNode(); }
-
-    static const int transmissionInterval = 1000000; //1ms
-    static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
-    static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
-    
-protected:
-    UplinkPhase(MACContext& ctx, StreamManager* const streamMgr) :
-            MACPhase(ctx),
-            streamMgr(streamMgr),
-            myId(ctx.getNetworkId()),
-            nodesCount(ctx.getNetworkConfig().getMaxNodes()),
-            nextNode(nodesCount - 1) {}
-    
-    /**
-     * Called at every execute() or advance() updates the state of the
-     * round-robin scheme used for uplink.
-     * \return which node id is expected to transmit in this uplink
-     */
-    unsigned char getAndUpdateCurrentNode();
-    
-    StreamManager* const streamMgr; ///< Used to get SMEs
-    unsigned char myId;       ///< Cached NetworkId of this node
-    unsigned char nodesCount; ///< Cached NetworkConfiguration::getMaxNodes()
-    unsigned char nextNode;   ///< Next node to talk in the round-robin
-};
+unsigned char UplinkPhase::getAndUpdateCurrentNode()
+{
+    auto currentNode = nextNode;
+    if (--nextNode <= 0) nextNode = nodesCount - 1;
+    return currentNode;
+}
 
 } // namespace mxnet
+
