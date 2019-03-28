@@ -36,21 +36,21 @@ using namespace miosix;
 namespace mxnet {
 
 void Packet::put(const void* data, int size) {
-    if((size + dataSize) > static_cast<int>(packet.size()))
+    if(size > static_cast<int>(available())
         throw range_error("Packet::put: Overflow!");
     memcpy(packet.data()+dataSize, data, size);
     dataSize += size;
 }
 
 void Packet::get(void* data, int size) {
-    if(size > (dataSize - dataStart))
+    if(size > size())
         throw PacketUnderflowException("Packet::get: Underflow!");
     memcpy(data, packet.data()+dataStart, size);
     dataStart += size;
 }
 
 void Packet::discard(int size) {
-    if(size > (dataSize - dataStart))
+    if(size > size())
         throw PacketUnderflowException("Packet::discard: Underflow!");
     dataStart += size;
 }
@@ -92,7 +92,7 @@ RecvResult Packet::recv(MACContext& ctx, long long tExpected, function<bool (con
 #ifdef _MIOSIX
         redLed::high();
 #endif
-        result = ctx.recv(packet.data(), packet.size(), timeout, corr);
+        result = ctx.recv(packet.data(), maxSize(), timeout, corr);
 #ifdef _MIOSIX
         redLed::low();
 #endif

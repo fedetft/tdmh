@@ -60,6 +60,8 @@ public:
 
     unsigned int size() const { return (dataSize - dataStart); }
 
+    unsigned int available() const { return (maxSize() - dataSize); }
+
     unsigned int maxSize() const { return packet.size(); }
 
     void print() const {
