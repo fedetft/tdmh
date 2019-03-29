@@ -78,10 +78,10 @@ protected:
     UplinkPhase(MACContext& ctx, StreamManager* const streamMgr) :
             MACPhase(ctx),
             streamMgr(streamMgr),
+            numUplinkPackets(ctx.getNetworkConfig().getNumUplinkPackets()),
             myId(ctx.getNetworkId()),
             nodesCount(ctx.getNetworkConfig().getMaxNodes()),
-            nextNode(nodesCount - 1),
-            numUplinkPackets(ctx.getNetworkConfig().getNumUplinkPackets()) {}
+            nextNode(nodesCount - 1) {}
     
     /**
      * Called at every execute() or advance() updates the state of the
@@ -91,10 +91,12 @@ protected:
     unsigned char getAndUpdateCurrentNode();
     
     StreamManager* const streamMgr; ///< Used to get SMEs
-    unsigned char myId;       ///< Cached NetworkId of this node
-    unsigned char nodesCount; ///< Cached NetworkConfiguration::getMaxNodes()
-    unsigned char nextNode;   ///< Next node to talk in the round-robin
-    unsigned char numUplinkPackets; ///< Number of packets per uplink slot
+    const unsigned char numUplinkPackets; ///< Number of packets per uplink slot
+    const unsigned char myId;       ///< Cached NetworkId of this node
+    const unsigned char nodesCount; ///< Cached NetworkConfiguration::getMaxNodes()
+    
+private:
+    unsigned char nextNode;         ///< Next node to talk in the round-robin
 };
 
 } // namespace mxnet
