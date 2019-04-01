@@ -339,7 +339,7 @@ StreamCollection StreamManager::getSnapshot() {
 #endif
     return StreamCollection(streamMap, modified_flag, removed_flag, added_flag);
 }
-
+    /*
 unsigned char StreamManager::getNumSME() {
     // Mutex lock to access the shared container StreamMap
 #ifdef _MIOSIX
@@ -366,6 +366,19 @@ std::vector<StreamManagementElement> StreamManager::dequeueSMEs(unsigned char co
         smeQueue.pop();
     }
     return result;
+    }*/
+
+void StreamManager::dequeueSMEs(UpdatableQueue<StreamId,StreamManagementElement>& queue) {
+    // Mutex lock to access the shared container StreamMap
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
+#else
+    std::unique_lock<std::mutex> lck(streamMgr_mutex);
+#endif
+    for(unsigned int i = 0; i < smeQueue.size(); i++) {
+        queue.enqueue(smeQueue.front.getStreamId(), smeQueue.front());
+        smeQueue.pop();
+    }
 }
 
 void StreamManager::enqueueSMEs(std::vector<StreamManagementElement> smes) {

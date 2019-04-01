@@ -35,6 +35,8 @@
 
 namespace mxnet {
 
+const int panHeaderSize = 5; //panHeader size is 5 bytes
+
 /* Header used in the first packet of the UplinkMessage */
 struct UplinkHeader {
     unsigned char hop;
@@ -43,11 +45,24 @@ struct UplinkHeader {
     unsigned char numSME;
 } __attribute__((packed));
 
-/* Header used in the second and following packets of the UplinkMessage */
-struct SmallHeader {
-     unsigned char numTopology;
-     unsigned char numSME;
-} __attribute__((packed));
+/**
+ * @return the capacity of the first packet of an UplinkMessage, which is composed of
+ * panHeader, UplinkHeader and myTopology
+ */
+inline int getFirstUplinkPacketCapacity(const NetworkConfiguration& config) {
+    int runtimeBitsetSize = ((config.getMaxNumNodes() + 7) / 8);
+    return Packet::maxSize() - (panHeaderSize +
+                                sizeof(UplinkHeader) +
+                                runtimeBitsetSize);
+}
+
+/**
+ * @return the capacity of the second and following packets of an UplinkMessage,
+ * which are composed of panHeader and SmallHeader
+ */
+inline int getOtherUplinkPacketCapacity() {
+    return Packet::maxSize() - panHeaderSize;
+}
 
 /** The UplinkMessage class represents the message used to send topologies and SMEs
  *  to the other nodes of the network.
@@ -67,49 +82,85 @@ struct SmallHeader {
  * only part of the data to avoid unnecessary copy of Topologies and SMEs
  */
 
-class UplinkMessage {
+class SendUplinkMessage {
 public:
+    SendUplinkMessage(const NetworkConfiguration& config,
+                      unsigned char hop, unsigned char assignee,
+                      const TopologyElement& myTopology,
+                      int availableTopologies, int availableSMEs);
 
-    const int panHeaderSize = 5 //panHeader size is 5 bytes
-    /**
-     * Constructor with number of uplink packets, header data
-     * and myTopology as parameters, for sending UplinkMessage
-     */
-    UplinkMessage(const NetworkConfiguration& config, unsigned int numPackets,
-                  unsigned char hop, unsigned char assignee,
-                  const TopologyElement& myTopology);
+    SendUplinkMessage(const SendUplinkMessage&) = delete;
+    SendUplinkMessage& operator=(const SendUplinkMessage&) = delete;
 
     /**
-     * Constructor which accepts the number of uplink packets as parameter,
-     * Used when receiving an UplinkMessage from the radio
+     * This function serializes topologies and SMEs in the packet.
+     * NOTE: Call this function before every send
      */
-    UplinkMessage(const NetworkConfiguration& config, unsigned int numPackets);
-
-    ~UplinkMessage();
-
-    UplinkMessage(const UplinkMessage&) = delete;
-
-    UplinkMessage& operator=(const UplinkMessage&) = delete;
+    void serializeTopologiesAndSMEs(UpdatableQueue<unsigned char, TopologyElement>& topologies,
+                                    UpdatableQueue<StreamId, StreamManagementElement>& smes);
 
     /**
-     * Allocate into the UplinkMessage packets the highest number of TopologyElements and
-     * SMEs, to be forwarded to other nodes through the UplinkMessage.
-     * NOTE: this method sets numTopology and numSME in the header
-     * @return the number of packets used (maximum = numPackets)
+     * @return the number of packet to send with this UplinkMessage
      */
-    int putTopologiesAndSMEs(UpdatableQueue<unsigned char, TopologyElement>& topologies,
-                             UpdatableQueue<StreamId, StreamManagementElement>& smes);
+    int getNumPackets() const { return totPackets; }
 
     /**
      * This function sends the current packet of the UplinkMessage over the radio
+     * and prepares the next packet
      */
-    void send(MACContext& ctx, long long sendTime);
+    void send(MACContext& ctx, long long sendTime) {
+        packet.send(ctx, sendTime);
+        // Prepare the next packet
+        packet.clear();
+        putPanHeader();
+    }
+
+private:
+
+    void computePacketAllocation(const NetworkConfiguration& config,
+                                 int availableTopologies, int availableSMEs);
+    /**
+     * Insert IEEE 802.15.4 header Packet
+     */
+    void putPanHeader();
+
+    /* One of the UplinkMessage packets */
+    Packet packet;
+    /* Number of packets used */
+    int totPackets;
+    /* Number of topologies sent in UplinkMessage.
+       Initialized by the constructor and decremented
+       every time a topology is serialized */
+    int numTopologies;
+    /* Number of SMEs sent in UplinkMessage.
+       Initialized by the constructor and decremented
+       every time a new SME is serialized */
+    int numSMEs;
+};
+
+class ReceiveUplinkMessage {
+public:
+    ReceiveUplinkMessage(const NetworkConfiguration& config);
+
+    ReceiveUplinkMessage(const ReceiveUplinkMessage&) = delete;
+    ReceiveUplinkMessage& operator=(const ReceiveUplinkMessage&) = delete;
+
+    /**
+     * Get TopologyElements and SMEs from the UplinkMessage packet
+     */
+    void deserializeTopologiesAndSMEs(UpdatableQueue<unsigned char, TopologyElement>& topologies,
+                                      UpdatableQueue<StreamId, StreamManagementElement>& smes);
 
     /**
      * This function listens on the radio for the next Packet of the UplinkMessage
      * @return if a valid packet is received.
      */
     bool recv(MACContext& ctx, long long tExpected);
+
+    /**
+     * @return the number of packets
+     */
+    int getNumPackets() const { return otherPackets; }
 
     /**
      * @return the hop of the message sender
@@ -124,12 +175,12 @@ public:
     /**
      * @return the recipient node of the UplinkMessage
      */
-    unsigned char getNumTopology() const { return header.assignee; }
+    unsigned char getNumTopologies() const { return header.assignee; }
 
     /**
      * @return the recipient node of the UplinkMessage
      */
-    unsigned char getNumSME() const { return header.assignee; }
+    unsigned char getNumSMEs() const { return header.assignee; }
 
     /**
      * @return the TopologyElement containing the neighbors of the sender
@@ -206,7 +257,6 @@ private:
     /* Configuration values from NetworkConfiguration */
     const int maxPackets;
     const int guaranteedTopologies;
-    const int runtimeBitsetSize;
 
     /* Bool flag to store if last received packet is valid */
     bool valid = false;
@@ -214,6 +264,8 @@ private:
     int currPacket = 0;
     /* Number of packets used */
     int totPackets = 0;
+    /* Number of packets, first excluded */
+    int otherPackets = 0;
     /* Array of Packets composing the UplinkMessage */
     Packet *packet;
     /* Header containing information on this packet */

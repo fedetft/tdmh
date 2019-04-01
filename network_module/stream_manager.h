@@ -220,12 +220,19 @@ public:
     /**
      * @return the number of SME stored in the Queue
      */
-    unsigned char getNumSME();
+    //unsigned char getNumSME();
     /**
      * @return a number of element from the SME queue to send on the network,
      * used by UplinkPhase
      */
-    std::vector<StreamManagementElement> dequeueSMEs(unsigned char count);
+    //std::vector<StreamManagementElement> dequeueSMEs(unsigned char count);
+
+    /**
+     * Dequeue SMEs of smeQueue into an UpdatableQueue
+     * used by DynamicUplinkPhase
+     */
+    void dequeueSMEs(UpdatableQueue<StreamId,StreamManagementElement>& queue);
+
     /**
      * Enqueue a list of sme received from other nodes, to be forwarded
      * towards the master node.

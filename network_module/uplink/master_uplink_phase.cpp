@@ -42,14 +42,14 @@ void MasterUplinkPhase::execute(long long slotStart)
     if(ENABLE_UPLINK_VERB_DBG)
         print_dbg("[U] N=%u T=%lld\n", address, slotStart);
     
-    UplinkMessage message(ctx.getNetworkConfig());
+    ReceiveUplinkMessage message(ctx.getNetworkConfig());
     
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     if(message.recv(ctx,expectedNode))
     {
-        auto senderTopology = message.getSenderTopology();
+        auto numPackets = message.getNumPackets();
         topology.receivedMessage(expectedNode, messsage.getHop(),
-                                 message.getRssi(), senderTopology);
+                                 message.getRssi(), message.getSenderTopology());
         
         if(ENABLE_UPLINK_INFO_DBG)
             print_dbg("[U]<-N=%u @%llu %hddBm\n",expectedNode,message.getTimestamp(),message.getRssi());
@@ -61,10 +61,11 @@ void MasterUplinkPhase::execute(long long slotStart)
             topology.handleForwardedTopologies(message);
             scheduleComputation.receiveSMEs(message);
             
-            for(unsigned char i = 1; i < numUplinkPackets; i++)
+            for(int i = 1; i < numPackets; i++)
             {
+                // NOTE: If we fail to receive a Packet of the UplinkMessage,
+                // do not wait for remaining packets
                 if(message.recv(ctx,expectedNode) == false) break;
-                
                 topology.handleForwardedTopologies(message);
                 scheduleComputation.receiveSMEs(message);
             }

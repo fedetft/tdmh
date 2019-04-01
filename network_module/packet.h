@@ -43,6 +43,18 @@ public:
     PacketUnderflowException(const std::string& err) : range_error(err) {}
 };
 
+/** 
+ * This class can be used to send a packet or receive a packet:
+ * send methods:
+ * - put()
+ * - available()
+ * - send()
+ * receive methods:
+ * - recv()
+ * - size()
+ * - get()
+ * - discard()
+ */
 class Packet {
 public:
     Packet() : dataSize(0), dataStart(0) {}
@@ -56,13 +68,27 @@ public:
 
     void get(void* data, int size);
 
+    /** 
+     * When reading a packet, ignore "size" bytes
+     */
     void discard(int size);
 
+    /** 
+     * \return how many bytes are stored in the packet and are available
+     * for Packet::get()
+     */
     unsigned int size() const { return (dataSize - dataStart); }
 
+    /** 
+     * \return the free space left in the packet, which is the number of bytes
+     * available for Packet::put()
+     */
     unsigned int available() const { return (maxSize() - dataSize); }
 
-    unsigned int maxSize() const { return packet.size(); }
+    /** 
+     * \return the maximum number of bytes a Packet can contain
+     */
+    static unsigned int maxSize() const { return MediumAccessController::maxPktSize; }
 
     void print() const {
         /* Check that immediately after receive, dataStart is equal to 0 */

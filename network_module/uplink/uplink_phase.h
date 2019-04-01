@@ -78,7 +78,6 @@ protected:
     UplinkPhase(MACContext& ctx, StreamManager* const streamMgr) :
             MACPhase(ctx),
             streamMgr(streamMgr),
-            numUplinkPackets(ctx.getNetworkConfig().getNumUplinkPackets()),
             myId(ctx.getNetworkId()),
             nodesCount(ctx.getNetworkConfig().getMaxNodes()),
             nextNode(nodesCount - 1) {}
@@ -91,7 +90,6 @@ protected:
     unsigned char getAndUpdateCurrentNode();
     
     StreamManager* const streamMgr; ///< Used to get SMEs
-    const unsigned char numUplinkPackets; ///< Number of packets per uplink slot
     const unsigned char myId;       ///< Cached NetworkId of this node
     const unsigned char nodesCount; ///< Cached NetworkConfiguration::getMaxNodes()
     

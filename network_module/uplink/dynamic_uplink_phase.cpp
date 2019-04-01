@@ -50,11 +50,12 @@ void DynamicUplinkPhase::execute(long long slotStart)
 
 void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char expectedNode)
 {
-    UplinkMessage message(ctx.getNetworkConfig());
+    ReceiveUplinkMessage message(ctx.getNetworkConfig());
     
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     if(message.recv(ctx,expectedNode))
     {
+        auto numPackets = message.getNumPackets();
         auto senderTopology = message.getSenderTopology();
         myNeighborTable.receivedMessage(expectedNode, messsage.getHop(),
                                     message.getRssi(), senderTopology);
@@ -68,36 +69,14 @@ void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char expect
         {
             topologyQueue.enqueue(expectedNode,
                 std::move(TopologyElement(expectedNode,senderTopology)));
+            message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
             
-            // Code to become a method of UplinkMessage -- begin
-            while(message.getNumTopology() > 0)
+            for(int i = 1; i < numPackets; i++)
             {
-                auto topology = message.getForwardedTopology();
-                topologyQueue.enqueue(topology.getId(),std::move(topology));
-            }
-            while(message.getNumSME() > 0)
-            {
-                auto sme = getSME();
-                smeQueue.enqueue(sme.getStreamId(),sme);
-            }
-            // Code to become a method of UplinkMessage -- end
-            
-            for(unsigned char i = 1; i < numUplinkPackets; i++)
-            {
+                // NOTE: If we fail to receive a Packet of the UplinkMessage,
+                // do not wait for remaining packets
                 if(message.recv(ctx,expectedNode) == false) break;
-                
-                // Code to become a method of UplinkMessage -- begin
-                while(message.getNumTopology() > 0)
-                {
-                    auto topology = message.getForwardedTopology();
-                    topologyQueue.enqueue(topology.getId(),std::move(topology));
-                }
-                while(message.getNumSME() > 0)
-                {
-                    auto sme = getSME();
-                    smeQueue.enqueue(sme.getStreamId(),sme);
-                }
-                // Code to become a method of UplinkMessage -- end
+                message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
             }
         }
         
@@ -112,20 +91,21 @@ void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char expect
 
 void DynamicUplinkPhase::sendMyUplink(long long slotStart)
 {
-    UplinkMessage message(ctx.getNetworkConfig(), ctx.getHop(),
-                          myNeighborTable.getBestPredecessor(),
-                          myNeighborTable.getMyTopologyElement());
-    
-    int numPackets = message.putTopologiesAndSMEs(topologyQueue,smeQueue);
+    streamMgr.dequeueSMEs(smeQueue);
+    SendUplinkMessage message(ctx.getNetworkConfig(), ctx.getHop(),
+                              myNeighborTable.getBestPredecessor(),
+                              myNeighborTable.getMyTopologyElement(),
+                              topologyQueue.size(), smeQueue.size());
     
     if(ENABLE_UPLINK_INFO_DBG)
         print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), slotStart);
     
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    for(int i = 0; i < numPackets; i++)
+    for(int i = 0; i < message.getNumPackets(); i++)
     {
+        message.serializeTopologiesAndSMEs(topologyQueue,smeQueue);
         message.send(ctx,slotStart);
-        slotStart+=packetArrivalAndProcessingTime + transmissionInterval;
+        slotStart += packetArrivalAndProcessingTime + transmissionInterval;
     }
     ctx.transceiverIdle();
     
