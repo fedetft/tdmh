@@ -112,7 +112,7 @@ public:
         packet.send(ctx, sendTime);
         // Prepare the next packet
         packet.clear();
-        putPanHeader();
+        putPanHeader(ctx.getNetworkConfiguration().getPanId());
     }
 
 private:
@@ -121,8 +121,9 @@ private:
                                  int availableTopologies, int availableSMEs);
     /**
      * Insert IEEE 802.15.4 header Packet
+     * \param panId the network PAN ID
      */
-    void putPanHeader();
+    void putPanHeader(unsigned short panId);
 
     /* One of the UplinkMessage packets */
     Packet packet;

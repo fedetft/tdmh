@@ -39,12 +39,11 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
                                      const TopologyElement& myTopology,
                                      int availableTopologies, int availableSMEs) {
     computePacketAllocation(config, availableTopologies, availableSMEs);
-    putPanHeader();
+    putPanHeader(config.getPanId());
     UplinkHeader header({hop, assignee, numTopologies, numSMEs});
     packet.put(&header, sizeof(UplinkHeader));
     myTopology.serialize(packet);
 }
-
 
 int SendUplinkMessage::serializeTopologiesAndSMEs(UpdatableQueue<TopologyElement>& topologies,
                                                   UpdatableQueue<StreamManagementElement>& smes) {
@@ -141,17 +140,14 @@ void SendUplinkMessage::computePacketAllocation(const NetworkConfiguration& conf
     assert(totPackets <= maxPackets);
 }
 
-void SendUplinkMessage::putPanHeader() {
-    if(packet.size() != 0) throw std::runtime_error("UplinkMessage: can't put header on non empty Packet");
-    auto panId = networkConfig.getPanId();
+void SendUplinkMessage::putPanHeader(unsigned short panId) {
     unsigned char panHeader[] = {
-                                 0x46, //frame type 0b110 (reserved), intra pan
-                                 0x08, //no source addressing, short destination addressing
-                                 0xff, //seq no reused as glossy hop count, 0=root node, it has to contain the source hop
-                                 static_cast<unsigned char>(panId>>8),
-                                 static_cast<unsigned char>(panId & 0xff), //destination pan ID
+        0x46, //frame type 0b110 (reserved), intra pan
+        0x08, //no source addressing, short destination addressing
+        0xff, //seq no is reused as packet type (0xff=uplink), or glossy hop count
+        static_cast<unsigned char>(panId>>8),
+        static_cast<unsigned char>(panId & 0xff), //destination pan ID
     };
-    // Put IEEE 802.15.4 compliant header
     packet.put(&panHeader, sizeof(panHeader));
 }
 
