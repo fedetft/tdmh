@@ -159,91 +159,110 @@ void SendUplinkMessage::putPanHeader() {
 // class ReceiveUplinkMessage
 //
 
-ReceiveUplinkMessage::ReceiveUplinkMessage(const NetworkConfiguration& config) :
-    maxPackets(config.getNumUplinkPackets()),
-    guaranteedTopologies(config.getGuaranteedTopologies()),
-    runtimeBitsetSize((config.getMaxNumNodes() + 7) / 8),
-    header({0,0,0,0}) {
-    packet = new Packet[numPackets];
+bool ReceiveUplinkMessage::recv(MACContext& ctx, long long tExpected) {
+    auto rcvResult = packet.recv(ctx, tExpected);
+    if(rcvResult.error != RecvResult::ErrorCode::OK)
+        return false;
+
+    auto& config = ctx.getNetworkConfiguration();
+    // Validate first packet
+    if(firstPacket) {
+        if(checkFirstPacket(config) == false) return false;
+        firstPacket = false;
+    }
+    // Validate other packets
+    else {
+        if(checkOtherPacket() == false) return false;
+    }
+    // Save rssi and timestamp of valid packet
+    rssi = rcvResult.getRssi();
+    if(rcvResult.timestampValid())
+        timestamp = rcvResult.getTimestamp();
+    else
+        timestamp = -1;
+    return true;
 }
 
 void ReceiveUplinkMessage::deserializeTopologiesAndSMEs(UpdatableQueue<unsigned char,
                                                         TopologyElement>& topologies,
                                                         UpdatableQueue<StreamId,
                                                         StreamManagementElement>& smes) {
-    while(getNumTopologies() > 0)
-        {
-            auto topology = getForwardedTopology();
-            topologies.enqueue(topology.getId(),std::move(topology));
-        }
-    while(getNumSMEs() > 0)
-        {
-            auto sme = getSME();
-            smes.enqueue(sme.getStreamId(),sme);
-        }
+    for(int i = 0; i < getPacketTopologies(); i++) {
+        auto topology = getForwardedTopology();
+        topologies.enqueue(topology.getId(),std::move(topology));
+    }
+
+    for(int i = 0; i < getPacketSMEs(); i++) {
+        auto sme = getSME();
+        smes.enqueue(sme.getStreamId(),sme);
+    }
 }
 
-bool recv(MACContext& ctx, long long tExpected) {
-    auto rcvResult = packet[currentPacket].recv(ctx, tExpected);
-    valid = false;
-    if(rcvResult.error == RecvResult::ErrorCode::OK &&
-       checkHeader() && checkPacket())
-        valid = true;
-    else
-        valid = false;
-    currentPacket++;
-    return valid;
-}
-
-TopologyElement UplinkMessage::getForwardedTopology() {
-    if(header.numSME < 1) throw std::runtime_error("UplinkMessage: no more forwarded topologies to extract");
-    if(packet.size() < TopologyElement.size()) throw std::runtime_error("UplinkMessage: no more forwarded topologies to extract");
-    TopologyElement result;
-    result = TopologyElement::deserialize(packet[currPacket]);
-    //TODO: decrement numTopology
-}
-
-StreamManagementElement UplinkMessage::getSME() {
-    if(packet.size() < TopologyElement.size()) throw std::runtime_error("UplinkMessage: no more forwarded topologies to extract");
-    StreamManagementElement result;
-    result = StreamManagementElement::deserialize(packet[currPacket]);
-    //TODO: decrement numSME
-}
-
-bool UplinkMessage::checkHeader() {
+bool ReceiveUplinkMessage::checkPanHeader() {
     auto panId = networkConfig.getPanId();
     // Check panHeader
-    if((packet[0] == 0x46 &&
-        packet[1] == 0x08 &&
-        packet[2] == 0xff &&
-        packet[3] == static_cast<unsigned char>(panId >> 8) &&
-        packet[4] == static_cast<unsigned char>(panId & 0xff)) return false;
+    if(packet[0] == 0x46 &&
+       packet[1] == 0x08 &&
+       packet[2] == 0xff &&
+       packet[3] == static_cast<unsigned char>(panId >> 8) &&
+       packet[4] == static_cast<unsigned char>(panId & 0xff)) return false;
+
+    // Remove panHeader from packet
+    packet.discard(panHeaderSize);
     return true;
 }
 
-bool UplinkMessage::checkPacket() {
-    // check if UplinkHeader matches the current packet
-    // and the size is valid
+bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) {
+    if(packet.size() < Packet::maxSize() - getFirstPacketCapacity(config)) return false;
+    if(checkPanHeader() == false) return false;
+    UplinkHeader temp;
+    packet.get(&temp, sizeof(UplinkHeader));
+    if(temp.hop == 0 || temp.hop > config.getMaxHops()) return false;
+    if(temp.assignee > config.getMaxNodes()) return false;
+    // Extract sender topology
+    auto senderTopology = RuntimeBitset::deserialize(packet);
+
+    /* Validate numTopologies and numSME in UplinkHeader
+       by trying to extract from an example packet the same number of topologies and SME */
+    int maxPackets = config.getNumUplinkPackets();
+    int remainingBytes = packet.size();
+    int numPackets = 1;
+    // Validate topologies in packets
+    int remainingTopologies = temp.numTopology;
+    for(;;) {
+        // NOTE: Do the allocation also for the last packet
+        int packetTopologies = std::min(remainingTopologies, remainingBytes / topologySize);
+        remainingTopologies -= packetTopologies;
+        remainingBytes -= packetTopologies * topologySize;
+        // Validate first packet
+        if(numPackets == 1) {
+            
+        }
+        if(remainingTopologies == 0) break;
+        if(++numPackets > maxPackets) return false;
+        remainingBytes = getOtherUplinkPacketCapacity();
+    }
+
+    // Validate SMEs in packets
+    int remainingSMEs = temp.numSME;
+    for(;;) {
+        // NOTE: Do the allocation also for the last packet
+        int packetSMEs = std::min(remainingSMEs, remainingBytes / smeSize);
+        remainingSMEs -= packetSMEs;
+        remainingBytes -= packetSMEs * smeSize;
+        if(remainingSMEs == 0) break;
+        if(++numPackets > maxPackets) return false;
+        remainingBytes = getOtherUplinkPacketCapacity();
+    }
+
+
+
+
+    // Write temporary values to class fields
+    totPackets = numPackets;
+    header = temp;
+    topology = std::move(senderTopology);
+    return true;
 }
-
-
-void UplinkMessage::putMyTopology() {
-    if(packet.size() == 0) throw std::runtime_error("UplinkMessage: can't put mytopology Packet without header");
-    // Put myTopology in Packet
-    myTopology.serialize(packet);
-}
-
-void UplinkMessage::extract() const {
-    if(!isUplinkPacket()) throw std::runtime_error("UplinkMessage: not an uplink packet");
-    if(packet.size() < getMinSize()) throw std::runtime_error("UplinkMessage: packet has not enough data to extract");
-
-    // Remove panHeader from the packet
-    packet.discard(panHeaderSize);
-    // Extract UplinkHeader from the packet
-    packet.get(&header, sizeof(UplinkHeader));
-    // Extract myTopology from the packet
-    myTopology = RuntimeBitset::deserialize(packet[currPacket]);
-}
-
 
 } /* namespace mxnet */

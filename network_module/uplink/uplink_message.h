@@ -140,8 +140,7 @@ private:
 
 class ReceiveUplinkMessage {
 public:
-    ReceiveUplinkMessage(const NetworkConfiguration& config);
-
+    ReceiveUplinkMessage() {}
     ReceiveUplinkMessage(const ReceiveUplinkMessage&) = delete;
     ReceiveUplinkMessage& operator=(const ReceiveUplinkMessage&) = delete;
 
@@ -160,7 +159,17 @@ public:
     /**
      * @return the number of packets
      */
-    int getNumPackets() const { return otherPackets; }
+    int getNumPackets() const { return totPackets; }
+
+    /**
+     * @return the TopologyElement containing the neighbors of the sender
+     */
+    int getRssi() const { return rssi; }
+
+    /**
+     * @return the TopologyElement containing the neighbors of the sender
+     */
+    long long getTimestamp() const { return timestamp; }
 
     /**
      * @return the hop of the message sender
@@ -175,12 +184,12 @@ public:
     /**
      * @return the recipient node of the UplinkMessage
      */
-    unsigned char getNumTopologies() const { return header.assignee; }
+    unsigned char getPacketTopologies() const { return packetTopologies }
 
     /**
      * @return the recipient node of the UplinkMessage
      */
-    unsigned char getNumSMEs() const { return header.assignee; }
+    unsigned char getPacketSMEs() const { return packetSMEs }
 
     /**
      * @return the TopologyElement containing the neighbors of the sender
@@ -190,88 +199,55 @@ public:
     /**
      * @return the TopologyElement containing the neighbors of the sender
      */
-    TopologyElement getForwardedTopology();
+    TopologyElement getForwardedTopology() {
+        return TopologyElement::deserialize(packet);
+    }
 
     /**
      * @return the next StreamManagementElement, extracting it from the Packet
      */
-    StreamManagementElement getSME();
+    StreamManagementElement getSME() {
+        return StreamManagementElement::deserialize(packet);
+    }
 
 private:
-    /**
-     * @return the capacity of the first packet of an UplinkMessage, which is composed of
-     * panHeader, UplinkHeader and myTopology
-     */
-    int getFirstPacketCapacity() {
-        return Packet::maxSize() - (panHeaderSize +
-                                    sizeof(UplinkHeader) +
-                                    runtimeBitsetSize);
-    }
-
-    /**
-     * @return the capacity of the second and following packets of an UplinkMessage,
-     * which are composed of panHeader and SmallHeader
-     */
-    int getOtherPacketCapacity() {
-        return Packet::maxSize() - (panHeaderSize +
-                                    sizeof(SmallHeader));
-    }
 
     /**
      * Checks the IEEE 802.15.4 header of the current packet.
      * @return true if current packet is an UplinkPacket, false otherwise
      */
-    bool checkHeader();
+    bool checkPanHeader();
 
     /**
-     * Checks the UplinkHeader of the current packet.
-     * @return true if data in UplinkHeader is valid, false otherwise
-     * firstPacket is used to check againt the correct packet type
+     * Checks that the values in the first packet header are valid.
+     * @return true if UplinkHeader of the received packet is valid, false otherwise
      */
-    bool checkPacket();
+    bool checkFirstPacket();
 
     /**
-     * Insert IEEE 802.15.4 header Packet
+     * Checks that the values in the second or following packet are valid.
+     * @return true if the content of the received packet is valid, false otherwise
      */
-    void putPanHeader();
+    bool checkOtherPacket();
 
-    /**
-     * Insert UplinkHeader in Packet
-     */
-    void putUplinkHeader();
-
-    /**
-     * Insert UplinkHeader in Packet
-     */
-    void putSmallHeader();
-
-    /**
-     * Insert myTopology in Packet
-     */
-    void putMyTopology();
-
-    /**
-     * Extract header and myTopology from the packet.
-     */
-    void extract();
-    /* Configuration values from NetworkConfiguration */
-    const int maxPackets;
-    const int guaranteedTopologies;
-
-    /* Bool flag to store if last received packet is valid */
-    bool valid = false;
-    /* Packet we are handling, first packet = 0 */
-    int currPacket = 0;
+    /* One of the UplinkMessage packets */
+    Packet packet;
+    /* This is the first packet we are receiving*/
+    bool firstPacket = true;
     /* Number of packets used */
     int totPackets = 0;
-    /* Number of packets, first excluded */
-    int otherPackets = 0;
-    /* Array of Packets composing the UplinkMessage */
-    Packet *packet;
+    /* RSSI of the received packer */
+    int rssi = -120;
+    /* Timestamp of the received packet */
+    long long timestamp = -1;
     /* Header containing information on this packet */
     UplinkHeader header;
     /* TopologyElement containing topology of node sending the packet */
-    TopologyElement myTopology;
+    RuntimeBitset topology;
+    /* Number of topologies contained in the current packet */
+    int packetTopologies = 0;
+    /* Number of SMEs contained in the current packet */
+    int packetSMEs = 0;
 };
 
 } /* namespace mxnet */

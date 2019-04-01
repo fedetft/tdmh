@@ -217,15 +217,6 @@ public:
      * @return a snapshot of streamMap 
      */
     StreamCollection getSnapshot();
-    /**
-     * @return the number of SME stored in the Queue
-     */
-    //unsigned char getNumSME();
-    /**
-     * @return a number of element from the SME queue to send on the network,
-     * used by UplinkPhase
-     */
-    //std::vector<StreamManagementElement> dequeueSMEs(unsigned char count);
 
     /**
      * Dequeue SMEs of smeQueue into an UpdatableQueue
