@@ -222,7 +222,7 @@ private:
      * Checks that the values in the first packet header are valid.
      * @return true if UplinkHeader of the received packet is valid, false otherwise
      */
-    bool checkFirstPacket();
+    bool checkFirstPacket(const NetworkConfiguration& config);
 
     /**
      * Checks that the values in the second or following packet are valid.
