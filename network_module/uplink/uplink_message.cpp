@@ -47,9 +47,6 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
 
 int SendUplinkMessage::serializeTopologiesAndSMEs(UpdatableQueue<TopologyElement>& topologies,
                                                   UpdatableQueue<StreamManagementElement>& smes) {
-    // This method should not be called more than getNumPackets() time
-    if(numTopologies == 0 && numSMEs == 0)
-        throw runtime_error("SendUplinkMessage::serializeTopologiesAndSMEs no topologies or SMEs");
     int topologySize = TopologyElement::maxSize();
     int smeSize = StreamManagementElement::maxSize();
     int remainingBytes = packet.available();
