@@ -64,7 +64,7 @@ const bool ENABLE_UPLINK_ERROR_DBG = true;
 const bool ENABLE_TOPOLOGY_INFO_DBG = false;
 
 //prints the slot number, if packets received and RSSI
-const bool ENABLE_TOPOLOGY_SHORT_SUMMARY = false;
+const bool ENABLE_TOPOLOGY_SHORT_SUMMARY = true;
 
 //prints the stream context debug info
 const bool ENABLE_STREAM_INFO_DBG = true;
