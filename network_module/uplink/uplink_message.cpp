@@ -191,8 +191,7 @@ void ReceiveUplinkMessage::deserializeTopologiesAndSMEs(UpdatableQueue<unsigned 
     }
 }
 
-bool ReceiveUplinkMessage::checkPanHeader() {
-    auto panId = networkConfig.getPanId();
+bool ReceiveUplinkMessage::checkPanHeader(unsigned short panId) {
     // Check panHeader
     if(packet[0] == 0x46 &&
        packet[1] == 0x08 &&
@@ -207,7 +206,8 @@ bool ReceiveUplinkMessage::checkPanHeader() {
 
 bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) {
     if(packet.size() < Packet::maxSize() - getFirstPacketCapacity(config)) return false;
-    if(checkPanHeader() == false) return false;
+    unsigned short panId = config.getPanId();
+    if(checkPanHeader(panId) == false) return false;
     UplinkHeader temp;
     packet.get(&temp, sizeof(UplinkHeader));
     if(temp.hop == 0 || temp.hop > config.getMaxHops()) return false;

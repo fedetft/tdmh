@@ -217,7 +217,7 @@ private:
      * Checks the IEEE 802.15.4 header of the current packet.
      * @return true if current packet is an UplinkPacket, false otherwise
      */
-    bool checkPanHeader();
+    bool checkPanHeader(unsigned short panId);
 
     /**
      * Checks that the values in the first packet header are valid.
