@@ -25,30 +25,17 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#pragma once
-
-#include "mac_context.h"
-#include "downlink_phase/timesync/master_timesync_downlink.h"
-#include "downlink_phase/master_schedule_distribution.h"
-#include "uplink_phase/master_uplink_phase.h"
-#include "scheduler/schedule_computation.h"
+#include "runtime_bitset.h"
 
 namespace mxnet {
 
-class MasterMACContext : public MACContext {
-public:
-    MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config);
-    MasterMACContext() = delete;
-    virtual ~MasterMACContext() {};
-    void startScheduler() {
-      scheduleComputation->startThread();
-    };
-    void beginScheduling() {
-      scheduleComputation->beginScheduling();
-    };
 
-private:
-    ScheduleComputation* scheduleComputation = nullptr;
-};
+bool RuntimeBitset::empty() {
+    bool notEmpty = false;
+    for(int i=0; i<byteSize; i++) {
+        if(content[i]) notEmpty = true;
+    }
+    return !notEmpty;
+}
 
 } /* namespace mxnet */

@@ -28,11 +28,9 @@
 #pragma once
 
 #include "mac_context.h"
-#include "timesync/dynamic_timesync_downlink.h"
-#include "uplink/topology/mesh_topology_context.h"
-#include "uplink/topology/tree_topology_context.h"
-#include "uplink/dynamic_uplink_phase.h"
-#include "schedule/dynamic_schedule_distribution.h"
+#include "downlink_phase/timesync/dynamic_timesync_downlink.h"
+#include "downlink_phase/dynamic_schedule_distribution.h"
+#include "uplink_phase/dynamic_uplink_phase.h"
 
 namespace mxnet {
 

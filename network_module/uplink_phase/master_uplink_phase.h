@@ -29,7 +29,7 @@
 #pragma once
 
 #include "uplink_phase.h"
-#include "../schedule/schedule_computation.h"
+#include "../scheduler/schedule_computation.h"
 
 namespace mxnet {
 

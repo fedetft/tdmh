@@ -30,8 +30,8 @@
 
 #include "../network_configuration.h"
 #include "uplink_phase.h"
-#include "../updatable_queue.h"
-#include "neighbor_table.h"
+#include "../util/updatable_queue.h"
+#include "topology/neighbor_table.h"
 
 namespace mxnet {
 

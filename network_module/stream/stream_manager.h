@@ -28,9 +28,9 @@
 #pragma once
 
 // For StreamId
-#include "uplink/stream_management/stream_management_element.h"
+#include "stream_management_element.h"
 #include "stream.h"
-#include "schedule/schedule_element.h"
+#include "../scheduler/schedule_element.h"
 // For thread synchronization
 #ifdef _MIOSIX
 #include <miosix.h>

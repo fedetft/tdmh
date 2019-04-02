@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2018 by Polidori Paolo                                 *
+ *   Copyright (C)  2019 by Federico Amedeo Izzo, Federico Terraneo        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,28 +27,18 @@
 
 #pragma once
 
-#include "mac_context.h"
-#include "downlink_phase/timesync/master_timesync_downlink.h"
-#include "downlink_phase/master_schedule_distribution.h"
-#include "uplink_phase/master_uplink_phase.h"
-#include "scheduler/schedule_computation.h"
-
 namespace mxnet {
 
-class MasterMACContext : public MACContext {
+/**
+ * NetworkTopology contains all the information about the network graph
+ * in the Master node.
+ */
+class NetworkTopology {
 public:
-    MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config);
-    MasterMACContext() = delete;
-    virtual ~MasterMACContext() {};
-    void startScheduler() {
-      scheduleComputation->startThread();
-    };
-    void beginScheduling() {
-      scheduleComputation->beginScheduling();
-    };
+    NetworkTopology();
 
 private:
-    ScheduleComputation* scheduleComputation = nullptr;
+
 };
 
 } /* namespace mxnet */

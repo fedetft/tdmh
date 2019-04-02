@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2018 by Polidori Paolo                                 *
+ *   Copyright (C)  2019 by Federico Amedeo Izzo, Federico Terraneo        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,28 +27,22 @@
 
 #pragma once
 
-#include "mac_context.h"
-#include "downlink_phase/timesync/master_timesync_downlink.h"
-#include "downlink_phase/master_schedule_distribution.h"
-#include "uplink_phase/master_uplink_phase.h"
-#include "scheduler/schedule_computation.h"
+#include "topology_element.h"
 
 namespace mxnet {
 
-class MasterMACContext : public MACContext {
+/**
+ * NeighborTable contains informations on the neighbors of a node
+ */
+class NeighborTable {
 public:
-    MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config);
-    MasterMACContext() = delete;
-    virtual ~MasterMACContext() {};
-    void startScheduler() {
-      scheduleComputation->startThread();
-    };
-    void beginScheduling() {
-      scheduleComputation->beginScheduling();
-    };
+    NeighborTable(unsigned short bitmaskSize) :
+        myTopologyElement(TopologyElement(bitmaskSize)) {}
 
 private:
-    ScheduleComputation* scheduleComputation = nullptr;
+
+    /* TopologyElement containing neighbors of this node */
+    TopologyElement myTopologyElement;
 };
 
 } /* namespace mxnet */

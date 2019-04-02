@@ -30,8 +30,8 @@
 
 #include "../mac_phase.h"
 #include "../mac_context.h"
-#include "schedule_element.h"
-#include "../debug_settings.h"
+#include "../scheduler/schedule_element.h"
+#include "../util/debug_settings.h"
 
 /**
  * Represents the phase in which the schedule is distributed to the entire network,

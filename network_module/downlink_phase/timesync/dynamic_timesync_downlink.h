@@ -33,7 +33,7 @@
 #include "roundtrip/asking_roundtrip.h"
 #include "interfaces-impl/virtual_clock.h"
 #include "kernel/timeconversion.h"
-#include "../packet.h"
+#include "../../util/packet.h"
 #include <limits>
 
 namespace mxnet {

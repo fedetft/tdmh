@@ -32,8 +32,8 @@
 #include "network_configuration.h"
 #include "interfaces-impl/transceiver.h"
 #include "interfaces-impl/power_manager.h"
-#include "stream_manager.h"
-#include "timesync/networktime.h"
+#include "stream/stream_manager.h"
+#include "downlink_phase/timesync/networktime.h"
 #include <functional>
 #include <stdexcept>
 #include <utility>

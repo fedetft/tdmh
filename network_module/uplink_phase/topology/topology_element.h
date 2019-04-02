@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2018 by Polidori Paolo                                 *
+ *   Copyright (C)  2019 by Federico Amedeo Izzo, Federico Terraneo        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,28 +27,41 @@
 
 #pragma once
 
-#include "mac_context.h"
-#include "downlink_phase/timesync/master_timesync_downlink.h"
-#include "downlink_phase/master_schedule_distribution.h"
-#include "uplink_phase/master_uplink_phase.h"
-#include "scheduler/schedule_computation.h"
+#include "../../util/serializable_message.h"
+#include "../../util/runtime_bitset.h"
+#include "../../util/packet.h"
 
 namespace mxnet {
 
-class MasterMACContext : public MACContext {
+/**
+ * TopologyElement containg a map of the neighbors of a given node on the network
+ * and the Id of that node.
+ * It is sent from the Dynamic nodes towards the Master node contained in UplinkMessage
+ */
+class TopologyElement : public SerializableMessage {
 public:
-    MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config);
-    MasterMACContext() = delete;
-    virtual ~MasterMACContext() {};
-    void startScheduler() {
-      scheduleComputation->startThread();
-    };
-    void beginScheduling() {
-      scheduleComputation->beginScheduling();
-    };
+    TopologyElement(unsigned short bitmaskSize) : id(0), neighbors(bitmaskSize, 0) {}
 
+    TopologyElement(unsigned char id, const RuntimeBitset& neighbors) :
+        id(id), neighbors(neighbors) {}
+
+    // Zero copy constructor
+    TopologyElement(unsigned char id, RuntimeBitset&& neighbors) :
+        id(id), neighbors(std::move(neighbors)) {}
+
+    unsigned char getId() const { return id; }
+
+    RuntimeBitset getNeighbors() const { return neighbors; }
+
+    void serialize(Packet& pkt) const override;
+
+    static TopologyElement deserialize(Packet& pkt unsigned short bitmaskSize);
 private:
-    ScheduleComputation* scheduleComputation = nullptr;
+
+    /* Network ID of the node */
+    unsigned char id;
+    /* Neighbors of the node */
+    RuntimeBitset neighbors;
 };
 
 } /* namespace mxnet */

@@ -30,8 +30,8 @@
 #include <utility>
 #include <array>
 #include "timesync_downlink.h"
-#include "../uplink/uplink_phase.h"
-#include "../packet.h"
+#include "../../uplink_phase/uplink_phase.h"
+#include "../../util/packet.h"
 
 namespace mxnet {
 class MasterTimesyncDownlink : public TimesyncDownlink {

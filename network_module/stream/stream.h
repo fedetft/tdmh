@@ -27,9 +27,9 @@
 
 #pragma once
 
-#include "tdmh.h"
-#include "packet.h"
-#include "uplink/stream_management/stream_management_element.h"
+#include "../tdmh.h"
+#include "../util/packet.h"
+#include "stream_management_element.h"
 #include <queue>
 #include <memory>
 #ifdef _MIOSIX

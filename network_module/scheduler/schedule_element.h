@@ -26,8 +26,8 @@
  ***************************************************************************/
 
 #pragma once
-#include "../serializable_message.h"
-#include "../uplink/stream_management/stream_management_element.h"
+#include "../util/serializable_message.h"
+#include "../stream/stream_management_element.h"
 #include <cstring>
 #include <iostream>
 

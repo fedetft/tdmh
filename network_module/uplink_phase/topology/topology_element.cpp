@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2018 by Polidori Paolo                                 *
+ *   Copyright (C)  2019 by Federico Amedeo Izzo, Federico Terraneo        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,30 +25,24 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#pragma once
-
-#include "mac_context.h"
-#include "downlink_phase/timesync/master_timesync_downlink.h"
-#include "downlink_phase/master_schedule_distribution.h"
-#include "uplink_phase/master_uplink_phase.h"
-#include "scheduler/schedule_computation.h"
+#include "topology_element.h"
 
 namespace mxnet {
 
-class MasterMACContext : public MACContext {
-public:
-    MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config);
-    MasterMACContext() = delete;
-    virtual ~MasterMACContext() {};
-    void startScheduler() {
-      scheduleComputation->startThread();
-    };
-    void beginScheduling() {
-      scheduleComputation->beginScheduling();
-    };
+//
+// class TopologyElement
+//
+    
+void TopologyElement::serialize(Packet& pkt) {
+    pkt.put(&id, sizeof(unsigned char));
+    pkt.put(neighbors.data(), neighbors.size());
+}
 
-private:
-    ScheduleComputation* scheduleComputation = nullptr;
-};
+TopologyElement TopologyElement::deserialize(Packet& pkt, unsigned short bitmaskSize) {
+    TopologyElement result(bitmaskSize);
+    pkt.get(&result.id, sizeof(unsigned char));
+    pkt.get(result.neighbors.data(), bitmaskSize);
+    return result;
+}
 
 } /* namespace mxnet */

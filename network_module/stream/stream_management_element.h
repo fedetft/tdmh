@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include "../../serializable_message.h"
+#include "../util/serializable_message.h"
 #include <string.h>
 #include <vector>
 

@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include "tdmh.h"
+#include "../tdmh.h"
 #include "interfaces-impl/transceiver.h"
 #include "miosix.h"
 #include "debug_settings.h"

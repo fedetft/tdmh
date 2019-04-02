@@ -28,8 +28,8 @@
 #pragma once
 
 
-#include "../stream_manager.h"
-#include "../uplink/topology/mesh_topology_context.h"
+#include "../stream/stream_manager.h"
+#include "../uplink_phase/topology/network_topology.h"
 #include "../network_configuration.h"
 #include "schedule_element.h"
 #ifdef _MIOSIX
