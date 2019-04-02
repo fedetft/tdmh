@@ -198,10 +198,10 @@ public:
     }
 
     /**
-     * @return the size of NeighborTable (RuntimeBitset).
+     * @return the size of the bitmask used to store neighbors of a node.
      */
-    unsigned short getNeighborTableSize() const {
-        return ((maxNodes - 1) >> 3) + 1;
+    unsigned short getNeighborBitmaskSize() const {
+        return ((maxNodes + 7) / 8);
     }
 
     /**

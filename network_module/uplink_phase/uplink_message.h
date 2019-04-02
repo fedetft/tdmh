@@ -50,10 +50,9 @@ struct UplinkHeader {
  * panHeader, UplinkHeader and myTopology
  */
 inline int getFirstUplinkPacketCapacity(const NetworkConfiguration& config) {
-    int runtimeBitsetSize = ((config.getMaxNumNodes() + 7) / 8);
     return Packet::maxSize() - (panHeaderSize +
                                 sizeof(UplinkHeader) +
-                                runtimeBitsetSize);
+                                config.getNeighborBitmaskSize());
 }
 
 /**
@@ -145,7 +144,8 @@ private:
 
 class ReceiveUplinkMessage {
 public:
-    ReceiveUplinkMessage() {}
+    ReceiveUplinkMessage(const NetworkConfiguration& config) :
+        bitmaskSize(config.getNeighborBitmaskSize()) {}
     ReceiveUplinkMessage(const ReceiveUplinkMessage&) = delete;
     ReceiveUplinkMessage& operator=(const ReceiveUplinkMessage&) = delete;
 
@@ -205,7 +205,7 @@ public:
      * @return the next TopologyElement, extracting it from the packet
      */
     TopologyElement getForwardedTopology() {
-        return TopologyElement::deserialize(packet);
+        return TopologyElement::deserialize(packet, bitmaskSize);
     }
 
     /**
@@ -245,6 +245,7 @@ private:
     /* Size constants used in the methods */
     const int topologySize = TopologyElement::maxSize();
     const int smeSize = StreamManagementElement::maxSize();
+    const unsigned short bitmaskSize;
 
     /* One of the UplinkMessage packets */
     Packet packet;

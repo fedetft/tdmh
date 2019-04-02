@@ -68,7 +68,7 @@ void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char expect
         if(message.getAssignee() == myId)
         {
             topologyQueue.enqueue(expectedNode,
-                std::move(TopologyElement(expectedNode,senderTopology)));
+                std::move(TopologyElement(expectedNode, std::move(senderTopology))));
             message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
             
             for(int i = 1; i < numPackets; i++)
