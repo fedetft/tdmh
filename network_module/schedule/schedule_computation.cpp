@@ -275,15 +275,16 @@ std::pair<std::list<ScheduleElement>,
     return scheduleStreams(routed_streams, current_schedule, schedSize);
 }
 
-void ScheduleComputation::receiveSMEs(const std::vector<StreamManagementElement>& smes) {
+void ScheduleComputation::receiveSMEs(UplinkMessage& msg) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
     std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
     std::vector<InfoElement> infos;
-    // Iterate over received SMEs
-    for(auto& sme: smes) {
+    auto numSME = msg.getNumPacketSMEs();
+    for(int i=0; i < numSME; i++) {
+        sme = msg.getSME();
         StreamStatus status = sme.getStatus();
         StreamId id = sme.getStreamId();
         // StreamId used to match LISTEN Streams StreamId(dst, dst, 0, dstPort)

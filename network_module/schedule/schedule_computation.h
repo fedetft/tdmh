@@ -83,7 +83,7 @@ public:
     /**
      * Receives a vector of SME from the network and register them in the StreamManager
      */
-    void receiveSMEs(const std::vector<StreamManagementElement>& smes);
+    void receiveSMEs(UplinkMessage& msg);
 
     void open(const StreamInfo& stream);
 

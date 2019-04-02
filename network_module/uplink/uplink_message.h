@@ -125,6 +125,10 @@ private:
      */
     void putPanHeader(unsigned short panId);
 
+    /* Size constants used in the methods */
+    const int topologySize = TopologyElement::maxSize();
+    const int smeSize = StreamManagementElement::maxSize();
+
     /* One of the UplinkMessage packets */
     Packet packet;
     /* Number of packets used */
@@ -183,29 +187,29 @@ public:
     unsigned char getAssignee() const { return header.assignee; }
 
     /**
-     * @return the recipient node of the UplinkMessage
+     * @return the number of Topologies saved in current packet
      */
-    unsigned char getPacketTopologies() const { return packetTopologies }
+    int getNumPacketTopologies() const { return packetTopologies; }
 
     /**
-     * @return the recipient node of the UplinkMessage
+     * @return the number of SME saved in current packet
      */
-    unsigned char getPacketSMEs() const { return packetSMEs }
+    int getNumPacketSMEs() const { return packetSMEs; }
 
     /**
-     * @return the TopologyElement containing the neighbors of the sender
+     * @return the RuntimeBitset containing the neighbors of the sender
      */
     RuntimeBitset getSenderTopology() const { return topology; }
 
     /**
-     * @return the TopologyElement containing the neighbors of the sender
+     * @return the next TopologyElement, extracting it from the packet
      */
     TopologyElement getForwardedTopology() {
         return TopologyElement::deserialize(packet);
     }
 
     /**
-     * @return the next StreamManagementElement, extracting it from the Packet
+     * @return the next StreamManagementElement, extracting it from the packet
      */
     StreamManagementElement getSME() {
         return StreamManagementElement::deserialize(packet);
@@ -229,14 +233,25 @@ private:
      * Checks that the values in the second or following packet are valid.
      * @return true if the content of the received packet is valid, false otherwise
      */
-    bool checkOtherPacket();
+    bool checkOtherPacket(const NetworkConfiguration& config);
+
+    /**
+     * Checks the Topologies and SMEs contained into the last received packet.
+     * @return true if the content of the received packet is valid, false otherwise
+     */
+    bool checkTopologiesAndSMEs(const NetworkConfiguration& config,
+                                int headerSize, UplinkHeader tempHeader);
+
+    /* Size constants used in the methods */
+    const int topologySize = TopologyElement::maxSize();
+    const int smeSize = StreamManagementElement::maxSize();
 
     /* One of the UplinkMessage packets */
     Packet packet;
-    /* This is the first packet we are receiving*/
-    bool firstPacket = true;
-    /* Number of packets used */
+    /* Number of packets composing the UplinkMessage */
     int totPackets = 0;
+    /* Number of packets received */
+    int receivedPackets = 0;
     /* RSSI of the received packer */
     int rssi = -120;
     /* Timestamp of the received packet */

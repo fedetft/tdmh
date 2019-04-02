@@ -47,8 +47,6 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
 
 int SendUplinkMessage::serializeTopologiesAndSMEs(UpdatableQueue<TopologyElement>& topologies,
                                                   UpdatableQueue<StreamManagementElement>& smes) {
-    int topologySize = TopologyElement::maxSize();
-    int smeSize = StreamManagementElement::maxSize();
     int remainingBytes = packet.available();
     // Fit topologies in packets
     int packetTopologies = std::min(numTopologies, remainingBytes / topologySize);
@@ -73,10 +71,8 @@ int SendUplinkMessage::serializeTopologiesAndSMEs(UpdatableQueue<TopologyElement
 
 void SendUplinkMessage::computePacketAllocation(const NetworkConfiguration& config,
                                                 int availableTopologies, int availableSMEs) {
-    int maxPackets = config.getNumUplinkPackets();
-    int guaranteedTopologies = config.getGuaranteedTopologies();
-    int topologySize = TopologyElement::maxSize();
-    int smeSize = StreamManagementElement::maxSize();
+    const int maxPackets = config.getNumUplinkPackets();
+    const int guaranteedTopologies = config.getGuaranteedTopologies();
     /* Calculate numTopologies and numSME without considering a topology or SME
        split between two packets
        Algorithm:
@@ -85,14 +81,14 @@ void SendUplinkMessage::computePacketAllocation(const NetworkConfiguration& conf
           - if there is space remaining, try to fit other topologies
     */
     {
-        int totAvailableBytes = getFirstUplinkPacketCapacity(config) +
+        const int totAvailableBytes = getFirstUplinkPacketCapacity(config) +
             (maxPackets - 1) * getOtherUplinkPacketCapacity();
         numTopologies = std::min(guaranteedTopologies, availableTopologies);
-        int remainingTopologies = availableTopologies - numTopologies;
-        int topologyBytes = numTopologies * topologySize;
-        int maxSMEs = (totAvailableBytes - topologyBytes) / smeSize;
+        const int remainingTopologies = availableTopologies - numTopologies;
+        const int topologyBytes = numTopologies * topologySize;
+        const int maxSMEs = (totAvailableBytes - topologyBytes) / smeSize;
         numSMEs = std::min(availableSMEs, maxSMEs);
-        int unusedBytes = totAvailableBytes - topologyBytes -
+        const int unusedBytes = totAvailableBytes - topologyBytes -
             (numSMEs * smeSize);
         numTopologies += min(unusedBytes / topologySize, remainingTopologies);
     }
@@ -159,13 +155,12 @@ bool ReceiveUplinkMessage::recv(MACContext& ctx, long long tExpected) {
 
     auto& config = ctx.getNetworkConfiguration();
     // Validate first packet
-    if(firstPacket) {
+    if(receivedPackets == 0) {
         if(checkFirstPacket(config) == false) return false;
-        firstPacket = false;
     }
     // Validate other packets
     else {
-        if(checkOtherPacket() == false) return false;
+        if(checkOtherPacket(config) == false) return false;
     }
     // Save rssi and timestamp of valid packet
     rssi = rcvResult.getRssi();
@@ -173,6 +168,7 @@ bool ReceiveUplinkMessage::recv(MACContext& ctx, long long tExpected) {
         timestamp = rcvResult.getTimestamp();
     else
         timestamp = -1;
+    receivedPackets++;
     return true;
 }
 
@@ -205,31 +201,61 @@ bool ReceiveUplinkMessage::checkPanHeader(unsigned short panId) {
 }
 
 bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) {
-    if(packet.size() < Packet::maxSize() - getFirstPacketCapacity(config)) return false;
-    unsigned short panId = config.getPanId();
-    if(checkPanHeader(panId) == false) return false;
-    UplinkHeader temp;
-    packet.get(&temp, sizeof(UplinkHeader));
-    if(temp.hop == 0 || temp.hop > config.getMaxHops()) return false;
-    if(temp.assignee > config.getMaxNodes()) return false;
+    const int headerSize = Packet::maxSize() - getFirstPacketCapacity(config);
+    if(packet.size() < headerSize) return false;
+    if(checkPanHeader(config.getPanId()) == false) return false;
+    UplinkHeader tempHeader;
+    packet.get(&tempHeader, sizeof(UplinkHeader));
+    if(tempHeader.hop == 0 || tempHeader.hop > config.getMaxHops()) return false;
+    if(tempHeader.assignee > config.getMaxNodes()) return false;
     // Extract sender topology
-    auto senderTopology = RuntimeBitset::deserialize(packet);
+    auto tempSenderTopology = RuntimeBitset::deserialize(packet);
 
+    if(checkTopologiesAndSMEs(config, headerSize, tempHeader) == false) return false;
+
+    // Write temporary values to class fields
+    header = tempHeader;
+    topology = std::move(tempSenderTopology);
+    return true;
+}
+
+bool ReceiveUplinkMessage::checkOtherPacket(const NetworkConfiguration& config) {
+    const int headerSize = Packet::maxSize() - getOtherPacketCapacity();
+    if(packet.size() < headerSize) return false;
+    if(checkPanHeader(config.getPanId()) == false) return false;
+
+    if(checkTopologiesAndSMEs(config, headerSize, header) == false) return false;
+
+    return true;
+}
+
+bool checkTopologiesAndSMEs(const NetworkConfiguration& config,
+                            int headerSize, UplinkHeader tempHeader) {
     /* Validate numTopologies and numSME in UplinkHeader
        by trying to extract from an example packet the same number of topologies and SME */
-    int maxPackets = config.getNumUplinkPackets();
+    const int maxPackets = config.getNumUplinkPackets();
     int remainingBytes = packet.size();
     int numPackets = 1;
     // Validate topologies in packets
-    int remainingTopologies = temp.numTopology;
+    int remainingTopologies = tempHeader.numTopology;
+    int topologiesInPacket = 0;
     for(;;) {
         // NOTE: Do the allocation also for the last packet
         int packetTopologies = std::min(remainingTopologies, remainingBytes / topologySize);
         remainingTopologies -= packetTopologies;
         remainingBytes -= packetTopologies * topologySize;
-        // Validate first packet
-        if(numPackets == 1) {
-            
+        // Validate last received packet
+        if(numPackets == receivedPackets + 1) {
+            topologiesInPacket = packetTopologies;
+            // Check that TopologyElements in packet are valid
+            for(int i = 0; i < topologiesInPacket; i++) {
+                // Calculate TopologyElement offset in packet
+                int offset = topologySize * i;
+                // Check that there is enough data in the packet
+                if(offset + topologySize >= packet.size()) return false;
+                if(TopologyElement::validateInPacket(packet, offset + headerSize) == false)
+                    return false;
+            }
         }
         if(remainingTopologies == 0) break;
         if(++numPackets > maxPackets) return false;
@@ -237,24 +263,44 @@ bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) 
     }
 
     // Validate SMEs in packets
-    int remainingSMEs = temp.numSME;
+    int remainingSMEs = tempHeader.numSME;
+    int SMEsInPacket = 0;
     for(;;) {
         // NOTE: Do the allocation also for the last packet
         int packetSMEs = std::min(remainingSMEs, remainingBytes / smeSize);
         remainingSMEs -= packetSMEs;
         remainingBytes -= packetSMEs * smeSize;
+        // Validate last received packet
+        if(numPackets == receivedPackets + 1) {
+            SMEsInPacket = packetSMEs;
+            // Check that SMEs in packet are valid
+            for(int i = 0; i < SMEsInPacket; i++) {
+                // Calculate SME offset in packet
+                int offset = (topologySize*TopologiesInPacket) + (smeSize * i);
+                // Check that there is enough data in the packet
+                if(offset + smeSize >= packet.size()) return false;
+                if(StreamManagementElement::validateInPacket(packet, offset + headerSize) == false)
+                    return false;
+            }
+        }
         if(remainingSMEs == 0) break;
         if(++numPackets > maxPackets) return false;
         remainingBytes = getOtherUplinkPacketCapacity();
     }
-
-
-
+    // Check size of data in packet
+    if((topologiesinPacket * topologySize + SMEsInPacket * smeSize) != packet.size())
+        return false;
 
     // Write temporary values to class fields
-    totPackets = numPackets;
-    header = temp;
-    topology = std::move(senderTopology);
+    // Write totPackets only after checking first packet
+    if(totPackets == 0)
+        totPackets = numPackets;
+    else {
+        // numPackets depends only on header (first packet), so should remain constant
+        assert(totPackets == numPackets);
+    }
+    packetTopologies = topologiesInPacket;
+    packetSMEs = SMEsInPacket;
     return true;
 }
 
