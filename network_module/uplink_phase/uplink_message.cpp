@@ -39,6 +39,8 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
                                      const TopologyElement& myTopology,
                                      int availableTopologies, int availableSMEs) :
     bitmaskSize(config.getNeighborBitmaskSize()),
+    topologySize(TopologyElement::maxSize(bitmaskSize)),
+    smeSize(StreamManagementElement::maxSize()),
     panId(config.getPanId())
 {
     computePacketAllocation(config, availableTopologies, availableSMEs);
@@ -93,7 +95,7 @@ void SendUplinkMessage::computePacketAllocation(const NetworkConfiguration& conf
         numSMEs = std::min(availableSMEs, maxSMEs);
         const int unusedBytes = totAvailableBytes - topologyBytes -
             (numSMEs * smeSize);
-        numTopologies += std::min(unusedBytes / topologySize, remainingTopologies);
+        numTopologies += std::min<int>(unusedBytes / topologySize, remainingTopologies);
     }
 
     /* Try to fit numTopologies and numSME in packet, to get the actual numbers,
@@ -104,7 +106,7 @@ void SendUplinkMessage::computePacketAllocation(const NetworkConfiguration& conf
     int remainingTopologies = numTopologies;
     for(;;) {
         // NOTE: Do the allocation also for the last packet
-        int packetTopologies = std::min(remainingTopologies, remainingBytes / topologySize);
+        int packetTopologies = std::min<int>(remainingTopologies, remainingBytes / topologySize);
         remainingTopologies -= packetTopologies;
         remainingBytes -= packetTopologies * topologySize;
         if(remainingTopologies == 0 || totPackets >= maxPackets) break;
@@ -119,7 +121,7 @@ void SendUplinkMessage::computePacketAllocation(const NetworkConfiguration& conf
     int remainingSMEs = numSMEs;
     for(;;) {
         // NOTE: Do the allocation also for the last packet
-        int packetSMEs = std::min(remainingSMEs, remainingBytes / smeSize);
+        int packetSMEs = std::min<int>(remainingSMEs, remainingBytes / smeSize);
         remainingSMEs -= packetSMEs;
         remainingBytes -= packetSMEs * smeSize;
         if(remainingSMEs == 0 || totPackets >= maxPackets) break;

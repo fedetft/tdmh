@@ -126,13 +126,12 @@ private:
      */
     void putPanHeader();
 
-    /* Size constants used in the methods */
-    const int topologySize = TopologyElement::maxSize(bitmaskSize);
-    const int smeSize = StreamManagementElement::maxSize();
-
-    /* Parameters from NetworkConfiguration */
+    /* Constant values used in the methods */
     const unsigned short bitmaskSize;
+    const unsigned int topologySize;
+    const unsigned int smeSize;
     const unsigned short panId;
+
 
     /* One of the UplinkMessage packets */
     Packet packet;
@@ -152,6 +151,8 @@ class ReceiveUplinkMessage {
 public:
     ReceiveUplinkMessage(const NetworkConfiguration& config) :
         bitmaskSize(config.getNeighborBitmaskSize()),
+        topologySize(TopologyElement::maxSize(bitmaskSize)),
+        smeSize(StreamManagementElement::maxSize()),
         panId(config.getPanId()),
         topology(RuntimeBitset(bitmaskSize)) {}
     ReceiveUplinkMessage(const ReceiveUplinkMessage&) = delete;
@@ -250,12 +251,10 @@ private:
     bool checkTopologiesAndSMEs(const NetworkConfiguration& config,
                                 int headerSize, UplinkHeader tempHeader);
 
-    /* Size constants used in the methods */
-    const unsigned int topologySize = TopologyElement::maxSize(bitmaskSize);
-    const unsigned int smeSize = StreamManagementElement::maxSize();
-
-    /* Parameters from NetworkConfiguration */
+    /* Constant values used in the methods */
     const unsigned short bitmaskSize;
+    const unsigned int topologySize;
+    const unsigned int smeSize;
     const unsigned short panId;
 
     /* One of the UplinkMessage packets */
