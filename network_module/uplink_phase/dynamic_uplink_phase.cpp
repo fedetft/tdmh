@@ -26,9 +26,9 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "../debug_settings.h"
+#include "../util/debug_settings.h"
 #include "dynamic_uplink_phase.h"
-#include "../timesync/timesync_downlink.h"
+#include "../downlink_phase/timesync/timesync_downlink.h"
 #include "uplink_message.h"
 #include <limits>
 #include <cassert>
@@ -39,59 +39,59 @@ namespace mxnet {
 
 void DynamicUplinkPhase::execute(long long slotStart)
 {
-    auto address = getAndUpdateCurrentNode();
+    auto currentNode = getAndUpdateCurrentNode();
     
     if (ENABLE_UPLINK_VERB_DBG)
-        print_dbg("[U] N=%u T=%lld\n", address, slotStart);
+        print_dbg("[U] N=%u T=%lld\n", currentNode, slotStart);
     
-    if (address == myId) sendMyUplink(slotStart);
-    else receiveUplink(slotStart, address);
+    if (currentNode == myId) sendMyUplink(slotStart);
+    else receiveUplink(slotStart, currentNode);
 }
 
-void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char expectedNode)
+void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode)
 {
     ReceiveUplinkMessage message(ctx.getNetworkConfig());
     
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    if(message.recv(ctx,expectedNode))
+    if(message.recv(ctx,currentNode))
     {
         auto numPackets = message.getNumPackets();
         auto senderTopology = message.getSenderTopology();
-        myNeighborTable.receivedMessage(expectedNode, messsage.getHop(),
+        myNeighborTable.receivedMessage(currentNode, message.getHop(),
                                     message.getRssi(), senderTopology);
         
         if(ENABLE_UPLINK_INFO_DBG)
-            print_dbg("[U]<-N=%u @%llu %hddBm\n",expectedNode,message.getTimestamp(),message.getRssi());
+            print_dbg("[U]<-N=%u @%llu %hddBm\n",currentNode,message.getTimestamp(),message.getRssi());
         if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
             print_dbg("<-%d %ddBm\n",currentNode,message.getRssi());
     
         if(message.getAssignee() == myId)
         {
-            topologyQueue.enqueue(expectedNode,
-                std::move(TopologyElement(expectedNode, std::move(senderTopology))));
+            topologyQueue.enqueue(currentNode,
+                std::move(TopologyElement(currentNode, std::move(senderTopology))));
             message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
             
             for(int i = 1; i < numPackets; i++)
             {
                 // NOTE: If we fail to receive a Packet of the UplinkMessage,
                 // do not wait for remaining packets
-                if(message.recv(ctx,expectedNode) == false) break;
+                if(message.recv(ctx,currentNode) == false) break;
                 message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
             }
         }
         
     } else {
-        myNeighborTable.missedMessage(expectedNode);
+        myNeighborTable.missedMessage(currentNode);
         
         if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
-            print_dbg("  %d\n",expectedNode);
+            print_dbg("  %d\n",currentNode);
     }
     ctx.transceiverIdle();
 }
 
 void DynamicUplinkPhase::sendMyUplink(long long slotStart)
 {
-    streamMgr.dequeueSMEs(smeQueue);
+    streamMgr->dequeueSMEs(smeQueue);
     SendUplinkMessage message(ctx.getNetworkConfig(), ctx.getHop(),
                               myNeighborTable.getBestPredecessor(),
                               myNeighborTable.getMyTopologyElement(),

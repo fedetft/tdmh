@@ -25,24 +25,43 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "topology_element.h"
+#pragma once
+
+#include "../../util/runtime_bitset.h"
+#include <vector>
+#include <utility>
 
 namespace mxnet {
 
-//
-// class TopologyElement
-//
-    
-void TopologyElement::serialize(Packet& pkt) const {
-    pkt.put(&id, sizeof(unsigned char));
-    pkt.put(neighbors.data(), neighbors.size());
-}
+/**
+ * NetworkGraph contains the complete graph of the network.
+ * It is used only by the Master node to collect the toplogy information received
+ * by Dynamic nodes
+ */
+class NetworkGraph {
+public:
+    NetworkGraph(unsigned short maxNodes) {}
 
-TopologyElement TopologyElement::deserialize(Packet& pkt, unsigned short bitmaskSize) {
-    TopologyElement result(bitmaskSize);
-    pkt.get(&result.id, sizeof(unsigned char));
-    pkt.get(result.neighbors.data(), bitmaskSize);
-    return result;
-}
+    bool wasModified() { return true; }
+
+    bool hasNode(unsigned char) { return true; }
+
+    bool hasEdge(unsigned char, unsigned char) { return true; }
+
+    std::vector<std::pair<unsigned char, unsigned char>> getEdges() {
+        std::vector<std::pair<unsigned char, unsigned char>> result;
+        return result;
+    }
+
+    std::vector<unsigned char> getEdges(unsigned char) {
+        std::vector<unsigned char> result;
+        return result;
+    }
+
+private:
+
+    /* Network ID of the node */
+    bool possiblyNotConntected;
+};
 
 } /* namespace mxnet */

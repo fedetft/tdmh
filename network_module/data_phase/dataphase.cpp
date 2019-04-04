@@ -26,7 +26,7 @@
  ***************************************************************************/
 
 #include "dataphase.h"
-#include "../debug_settings.h"
+#include "../util/debug_settings.h"
 
 using namespace std;
 using namespace miosix;

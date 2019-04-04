@@ -39,6 +39,15 @@ public:
     NeighborTable(unsigned short bitmaskSize) :
         myTopologyElement(TopologyElement(bitmaskSize)) {}
 
+    void receivedMessage(unsigned char currentNode, unsigned char currentHop,
+                         int rssi, RuntimeBitset senderTopology) {};
+
+    void missedMessage(unsigned char sender) {};
+
+    unsigned char getBestPredecessor() { return 1; };
+
+    TopologyElement getMyTopologyElement() { return myTopologyElement; };
+
 private:
 
     /* TopologyElement containing neighbors of this node */

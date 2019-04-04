@@ -44,19 +44,34 @@ class ScheduleDownlinkPhase : public MACPhase {
 public:
     ScheduleDownlinkPhase() = delete;
     ScheduleDownlinkPhase(const ScheduleDownlinkPhase& orig) = delete;
-    ScheduleDownlinkPhase(MACContext& ctx) : MACPhase(ctx),
-                                             streamMgr(ctx.getStreamManager()),
-                                             dataPhase(ctx.getDataPhase()) {}
     virtual ~ScheduleDownlinkPhase() {};
 
+    /**
+     * \return the duration in nanoseconds of a downlink slot
+     */
     static unsigned long long getDuration(unsigned short hops) {
         return phaseStartupTime + hops * rebroadcastInterval;
     }
 
+    /**
+     * Called when the node clock synchronization error is too high to operate
+     * but the node is not desynchronized. ITs purpose is to update the phase
+     * state without causing packet transmissions/receptions.
+     */
     void advance(long long slotStart) override {} //TODO
+
+    /* Used to check if the MasterScheduleDistribution is still distributing the schedule*/
+    bool distributingSchedule() {
+        return distributing;
+    };
 
     static const int phaseStartupTime = 450000;
     static const int rebroadcastInterval = 5000000; //32us per-byte + 600us total delta
+
+protected:
+    ScheduleDownlinkPhase(MACContext& ctx) : MACPhase(ctx),
+                                             streamMgr(ctx.getStreamManager()),
+                                             dataPhase(ctx.getDataPhase()) {}
 
     /* Called after receiving a complete schedule,
      * it converts the schedule from implicit form (list of streams)
@@ -72,11 +87,6 @@ public:
        if it is equal to the one in the schedule header,
        replace expanded schedule in the dataphase with the new one */
     void checkTimeSetSchedule(long long slotStart);
-    /* Used to check if the MasterScheduleDistribution is still distributing the schedule*/
-    bool distributingSchedule() {
-        return distributing;
-    };
-protected:
     // Schedule header with information on schedule distribution
     ScheduleHeader header;
     // Copy of last computed/received schedule

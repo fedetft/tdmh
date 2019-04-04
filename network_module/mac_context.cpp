@@ -26,10 +26,10 @@
  ***************************************************************************/
 
 #include "mac_context.h"
-#include "debug_settings.h"
-#include "timesync/timesync_downlink.h"
-#include "uplink/uplink_phase.h"
-#include "data/dataphase.h"
+#include "util/debug_settings.h"
+#include "downlink_phase/timesync/timesync_downlink.h"
+#include "uplink_phase/uplink_phase.h"
+#include "data_phase/dataphase.h"
 #include "interfaces-impl/transceiver.h"
 #include <type_traits>
 #include <stdexcept>
@@ -42,7 +42,6 @@ namespace mxnet {
 MACContext::~MACContext() {
     delete timesync;
     delete uplink;
-    delete topologyContext;
     delete scheduleDistribution;
     delete data;
     delete streamMgr;
@@ -57,8 +56,6 @@ MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiv
 {
     calculateDurations();
 }
-
-TopologyContext* MACContext::getTopologyContext() const { return uplink->getTopologyContext(); }
 
 void MACContext::calculateDurations() {
     dataSlotDuration = DataPhase::getDuration();

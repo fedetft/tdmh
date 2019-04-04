@@ -30,6 +30,8 @@
 
 #include "../stream/stream_manager.h"
 #include "../uplink_phase/topology/network_topology.h"
+#include "../uplink_phase/topology/network_graph.h"
+#include "../uplink_phase/uplink_message.h"
 #include "../network_configuration.h"
 #include "schedule_element.h"
 #ifdef _MIOSIX
@@ -46,8 +48,8 @@
 
 namespace mxnet {
 
-class MasterTopologyContext;
 class MACContext;
+class MasterUplinkPhase;
 
 // Used by the ScheduleDownlink to get all data related to schedule at once
 class Schedule {
@@ -74,7 +76,7 @@ class ScheduleComputation {
     friend class Router;
     friend class MasterScheduleDownlinkPhase;
 public:
-    ScheduleComputation(MACContext& mac_ctx, MasterMeshTopologyContext& topology_ctx);
+    ScheduleComputation(MACContext& mac_ctx);
 
     void startThread();
     
@@ -83,12 +85,16 @@ public:
     /**
      * Receives a vector of SME from the network and register them in the StreamManager
      */
-    void receiveSMEs(UplinkMessage& msg);
+    void receiveSMEs(ReceiveUplinkMessage& msg);
 
     void open(const StreamInfo& stream);
 
     StreamManager* getStreamManager() {
         return &stream_mgmt;
+    }
+
+    void setUplinkPhase(MasterUplinkPhase* uplink) {
+        uplink_phase = uplink;
     }
 
 private: 
@@ -188,23 +194,23 @@ private:
         return temp ? (a / temp * b) : 0;
     };
 
-    // Classes containing information about Streams
+    /* Classes containing information about Streams */
     StreamManager stream_mgmt;
     StreamCollection stream_snapshot;
     // Class containing latest schedule, size in tiles and schedule ID
     Schedule schedule;
 
-    // References to other classes
-    MasterMeshTopologyContext& topology_ctx;
+    /* References to other classes */
     // Needed to get number of dataslots
     MACContext& mac_ctx;
+    // Needed to get topology information
+    MasterUplinkPhase* uplink_phase = nullptr;
     // Used to get controlsuperframestructure
     const NetworkConfiguration& netconfig;
     // Get network tile/superframe information
     const ControlSuperframeStructure superframe;
     // Class containing a snapshot of the network topology
-    TopologyMap topology_map;
-
+    NetworkGraph network_graph;
 
 #ifdef _MIOSIX
     miosix::Mutex sched_mutex;

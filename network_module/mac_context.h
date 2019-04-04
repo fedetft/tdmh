@@ -173,11 +173,6 @@ public:
     UplinkPhase* const getUplink() const { return uplink; }
 
     /**
-     * @return the TopologyContext
-     */
-    TopologyContext* getTopologyContext() const;
-
-    /**
      * @return the ScheduleDownlink
      */
     ScheduleDownlinkPhase* const getScheduleDownlink() const { return scheduleDistribution; }
@@ -270,7 +265,9 @@ public:
     virtual void beginScheduling() {};
 
 protected:
-    MACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config);
+    MACContext(const MediumAccessController& mac,
+               miosix::Transceiver& transceiver,
+               const NetworkConfiguration& config);
     
     void calculateDurations();
 
@@ -279,7 +276,6 @@ protected:
     ScheduleDownlinkPhase* scheduleDistribution = nullptr;
     DataPhase* data = nullptr;
 
-    TopologyContext* topologyContext = nullptr;
     StreamManager* streamMgr = nullptr;
 
     unsigned long long dataSlotDuration;

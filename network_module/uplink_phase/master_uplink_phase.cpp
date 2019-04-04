@@ -27,8 +27,7 @@
  ***************************************************************************/
 
 #include "master_uplink_phase.h"
-#include "topology/mesh_topology_context.h"
-#include "../debug_settings.h"
+#include "../util/debug_settings.h"
 #include <limits>
 
 using namespace miosix;
@@ -37,22 +36,22 @@ namespace mxnet {
 
 void MasterUplinkPhase::execute(long long slotStart)
 {
-    auto address = getAndUpdateCurrentNode();
+    auto currentNode = getAndUpdateCurrentNode();
     
     if(ENABLE_UPLINK_VERB_DBG)
-        print_dbg("[U] N=%u T=%lld\n", address, slotStart);
+        print_dbg("[U] N=%u T=%lld\n", currentNode, slotStart);
     
     ReceiveUplinkMessage message(ctx.getNetworkConfig());
     
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    if(message.recv(ctx,expectedNode))
+    if(message.recv(ctx,currentNode))
     {
         auto numPackets = message.getNumPackets();
-        topology.receivedMessage(expectedNode, messsage.getHop(),
+        topology.receivedMessage(currentNode, message.getHop(),
                                  message.getRssi(), message.getSenderTopology());
         
         if(ENABLE_UPLINK_INFO_DBG)
-            print_dbg("[U]<-N=%u @%llu %hddBm\n",expectedNode,message.getTimestamp(),message.getRssi());
+            print_dbg("[U]<-N=%u @%llu %hddBm\n",currentNode,message.getTimestamp(),message.getRssi());
         if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
             print_dbg("<-%d %ddBm\n",currentNode,message.getRssi());
     
@@ -65,21 +64,21 @@ void MasterUplinkPhase::execute(long long slotStart)
             {
                 // NOTE: If we fail to receive a Packet of the UplinkMessage,
                 // do not wait for remaining packets
-                if(message.recv(ctx,expectedNode) == false) break;
+                if(message.recv(ctx,currentNode) == false) break;
                 topology.handleForwardedTopologies(message);
                 scheduleComputation.receiveSMEs(message);
             }
         }
         
     } else {
-        topology.missedMessage(expectedNode);
+        topology.missedMessage(currentNode);
         
         if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
-            print_dbg("  %d\n",expectedNode);
+            print_dbg("  %d\n",currentNode);
     }
     ctx.transceiverIdle();
     
-    if(ENABLE_TOPOLOGY_INFO_DBG && address == 1)
+    if(ENABLE_TOPOLOGY_INFO_DBG && currentNode == 1)
     {
         print_dbg("[U] Current topology @%llu:\n", getTime());
         for (auto it : topology.getEdges())

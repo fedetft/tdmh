@@ -27,7 +27,7 @@
 
 
 #include "dynamic_mac_context.h"
-#include "data/dataphase.h"
+#include "data_phase/dataphase.h"
 
 namespace mxnet {
 DynamicMACContext::DynamicMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
@@ -36,13 +36,7 @@ DynamicMACContext::DynamicMACContext(const MediumAccessController& mac, miosix::
     streamMgr = new StreamManager(getNetworkId());
     data = new DataPhase(*this, *streamMgr);
     scheduleDistribution = new DynamicScheduleDownlinkPhase(*this);
-    DynamicTopologyContext* topology;
-    if (config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION)
-        topology = new DynamicMeshTopologyContext(*this);
-    else
-        topology = new DynamicTreeTopologyContext(*this);
-    topologyContext = topology;
-    uplink = new DynamicUplinkPhase(*this, topology, streamMgr);
+    uplink = new DynamicUplinkPhase(*this, streamMgr);
 };
 
 } /* namespace mxnet */

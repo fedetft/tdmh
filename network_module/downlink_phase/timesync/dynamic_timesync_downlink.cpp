@@ -27,10 +27,9 @@
 
 #include "dynamic_timesync_downlink.h"
 #include "networktime.h"
-#include "../uplink/topology/topology_context.h"
-#include "../uplink/uplink_phase.h"
-#include "../data/dataphase.h"
-#include "../debug_settings.h"
+#include "../../uplink_phase/dynamic_uplink_phase.h"
+#include "../../data_phase/dataphase.h"
+#include "../../util/debug_settings.h"
 #include <cassert>
 
 using namespace miosix;
@@ -127,7 +126,8 @@ void DynamicTimesyncDownlink::resync() {
                 pkt[2], rcvResult.timestamp, receiverWindow, start, rcvResult.rssi
         );
 
-    static_cast<DynamicTopologyContext*>(ctx.getTopologyContext())->changeHop(pkt[2]);
+    // TODO: Is this needed? This might cause a bug!
+    //static_cast<DynamicTopologyContext*>(ctx.getTopologyContext())->changeHop(pkt[2]);
 }
 
 inline void DynamicTimesyncDownlink::execute(long long slotStart)

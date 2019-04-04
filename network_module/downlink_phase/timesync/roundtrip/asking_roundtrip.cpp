@@ -27,10 +27,10 @@
 
 #include <stdio.h>
 
-#include "led_bar.h"
-#include "../../debug_settings.h"
 #include "asking_roundtrip.h"
 #include "listening_roundtrip.h"
+#include "led_bar.h"
+#include "../../../util/debug_settings.h"
 
 using namespace miosix;
 

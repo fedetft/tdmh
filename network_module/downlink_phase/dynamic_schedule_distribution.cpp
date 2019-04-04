@@ -27,8 +27,8 @@
 
 #include "dynamic_schedule_distribution.h"
 #include "../tdmh.h"
-#include "../packet.h"
-#include "../debug_settings.h"
+#include "../util/packet.h"
+#include "../util/debug_settings.h"
 
 using namespace miosix;
 

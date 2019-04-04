@@ -27,6 +27,11 @@
 
 #pragma once
 
+#include "../../util/runtime_bitset.h"
+#include "../uplink_message.h"
+#include <vector>
+#include <utility>
+
 namespace mxnet {
 
 /**
@@ -36,6 +41,18 @@ namespace mxnet {
 class NetworkTopology {
 public:
     NetworkTopology();
+
+    void receivedMessage(unsigned char currentNode, unsigned char currentHop,
+                         int rssi, RuntimeBitset senderTopology) {};
+
+    void missedMessage(unsigned char sender) {};
+
+    void handleForwardedTopologies(const ReceiveUplinkMessage& message) {};
+
+    std::vector<std::pair<unsigned char, unsigned char>> getEdges() {
+        std::vector<std::pair<unsigned char, unsigned char>> result;
+        return result;
+    };
 
 private:
 

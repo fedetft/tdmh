@@ -64,14 +64,14 @@ public:
         dataStart = 0;
     }
 
-    void put(const void* data, int size);
+    void put(const void* data, unsigned int size);
 
-    void get(void* data, int size);
+    void get(void* data, unsigned int size);
 
     /** 
      * When reading a packet, ignore "size" bytes
      */
-    void discard(int size);
+    void discard(unsigned int size);
 
     /** 
      * \return how many bytes are stored in the packet and are available
@@ -88,7 +88,7 @@ public:
     /** 
      * \return the maximum number of bytes a Packet can contain
      */
-    static unsigned int maxSize() const { return MediumAccessController::maxPktSize; }
+    static unsigned int maxSize() { return MediumAccessController::maxPktSize; }
 
     void print() const {
         /* Check that immediately after receive, dataStart is equal to 0 */

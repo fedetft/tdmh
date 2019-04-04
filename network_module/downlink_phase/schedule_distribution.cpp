@@ -26,8 +26,8 @@
  ***************************************************************************/
 
 #include "schedule_distribution.h"
-#include "../timesync/networktime.h"
-#include "../data/dataphase.h"
+#include "timesync/networktime.h"
+#include "../data_phase/dataphase.h"
 
 using namespace miosix;
 

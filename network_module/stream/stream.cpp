@@ -26,8 +26,8 @@
  ***************************************************************************/
 
 #include "stream.h"
-#include "mac_context.h"
-#include "debug_settings.h"
+#include "../mac_context.h"
+#include "../util/debug_settings.h"
 #include <algorithm>
 
 namespace mxnet {

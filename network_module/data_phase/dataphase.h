@@ -29,9 +29,9 @@
 
 #include "../mac_phase.h"
 #include "../mac_context.h"
-#include "../schedule/schedule_distribution.h"
-#include "../timesync/networktime.h"
-#include "../stream_manager.h"
+#include "../downlink_phase/schedule_distribution.h"
+#include "../downlink_phase/timesync/networktime.h"
+#include "../stream/stream_manager.h"
 
 namespace mxnet {
 /**

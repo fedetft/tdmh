@@ -42,12 +42,26 @@ public:
     MasterUplinkPhase(MACContext& ctx, StreamManager* const streamMgr,
                       ScheduleComputation& scheduleComputation) :
         UplinkPhase(ctx, streamMgr),
-        scheduleComputation(scheduleComputation) {}
+        scheduleComputation(scheduleComputation){
+        scheduleComputation.setUplinkPhase(this);
+    }
     
     /**
      * Receives topology and SME from the other nodes
      */
     virtual void execute(long long slotStart) override;
+
+    bool wasModified() {
+        return true;
+    }
+
+    NetworkGraph getTopologyMap() {
+        NetworkGraph result(1);
+        return result;
+    }
+
+    void clearModifiedFlag();
+
 
 private:
     ScheduleComputation& scheduleComputation;

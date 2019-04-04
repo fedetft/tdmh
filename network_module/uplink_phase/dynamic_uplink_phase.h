@@ -43,7 +43,8 @@ class DynamicUplinkPhase : public UplinkPhase
 {
 public:
     DynamicUplinkPhase(MACContext& ctx, StreamManager* const streamMgr) :
-        UplinkPhase(ctx, streamMgr) {}
+        UplinkPhase(ctx, streamMgr),
+        myNeighborTable(NeighborTable(ctx.getNetworkConfig().getNeighborBitmaskSize())) {};
 
     /**
      * Calls getAndUpdateCurrentNode() from the base class to check if it's our turn

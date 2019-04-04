@@ -31,6 +31,7 @@
 #include "stream_management_element.h"
 #include "stream.h"
 #include "../scheduler/schedule_element.h"
+#include "../util/updatable_queue.h"
 // For thread synchronization
 #ifdef _MIOSIX
 #include <miosix.h>
@@ -138,21 +139,28 @@ public:
 
     // Used by StreamManager destructor and when TDMH is shutting down
     void closeAllStreams();
+
     // Used by Scheduler when receiving StreamServer closing SME to close related streams
     void closeStreamsRelatedToServer(StreamId id);
+
     // Used by the Stream class to register itself in the Stream Map
     void registerStream(StreamInfo info, Stream* client);
+
     // Used by the Stream class to get removed from the Stream Map
     void deregisterStream(StreamInfo info);
+
     // Used by the StreamServer class to register itself in the Server Map
     void registerStreamServer(StreamInfo info, StreamServer* server);
+
     // Used by the StreamServer class to get removed from the Stream Map
     void deregisterStreamServer(StreamInfo info);
+
     /** Used to update the status of the Stream and wake up the corresponding thread
      *  when receiving a new schedule containing that Stream.
      *  used by the DataPhase called by ScheduleDownlink
      */
     void notifyStreams(const std::vector<ScheduleElement>& schedule);
+
     // Used by the DataPhase to put/get data to/from buffers
     void putBuffer(StreamId id, Packet& pkt) {
         // NOTE: call getStreamStatus before mutex to avoid a deadlock
@@ -191,28 +199,32 @@ public:
                               id.src, id.dst, myId);
         return clientMap[id]->getSendBuffer();
     }
+
     /**
      * @return the number of Streams saved, not counting LISTEN requests
      */
     unsigned char getStreamNumber();
+
     /**
      * @return the state of the saved Stream
      */
     StreamStatus getStreamStatus(StreamId id);
+
     /**
      * Change the state of the saved Stream
      */
     void setStreamStatus(StreamId id, StreamStatus status);
+
     /**
      * @return the parameters of the saved Stream
      */
-    StreamInfo getStreamInfo(StreamId id) {
-        return streamMap[id];
-    }
+    StreamInfo getStreamInfo(StreamId id) { return streamMap[id]; }
+
     /**
      * Register in the Stream Map a single stream 
      */
     void addStream(const StreamInfo& stream);
+
     /**
      * @return a snapshot of streamMap 
      */
@@ -224,31 +236,29 @@ public:
      */
     void dequeueSMEs(UpdatableQueue<StreamId,StreamManagementElement>& queue);
 
-    /**
-     * Enqueue a list of sme received from other nodes, to be forwarded
-     * towards the master node.
-     * used by UplinkPhase
-     */
-    void enqueueSMEs(std::vector<StreamManagementElement> smes);
-    /**
+     /**
      * @return the number of Info elements stored in the Queue
      */
     unsigned char getNumInfo();
+
     /**
      * @return a number of element from the Info element queue to send on the network,
      * used by ScheduleDistribution
      */
     std::vector<InfoElement> dequeueInfo(unsigned char count);
+
     /**
      * Enqueue a list of Info elements received from other nodes, to be forwarded
      * to the rest of the network.
      * used by ScheduleDistribution
      */
     void enqueueInfo(std::vector<InfoElement> infos);
+
     /**
      * Consume the Info elements present in the queue and use the relevant information 
      */
     void receiveInfo();
+
     /**
      * @return true if the stream list was modified since last time the flag was cleared 
      */
@@ -261,6 +271,7 @@ public:
 #endif
         return modified_flag;
     };
+
     /**
      * Set all flags to false
      */

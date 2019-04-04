@@ -43,17 +43,11 @@ void StreamManagementElement::serialize(Packet& pkt) const {
     pkt.put(&type, sizeof(SMEType));
 }
 
-std::vector<StreamManagementElement> StreamManagementElement::deserialize(Packet& pkt, std::size_t size) {
-    auto count = size / maxSize();
-    std::vector<StreamManagementElement> result;
-    result.reserve(count);
-    for (unsigned i = 0; i < count; i++) {
-        StreamManagementElement val;
-        pkt.get(&val.id, sizeof(StreamId));
-        pkt.get(&val.parameters, sizeof(StreamParameters));
-        pkt.get(&val.type, sizeof(SMEType));
-        result.push_back(val);
-    }
+StreamManagementElement StreamManagementElement::deserialize(Packet& pkt) {
+    StreamManagementElement result;
+    pkt.get(&result.id, sizeof(StreamId));
+    pkt.get(&result.parameters, sizeof(StreamParameters));
+    pkt.get(&result.type, sizeof(SMEType));
     return result;
 }
 

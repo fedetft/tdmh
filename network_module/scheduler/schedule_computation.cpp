@@ -25,15 +25,15 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
+#include "schedule_computation.h"
+#include "../util/debug_settings.h"
+#include "../stream/stream_management_element.h"
+#include "../mac_context.h"
+#include "../uplink_phase/master_uplink_phase.h"
 #include <list>
 #include <unordered_set>
 #include <utility>
 #include <stdio.h>
-#include "../debug_settings.h"
-#include "schedule_computation.h"
-#include "../uplink/stream_management/stream_management_element.h"
-#include "../uplink/topology/topology_context.h"
-#include "../mac_context.h"
 
 /**
  * The methods of this class run on a separate thread, don't use print_dbg()
@@ -42,12 +42,12 @@
 
 namespace mxnet {
 
-ScheduleComputation::ScheduleComputation(MACContext& mac_ctx, MasterMeshTopologyContext& topology_ctx) : 
+ScheduleComputation::ScheduleComputation(MACContext& mac_ctx) :
     stream_mgmt(0), // Initialize StreamManager with ID=0 (Master node)
     schedule(0, superframe.size()), // Initialize Schedule with ID=0 and tile_size = superframe size
-    topology_ctx(topology_ctx), mac_ctx(mac_ctx), netconfig(mac_ctx.getNetworkConfig()),
+    mac_ctx(mac_ctx), netconfig(mac_ctx.getNetworkConfig()),
     superframe(netconfig.getControlSuperframeStructure()),
-    topology_map(mac_ctx.getNetworkConfig().getMaxNodes()) {}
+    network_graph(mac_ctx.getNetworkConfig().getMaxNodes()) {}
 
 void ScheduleComputation::startThread() {
     if (scthread == NULL)
@@ -79,20 +79,20 @@ void ScheduleComputation::run() {
             // Wait for conditions to start scheduling
             for(;;)
             {
-                if(topology_ctx.wasModified()) break;
+                if(uplink_phase->wasModified()) break;
                 if(stream_mgmt.wasModified()) break;
                 // Condition variable to wait for beginScheduling().
                 sched_cv.wait(lck);
             }
             // Take snapshot of stream requests and network topology
             stream_snapshot = stream_mgmt.getSnapshot();
-            topology_map = topology_ctx.getTopologyMap();
+            network_graph = uplink_phase->getTopologyMap();
             // Clear modified bit to detect changes to topology or streams
-            topology_ctx.clearModifiedFlag();
+            uplink_phase->clearModifiedFlag();
             stream_mgmt.clearFlags();
         }
         /* IMPORTANT!: From now on use only the snapshot classes
-           `stream_snapshot` and `topology_map` */
+           `stream_snapshot` and `network_graph` */
         initialPrint();
         // Used to check if the schedule has been changed in this iteration
         bool scheduleChanged = false;
@@ -108,7 +108,7 @@ void ScheduleComputation::run() {
         /* If topology changed or a stream was removed:
            clear current schedule and reschedule established streams */
         Schedule newSchedule;
-        if(topology_map.wasModified() || stream_snapshot.wasRemoved()) {
+        if(network_graph.wasModified() || stream_snapshot.wasRemoved()) {
             newSchedule = scheduleEstablishedStreams(newID);
             scheduleChanged = true;
         }
@@ -145,11 +145,11 @@ void ScheduleComputation::initialPrint() {
     if(ENABLE_SCHEDULE_COMP_INFO_DBG || ENABLE_STREAM_LIST_INFO_DBG) {
         printf("\n[SC] #### Starting schedule computation ####\n");
         printf("topology changed:%s, stream changed:%s\n",
-               topology_map.wasModified()?"True":"False",
+               network_graph.wasModified()?"True":"False",
                stream_snapshot.wasModified()?"True":"False");
         // NOTE: Debug topology print
         printf("[SC] Begin Topology\n");
-        for(auto it : topology_map.getEdges())
+        for(auto it : network_graph.getEdges())
             printf("[%d - %d]\n", it.first, it.second);
         printf("[SC] End Topology\n");
         printf("[SC] Stream list before scheduling:\n");
@@ -275,7 +275,7 @@ std::pair<std::list<ScheduleElement>,
     return scheduleStreams(routed_streams, current_schedule, schedSize);
 }
 
-void ScheduleComputation::receiveSMEs(UplinkMessage& msg) {
+void ScheduleComputation::receiveSMEs(ReceiveUplinkMessage& msg) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
@@ -284,7 +284,7 @@ void ScheduleComputation::receiveSMEs(UplinkMessage& msg) {
     std::vector<InfoElement> infos;
     auto numSME = msg.getNumPacketSMEs();
     for(int i=0; i < numSME; i++) {
-        sme = msg.getSME();
+        auto sme = msg.getSME();
         StreamStatus status = sme.getStatus();
         StreamId id = sme.getStreamId();
         // StreamId used to match LISTEN Streams StreamId(dst, dst, 0, dstPort)
@@ -396,7 +396,7 @@ std::pair<std::list<ScheduleElement>,
             if(ENABLE_SCHEDULE_COMP_INFO_DBG)
                 printf("[SC] Scheduling transmission %d,%d\n", tx, rx);
             // Connectivity check
-            if(!topology_map.hasEdge(tx, rx)) {
+            if(!network_graph.hasEdge(tx, rx)) {
                 stream_err = true;
                 if(ENABLE_SCHEDULE_COMP_INFO_DBG)
                     printf("[SC] %d,%d are not connected in topology, cannot schedule stream\n", tx, rx);
@@ -569,8 +569,8 @@ bool ScheduleComputation::checkInterferenceConflict(const ScheduleElement& new_t
     unsigned char rx_b = old_transmission.getRx();
 
     bool conflict = false;
-    conflict |= topology_map.hasEdge(tx_a, rx_b);
-    conflict |= topology_map.hasEdge(rx_a, tx_b);
+    conflict |= network_graph.hasEdge(tx_a, rx_b);
+    conflict |= network_graph.hasEdge(rx_a, tx_b);
     return conflict;
 }
 
@@ -637,7 +637,7 @@ std::list<std::list<ScheduleElement>> Router::run(std::vector<StreamInfo>& strea
             printf("[SC] Routing stream %d->%d\n", src, dst);
 
         // Check if 1-hop
-        if(scheduler.topology_map.hasEdge(src, dst)) {
+        if(scheduler.network_graph.hasEdge(src, dst)) {
             // Add stream as is to final List
             if(ENABLE_SCHEDULE_COMP_INFO_DBG)
                 printf("[SC] Stream %d->%d is single hop\n", src, dst);
@@ -761,13 +761,13 @@ std::list<unsigned char> Router::breadthFirstSearch(StreamInfo stream) {
     unsigned char root = stream.getSrc();
     unsigned char dest = stream.getDst();
     // Check that the source node exists in the graph
-    if(!scheduler.topology_map.hasNode(root)) {
+    if(!scheduler.network_graph.hasNode(root)) {
         if(ENABLE_SCHEDULE_COMP_INFO_DBG)
             printf("[SC] Error: source node is not present in TopologyMap\n");
         return std::list<unsigned char>();
     }
     // Check that the destination node exists in the graph
-    if(!scheduler.topology_map.hasNode(dest)) {
+    if(!scheduler.network_graph.hasNode(dest)) {
         if(ENABLE_SCHEDULE_COMP_INFO_DBG)
             printf("[SC] Error: destination node is not present in TopologyMap\n");
         return std::list<unsigned char>();
@@ -793,7 +793,7 @@ std::list<unsigned char> Router::breadthFirstSearch(StreamInfo stream) {
         open_set.pop_front();
         if (subtree_root == dest) return construct_path(subtree_root, parent_of);
         // Get all adjacent vertices of the dequeued vertex
-        std::vector<unsigned char> adjacence = scheduler.topology_map.getEdges(subtree_root);
+        std::vector<unsigned char> adjacence = scheduler.network_graph.getEdges(subtree_root);
         for (unsigned char child : adjacence) {
             // If child is already visited, skip.
             if (visited.at(child) == true) continue;
@@ -895,7 +895,7 @@ void Router::dfsRun(unsigned char start, unsigned char target, unsigned int limi
     }
     else{ // If current node != target
         // Recur for all the vertices adjacent to current vertex
-        std::vector<unsigned char> adjacence = scheduler.topology_map.getEdges(start);
+        std::vector<unsigned char> adjacence = scheduler.network_graph.getEdges(start);
         for (unsigned char child : adjacence) {
             // Maximum depth reached
             if(limit == 0)

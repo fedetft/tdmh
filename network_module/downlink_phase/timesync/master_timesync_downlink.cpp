@@ -25,10 +25,10 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "../debug_settings.h"
 #include "master_timesync_downlink.h"
-#include "../mac_context.h"
 #include "networktime.h"
+#include "../../util/debug_settings.h"
+#include "../../mac_context.h"
 
 using namespace miosix;
 

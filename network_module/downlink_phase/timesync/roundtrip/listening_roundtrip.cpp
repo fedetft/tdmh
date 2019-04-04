@@ -31,7 +31,7 @@
 #include "led_bar.h"
 #include "listening_roundtrip.h"
 #include "../timesync_downlink.h"
-#include "../../debug_settings.h"
+#include "../../../util/debug_settings.h"
 
 using namespace miosix;
 

@@ -37,19 +37,22 @@ namespace mxnet {
 SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
                                      unsigned char hop, unsigned char assignee,
                                      const TopologyElement& myTopology,
-                                     int availableTopologies, int availableSMEs) {
+                                     int availableTopologies, int availableSMEs) :
+    bitmaskSize(config.getNeighborBitmaskSize()),
+    panId(config.getPanId())
+{
     computePacketAllocation(config, availableTopologies, availableSMEs);
-    putPanHeader(config.getPanId());
+    putPanHeader();
     UplinkHeader header({hop, assignee, numTopologies, numSMEs});
     packet.put(&header, sizeof(UplinkHeader));
     myTopology.serialize(packet);
 }
 
-int SendUplinkMessage::serializeTopologiesAndSMEs(UpdatableQueue<TopologyElement>& topologies,
-                                                  UpdatableQueue<StreamManagementElement>& smes) {
+void SendUplinkMessage::serializeTopologiesAndSMEs(UpdatableQueue<unsigned char,TopologyElement>& topologies,
+                                                  UpdatableQueue<StreamId,StreamManagementElement>& smes) {
     int remainingBytes = packet.available();
     // Fit topologies in packets
-    int packetTopologies = std::min(numTopologies, remainingBytes / topologySize);
+    int packetTopologies = std::min<int>(numTopologies, remainingBytes / topologySize);
     for(int i = 0; i < packetTopologies; i++) {
         auto topology = topologies.dequeue();
         topology.serialize(packet);
@@ -61,7 +64,7 @@ int SendUplinkMessage::serializeTopologiesAndSMEs(UpdatableQueue<TopologyElement
 
     remainingBytes -= packetTopologies * topologySize;
     // Fit SMEs in packets
-    int packetSMEs = std::min(numSMEs, remainingBytes / smeSize);
+    int packetSMEs = std::min<int>(numSMEs, remainingBytes / smeSize);
     for(int i = 0; i < packetSMEs; i++) {
         auto sme = smes.dequeue();
         sme.serialize(packet);
@@ -90,7 +93,7 @@ void SendUplinkMessage::computePacketAllocation(const NetworkConfiguration& conf
         numSMEs = std::min(availableSMEs, maxSMEs);
         const int unusedBytes = totAvailableBytes - topologyBytes -
             (numSMEs * smeSize);
-        numTopologies += min(unusedBytes / topologySize, remainingTopologies);
+        numTopologies += std::min(unusedBytes / topologySize, remainingTopologies);
     }
 
     /* Try to fit numTopologies and numSME in packet, to get the actual numbers,
@@ -133,7 +136,7 @@ void SendUplinkMessage::computePacketAllocation(const NetworkConfiguration& conf
     assert(totPackets <= maxPackets);
 }
 
-void SendUplinkMessage::putPanHeader(unsigned short panId) {
+void SendUplinkMessage::putPanHeader() {
     unsigned char panHeader[] = {
         0x46, //frame type 0b110 (reserved), intra pan
         0x08, //no source addressing, short destination addressing
@@ -150,10 +153,10 @@ void SendUplinkMessage::putPanHeader(unsigned short panId) {
 
 bool ReceiveUplinkMessage::recv(MACContext& ctx, long long tExpected) {
     auto rcvResult = packet.recv(ctx, tExpected);
-    if(rcvResult.error != RecvResult::ErrorCode::OK)
+    if(rcvResult.error != miosix::RecvResult::ErrorCode::OK)
         return false;
 
-    auto& config = ctx.getNetworkConfiguration();
+    auto& config = ctx.getNetworkConfig();
     // Validate first packet
     if(receivedPackets == 0) {
         if(checkFirstPacket(config) == false) return false;
@@ -163,9 +166,9 @@ bool ReceiveUplinkMessage::recv(MACContext& ctx, long long tExpected) {
         if(checkOtherPacket(config) == false) return false;
     }
     // Save rssi and timestamp of valid packet
-    rssi = rcvResult.getRssi();
-    if(rcvResult.timestampValid())
-        timestamp = rcvResult.getTimestamp();
+    rssi = rcvResult.rssi;
+    if(rcvResult.timestampValid)
+        timestamp = rcvResult.timestamp;
     else
         timestamp = -1;
     receivedPackets++;
@@ -176,18 +179,19 @@ void ReceiveUplinkMessage::deserializeTopologiesAndSMEs(UpdatableQueue<unsigned 
                                                         TopologyElement>& topologies,
                                                         UpdatableQueue<StreamId,
                                                         StreamManagementElement>& smes) {
-    for(int i = 0; i < getPacketTopologies(); i++) {
+    for(int i = 0; i < getNumPacketTopologies(); i++) {
         auto topology = getForwardedTopology();
-        topologies.enqueue(topology.getId(),std::move(topology));
+        unsigned char id = topology.getId();
+        topologies.enqueue(id, std::move(topology));
     }
 
-    for(int i = 0; i < getPacketSMEs(); i++) {
+    for(int i = 0; i < getNumPacketSMEs(); i++) {
         auto sme = getSME();
         smes.enqueue(sme.getStreamId(),sme);
     }
 }
 
-bool ReceiveUplinkMessage::checkPanHeader(unsigned short panId) {
+bool ReceiveUplinkMessage::checkPanHeader() {
     // Check panHeader
     if(packet[0] == 0x46 &&
        packet[1] == 0x08 &&
@@ -201,15 +205,16 @@ bool ReceiveUplinkMessage::checkPanHeader(unsigned short panId) {
 }
 
 bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) {
-    const int headerSize = Packet::maxSize() - getFirstPacketCapacity(config);
+    const unsigned int headerSize = Packet::maxSize() - getFirstUplinkPacketCapacity(config);
     if(packet.size() < headerSize) return false;
-    if(checkPanHeader(config.getPanId()) == false) return false;
+    if(checkPanHeader() == false) return false;
     UplinkHeader tempHeader;
     packet.get(&tempHeader, sizeof(UplinkHeader));
     if(tempHeader.hop == 0 || tempHeader.hop > config.getMaxHops()) return false;
     if(tempHeader.assignee > config.getMaxNodes()) return false;
     // Extract sender topology
-    auto tempSenderTopology = RuntimeBitset::deserialize(packet);
+    RuntimeBitset tempSenderTopology(bitmaskSize);
+    packet.get(tempSenderTopology.data(), bitmaskSize);
 
     if(checkTopologiesAndSMEs(config, headerSize, tempHeader) == false) return false;
 
@@ -220,17 +225,17 @@ bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) 
 }
 
 bool ReceiveUplinkMessage::checkOtherPacket(const NetworkConfiguration& config) {
-    const int headerSize = Packet::maxSize() - getOtherPacketCapacity();
+    const unsigned int headerSize = Packet::maxSize() - getOtherUplinkPacketCapacity();
     if(packet.size() < headerSize) return false;
-    if(checkPanHeader(config.getPanId()) == false) return false;
+    if(checkPanHeader() == false) return false;
 
     if(checkTopologiesAndSMEs(config, headerSize, header) == false) return false;
 
     return true;
 }
 
-bool checkTopologiesAndSMEs(const NetworkConfiguration& config,
-                            int headerSize, UplinkHeader tempHeader) {
+bool ReceiveUplinkMessage::checkTopologiesAndSMEs(const NetworkConfiguration& config,
+                                                  int headerSize, UplinkHeader tempHeader) {
     /* Validate numTopologies and numSME in UplinkHeader
        by trying to extract from an example packet the same number of topologies and SME */
     const int maxPackets = config.getNumUplinkPackets();
@@ -238,19 +243,19 @@ bool checkTopologiesAndSMEs(const NetworkConfiguration& config,
     int numPackets = 1;
     // Validate topologies in packets
     int remainingTopologies = tempHeader.numTopology;
-    int topologiesInPacket = 0;
+    unsigned int topologiesInPacket = 0;
     for(;;) {
         // NOTE: Do the allocation also for the last packet
-        int packetTopologies = std::min(remainingTopologies, remainingBytes / topologySize);
+        int packetTopologies = std::min<int>(remainingTopologies, remainingBytes / topologySize);
         remainingTopologies -= packetTopologies;
         remainingBytes -= packetTopologies * topologySize;
         // Validate last received packet
         if(numPackets == receivedPackets + 1) {
             topologiesInPacket = packetTopologies;
             // Check that TopologyElements in packet are valid
-            for(int i = 0; i < topologiesInPacket; i++) {
+            for(unsigned int i = 0; i < topologiesInPacket; i++) {
                 // Calculate TopologyElement offset in packet
-                int offset = topologySize * i;
+                unsigned int offset = topologySize * i;
                 // Check that there is enough data in the packet
                 if(offset + topologySize >= packet.size()) return false;
                 if(TopologyElement::validateInPacket(packet, offset + headerSize) == false)
@@ -267,7 +272,7 @@ bool checkTopologiesAndSMEs(const NetworkConfiguration& config,
     int SMEsInPacket = 0;
     for(;;) {
         // NOTE: Do the allocation also for the last packet
-        int packetSMEs = std::min(remainingSMEs, remainingBytes / smeSize);
+        int packetSMEs = std::min<int>(remainingSMEs, remainingBytes / smeSize);
         remainingSMEs -= packetSMEs;
         remainingBytes -= packetSMEs * smeSize;
         // Validate last received packet
@@ -276,7 +281,7 @@ bool checkTopologiesAndSMEs(const NetworkConfiguration& config,
             // Check that SMEs in packet are valid
             for(int i = 0; i < SMEsInPacket; i++) {
                 // Calculate SME offset in packet
-                int offset = (topologySize*TopologiesInPacket) + (smeSize * i);
+                unsigned int offset = (topologySize * topologiesInPacket) + (smeSize * i);
                 // Check that there is enough data in the packet
                 if(offset + smeSize >= packet.size()) return false;
                 if(StreamManagementElement::validateInPacket(packet, offset + headerSize) == false)
@@ -288,7 +293,7 @@ bool checkTopologiesAndSMEs(const NetworkConfiguration& config,
         remainingBytes = getOtherUplinkPacketCapacity();
     }
     // Check size of data in packet
-    if((topologiesinPacket * topologySize + SMEsInPacket * smeSize) != packet.size())
+    if((topologiesInPacket * topologySize + SMEsInPacket * smeSize) != packet.size())
         return false;
 
     // Write temporary values to class fields

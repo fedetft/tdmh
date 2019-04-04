@@ -52,7 +52,15 @@ namespace mxnet {
  */
 class RuntimeBitset {
 public:
-    RuntimeBitset() = delete;
+    /**
+     * Default constructor for RuntimeBitset used for putting a RuntimeBitset
+     * into an stl container
+     */
+    RuntimeBitset() :
+        bitCount(0),
+        byteSize(0),
+        content(nullptr),
+        bbData(nullptr) {}
 
     /**
      * Creates an uninitialized array of size bits
@@ -60,7 +68,7 @@ public:
      */
     explicit RuntimeBitset(std::size_t size) :
         bitCount(size),
-        byteSize(((size - 1) >> shiftDivisor) + 1),
+        byteSize((size + 7) / 8),
         content(new uint8_t[byteSize])
 #ifdef _ARCH_CORTEXM3_EFM32GG
     , bbData(reinterpret_cast<unsigned*>(((reinterpret_cast<unsigned long>(content) - sramBase) << 5) + bitBandBase))

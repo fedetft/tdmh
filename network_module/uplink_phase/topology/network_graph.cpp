@@ -25,24 +25,14 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "topology_element.h"
+#include "network_graph.h"
 
 namespace mxnet {
 
 //
-// class TopologyElement
+// class NetworkGraph
 //
-    
-void TopologyElement::serialize(Packet& pkt) const {
-    pkt.put(&id, sizeof(unsigned char));
-    pkt.put(neighbors.data(), neighbors.size());
-}
 
-TopologyElement TopologyElement::deserialize(Packet& pkt, unsigned short bitmaskSize) {
-    TopologyElement result(bitmaskSize);
-    pkt.get(&result.id, sizeof(unsigned char));
-    pkt.get(result.neighbors.data(), bitmaskSize);
-    return result;
-}
+
 
 } /* namespace mxnet */

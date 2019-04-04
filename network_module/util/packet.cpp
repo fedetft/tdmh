@@ -27,32 +27,32 @@
 
 #include "debug_settings.h"
 #include "packet.h"
-#include "mac_context.h"
-#include "timesync/timesync_downlink.h"
+#include "../mac_context.h"
+#include "../downlink_phase/timesync/timesync_downlink.h"
 
 using namespace std;
 using namespace miosix;
 
 namespace mxnet {
 
-void Packet::put(const void* data, int size) {
-    if(size > static_cast<int>(available())
+void Packet::put(const void* data, unsigned int putSize) {
+    if(putSize > static_cast<int>(available()))
         throw range_error("Packet::put: Overflow!");
-    memcpy(packet.data()+dataSize, data, size);
-    dataSize += size;
+    memcpy(packet.data()+dataSize, data, putSize);
+    dataSize += putSize;
 }
 
-void Packet::get(void* data, int size) {
-    if(size > size())
+void Packet::get(void* data, unsigned int getSize) {
+    if(getSize > size())
         throw PacketUnderflowException("Packet::get: Underflow!");
-    memcpy(data, packet.data()+dataStart, size);
-    dataStart += size;
+    memcpy(data, packet.data()+dataStart, getSize);
+    dataStart += getSize;
 }
 
-void Packet::discard(int size) {
-    if(size > size())
+void Packet::discard(unsigned int discardSize) {
+    if(discardSize > size())
         throw PacketUnderflowException("Packet::discard: Underflow!");
-    dataStart += size;
+    dataStart += discardSize;
 }
 
 void Packet::send(MACContext& ctx, long long sendTime) const {

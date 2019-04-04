@@ -26,12 +26,11 @@
  ***************************************************************************/
 
 #include "network_configuration.h"
-#include "bitwise_ops.h"
 #include "mac_context.h"
-#include "debug_settings.h"
 #include "tdmh.h"
-#include "uplink/uplink_message.h"
-#include "uplink/topology/topology_message.h"
+#include "util/bitwise_ops.h"
+#include "util/debug_settings.h"
+#include "uplink_phase/uplink_message.h"
 #include <stdexcept>
 
 namespace mxnet {
@@ -84,11 +83,12 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
 }
 
 void NetworkConfiguration::validate() const {
-    auto size = UplinkMessage::getMinSize()+NeighborMessage::guaranteedSize(*this);
-    auto maxSize = MediumAccessController::maxPktSize;
-    if(size > maxSize) {
+    const int totAvailableBytes = getFirstUplinkPacketCapacity(*this) +
+        (numUplinkPackets - 1) * getOtherUplinkPacketCapacity();
+    auto topologySize = guaranteedTopologies * TopologyElement::maxSize(getNeighborBitmaskSize());
+    if(topologySize > totAvailableBytes) {
         std::ostringstream error;
-        error << "UplinkMessage size of " << size << " exceeds max packet size of " << static_cast<int>(maxSize);
+        error << "guaranteedTopologies size of " << topologySize << " exceeds UplinkMessage available space of " << totAvailableBytes;
         throwLogicError(error.str().c_str());
     }
     if(clockSyncPeriod % controlSuperframeDuration != 0)

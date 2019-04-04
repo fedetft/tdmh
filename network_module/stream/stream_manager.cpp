@@ -26,7 +26,7 @@
  ***************************************************************************/
 
 #include "stream_manager.h"
-#include "debug_settings.h"
+#include "../util/debug_settings.h"
 #include <algorithm>
 #include <set>
 
@@ -347,21 +347,11 @@ void StreamManager::dequeueSMEs(UpdatableQueue<StreamId,StreamManagementElement>
 #else
     std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
-    for(unsigned int i = 0; i < smeQueue.size(); i++) {
-        queue.enqueue(smeQueue.front.getStreamId(), smeQueue.front());
+    while(!smeQueue.empty()) {
+        auto temp = std::move(smeQueue.front());
         smeQueue.pop();
-    }
-}
-
-void StreamManager::enqueueSMEs(std::vector<StreamManagementElement> smes) {
-    // Mutex lock to access the shared container StreamMap
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-    for(auto& sme: smes) {
-        smeQueue.push(sme);
+        StreamId tempId = temp.getStreamId();
+        queue.enqueue(tempId, std::move(temp));
     }
 }
 

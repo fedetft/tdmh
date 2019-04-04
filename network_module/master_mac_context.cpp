@@ -27,26 +27,17 @@
 
 
 #include "master_mac_context.h"
-#include "data/dataphase.h"
+#include "data_phase/dataphase.h"
 
 namespace mxnet {
 MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
-    MACContext(mac, transceiver, config) {
+    MACContext(mac, transceiver, config),
+    scheduleComputation(*this) {
     timesync = new MasterTimesyncDownlink(*this);
-    if (config.getTopologyMode() == NetworkConfiguration::NEIGHBOR_COLLECTION) {
-        auto* topology_ctx = new MasterMeshTopologyContext(*this);
-        scheduleComputation = new ScheduleComputation(*this, *topology_ctx);
-        streamMgr = scheduleComputation->getStreamManager();
-        topologyContext = topology_ctx;
-        uplink = new MasterUplinkPhase(*this, topology_ctx, *scheduleComputation, streamMgr);
-    } else {
-        auto* topology_ctx = new MasterTreeTopologyContext(*this);
-        // A scheduler for Tree topology is not yet implemented
-        topologyContext = topology_ctx;
-        uplink = new MasterUplinkPhase(*this, topology_ctx, *scheduleComputation, streamMgr);
-    }
+    streamMgr = scheduleComputation.getStreamManager();
+    uplink = new MasterUplinkPhase(*this, streamMgr, scheduleComputation);
     data = new DataPhase(*this, *streamMgr);
-    scheduleDistribution = new MasterScheduleDownlinkPhase(*this, *scheduleComputation);
+    scheduleDistribution = new MasterScheduleDownlinkPhase(*this, scheduleComputation);
 };
 
 } /* namespace mxnet */

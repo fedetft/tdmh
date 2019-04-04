@@ -256,7 +256,7 @@ public:
     virtual ~StreamManagementElement() {};
 
     void serialize(Packet& pkt) const override;
-    static std::vector<StreamManagementElement> deserialize(Packet& pkt, std::size_t size);
+    static StreamManagementElement deserialize(Packet& pkt);
     StreamId getStreamId() const { return id; }
     StreamParameters getStreamParameters() const { return parameters; }
     unsigned char getSrc() const { return id.src; }
@@ -289,6 +289,9 @@ public:
     }
 
     std::size_t size() const override { return maxSize(); }
+
+    //TODO: implement method
+    static bool validateInPacket(Packet& packet, unsigned int offset) { return true; }
 
 protected:
     StreamId id;

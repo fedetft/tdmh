@@ -40,6 +40,8 @@ namespace mxnet {
  */
 class TopologyElement : public SerializableMessage {
 public:
+    TopologyElement() : id(0) {}
+
     TopologyElement(unsigned short bitmaskSize) : id(0), neighbors(bitmaskSize, 0) {}
 
     TopologyElement(unsigned char id, const RuntimeBitset& neighbors) :
@@ -49,13 +51,27 @@ public:
     TopologyElement(unsigned char id, RuntimeBitset&& neighbors) :
         id(id), neighbors(std::move(neighbors)) {}
 
+    virtual ~TopologyElement() {};
+
     unsigned char getId() const { return id; }
 
     RuntimeBitset getNeighbors() const { return neighbors; }
 
+    //TODO: implement method
+    static bool validateInPacket(Packet& packet, unsigned int offset) { return true; }
+
     void serialize(Packet& pkt) const override;
 
-    static TopologyElement deserialize(Packet& pkt unsigned short bitmaskSize);
+    static TopologyElement deserialize(Packet& pkt, unsigned short bitmaskSize);
+
+    static unsigned short maxSize(unsigned short bitmaskSize) {
+        return sizeof(unsigned char) + bitmaskSize;
+    }
+
+    std::size_t size() const override {
+        return sizeof(unsigned char) + neighbors.size();
+    }
+
 private:
 
     /* Network ID of the node */

@@ -28,10 +28,13 @@
 
 #pragma once
 
-#include "../serializable_message.h"
-#include "../packet.h"
-#include "stream_management/stream_management_element.h"
-#include "../updatable_queue.h"
+#include "../mac_context.h"
+#include "../util/serializable_message.h"
+#include "../util/packet.h"
+#include "../util/updatable_queue.h"
+#include "../util/runtime_bitset.h"
+#include "../stream/stream_management_element.h"
+#include "topology/topology_element.h"
 
 namespace mxnet {
 
@@ -95,8 +98,8 @@ public:
      * This function serializes topologies and SMEs in the packet.
      * NOTE: Call this function before every send
      */
-    void serializeTopologiesAndSMEs(UpdatableQueue<unsigned char, TopologyElement>& topologies,
-                                    UpdatableQueue<StreamId, StreamManagementElement>& smes);
+    void serializeTopologiesAndSMEs(UpdatableQueue<unsigned char,TopologyElement>& topologies,
+                                    UpdatableQueue<StreamId,StreamManagementElement>& smes);
 
     /**
      * @return the number of packet to send with this UplinkMessage
@@ -111,7 +114,7 @@ public:
         packet.send(ctx, sendTime);
         // Prepare the next packet
         packet.clear();
-        putPanHeader(ctx.getNetworkConfiguration().getPanId());
+        putPanHeader();
     }
 
 private:
@@ -120,13 +123,16 @@ private:
                                  int availableTopologies, int availableSMEs);
     /**
      * Insert IEEE 802.15.4 header Packet
-     * \param panId the network PAN ID
      */
-    void putPanHeader(unsigned short panId);
+    void putPanHeader();
 
     /* Size constants used in the methods */
-    const int topologySize = TopologyElement::maxSize();
+    const int topologySize = TopologyElement::maxSize(bitmaskSize);
     const int smeSize = StreamManagementElement::maxSize();
+
+    /* Parameters from NetworkConfiguration */
+    const unsigned short bitmaskSize;
+    const unsigned short panId;
 
     /* One of the UplinkMessage packets */
     Packet packet;
@@ -135,17 +141,19 @@ private:
     /* Number of topologies sent in UplinkMessage.
        Initialized by the constructor and decremented
        every time a topology is serialized */
-    int numTopologies;
+    unsigned char numTopologies;
     /* Number of SMEs sent in UplinkMessage.
        Initialized by the constructor and decremented
        every time a new SME is serialized */
-    int numSMEs;
+    unsigned char numSMEs;
 };
 
 class ReceiveUplinkMessage {
 public:
     ReceiveUplinkMessage(const NetworkConfiguration& config) :
-        bitmaskSize(config.getNeighborBitmaskSize()) {}
+        bitmaskSize(config.getNeighborBitmaskSize()),
+        panId(config.getPanId()),
+        topology(RuntimeBitset(bitmaskSize)) {}
     ReceiveUplinkMessage(const ReceiveUplinkMessage&) = delete;
     ReceiveUplinkMessage& operator=(const ReceiveUplinkMessage&) = delete;
 
@@ -221,7 +229,7 @@ private:
      * Checks the IEEE 802.15.4 header of the current packet.
      * @return true if current packet is an UplinkPacket, false otherwise
      */
-    bool checkPanHeader(unsigned short panId);
+    bool checkPanHeader();
 
     /**
      * Checks that the values in the first packet header are valid.
@@ -243,9 +251,12 @@ private:
                                 int headerSize, UplinkHeader tempHeader);
 
     /* Size constants used in the methods */
-    const int topologySize = TopologyElement::maxSize();
-    const int smeSize = StreamManagementElement::maxSize();
+    const unsigned int topologySize = TopologyElement::maxSize(bitmaskSize);
+    const unsigned int smeSize = StreamManagementElement::maxSize();
+
+    /* Parameters from NetworkConfiguration */
     const unsigned short bitmaskSize;
+    const unsigned short panId;
 
     /* One of the UplinkMessage packets */
     Packet packet;
@@ -262,9 +273,9 @@ private:
     /* TopologyElement containing topology of node sending the packet */
     RuntimeBitset topology;
     /* Number of topologies contained in the current packet */
-    int packetTopologies = 0;
+    unsigned int packetTopologies = 0;
     /* Number of SMEs contained in the current packet */
-    int packetSMEs = 0;
+    unsigned int packetSMEs = 0;
 };
 
 } /* namespace mxnet */

@@ -27,7 +27,7 @@
 
 #include "mac_phase.h"
 #include "mac_context.h"
-#include "timesync/timesync_downlink.h"
+#include "downlink_phase/timesync/timesync_downlink.h"
 
 namespace mxnet {
 

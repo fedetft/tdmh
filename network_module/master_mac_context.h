@@ -41,14 +41,14 @@ public:
     MasterMACContext() = delete;
     virtual ~MasterMACContext() {};
     void startScheduler() {
-      scheduleComputation->startThread();
+      scheduleComputation.startThread();
     };
     void beginScheduling() {
-      scheduleComputation->beginScheduling();
+      scheduleComputation.beginScheduling();
     };
 
 private:
-    ScheduleComputation* scheduleComputation = nullptr;
+    ScheduleComputation scheduleComputation;
 };
 
 } /* namespace mxnet */

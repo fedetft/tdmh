@@ -25,12 +25,12 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "schedule_computation.h"
 #include "master_schedule_distribution.h"
+#include "../scheduler/schedule_computation.h"
 #include "../tdmh.h"
-#include "../packet.h"
-#include "../debug_settings.h"
-#include "../timesync/networktime.h"
+#include "../util/packet.h"
+#include "../util/debug_settings.h"
+#include "timesync/networktime.h"
 
 using namespace miosix;
 

@@ -87,12 +87,12 @@ protected:
             if(networkConfig.getStaticHop()>0)
             {
                 // If not synchronized and forced hop selected, ignore other hops
-                if(packet[2] + 1 != network.getStaticHop()) return false;
+                if(packet[2] + 1 != networkConfig.getStaticHop()) return false;
             } else {
                 // If not synchronized and no forced hop, ignore hops>maxNumHop
                 // NOTE: this is important because other phases send packets
                 // with the same header which can be disambiguated by the hop field
-                if(packet[2] + 1 > networkConfig.getMaxNumHop()) return false;
+                if(packet[2] + 1 > networkConfig.getMaxHops()) return false;
             }
         }
         return true;

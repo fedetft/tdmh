@@ -25,9 +25,9 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include <stdio.h>
-#include "../debug_settings.h"
 #include "timesync_downlink.h"
+#include "../../util/debug_settings.h"
+#include <stdio.h>
 #include <stdexcept>
 
 using namespace miosix;
