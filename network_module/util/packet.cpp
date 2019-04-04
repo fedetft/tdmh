@@ -36,7 +36,7 @@ using namespace miosix;
 namespace mxnet {
 
 void Packet::put(const void* data, unsigned int putSize) {
-    if(putSize > static_cast<int>(available()))
+    if(putSize > available())
         throw range_error("Packet::put: Overflow!");
     memcpy(packet.data()+dataSize, data, putSize);
     dataSize += putSize;

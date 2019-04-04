@@ -32,7 +32,7 @@ namespace mxnet {
 
 bool RuntimeBitset::empty() {
     bool notEmpty = false;
-    for(int i=0; i<byteSize; i++) {
+    for(unsigned int i=0; i<byteSize; i++) {
         if(content[i]) notEmpty = true;
     }
     return !notEmpty;
