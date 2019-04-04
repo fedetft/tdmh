@@ -173,11 +173,6 @@ public:
     UplinkPhase* const getUplink() const { return uplink; }
 
     /**
-     * @return the ScheduleDownlink
-     */
-    ScheduleDownlinkPhase* const getScheduleDownlink() const { return scheduleDistribution; }
-
-    /**
      * @return the DataPhase
      */
     DataPhase* const getDataPhase() const { return data; }
