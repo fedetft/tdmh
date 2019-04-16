@@ -205,7 +205,8 @@ public:
     }
 
     /**
-     * @return the number of uplinks (for which it would be his turn) after which a neighbor not sending a packet is considered disconnected.
+     * @return the number of uplinks (for which it would be his turn)
+     * after which a neighbor not sending a packet is considered disconnected.
      */
     unsigned short getMaxRoundsUnavailableBecomesDead() const {
         return maxRoundsUnavailableBecomesDead;

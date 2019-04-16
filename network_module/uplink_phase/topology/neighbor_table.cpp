@@ -26,12 +26,98 @@
  ***************************************************************************/
 
 #include "neighbor_table.h"
+#include <algorithm>
+using namespace std;
 
 namespace mxnet {
+
+    /**
+     *  Used by make_heap, push_heap and pop_heap,
+     *  returns true if the first value has lower rssi than the second
+     */
+    struct comparePredecessors{ 
+        bool operator()(const pair<unsigned char, short>& a,
+                        const pair<unsigned char, short>& b) const{
+            return a.second > b.second; 
+        } 
+    };
 
 //
 // class NeighborTable
 //
-    
+void NeighborTable::receivedMessage(unsigned char currentNode, unsigned char currentHop,
+                                    int rssi, RuntimeBitset senderTopology) {
+    // If currentNode is present in activeNeighbors
+    if (activeNeighbors.find(currentNode) != activeNeighbors.end()) {
+        // Reset timeout because we received uplink from currentNode
+        activeNeighbors[currentNode] = maxTimeout;
+    }
+    else {
+        // If rssi > treshold
+        if(rssi >= minRssi) {
+            // Add to activeNeighbors with timeout=max
+            activeNeighbors[currentNode] = maxTimeout;
+            // Add to myTopologyElement
+            myTopologyElement.addNode(currentNode);
+        }
+        // If rssi < treshold but we are present in senderTopology
+        else if(senderTopology[myId] == true) {
+            // Add to activeNeighbors with timeout=max
+            activeNeighbors[currentNode] = maxTimeout;
+            // Add to myTopologyElement
+            myTopologyElement.addNode(currentNode);
+        }
+        // No need to add currentNode to neighbors
+        else
+            return;
+    }
+    // If we end up here we have reset the timeout for currentNode or
+    // just added currentNode to neighbors
+    // Check if currentNode is a predecessor
+    if(currentHop < myHop) {
+        // Add to predecessors, overwrite if present
+        addPredecessor(make_pair(currentNode, rssi));
+    }
+    else {
+        // Remove from predecessors if present
+        removePredecessor(currentNode);
+    }
+}
+
+void NeighborTable::missedMessage(unsigned char currentNode) {
+    // If currentNode is present in activeNeighbors
+    if (activeNeighbors.find(currentNode) != activeNeighbors.end()) {
+        /* Decrement timeout because we missed the uplink message from currentNode        
+           if timeout is zero, neighbor node is considered dead */
+        if(activeNeighbors[currentNode]-- <= 0) {
+            activeNeighbors.erase(currentNode);
+            removePredecessor(currentNode);
+            myTopologyElement.removeNode(currentNode);
+        }
+    }
+    // If currentNode is not present in activeNeighbors, do nothing.
+}
+
+void NeighborTable::addPredecessor(pair<unsigned char, short> node) {
+    // Remove old value if already present in the heap
+    removePredecessor(node.first);
+    // Add new value
+    predecessors.push_back(node);
+    // Sort new value in heap
+    push_heap(predecessors.begin(), predecessors.end(), comparePredecessors());
+}
+
+void NeighborTable::removePredecessor(unsigned char nodeId) {
+    // Check if value is already present in the heap
+    auto it = find_if(predecessors.begin(), 
+                           predecessors.end(), 
+                           [&nodeId](const pair<unsigned char, short>& p)
+                           { return p.first == nodeId; });
+    // Remove old value if present
+    if(it != predecessors.end()) {
+        predecessors.erase(it); 
+        make_heap(predecessors.begin(), predecessors.end(), comparePredecessors());
+    }
+}
 
 } /* namespace mxnet */

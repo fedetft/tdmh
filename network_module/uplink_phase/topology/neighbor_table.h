@@ -28,6 +28,9 @@
 #pragma once
 
 #include "topology_element.h"
+#include <map>
+#include <vector>
+#include <utility>
 
 namespace mxnet {
 
@@ -36,22 +39,53 @@ namespace mxnet {
  */
 class NeighborTable {
 public:
-    NeighborTable(unsigned short bitmaskSize) :
-        myTopologyElement(TopologyElement(bitmaskSize)) {}
+    NeighborTable(const NetworkConfiguration& config, const unsigned char myId,
+                  const unsigned char myHop) :
+        maxTimeout(config.getMaxRoundsUnavailableBecomesDead()),
+        minRssi(config.getMinNeighborRSSI()),
+        myId(myId), myHop(myHop),
+        myTopologyElement(TopologyElement(config.getNeighborBitmaskSize())){}
 
     void receivedMessage(unsigned char currentNode, unsigned char currentHop,
-                         int rssi, RuntimeBitset senderTopology) {};
+                         int rssi, RuntimeBitset senderTopology);
 
-    void missedMessage(unsigned char sender) {};
+    void missedMessage(unsigned char currentNode);
 
-    unsigned char getBestPredecessor() { return 1; };
+    unsigned char getBestPredecessor() { return predecessors.front().first; };
 
     TopologyElement getMyTopologyElement() { return myTopologyElement; };
 
 private:
 
+    /**
+     * Add a node to the predecessor list, replacing if already present
+     */
+    void addPredecessor(std::pair<unsigned char, short> node);
+
+    /**
+     * Remove the node from the predecessor list if present
+     */
+    void removePredecessor(unsigned char nodeId);
+
+    /* Constant value from NetworkConfiguration */
+    const unsigned short maxTimeout;
+    const short minRssi;
+    const unsigned char myId;
+    const unsigned char myHop;
+
     /* TopologyElement containing neighbors of this node */
     TopologyElement myTopologyElement;
+    /* map with key: unsigned char id, value: unsigned char timeoutCounter,
+       used to remove nodes from the list of neighbors after not receiving
+       their message for timeoutCounter times */
+    std::map<unsigned char, unsigned short> activeNeighbors;
+    /* vector containing predecessor nodes (with hop < this node)
+       used as a heap (with stl methods make_heap, push_heap and pop_heap)
+       The pair is <node ID, last RSSI>.
+       This list is kept sorted by descending rssi, and it is
+       used to pick the predecessor node with highest rssi */
+    std::vector<std::pair<unsigned char, short>> predecessors;
+
 };
 
 } /* namespace mxnet */

@@ -41,36 +41,34 @@ namespace mxnet {
 class TopologyElement : public SerializableMessage {
 public:
     TopologyElement() : id(0) {}
-
     TopologyElement(unsigned short bitmaskSize) : id(0), neighbors(bitmaskSize, 0) {}
-
     TopologyElement(unsigned char id, const RuntimeBitset& neighbors) :
         id(id), neighbors(neighbors) {}
-
     // Zero copy constructor
     TopologyElement(unsigned char id, RuntimeBitset&& neighbors) :
         id(id), neighbors(std::move(neighbors)) {}
-
     virtual ~TopologyElement() {};
+
+    static unsigned short maxSize(unsigned short bitmaskSize) {
+        return sizeof(unsigned char) + bitmaskSize;
+    }
+    std::size_t size() const override {
+        return sizeof(unsigned char) + neighbors.size();
+    }
+    void serialize(Packet& pkt) const override;
+
+    static TopologyElement deserialize(Packet& pkt, unsigned short bitmaskSize);
+
+    //TODO: implement method
+    static bool validateInPacket(Packet& packet, unsigned int offset) { return true; }
 
     unsigned char getId() const { return id; }
 
     RuntimeBitset getNeighbors() const { return neighbors; }
 
-    //TODO: implement method
-    static bool validateInPacket(Packet& packet, unsigned int offset) { return true; }
+    void addNode(unsigned char nodeId) { neighbors[nodeId] = true; }
 
-    void serialize(Packet& pkt) const override;
-
-    static TopologyElement deserialize(Packet& pkt, unsigned short bitmaskSize);
-
-    static unsigned short maxSize(unsigned short bitmaskSize) {
-        return sizeof(unsigned char) + bitmaskSize;
-    }
-
-    std::size_t size() const override {
-        return sizeof(unsigned char) + neighbors.size();
-    }
+    void removeNode(unsigned char nodeId) { neighbors[nodeId] = false; }
 
 private:
 
