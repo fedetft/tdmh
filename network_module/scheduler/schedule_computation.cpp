@@ -47,7 +47,7 @@ ScheduleComputation::ScheduleComputation(MACContext& mac_ctx) :
     schedule(0, superframe.size()), // Initialize Schedule with ID=0 and tile_size = superframe size
     mac_ctx(mac_ctx), netconfig(mac_ctx.getNetworkConfig()),
     superframe(netconfig.getControlSuperframeStructure()),
-    network_graph(mac_ctx.getNetworkConfig().getMaxNodes()) {}
+    network_graph(netconfig.getNeighborBitmaskSize()) {}
 
 void ScheduleComputation::startThread() {
     if (scthread == NULL)
@@ -86,9 +86,10 @@ void ScheduleComputation::run() {
             }
             // Take snapshot of stream requests and network topology
             stream_snapshot = stream_mgmt.getSnapshot();
-            network_graph = uplink_phase->getTopologyMap();
-            // Clear modified bit to detect changes to topology or streams
-            uplink_phase->clearModifiedFlag();
+            // Get new graph snapshot if graph changed
+            graph_changed = false;
+            uplink_phase->updateSchedulerNetworkGraph(*this);
+            // Clear modified bit to detect changes to streams
             stream_mgmt.clearFlags();
         }
         /* IMPORTANT!: From now on use only the snapshot classes
@@ -108,7 +109,7 @@ void ScheduleComputation::run() {
         /* If topology changed or a stream was removed:
            clear current schedule and reschedule established streams */
         Schedule newSchedule;
-        if(network_graph.wasModified() || stream_snapshot.wasRemoved()) {
+        if(graph_changed || stream_snapshot.wasRemoved()) {
             newSchedule = scheduleEstablishedStreams(newID);
             scheduleChanged = true;
         }
@@ -145,7 +146,7 @@ void ScheduleComputation::initialPrint() {
     if(ENABLE_SCHEDULE_COMP_INFO_DBG || ENABLE_STREAM_LIST_INFO_DBG) {
         printf("\n[SC] #### Starting schedule computation ####\n");
         printf("topology changed:%s, stream changed:%s\n",
-               network_graph.wasModified()?"True":"False",
+               graph_changed?"True":"False",
                stream_snapshot.wasModified()?"True":"False");
         // NOTE: Debug topology print
         printf("[SC] Begin Topology\n");

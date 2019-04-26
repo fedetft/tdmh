@@ -32,6 +32,123 @@ namespace mxnet {
 //
 // class NetworkTopology
 //
-    
+
+void NetworkTopology::receivedMessage(unsigned char currentNode, unsigned char currentHop,
+                                      int rssi, RuntimeBitset senderTopology) {
+    // Received message from direct neighbor
+    if(currentHop == 1) {
+        // If currentNode is present in activeDirectNeighbors
+        if (activeDirectNeighbors.find(currentNode) != activeDirectNeighbors.end()) {
+            // Reset timeout because we received uplink from currentNode
+            activeDirectNeighbors[currentNode] = maxTimeout;
+
+            // Lock mutex to access NetworkGraph (shared with ScheduleComputation).
+            graph_mutex.lock();
+
+            // Reset timeout on the graph
+            graph.resetCounter(0, currentNode);
+        }
+        // If currentNode is not present in activeDirectNeighbors
+        else {
+            // Add node to activeDirectNeighbors with timeout=max
+            activeDirectNeighbors[currentNode] = maxTimeout;
+
+            // Lock mutex to access NetworkGraph (shared with ScheduleComputation).
+            graph_mutex.lock();
+
+            graph.addEdge(0, currentNode);
+            // Set flag since we added an arc that was not present before
+            modified_flag = true;
+        }
+        doReceivedTopology(TopologyElement(currentNode, senderTopology));
+
+        // Unlock mutex, we finished modifying the graph
+        graph_mutex.unlock();
+    }
+    // Received message from non direct neighbor
+    else {
+        // If currentNode is present in activeDirectNeighbors
+        if (activeDirectNeighbors.find(currentNode) != activeDirectNeighbors.end()) {
+            // Remove node from activeDirectNeighbors
+            activeDirectNeighbors.erase(currentNode);
+        }
+        // If currentNode is not present in activeDirectNeighbors, do nothing.
+    }
+}
+
+void NetworkTopology::missedMessage(unsigned char currentNode) {
+    // If currentNode is present in activeDirectNeighbors means its at hop=1
+    // and we have seen it recently
+    if (activeDirectNeighbors.find(currentNode) != activeDirectNeighbors.end()) {
+        /* Decrement timeout because we missed the uplink message from currentNode
+           if timeout is zero, neighbor node is considered dead */
+        if(activeDirectNeighbors[currentNode]-- <= 0) {
+            removeDirectNeighbor(currentNode);
+        }
+    }
+}
+
+void NetworkTopology::handleForwardedTopologies(ReceiveUplinkMessage& message) {
+    // Lock mutex to access NetworkGraph (shared with ScheduleComputation).
+    graph_mutex.lock();
+
+    int numTopologies = message.getNumPacketTopologies();
+    for(int i=0; i<numTopologies; i++) {
+        doReceivedTopology(message.getForwardedTopology());
+    }
+
+    // Unlock mutex, we finished modifying the graph
+    graph_mutex.unlock();
+
+}
+
+void NetworkTopology::removeDirectNeighbor(unsigned char neighbor) {
+    activeDirectNeighbors.erase(neighbor);
+    // Lock mutex to access NetworkGraph (shared with ScheduleComputation).
+    graph_mutex.lock();
+
+    graph.removeEdge(0, neighbor);
+    // Set flag since we added an arc that was not present before
+    modified_flag = true;
+
+    // Unlock mutex, we finished modifying the graph
+    graph_mutex.unlock();
+}
+
+void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
+    // Mutex already locked by caller
+    unsigned char src = topology.getId();
+    RuntimeBitset bitset = topology.getNeighbors();
+
+    /* Update graph according to received topology */
+    // Avoid arcs toward node 0 (handled by acriveDirectNeighbors)
+    for (unsigned i = 1; i < bitset.bitSize(); i++) {
+        // Arc is present in topology, add or resetCounter
+        if(bitset[i]) {
+            // Arc already present in graph
+            if(graph.hasEdge(src, i)) {
+                graph.resetCounter(src, i);
+            }
+            // Arc not present in graph
+            else {
+                graph.addEdge(src, i);
+                // Set flag since we added an arc that was not present before
+                modified_flag = true;
+            }
+        }
+        // Arc is not present in topology, decrementCounter
+        else {
+            // Arc already present in graph
+            if(graph.hasEdge(src, i)) {
+                bool removed = graph.decrementCounter(src, i);
+                if(removed) {
+                    graph.removeEdge(src, i);
+                    // Set flag since we removed an arc from the graph
+                    modified_flag = true;
+                }
+            }
+        }
+    }
+}
 
 } /* namespace mxnet */

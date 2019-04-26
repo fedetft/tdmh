@@ -30,6 +30,7 @@
 
 #include "uplink_phase.h"
 #include "../scheduler/schedule_computation.h"
+#include "topology/network_topology.h"
 
 namespace mxnet {
 
@@ -42,7 +43,8 @@ public:
     MasterUplinkPhase(MACContext& ctx, StreamManager* const streamMgr,
                       ScheduleComputation& scheduleComputation) :
         UplinkPhase(ctx, streamMgr),
-        scheduleComputation(scheduleComputation){
+        scheduleComputation(scheduleComputation),
+        topology(ctx.getNetworkConfig()) {
         scheduleComputation.setUplinkPhase(this);
     }
     
@@ -52,17 +54,13 @@ public:
     virtual void execute(long long slotStart) override;
 
     bool wasModified() {
-        return true;
+        return topology.wasModified();
     }
 
-    NetworkGraph getTopologyMap() {
-        NetworkGraph result(1);
-        return result;
+    void updateSchedulerNetworkGraph(ScheduleComputation& scheduler) {
+        topology.updateSchedulerNetworkGraph(scheduler);
     }
-
-    void clearModifiedFlag();
-
-
+    
 private:
     ScheduleComputation& scheduleComputation;
     NetworkTopology topology;    

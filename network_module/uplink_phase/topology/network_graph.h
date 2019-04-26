@@ -30,8 +30,14 @@
 #include "../../util/runtime_bitset.h"
 #include <vector>
 #include <utility>
+#include <map>
+#include <stdexcept>
+
+#define GRAPH_TYPE NetworkGraph
+//#define GRAPH_TYPE DelayedRemovalNetworkGraph
 
 namespace mxnet {
+
 
 /**
  * NetworkGraph contains the complete graph of the network.
@@ -40,28 +46,131 @@ namespace mxnet {
  */
 class NetworkGraph {
 public:
-    NetworkGraph(unsigned short maxNodes) {}
+    NetworkGraph(unsigned short maxNodes) : bitset_size(maxNodes) {}
 
-    bool wasModified() { return true; }
+    bool hasNode(unsigned char a);
 
-    bool hasNode(unsigned char) { return true; }
-
-    bool hasEdge(unsigned char, unsigned char) { return true; }
-
-    std::vector<std::pair<unsigned char, unsigned char>> getEdges() {
-        std::vector<std::pair<unsigned char, unsigned char>> result;
-        return result;
+    bool hasEdge(unsigned char a, unsigned char b) {
+        return getBit(a,b);
     }
 
-    std::vector<unsigned char> getEdges(unsigned char) {
-        std::vector<unsigned char> result;
-        return result;
+    std::vector<std::pair<unsigned char, unsigned char>> getEdges();
+
+    std::vector<unsigned char> getEdges(unsigned char a);
+
+    void addEdge(unsigned char a, unsigned char b) {
+        if(a == b) throw std::logic_error("TopologyMap.addEdge() does not accept auto-edges");
+        /* Create edge a->b */
+        setBit(a,b);
+        /* Create edge b->a */
+        setBit(b,a);
+    }
+
+    void removeEdge(unsigned char a, unsigned char b) {
+        if(a == b) throw std::logic_error("TopologyMap.removeEdge() does not accept auto-edges");
+        /* Remove edge a->b */
+        clearBit(a,b);
+        /* Remove edge b->a */
+        clearBit(b,a);
+        /* Set this flag to true because removing edges may generate a graph
+           where some nodes are not connected to the master node, these nodes
+           needs to be eliminated with removeNotConnected() */
+        possiblyNotConnected_flag = true;
+    }
+
+    /* The basic NetworkGraph has no counters, so just check that the arc exists
+       NOTE: when this function is used in DelayedRemovalNetworkGraph, it sets
+       both bits to 1 */
+    void resetCounter(unsigned char a, unsigned char b) {
+        if(a == b) throw std::logic_error("TopologyMap.removeEdge() does not accept auto-edges");
+        addEdge(a,b);
+        addEdge(b,a);
+    }
+
+    /* The basic NetworkGraph has no counter, so just delete the arc */
+    virtual bool decrementCounter(unsigned char a, unsigned char b) {
+        if(a == b) throw std::logic_error("TopologyMap.removeEdge() does not accept auto-edges");
+        removeEdge(a,b);
+        removeEdge(b,a);
+        return true;
+    }
+
+    /* This method performs a walk of the graph to find all the nodes that
+       are not connected to the node 0 (Master node), these nodes are eliminated
+       from the graph because they create problems to TDMH since we cannot have
+       a flow of information between these nodes and the master and vice-versa */
+    void removeNotConnected();
+
+protected:
+
+    /* This method returns the value of a bit in the RuntimeBitset */
+    virtual bool getBit(unsigned char a, unsigned char b);
+
+    /* This method sets a bit in the RuntimeBitset to 1 */
+    virtual void setBit(unsigned char a, unsigned char b);
+
+    /* This method sets a bit in the RuntimeBitset to 0 */
+    virtual void clearBit(unsigned char a, unsigned char b);
+
+    /* Flag that indicates that some nodes in the graph may not be connected
+       to the master node, set after removeEdge, reset after calling
+        the removeNotConnected() method */
+    bool possiblyNotConnected_flag = false;
+
+    /* Size of the Runtime Bitset, containing number of supported nodes
+       to be used when creating RuntimeBitset instances inside graph */
+    std::size_t bitset_size;
+
+    /* Map with a RuntimeBitset for each node of the network, representing
+       his adjacency list */
+    std::map<unsigned char, RuntimeBitset> graph;
+};
+
+/**
+ * DelayedRemovalNetworkGraph contains the complete graph of the network.
+ * It is used only by the Master node to collect the toplogy information received
+ * by Dynamic nodes
+ */
+/** NOTE: This class containg a two-bit counter for each edge, to provide a mechanism
+ * that is able to remove the edge only after not hearing it for a long time.
+ * Because of this we need RuntimeBitset of double size
+ */
+/** NOTE: The first half of the double-sized RuntimeBitset stores the LSB bit
+ * of the timer, is equivalent to the normal NetworkGraph class, this allows to
+ * reuse the NetworkGraph implementations.
+ * The second part of the RuntimeBitset contains the other bit of the counter (MSB)
+ * for each node
+ */
+ 
+class DelayedRemovalNetworkGraph : NetworkGraph {
+public:
+    DelayedRemovalNetworkGraph(unsigned short maxNodes) : NetworkGraph(maxNodes*2),
+                                                          num_nodes(maxNodes) {}
+
+    /* This methods decrements bits of the counter to true */
+    bool decrementCounter(unsigned char a, unsigned char b) {
+        return decrementBits(a,b) || decrementBits(b,a); 
     }
 
 private:
 
-    /* Network ID of the node */
-    bool possiblyNotConntected;
+    /* This method returns the value of a bit in the RuntimeBitset */
+    bool getBit(unsigned char a, unsigned char b);
+
+    /* This method sets both bits in the RuntimeBitset to 1 */
+    void setBit(unsigned char a, unsigned char b);
+
+    /* This method sets both bits in the RuntimeBitset to 0 */
+    void clearBit(unsigned char a, unsigned char b);
+
+    /* This method decrement the value of the counter
+       returns true if the final value is zero */
+    bool decrementBits(unsigned char a, unsigned char b);
+
+    /* Value equal to half of bitset_size, used as offset to access the MSB bit
+       of the counter */
+    std::size_t num_nodes;
+
 };
 
 } /* namespace mxnet */

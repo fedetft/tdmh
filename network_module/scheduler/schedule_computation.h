@@ -29,7 +29,6 @@
 
 
 #include "../stream/stream_manager.h"
-#include "../uplink_phase/topology/network_topology.h"
 #include "../uplink_phase/topology/network_graph.h"
 #include "../uplink_phase/uplink_message.h"
 #include "../network_configuration.h"
@@ -95,6 +94,11 @@ public:
 
     void setUplinkPhase(MasterUplinkPhase* uplink) {
         uplink_phase = uplink;
+    }
+
+    void setNetworkGraph(const GRAPH_TYPE& graph) {
+        network_graph = graph;
+        graph_changed = true;
     }
 
 private: 
@@ -210,7 +214,9 @@ private:
     // Get network tile/superframe information
     const ControlSuperframeStructure superframe;
     // Class containing a snapshot of the network topology
-    NetworkGraph network_graph;
+    GRAPH_TYPE network_graph;
+    // Flag set to true if the network graph changed from the last schedule
+    bool graph_changed = false;
 
 #ifdef _MIOSIX
     miosix::Mutex sched_mutex;

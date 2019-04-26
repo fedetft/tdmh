@@ -44,7 +44,7 @@ public:
         maxTimeout(config.getMaxRoundsUnavailableBecomesDead()),
         minRssi(config.getMinNeighborRSSI()),
         myId(myId), myHop(myHop),
-        myTopologyElement(TopologyElement(config.getNeighborBitmaskSize())){}
+        myTopologyElement(TopologyElement(config.getNeighborBitmaskSize())) {}
 
     void receivedMessage(unsigned char currentNode, unsigned char currentHop,
                          int rssi, RuntimeBitset senderTopology);
@@ -75,10 +75,12 @@ private:
 
     /* TopologyElement containing neighbors of this node */
     TopologyElement myTopologyElement;
+
     /* map with key: unsigned char id, value: unsigned char timeoutCounter,
        used to remove nodes from the list of neighbors after not receiving
        their message for timeoutCounter times */
     std::map<unsigned char, unsigned short> activeNeighbors;
+
     /* vector containing predecessor nodes (with hop < this node)
        used as a heap (with stl methods make_heap, push_heap and pop_heap)
        The pair is <node ID, last RSSI>.
