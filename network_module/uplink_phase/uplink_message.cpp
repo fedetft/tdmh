@@ -47,7 +47,8 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
     putPanHeader();
     UplinkHeader header({hop, assignee, numTopologies, numSMEs});
     packet.put(&header, sizeof(UplinkHeader));
-    myTopology.serialize(packet);
+    auto neighbors = myTopology.getNeighbors();
+    packet.put(neighbors.data(), neighbors.size());
 }
 
 void SendUplinkMessage::serializeTopologiesAndSMEs(UpdatableQueue<unsigned char,TopologyElement>& topologies,
@@ -199,11 +200,13 @@ bool ReceiveUplinkMessage::checkPanHeader() {
        packet[1] == 0x08 &&
        packet[2] == 0xff &&
        packet[3] == static_cast<unsigned char>(panId >> 8) &&
-       packet[4] == static_cast<unsigned char>(panId & 0xff)) return false;
-
-    // Remove panHeader from packet
-    packet.discard(panHeaderSize);
-    return true;
+       packet[4] == static_cast<unsigned char>(panId & 0xff)) {
+        // Remove panHeader from packet
+        packet.discard(panHeaderSize);
+        return true;
+    }else {
+        return false;
+    }
 }
 
 bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) {
@@ -218,7 +221,10 @@ bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) 
     RuntimeBitset tempSenderTopology(maxNodes);
     packet.get(tempSenderTopology.data(), bitmaskSize);
 
-    if(checkTopologiesAndSMEs(config, headerSize, tempHeader) == false) return false;
+    // Check topologies and SME only if uplink packet has any of them
+    if(tempHeader.numTopology != 0 || tempHeader.numSME != 0)
+        if(checkTopologiesAndSMEs(config, headerSize, tempHeader) == false)
+            return false;
 
     // Write temporary values to class fields
     header = tempHeader;
