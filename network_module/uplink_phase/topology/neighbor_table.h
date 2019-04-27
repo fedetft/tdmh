@@ -40,11 +40,7 @@ namespace mxnet {
 class NeighborTable {
 public:
     NeighborTable(const NetworkConfiguration& config, const unsigned char myId,
-                  const unsigned char myHop) :
-        maxTimeout(config.getMaxRoundsUnavailableBecomesDead()),
-        minRssi(config.getMinNeighborRSSI()),
-        myId(myId), myHop(myHop),
-        myTopologyElement(TopologyElement(config.getMaxNodes())) {}
+                  const unsigned char myHop);
 
     void receivedMessage(unsigned char currentNode, unsigned char currentHop,
                          int rssi, RuntimeBitset senderTopology);

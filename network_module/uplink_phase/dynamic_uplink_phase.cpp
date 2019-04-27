@@ -91,31 +91,48 @@ void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char curren
 
 void DynamicUplinkPhase::sendMyUplink(long long slotStart)
 {
+    /* If we don't have a predecessor, we send an uplink message without
+       SMEs or topologies with myID as assignee, to speed up the topology
+       collection */
     if(!myNeighborTable.hasPredecessor()) {
+        SendUplinkMessage message(ctx.getNetworkConfig(), ctx.getHop(),
+                                  ctx.getNetworkId(),
+                                  myNeighborTable.getMyTopologyElement(),
+                                  0, 0);
         if(ENABLE_UPLINK_INFO_DBG)
-            print_dbg("[U] No predecessors!\n");
-        return;
-    }
-    streamMgr->dequeueSMEs(smeQueue);
-    SendUplinkMessage message(ctx.getNetworkConfig(), ctx.getHop(),
-                              myNeighborTable.getBestPredecessor(),
-                              myNeighborTable.getMyTopologyElement(),
-                              topologyQueue.size(), smeQueue.size());
-    
-    if(ENABLE_UPLINK_INFO_DBG)
-        print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), slotStart);
-    
-    ctx.configureTransceiver(ctx.getTransceiverConfig());
-    for(int i = 0; i < message.getNumPackets(); i++)
-    {
-        message.serializeTopologiesAndSMEs(topologyQueue,smeQueue);
+            print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), slotStart);
+
+        ctx.configureTransceiver(ctx.getTransceiverConfig());
         message.send(ctx,slotStart);
-        slotStart += packetArrivalAndProcessingTime + transmissionInterval;
-    }
-    ctx.transceiverIdle();
+        ctx.transceiverIdle();
     
-    if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
-        print_dbg("->%d\n",ctx.getNetworkId());
+        if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
+            print_dbg("->%d\n",ctx.getNetworkId());
+    }
+
+    /* Otherwise pick the best predecessor and send enqueued SMEs and topologies */
+    else {
+        streamMgr->dequeueSMEs(smeQueue);
+        SendUplinkMessage message(ctx.getNetworkConfig(), ctx.getHop(),
+                                  myNeighborTable.getBestPredecessor(),
+                                  myNeighborTable.getMyTopologyElement(),
+                                  topologyQueue.size(), smeQueue.size());
+        if(ENABLE_UPLINK_INFO_DBG)
+            print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), slotStart);
+
+        ctx.configureTransceiver(ctx.getTransceiverConfig());
+        for(int i = 0; i < message.getNumPackets(); i++)
+            {
+                message.serializeTopologiesAndSMEs(topologyQueue,smeQueue);
+                message.send(ctx,slotStart);
+                slotStart += packetArrivalAndProcessingTime + transmissionInterval;
+            }
+        ctx.transceiverIdle();
+    
+        if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
+            print_dbg("->%d\n",ctx.getNetworkId());
+
+    }
 }
 
 } // namespace mxnet
