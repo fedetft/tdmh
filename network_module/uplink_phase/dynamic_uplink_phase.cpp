@@ -53,7 +53,7 @@ void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char curren
     ReceiveUplinkMessage message(ctx.getNetworkConfig());
     
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    if(message.recv(ctx,currentNode))
+    if(message.recv(ctx, slotStart))
     {
         auto numPackets = message.getNumPackets();
         auto senderTopology = message.getSenderTopology();
@@ -91,6 +91,11 @@ void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char curren
 
 void DynamicUplinkPhase::sendMyUplink(long long slotStart)
 {
+    if(!myNeighborTable.hasPredecessor()) {
+        if(ENABLE_UPLINK_INFO_DBG)
+            print_dbg("[U] No predecessors!\n");
+        return;
+    }
     streamMgr->dequeueSMEs(smeQueue);
     SendUplinkMessage message(ctx.getNetworkConfig(), ctx.getHop(),
                               myNeighborTable.getBestPredecessor(),

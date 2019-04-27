@@ -44,7 +44,7 @@ void MasterUplinkPhase::execute(long long slotStart)
     ReceiveUplinkMessage message(ctx.getNetworkConfig());
     
     ctx.configureTransceiver(ctx.getTransceiverConfig());
-    if(message.recv(ctx,currentNode))
+    if(message.recv(ctx, slotStart))
     {
         auto numPackets = message.getNumPackets();
         topology.receivedMessage(currentNode, message.getHop(),

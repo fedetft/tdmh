@@ -167,7 +167,7 @@ public:
 
     /**
      * This function listens on the radio for the next Packet of the UplinkMessage
-     * @return if a valid packet is received.
+     * @return true if a valid packet is received.
      */
     bool recv(MACContext& ctx, long long tExpected);
 

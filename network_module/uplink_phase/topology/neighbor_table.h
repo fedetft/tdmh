@@ -51,6 +51,8 @@ public:
 
     void missedMessage(unsigned char currentNode);
 
+    bool hasPredecessor() { return (predecessors.size() != 0); };
+
     unsigned char getBestPredecessor() { return predecessors.front().first; };
 
     TopologyElement getMyTopologyElement() { return myTopologyElement; };
