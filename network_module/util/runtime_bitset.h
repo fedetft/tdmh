@@ -59,8 +59,11 @@ public:
     RuntimeBitset() :
         bitCount(0),
         byteSize(0),
-        content(nullptr),
-        bbData(nullptr) {}
+        content(nullptr)
+#ifdef _ARCH_CORTEXM3_EFM32GG
+        , bbData(nullptr)
+#endif
+    {}
 
     /**
      * Creates an uninitialized array of size bits

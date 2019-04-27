@@ -51,7 +51,7 @@ class NetworkTopology {
 public:
     NetworkTopology(const NetworkConfiguration& config) :
         maxTimeout(config.getMaxRoundsUnavailableBecomesDead()),
-        graph(config.getNeighborBitmaskSize()) {};
+        graph(config.getMaxNodes()) {};
 
     void receivedMessage(unsigned char currentNode, unsigned char currentHop,
                          int rssi, RuntimeBitset senderTopology);

@@ -41,7 +41,7 @@ namespace mxnet {
 class TopologyElement : public SerializableMessage {
 public:
     TopologyElement() : id(0) {}
-    TopologyElement(unsigned short bitmaskSize) : id(0), neighbors(bitmaskSize, 0) {}
+    TopologyElement(unsigned short numNodes) : id(0), neighbors(numNodes, 0) {}
     TopologyElement(unsigned char id, const RuntimeBitset& neighbors) :
         id(id), neighbors(neighbors) {}
     // Zero copy constructor

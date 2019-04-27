@@ -215,7 +215,7 @@ bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) 
     if(tempHeader.hop == 0 || tempHeader.hop > config.getMaxHops()) return false;
     if(tempHeader.assignee > config.getMaxNodes()) return false;
     // Extract sender topology
-    RuntimeBitset tempSenderTopology(bitmaskSize);
+    RuntimeBitset tempSenderTopology(maxNodes);
     packet.get(tempSenderTopology.data(), bitmaskSize);
 
     if(checkTopologiesAndSMEs(config, headerSize, tempHeader) == false) return false;

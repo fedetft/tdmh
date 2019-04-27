@@ -44,7 +44,7 @@ public:
         maxTimeout(config.getMaxRoundsUnavailableBecomesDead()),
         minRssi(config.getMinNeighborRSSI()),
         myId(myId), myHop(myHop),
-        myTopologyElement(TopologyElement(config.getNeighborBitmaskSize())) {}
+        myTopologyElement(TopologyElement(config.getMaxNodes())) {}
 
     void receivedMessage(unsigned char currentNode, unsigned char currentHop,
                          int rssi, RuntimeBitset senderTopology);

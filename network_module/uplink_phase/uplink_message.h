@@ -151,10 +151,11 @@ class ReceiveUplinkMessage {
 public:
     ReceiveUplinkMessage(const NetworkConfiguration& config) :
         bitmaskSize(config.getNeighborBitmaskSize()),
+        maxNodes(config.getMaxNodes()),
         topologySize(TopologyElement::maxSize(bitmaskSize)),
         smeSize(StreamManagementElement::maxSize()),
         panId(config.getPanId()),
-        topology(RuntimeBitset(bitmaskSize)) {}
+        topology(RuntimeBitset(maxNodes)) {}
     ReceiveUplinkMessage(const ReceiveUplinkMessage&) = delete;
     ReceiveUplinkMessage& operator=(const ReceiveUplinkMessage&) = delete;
 
@@ -253,6 +254,7 @@ private:
 
     /* Constant values used in the methods */
     const unsigned short bitmaskSize;
+    const unsigned short maxNodes;
     const unsigned int topologySize;
     const unsigned int smeSize;
     const unsigned short panId;
