@@ -57,14 +57,23 @@ const bool ENABLE_UPLINK_INFO_DBG = false;
 //prints the uplink phase debug verbose info
 const bool ENABLE_UPLINK_VERB_DBG = false;
 
-//prints the uplink phase errors
-const bool ENABLE_UPLINK_ERROR_DBG = true;
-
 //prints the topology map at each uplink phase
 const bool ENABLE_TOPOLOGY_INFO_DBG = false;
 
 //prints the slot number, if packets received and RSSI
 const bool ENABLE_TOPOLOGY_SHORT_SUMMARY = true;
+
+//prints the uplink phase debug info
+const bool ENABLE_UPLINK_DYN_INFO_DBG = false;
+
+//prints the uplink phase debug verbose info
+const bool ENABLE_UPLINK_DYN_VERB_DBG = false;
+
+//prints the topology map at each uplink phase
+const bool ENABLE_TOPOLOGY_DYN_INFO_DBG = false;
+
+//prints the slot number, if packets received and RSSI
+const bool ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY = false;
 
 //prints the stream context debug info
 const bool ENABLE_STREAM_INFO_DBG = true;

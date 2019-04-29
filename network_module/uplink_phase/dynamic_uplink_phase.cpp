@@ -41,8 +41,8 @@ void DynamicUplinkPhase::execute(long long slotStart)
 {
     auto currentNode = getAndUpdateCurrentNode();
     
-    if (ENABLE_UPLINK_VERB_DBG)
-        print_dbg("[U] N=%u T=%lld\n", currentNode, slotStart);
+    if (ENABLE_UPLINK_DYN_VERB_DBG)
+         print_dbg("[U] N=%u T=%lld\n", currentNode, slotStart);
     
     if (currentNode == myId) sendMyUplink(slotStart);
     else receiveUplink(slotStart, currentNode);
@@ -60,9 +60,9 @@ void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char curren
         myNeighborTable.receivedMessage(currentNode, message.getHop(),
                                     message.getRssi(), senderTopology);
         
-        if(ENABLE_UPLINK_INFO_DBG)
+        if(ENABLE_UPLINK_DYN_INFO_DBG)
             print_dbg("[U]<-N=%u @%llu %hddBm\n",currentNode,message.getTimestamp(),message.getRssi());
-        if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
+        if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
             print_dbg("<-%d %ddBm\n",currentNode,message.getRssi());
     
         if(message.getAssignee() == myId)
@@ -83,7 +83,7 @@ void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char curren
     } else {
         myNeighborTable.missedMessage(currentNode);
         
-        if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
+        if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
             print_dbg("  %d\n",currentNode);
     }
     ctx.transceiverIdle();
@@ -99,14 +99,14 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
                                   ctx.getNetworkId(),
                                   myNeighborTable.getMyTopologyElement(),
                                   0, 0);
-        if(ENABLE_UPLINK_INFO_DBG)
+        if(ENABLE_UPLINK_DYN_INFO_DBG)
             print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), slotStart);
 
         ctx.configureTransceiver(ctx.getTransceiverConfig());
         message.send(ctx,slotStart);
         ctx.transceiverIdle();
     
-        if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
+        if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
             print_dbg("->%d\n",ctx.getNetworkId());
     }
 
@@ -117,7 +117,7 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
                                   myNeighborTable.getBestPredecessor(),
                                   myNeighborTable.getMyTopologyElement(),
                                   topologyQueue.size(), smeQueue.size());
-        if(ENABLE_UPLINK_INFO_DBG)
+        if(ENABLE_UPLINK_DYN_INFO_DBG)
             print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), slotStart);
 
         ctx.configureTransceiver(ctx.getTransceiverConfig());
@@ -129,9 +129,8 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
             }
         ctx.transceiverIdle();
     
-        if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
+        if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
             print_dbg("->%d\n",ctx.getNetworkId());
-
     }
 }
 
