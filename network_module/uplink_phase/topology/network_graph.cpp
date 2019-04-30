@@ -33,6 +33,8 @@ namespace mxnet {
 // class NetworkGraph
 //
 
+NetworkGraph::~NetworkGraph() {}
+
 bool NetworkGraph::hasNode(unsigned char a) {
     auto it = graph.find(a);
     return (it != graph.end());
@@ -41,7 +43,7 @@ bool NetworkGraph::hasNode(unsigned char a) {
 std::vector<std::pair<unsigned char, unsigned char>> NetworkGraph::getEdges() {
     std::vector<std::pair<unsigned char, unsigned char>> result;
     for(auto& el : graph) {
-        for (unsigned i = 0; i < num_nodes; i++) {
+        for (unsigned i = 0; i < maxNodes; i++) {
             if(el.second[i]) result.push_back(std::make_pair(el.first, i));
         }
     }
@@ -53,7 +55,7 @@ std::vector<unsigned char> NetworkGraph::getEdges(unsigned char a) {
     auto it = graph.find(a);
     if(it == graph.end()) return result;
     else {
-        for (unsigned i = 0; i < num_nodes; i++) {
+        for (unsigned i = 0; i < maxNodes; i++) {
             if(it->second[i]) result.push_back(i);
         }
     }
@@ -76,7 +78,7 @@ void NetworkGraph::setBit(unsigned char a, unsigned char b) {
     auto it = graph.find(a);
     // RuntimeBitset does not exists yet, we have to create it, initializing to false;
     if(it == graph.end()) {
-        auto ret = graph.insert(std::make_pair(a, RuntimeBitset(bitset_size, false)));
+        auto ret = graph.insert(std::make_pair(a, RuntimeBitset(bitsetSize, false)));
         // Add the new edge
         ret.first->second[b] = true;
     }
@@ -101,8 +103,8 @@ void NetworkGraph::clearBit(unsigned char a, unsigned char b) {
 std::vector<std::pair<unsigned char, unsigned char>> DelayedRemovalNetworkGraph::getEdges() {
     std::vector<std::pair<unsigned char, unsigned char>> result;
     for(auto& el : graph) {
-        for (unsigned i = 0; i < num_nodes; i++) {
-            if(el.second[i] || el.second[i + num_nodes]) result.push_back(std::make_pair(el.first, i));
+        for (unsigned i = 0; i < maxNodes; i++) {
+            if(el.second[i] || el.second[i + maxNodes]) result.push_back(std::make_pair(el.first, i));
         }
     }
     return result;
@@ -113,8 +115,8 @@ std::vector<unsigned char> DelayedRemovalNetworkGraph::getEdges(unsigned char a)
     auto it = graph.find(a);
     if(it == graph.end()) return result;
     else {
-        for (unsigned i = 0; i < num_nodes; i++) {
-            if(it->second[i] || it->second[i + num_nodes]) result.push_back(i);
+        for (unsigned i = 0; i < maxNodes; i++) {
+            if(it->second[i] || it->second[i + maxNodes]) result.push_back(i);
         }
     }
     return result;
@@ -125,7 +127,7 @@ bool DelayedRemovalNetworkGraph::getBit(unsigned char a, unsigned char b) {
     if(it == graph.end()) return false;
     else {
         // If bit1 OR bit2 is true, it means the counter is not 0
-        return (it->second[b] || it->second[b + num_nodes]);
+        return (it->second[b] || it->second[b + maxNodes]);
     }
 }
 
@@ -133,20 +135,22 @@ void DelayedRemovalNetworkGraph::setBit(unsigned char a, unsigned char b) {
     auto it = graph.find(a);
     // RuntimeBitset does not exists yet, we have to create it, initializing to false;
     if(it == graph.end()) {
-        auto ret = graph.insert(std::make_pair(b, RuntimeBitset(bitset_size, false)));
+        auto ret = graph.insert(std::make_pair(a, RuntimeBitset(bitsetSize, false)));
         // Add the new edge (LSB bit)
-        ret.first->second[a] = true;
+        ret.first->second[b] = true;
         // Add the new edge (MSB bit)
-        ret.first->second[a + num_nodes] = true;
+        ret.first->second[b + maxNodes] = true;
     }
     // Bitset already exists, just add new edge.
-    // (LSB bit)
-    else if(it->second[a] == false) {
-        it->second[a] = true;
-    }
-    // (MSB bit)
-    else if(it->second[a + num_nodes] == false) {
-        it->second[a + num_nodes] = true;
+    else {
+        // (LSB bit)
+        if(it->second[b] == false) {
+            it->second[b] = true;
+        }
+        // (MSB bit)
+        else if(it->second[b + maxNodes] == false) {
+            it->second[b + maxNodes] = true;
+        }
     }
 }
 
@@ -158,7 +162,7 @@ void DelayedRemovalNetworkGraph::clearBit(unsigned char a, unsigned char b) {
             // (LSB bit)
             it->second[b] = false;
             // (MSB bit)
-            it->second[b + num_nodes] = false;
+            it->second[b + maxNodes] = false;
 
         }
         // If the BitVector is empty, delete it
@@ -170,7 +174,7 @@ bool DelayedRemovalNetworkGraph::decrementBits(unsigned char a, unsigned char b)
     auto it = graph.find(a);
     if(it != graph.end()) {
         bool LSB = it->second[b];
-        bool MSB = it->second[b + num_nodes];
+        bool MSB = it->second[b + maxNodes];
 
         // value = 0
         if((LSB == 0) && (MSB == 0)) {
@@ -183,15 +187,15 @@ bool DelayedRemovalNetworkGraph::decrementBits(unsigned char a, unsigned char b)
         // value = 2
         else if((LSB == 0) && (MSB == 1)) {
             it->second[b] = true;
-            it->second[b + num_nodes] = false;
+            it->second[b + maxNodes] = false;
         }
         // value = 3
         else if((LSB == 1) && (MSB == 1)) {
             it->second[b] = false;
-            it->second[b + num_nodes] = true;
+            it->second[b + maxNodes] = true;
         }
         
-        bool counter_zero = it->second[b] || it->second[b + num_nodes];
+        bool counter_zero = it->second[b] || it->second[b + maxNodes];
         // If the BitVector is empty, delete it
         if(it->second.empty()) graph.erase(it);
         return counter_zero;

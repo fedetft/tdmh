@@ -52,7 +52,7 @@ void NetworkTopology::receivedMessage(unsigned char currentNode, unsigned char c
         // If currentNode is not present in activeDirectNeighbors
         else {
             // Add node to activeDirectNeighbors with timeout=max
-            it->second = maxTimeout;
+            activeDirectNeighbors[currentNode] = maxTimeout;
 
             // Lock mutex to access NetworkGraph (shared with ScheduleComputation).
             graph_mutex.lock();

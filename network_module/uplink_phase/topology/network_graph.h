@@ -33,7 +33,7 @@
 #include <map>
 #include <stdexcept>
 
-#define GRAPH_TYPE NetworkGraph
+#define GRAPH_TYPE ImmediateRemovalNetworkGraph
 //#define GRAPH_TYPE DelayedRemovalNetworkGraph
 
 namespace mxnet {
@@ -46,8 +46,10 @@ namespace mxnet {
  */
 class NetworkGraph {
 public:
-    NetworkGraph(unsigned short maxNodes) : num_nodes(maxNodes),
-                                            bitset_size(maxNodes) {}
+    NetworkGraph(unsigned short maxNodes, unsigned short bitsetSize) : maxNodes(maxNodes),
+                                                                       bitsetSize(bitsetSize) {}
+
+    virtual ~NetworkGraph() = 0;
 
     bool hasNode(unsigned char a);
 
@@ -118,18 +120,27 @@ protected:
         the removeNotConnected() method */
     bool possiblyNotConnected_flag = false;
 
-    /* Value equal to half of bitset_size, used as offset to access the MSB bit
+    /* Value equal to half of bitsetSize, used as offset to access the MSB bit
        of the counter */
-    std::size_t num_nodes;
+    std::size_t maxNodes;
 
     /* Size of the Runtime Bitset, containing number of supported nodes
        to be used when creating RuntimeBitset instances inside graph */
-    std::size_t bitset_size;
+    std::size_t bitsetSize;
 
     /* Map with a RuntimeBitset for each node of the network, representing
        his adjacency list */
     std::map<unsigned char, RuntimeBitset> graph;
 };
+
+class ImmediateRemovalNetworkGraph : public NetworkGraph {
+public:
+    ImmediateRemovalNetworkGraph(unsigned short maxNodes) : NetworkGraph(maxNodes,
+                                                                         maxNodes) {}
+    ~ImmediateRemovalNetworkGraph() {}
+
+};
+
 
 /**
  * DelayedRemovalNetworkGraph contains the complete graph of the network.
@@ -149,7 +160,10 @@ protected:
  
 class DelayedRemovalNetworkGraph : public NetworkGraph {
 public:
-    DelayedRemovalNetworkGraph(unsigned short maxNodes) : NetworkGraph(maxNodes*2) {}
+    DelayedRemovalNetworkGraph(unsigned short maxNodes) : NetworkGraph(maxNodes,
+                                                                       maxNodes*2) {}
+
+    ~DelayedRemovalNetworkGraph() {}
 
     /* NOTE: The two methods getEdges are reimplemented because they
        don't use the getBit/setBit primitives. (the could but the resulting

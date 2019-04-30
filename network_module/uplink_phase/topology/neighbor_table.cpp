@@ -66,9 +66,10 @@ NeighborTable::NeighborTable(const NetworkConfiguration& config, const unsigned 
 void NeighborTable::receivedMessage(unsigned char currentNode, unsigned char currentHop,
                                     int rssi, RuntimeBitset senderTopology) {
     // If currentNode is present in activeNeighbors
-    if (activeNeighbors.find(currentNode) != activeNeighbors.end()) {
+    auto it = activeNeighbors.find(currentNode);
+    if (it != activeNeighbors.end()) {
         // Reset timeout because we received uplink from currentNode
-        activeNeighbors[currentNode] = maxTimeout;
+        it->second = maxTimeout;
     }
     else {
         // If rssi > treshold
@@ -104,10 +105,11 @@ void NeighborTable::receivedMessage(unsigned char currentNode, unsigned char cur
 
 void NeighborTable::missedMessage(unsigned char currentNode) {
     // If currentNode is present in activeNeighbors
-    if (activeNeighbors.find(currentNode) != activeNeighbors.end()) {
+    auto it = activeNeighbors.find(currentNode);
+    if (it != activeNeighbors.end()) {
         /* Decrement timeout because we missed the uplink message from currentNode        
            if timeout is zero, neighbor node is considered dead */
-        if(activeNeighbors[currentNode]-- <= 0) {
+        if(it->second-- <= 0) {
             activeNeighbors.erase(currentNode);
             removePredecessor(currentNode);
             myTopologyElement.removeNode(currentNode);
