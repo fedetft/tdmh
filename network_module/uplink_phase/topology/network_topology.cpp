@@ -36,11 +36,12 @@ namespace mxnet {
 void NetworkTopology::receivedMessage(unsigned char currentNode, unsigned char currentHop,
                                       int rssi, RuntimeBitset senderTopology) {
     // Received message from direct neighbor
+    auto it = activeDirectNeighbors.find(currentNode);
     if(currentHop == 1) {
         // If currentNode is present in activeDirectNeighbors
-        if (activeDirectNeighbors.find(currentNode) != activeDirectNeighbors.end()) {
+        if (it != activeDirectNeighbors.end()) {
             // Reset timeout because we received uplink from currentNode
-            activeDirectNeighbors[currentNode] = maxTimeout;
+            it->second = maxTimeout;
 
             // Lock mutex to access NetworkGraph (shared with ScheduleComputation).
             graph_mutex.lock();
@@ -51,7 +52,7 @@ void NetworkTopology::receivedMessage(unsigned char currentNode, unsigned char c
         // If currentNode is not present in activeDirectNeighbors
         else {
             // Add node to activeDirectNeighbors with timeout=max
-            activeDirectNeighbors[currentNode] = maxTimeout;
+            it->second = maxTimeout;
 
             // Lock mutex to access NetworkGraph (shared with ScheduleComputation).
             graph_mutex.lock();
@@ -68,7 +69,7 @@ void NetworkTopology::receivedMessage(unsigned char currentNode, unsigned char c
     // Received message from non direct neighbor
     else {
         // If currentNode is present in activeDirectNeighbors
-        if (activeDirectNeighbors.find(currentNode) != activeDirectNeighbors.end()) {
+        if (it != activeDirectNeighbors.end()) {
             // Remove node from activeDirectNeighbors
             activeDirectNeighbors.erase(currentNode);
         }
@@ -79,10 +80,11 @@ void NetworkTopology::receivedMessage(unsigned char currentNode, unsigned char c
 void NetworkTopology::missedMessage(unsigned char currentNode) {
     // If currentNode is present in activeDirectNeighbors means its at hop=1
     // and we have seen it recently
-    if (activeDirectNeighbors.find(currentNode) != activeDirectNeighbors.end()) {
+    auto it = activeDirectNeighbors.find(currentNode);
+    if (it != activeDirectNeighbors.end()) {
         /* Decrement timeout because we missed the uplink message from currentNode
            if timeout is zero, neighbor node is considered dead */
-        if(activeDirectNeighbors[currentNode]-- <= 0) {
+        if(it->second-- <= 0) {
             removeDirectNeighbor(currentNode);
         }
     }
@@ -123,6 +125,9 @@ void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
     /* Update graph according to received topology */
     // Avoid arcs toward node 0 (handled by acriveDirectNeighbors)
     for (unsigned i = 1; i < bitset.bitSize(); i++) {
+        // Avoid auto-arcs (useless in NetworkGraph)
+        if(i == src)
+            continue;
         // Arc is present in topology, add or resetCounter
         if(bitset[i]) {
             // Arc already present in graph

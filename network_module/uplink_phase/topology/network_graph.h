@@ -46,7 +46,8 @@ namespace mxnet {
  */
 class NetworkGraph {
 public:
-    NetworkGraph(unsigned short maxNodes) : bitset_size(maxNodes) {}
+    NetworkGraph(unsigned short maxNodes) : num_nodes(maxNodes),
+                                            bitset_size(maxNodes) {}
 
     bool hasNode(unsigned char a);
 
@@ -54,9 +55,9 @@ public:
         return getBit(a,b);
     }
 
-    std::vector<std::pair<unsigned char, unsigned char>> getEdges();
+    virtual std::vector<std::pair<unsigned char, unsigned char>> getEdges();
 
-    std::vector<unsigned char> getEdges(unsigned char a);
+    virtual std::vector<unsigned char> getEdges(unsigned char a);
 
     void addEdge(unsigned char a, unsigned char b) {
         if(a == b) throw std::logic_error("TopologyMap.addEdge() does not accept auto-edges");
@@ -117,6 +118,10 @@ protected:
         the removeNotConnected() method */
     bool possiblyNotConnected_flag = false;
 
+    /* Value equal to half of bitset_size, used as offset to access the MSB bit
+       of the counter */
+    std::size_t num_nodes;
+
     /* Size of the Runtime Bitset, containing number of supported nodes
        to be used when creating RuntimeBitset instances inside graph */
     std::size_t bitset_size;
@@ -142,10 +147,16 @@ protected:
  * for each node
  */
  
-class DelayedRemovalNetworkGraph : NetworkGraph {
+class DelayedRemovalNetworkGraph : public NetworkGraph {
 public:
-    DelayedRemovalNetworkGraph(unsigned short maxNodes) : NetworkGraph(maxNodes*2),
-                                                          num_nodes(maxNodes) {}
+    DelayedRemovalNetworkGraph(unsigned short maxNodes) : NetworkGraph(maxNodes*2) {}
+
+    /* NOTE: The two methods getEdges are reimplemented because they
+       don't use the getBit/setBit primitives. (the could but the resulting
+       code would be less efficient) */
+    std::vector<std::pair<unsigned char, unsigned char>> getEdges();
+
+    std::vector<unsigned char> getEdges(unsigned char a);
 
     /* This methods decrements bits of the counter to true */
     bool decrementCounter(unsigned char a, unsigned char b) {
@@ -167,9 +178,6 @@ private:
        returns true if the final value is zero */
     bool decrementBits(unsigned char a, unsigned char b);
 
-    /* Value equal to half of bitset_size, used as offset to access the MSB bit
-       of the counter */
-    std::size_t num_nodes;
 
 };
 

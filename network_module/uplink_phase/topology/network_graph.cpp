@@ -41,7 +41,7 @@ bool NetworkGraph::hasNode(unsigned char a) {
 std::vector<std::pair<unsigned char, unsigned char>> NetworkGraph::getEdges() {
     std::vector<std::pair<unsigned char, unsigned char>> result;
     for(auto& el : graph) {
-        for (unsigned i = 0; i < el.second.bitSize(); i++) {
+        for (unsigned i = 0; i < num_nodes; i++) {
             if(el.second[i]) result.push_back(std::make_pair(el.first, i));
         }
     }
@@ -53,7 +53,7 @@ std::vector<unsigned char> NetworkGraph::getEdges(unsigned char a) {
     auto it = graph.find(a);
     if(it == graph.end()) return result;
     else {
-        for (unsigned i = 0; i < it->second.bitSize(); i++) {
+        for (unsigned i = 0; i < num_nodes; i++) {
             if(it->second[i]) result.push_back(i);
         }
     }
@@ -96,6 +96,28 @@ void NetworkGraph::clearBit(unsigned char a, unsigned char b) {
         // If the BitVector is empty, delete it
         if(it->second.empty()) graph.erase(it);
     }
+}
+
+std::vector<std::pair<unsigned char, unsigned char>> DelayedRemovalNetworkGraph::getEdges() {
+    std::vector<std::pair<unsigned char, unsigned char>> result;
+    for(auto& el : graph) {
+        for (unsigned i = 0; i < num_nodes; i++) {
+            if(el.second[i] || el.second[i + num_nodes]) result.push_back(std::make_pair(el.first, i));
+        }
+    }
+    return result;
+}
+
+std::vector<unsigned char> DelayedRemovalNetworkGraph::getEdges(unsigned char a) {
+    std::vector<unsigned char> result;
+    auto it = graph.find(a);
+    if(it == graph.end()) return result;
+    else {
+        for (unsigned i = 0; i < num_nodes; i++) {
+            if(it->second[i] || it->second[i + num_nodes]) result.push_back(i);
+        }
+    }
+    return result;
 }
 
 bool DelayedRemovalNetworkGraph::getBit(unsigned char a, unsigned char b) {
