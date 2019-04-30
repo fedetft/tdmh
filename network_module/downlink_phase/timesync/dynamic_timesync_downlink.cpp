@@ -67,16 +67,18 @@ void DynamicTimesyncDownlink::periodicSync() {
         clockCorrection = clockCorrectionReceiverWindow.first;
         receiverWindow = clockCorrectionReceiverWindow.second;
         updateVt();
-        if (ENABLE_TIMESYNC_DL_INFO_DBG) {
-            print_dbg("[T] hop=%u ets=%lld ats=%lld e=%lld u=%d w=%d Mts=%lld rssi=%d\n",
-                    pkt[2],
-                    correctedStart,
-                    rcvResult.timestamp,
-                    error,
-                    clockCorrection,
-                    receiverWindow,
-                    measuredFrameStart - pkt[2] * rebroadcastInterval,
-                   rcvResult.rssi);
+        if (ENABLE_TIMESYNC_DL_INFO_DBG) {            
+            auto nt = NetworkTime::now();
+            print_dbg("[T] hop=%u NT=%lld ets=%lld ats=%lld e=%lld u=%d w=%d Mts=%lld rssi=%d\n",
+                      pkt[2],
+                      nt.get(),
+                      correctedStart,
+                      rcvResult.timestamp,
+                      error,
+                      clockCorrection,
+                      receiverWindow,
+                      measuredFrameStart - pkt[2] * rebroadcastInterval,
+                      rcvResult.rssi);
         }
     }
     greenLed::low();
