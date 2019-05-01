@@ -42,6 +42,13 @@ public:
     NeighborTable(const NetworkConfiguration& config, const unsigned char myId,
                   const unsigned char myHop);
 
+    void clear(const unsigned char newHop) {
+        myTopologyElement = TopologyElement(maxNodes);
+        activeNeighbors.clear();
+        predecessors.clear();
+        setHop(newHop);
+    }
+
     void receivedMessage(unsigned char currentNode, unsigned char currentHop,
                          int rssi, RuntimeBitset senderTopology);
 
@@ -54,6 +61,18 @@ public:
     TopologyElement getMyTopologyElement() { return myTopologyElement; };
 
 private:
+
+    /* NOTE: If we have hop=1, add node 0 to list of predecessors.
+       this is mandatory because node 0 (master) will never send
+       uplink messages, so we can't have it in the predecessor list
+       if we don't do so.
+       We add the master node with an rssi of 0 (high). */
+    void setHop(unsigned char newHop) {
+        myHop = newHop;
+        if(myHop == 1) {
+            addPredecessor(std::make_pair(0, 0));
+        }
+    }
 
     /**
      * Add a node to the predecessor list, replacing if already present
@@ -68,8 +87,11 @@ private:
     /* Constant value from NetworkConfiguration */
     const unsigned short maxTimeout;
     const short minRssi;
+    const unsigned short maxNodes;
     const unsigned char myId;
-    const unsigned char myHop;
+
+    /* Current hop in the network, reset with clear() after resync */
+    unsigned char myHop;
 
     /* TopologyElement containing neighbors of this node */
     TopologyElement myTopologyElement;

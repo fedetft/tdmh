@@ -116,6 +116,9 @@ void DynamicTimesyncDownlink::resync() {
 
     ctx.transceiverIdle();
 
+    // NOTE: call resetMAC to clear the status of all the MAC components after resync
+    resetMAC();
+
     // TODO: make a struct containing the packetCounter
     packetCounter = *reinterpret_cast<unsigned int*>(&pkt[7]);
     NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() * networkConfig.getClockSyncPeriod() - correct(start));
@@ -197,6 +200,13 @@ unsigned char DynamicTimesyncDownlink::missedPacket() {
         updateVt();
     }
     return missedPackets;
+}
+
+void DynamicTimesyncDownlink::resetMAC() {
+    ctx.getUplink()->reset();
+    ctx.getScheduleDistribution()->reset();
+    ctx.getDataPhase()->reset();
+    ctx.getStreamManager()->reset();
 }
 
 }

@@ -64,6 +64,19 @@ public:
     static const int transmissionInterval = 1000000; //1ms
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
     static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
+    /**
+     * Reset the internal status of the DataPhase after resynchronization
+     */
+    void reset() override {
+        tileSlot = 0;
+        scheduleID = 0;
+        scheduleTiles = 0;
+        scheduleSlots = 0;
+        scheduleActivationTile = 0;
+        currentSchedule.clear();
+        buffer = Packet();
+    };
+
     /* Five possible actions, as described by the explicit schedule */
     void sleep(long long slotStart);
     void sendFromStream(long long slotStart, StreamId id);

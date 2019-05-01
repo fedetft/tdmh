@@ -136,6 +136,20 @@ public:
     ~StreamManager() {
         closeAllStreams();
     }
+    /**
+     * Reset the internal status of the StreamManager after resynchronization
+     */
+    void reset() {
+        closeAllStreams();
+        serverMap.clear();
+        clientMap.clear();
+        streamMap.clear();
+        std::queue<StreamManagementElement>().swap(smeQueue);
+        std::queue<InfoElement>().swap(infoQueue);
+        modified_flag = false;
+        removed_flag = false;
+        added_flag = false;
+    };
 
     // Used by StreamManager destructor and when TDMH is shutting down
     void closeAllStreams();

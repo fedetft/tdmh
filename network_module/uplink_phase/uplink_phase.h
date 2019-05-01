@@ -93,7 +93,6 @@ protected:
     const unsigned char myId;       ///< Cached NetworkId of this node
     const unsigned char nodesCount; ///< Cached NetworkConfiguration::getMaxNodes()
     
-private:
     unsigned char nextNode;         ///< Next node to talk in the round-robin
 };
 

@@ -173,6 +173,11 @@ public:
     UplinkPhase* const getUplink() const { return uplink; }
 
     /**
+     * @return the ScheduleDistribution
+     */
+    ScheduleDownlinkPhase* const getScheduleDistribution() const { return scheduleDistribution; }
+
+    /**
      * @return the DataPhase
      */
     DataPhase* const getDataPhase() const { return data; }
@@ -270,7 +275,6 @@ protected:
     UplinkPhase* uplink = nullptr;
     ScheduleDownlinkPhase* scheduleDistribution = nullptr;
     DataPhase* data = nullptr;
-
     StreamManager* streamMgr = nullptr;
 
     unsigned long long dataSlotDuration;

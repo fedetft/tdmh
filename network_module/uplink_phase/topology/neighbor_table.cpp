@@ -50,16 +50,10 @@ NeighborTable::NeighborTable(const NetworkConfiguration& config, const unsigned 
                              const unsigned char myHop) :
     maxTimeout(config.getMaxRoundsUnavailableBecomesDead()),
     minRssi(config.getMinNeighborRSSI()),
-    myId(myId), myHop(myHop),
-    myTopologyElement(TopologyElement(config.getMaxNodes())) {
-    /* NOTE: If we have hop=1, add node 0 to list of predecessors.
-       this is mandatory because node 0 (master) will never send
-       uplink messages, so we can't have it in the predecessor list
-       if we don't do so.
-       We add the master node with an rssi of 0 (high). */
-    if(myHop == 1) {
-        addPredecessor(make_pair(0, 0));
-    }
+    maxNodes(config.getMaxNodes()),
+    myId(myId),
+    myTopologyElement(TopologyElement(maxNodes)) {
+    setHop(myHop);
 }
 
 

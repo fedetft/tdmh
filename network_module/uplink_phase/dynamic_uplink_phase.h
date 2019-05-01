@@ -56,6 +56,18 @@ public:
     virtual void execute(long long slotStart) override;
 
     /**
+     * Reset the internal status of the UplinkPhase after resynchronization
+     */
+    void reset() override {
+        // Base class status
+        nextNode = nodesCount - 1;
+        // Derived class status
+        topologyQueue.clear();
+        smeQueue.clear();
+        myNeighborTable.clear(ctx.getHop());
+    };
+
+    /**
      * Starts expecting a message from the node to which the slot is assigned
      * and modifies the TopologyContext as needed.
      */

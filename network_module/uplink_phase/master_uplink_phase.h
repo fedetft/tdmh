@@ -53,6 +53,11 @@ public:
      */
     virtual void execute(long long slotStart) override;
 
+    /**
+     * Master node do not need reset since it never loses synchronization
+     */
+    void reset() override {};
+
     bool wasModified() {
         return topology.wasModified();
     }

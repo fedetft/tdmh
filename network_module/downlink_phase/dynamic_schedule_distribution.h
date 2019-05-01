@@ -37,6 +37,23 @@ public:
     DynamicScheduleDownlinkPhase() = delete;
     DynamicScheduleDownlinkPhase(const DynamicScheduleDownlinkPhase& orig) = delete;
     void execute(long long slotStart) override;
+    /**
+     * Reset the internal status of the ScheduleDownlinkPhase after resynchronization
+     */
+    void reset() override {
+        // Base class status
+        header = ScheduleHeader();
+        schedule.clear();
+        explicitScheduleID = 0;
+        explicitSchedule.clear();
+        distributing = false;
+        // Derived class status
+        received.clear();
+        replaceCountdown = 5;
+        nextHeader = ScheduleHeader();
+        nextSchedule.clear();
+    };
+
     virtual ~DynamicScheduleDownlinkPhase() {};
     ScheduleHeader decodePacket(Packet& pkt);
     void printHeader(ScheduleHeader& header);

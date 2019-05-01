@@ -68,6 +68,12 @@ public:
      */
     virtual void advance(long long slotStart) = 0;
 
+    /**
+     * Clear the internal state of the phase.
+     * Called after resynchronization to avoid working with old data
+     */
+    virtual void reset() = 0;
+
 protected:
     MACContext& ctx;
     //TimesyncDownlink* const timesync;

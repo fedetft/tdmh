@@ -97,6 +97,10 @@ protected:
         }
         return true;
     }
+    /**
+     * Master node do not need reset since it never loses synchronization
+     */
+    void reset() override {};
 
     /**
      * Since the node is synchronized, it performs the step in the FLOPSYNC-2 controller
@@ -130,6 +134,15 @@ protected:
                 tc->ns2tick(computedFrameStart), clockCorrection
         );
     }
+
+    /**
+     * To be called after setHop, every time the MAC resynchronizes
+     * calls reset methods in every mac_phase containing some status
+     * to avoid working with old data
+     * NOTE: used only on dynamic mac_phases since the master node
+     * can never be desynchronized since it's the one giving the time.
+     */
+    void resetMAC();
 
     //AskingRoundtripPhase askingRTP;
     miosix::TimeConversion* const tc;
