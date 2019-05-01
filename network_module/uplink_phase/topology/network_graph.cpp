@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "network_graph.h"
+#include <set>
 
 namespace mxnet {
 
@@ -62,8 +63,45 @@ std::vector<unsigned char> NetworkGraph::getEdges(unsigned char a) {
     return result;
 }
 
-void NetworkGraph::removeNotConnected() {
-        
+bool NetworkGraph::removeUnreachableNodes() {
+    std::set<unsigned char> reachable;
+    std::set<unsigned char> openSet;
+    // Add master-node to the openSet
+    openSet.insert(0);
+    // Terminate when openSet is empty
+    while (!openSet.empty()) {
+        // Cycle over open_set
+        for(auto node = openSet.begin(); node != openSet.end() ; ) {
+            // Add all child nodes not present in reachable to open_Set
+            for (unsigned child = 0; child < maxNodes; child++) {
+                if(reachable.find(child) == reachable.end()) { 
+                    if(getBit(*node, child)) openSet.insert(child);
+                }
+            }
+            // Move node from open_set to Reachable set
+            reachable.insert(*node);
+            openSet.erase(node++);
+        }
+    }
+    bool removed = false;
+    // Remove all nodes not present in reachable set
+    for(auto node = graph.begin(); node != graph.end() ; ) {
+        if(reachable.find((*node).first) == reachable.end()) {
+            graph.erase(node++);
+            removed = true;
+        }
+        else{
+            for (unsigned child = 0; child < maxNodes; child++) {
+                if(reachable.find(child) == reachable.end() && getBit((*node).first, child)) {
+                    clearBit((*node).first, child);
+                    removed = true;
+                }
+            }
+            ++node;
+        }
+    }
+    possiblyNotConnected_flag = false;
+    return removed;
 }
 
 bool NetworkGraph::getBit(unsigned char a, unsigned char b) {

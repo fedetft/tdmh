@@ -33,8 +33,8 @@
 #include <map>
 #include <stdexcept>
 
-#define GRAPH_TYPE ImmediateRemovalNetworkGraph
-//#define GRAPH_TYPE DelayedRemovalNetworkGraph
+//#define GRAPH_TYPE ImmediateRemovalNetworkGraph
+#define GRAPH_TYPE DelayedRemovalNetworkGraph
 
 namespace mxnet {
 
@@ -55,6 +55,10 @@ public:
 
     bool hasEdge(unsigned char a, unsigned char b) {
         return getBit(a,b);
+    }
+
+    bool hasUnreachableNodes() {
+        return possiblyNotConnected_flag;
     }
 
     virtual std::vector<std::pair<unsigned char, unsigned char>> getEdges();
@@ -99,10 +103,11 @@ public:
     }
 
     /* This method performs a walk of the graph to find all the nodes that
-       are not connected to the node 0 (Master node), these nodes are eliminated
+       are not reachable from the node 0 (Master node), these nodes are eliminated
        from the graph because they create problems to TDMH since we cannot have
-       a flow of information between these nodes and the master and vice-versa */
-    void removeNotConnected();
+       a flow of information between these nodes and the master and vice-versa
+       @return true if one or more nodes has been eliminated */
+    bool removeUnreachableNodes();
 
 protected:
 
