@@ -38,10 +38,11 @@ void TopologyElement::serialize(Packet& pkt) const {
     pkt.put(neighbors.data(), neighbors.size());
 }
 
-TopologyElement TopologyElement::deserialize(Packet& pkt, unsigned short bitmaskSize) {
-    TopologyElement result(bitmaskSize);
+TopologyElement TopologyElement::deserialize(Packet& pkt, unsigned short maxNodes) {
+    unsigned short bitsetSize = ((maxNodes + 7) / 8);
+    TopologyElement result(maxNodes);
     pkt.get(&result.id, sizeof(unsigned char));
-    pkt.get(result.neighbors.data(), bitmaskSize);
+    pkt.get(result.neighbors.data(), bitsetSize);
     return result;
 }
 

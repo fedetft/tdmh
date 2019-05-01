@@ -127,7 +127,7 @@ private:
     void putPanHeader();
 
     /* Constant values used in the methods */
-    const unsigned short bitmaskSize;
+    const unsigned short bitsetSize;
     const unsigned int topologySize;
     const unsigned int smeSize;
     const unsigned short panId;
@@ -150,9 +150,9 @@ private:
 class ReceiveUplinkMessage {
 public:
     ReceiveUplinkMessage(const NetworkConfiguration& config) :
-        bitmaskSize(config.getNeighborBitmaskSize()),
+        bitsetSize(config.getNeighborBitmaskSize()),
         maxNodes(config.getMaxNodes()),
-        topologySize(TopologyElement::maxSize(bitmaskSize)),
+        topologySize(TopologyElement::maxSize(bitsetSize)),
         smeSize(StreamManagementElement::maxSize()),
         panId(config.getPanId()),
         topology(RuntimeBitset(maxNodes)) {}
@@ -215,7 +215,7 @@ public:
      * @return the next TopologyElement, extracting it from the packet
      */
     TopologyElement getForwardedTopology() {
-        return TopologyElement::deserialize(packet, bitmaskSize);
+        return TopologyElement::deserialize(packet, maxNodes);
     }
 
     /**
@@ -253,7 +253,7 @@ private:
                                 int headerSize, UplinkHeader tempHeader);
 
     /* Constant values used in the methods */
-    const unsigned short bitmaskSize;
+    const unsigned short bitsetSize;
     const unsigned short maxNodes;
     const unsigned int topologySize;
     const unsigned int smeSize;

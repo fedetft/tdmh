@@ -41,7 +41,7 @@ namespace mxnet {
 class TopologyElement : public SerializableMessage {
 public:
     TopologyElement() : id(0) {}
-    TopologyElement(unsigned short numNodes) : id(0), neighbors(numNodes, 0) {}
+    TopologyElement(unsigned short maxNodes) : id(0), neighbors(maxNodes, 0) {}
     TopologyElement(unsigned char id, const RuntimeBitset& neighbors) :
         id(id), neighbors(neighbors) {}
     // Zero copy constructor
@@ -57,7 +57,7 @@ public:
     }
     void serialize(Packet& pkt) const override;
 
-    static TopologyElement deserialize(Packet& pkt, unsigned short bitmaskSize);
+    static TopologyElement deserialize(Packet& pkt, unsigned short maxNodes);
 
     //TODO: implement method
     static bool validateInPacket(Packet& packet, unsigned int offset) { return true; }

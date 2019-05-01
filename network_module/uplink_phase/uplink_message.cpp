@@ -38,8 +38,8 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
                                      unsigned char hop, unsigned char assignee,
                                      const TopologyElement& myTopology,
                                      int availableTopologies, int availableSMEs) :
-    bitmaskSize(config.getNeighborBitmaskSize()),
-    topologySize(TopologyElement::maxSize(bitmaskSize)),
+    bitsetSize(config.getNeighborBitmaskSize()),
+    topologySize(TopologyElement::maxSize(bitsetSize)),
     smeSize(StreamManagementElement::maxSize()),
     panId(config.getPanId())
 {
@@ -219,7 +219,7 @@ bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) 
     if(tempHeader.assignee > config.getMaxNodes()) return false;
     // Extract sender topology
     RuntimeBitset tempSenderTopology(maxNodes);
-    packet.get(tempSenderTopology.data(), bitmaskSize);
+    packet.get(tempSenderTopology.data(), bitsetSize);
 
     // Check topologies and SME only if uplink packet has any of them
     if(tempHeader.numTopology != 0 || tempHeader.numSME != 0)
@@ -265,7 +265,7 @@ bool ReceiveUplinkMessage::checkTopologiesAndSMEs(const NetworkConfiguration& co
                 // Calculate TopologyElement offset in packet
                 unsigned int offset = topologySize * i;
                 // Check that there is enough data in the packet
-                if(offset + topologySize >= packet.size()) return false;
+                if(offset + topologySize > packet.size()) return false;
                 if(TopologyElement::validateInPacket(packet, offset + headerSize) == false)
                     return false;
             }

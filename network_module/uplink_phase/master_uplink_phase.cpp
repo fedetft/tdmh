@@ -64,7 +64,8 @@ void MasterUplinkPhase::execute(long long slotStart)
             {
                 // NOTE: If we fail to receive a Packet of the UplinkMessage,
                 // do not wait for remaining packets
-                if(message.recv(ctx,currentNode) == false) break;
+                // TODO: do recv at next uplink slot (slotstart + slot duration)
+                if(message.recv(ctx, slotStart) == false) break;
                 topology.handleForwardedTopologies(message);
                 scheduleComputation.receiveSMEs(message);
             }
