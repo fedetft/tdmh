@@ -51,7 +51,7 @@ public:
     /**
      * Receives topology and SME from the other nodes
      */
-    virtual void execute(long long slotStart) override;
+    void execute(long long slotStart) override;
 
     /**
      * Master node do not need reset since it never loses synchronization

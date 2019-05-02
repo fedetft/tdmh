@@ -53,7 +53,7 @@ public:
      * to transmit the UplinkMessage, and depending on the returned nodeID, we call
      * sendMyUplinkMessage() or receiveUplinkMessage().
      */
-    virtual void execute(long long slotStart) override;
+    void execute(long long slotStart) override;
 
     /**
      * Reset the internal status of the UplinkPhase after resynchronization
