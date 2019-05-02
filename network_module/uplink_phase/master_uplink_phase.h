@@ -65,6 +65,10 @@ public:
     void updateSchedulerNetworkGraph(ScheduleComputation& scheduler) {
         topology.updateSchedulerNetworkGraph(scheduler);
     }
+
+    bool writeBackNetworkGraph(const GRAPH_TYPE& newgraph) {
+        return topology.writeBackNetworkGraph(newgraph);
+    }
     
 private:
     ScheduleComputation& scheduleComputation;

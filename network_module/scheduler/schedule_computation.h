@@ -104,7 +104,7 @@ public:
 private: 
     void run();
 
-    void initialPrint(bool removed);
+    void initialPrint(bool removed, bool wrote_back);
 
     /**
      * @return a schedule class containing schedule, tile number and ID

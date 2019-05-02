@@ -97,10 +97,13 @@ void ScheduleComputation::run() {
         /* NOTE: check local graph copy for nodes unreachable from the master
            and remove them */
         bool removed = false;
+        bool wrote_back = false;
         if(network_graph.hasUnreachableNodes()) {
             removed = network_graph.removeUnreachableNodes();
+            if(removed)
+                wrote_back = uplink_phase->writeBackNetworkGraph(network_graph);
         }
-        initialPrint(removed);
+        initialPrint(removed, wrote_back);
         // Used to check if the schedule has been changed in this iteration
         bool scheduleChanged = false;
         // Get new schedule ID
@@ -148,7 +151,7 @@ void ScheduleComputation::run() {
     }
 }
 
-void ScheduleComputation::initialPrint(bool removed) {
+void ScheduleComputation::initialPrint(bool removed, bool wrote_back) {
     if(ENABLE_SCHEDULE_COMP_INFO_DBG || ENABLE_STREAM_LIST_INFO_DBG) {
         printf("\n[SC] #### Starting schedule computation ####\n");
         printf("topology changed:%s, stream changed:%s\n",
@@ -159,8 +162,13 @@ void ScheduleComputation::initialPrint(bool removed) {
         for(auto it : network_graph.getEdges())
             printf("[%d - %d]\n", it.first, it.second);
         printf("[SC] End Topology\n");
-        if(removed)
+        if(removed) {
             printf("[SC] Removed nodes not reachable by master from the network graph\n");
+            if(wrote_back)
+                printf("[SC] Network graph without non-reachable nodes wrote-back to Uplink Phase\n");
+            else
+                printf("[SC] Cannot write back network graph with non-reachable nodes\n");
+        }
         printf("[SC] Stream list before scheduling:\n");
         printStreams(stream_snapshot.getStreams());
     }

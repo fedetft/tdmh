@@ -97,6 +97,36 @@ public:
         }
     }
 
+    /**
+     * This function is called by ScheduleComputation after completing the algorithm
+     * to eliminate nodes not reachable by the master from the graph snaphot.
+     * The changes need to be written back on the main network graph, but this is
+     * possible only if the graph hasn't changed in the meantime.
+     * If the graph instead has changed, the possiblyNotConnected_flag
+     * remains true since the removeUnreachableNodes() algorithm sets it only on the
+     * graph snapshot and not on the main graph.
+     * In this case we will run again the algorithm at the next scheduling,
+     * and try again to write back the results.
+     * This function returns true if the write back was successful
+     */
+    bool writeBackNetworkGraph(const GRAPH_TYPE& newgraph) {
+        // Mutex lock to access NetworkGraph (shared with ScheduleComputation).
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(graph_mutex);
+#else
+        std::unique_lock<std::mutex> lck(graph_mutex);
+#endif
+        // If graph hasn't changed from the last copy,
+        // copy back graph snapshot
+        // NOTE: the snapshot contains possiblyNotConnected_flag set to false
+        if(modified_flag == false) {
+            graph = newgraph;
+            return true;
+        }
+        else
+            return false;
+    }
+
 private:
 
     /* Method used to remove direct neighbors (hop=1) from the list of neighbors

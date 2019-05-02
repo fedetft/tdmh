@@ -33,8 +33,8 @@
 #include <map>
 #include <stdexcept>
 
-//#define GRAPH_TYPE ImmediateRemovalNetworkGraph
-#define GRAPH_TYPE DelayedRemovalNetworkGraph
+#define GRAPH_TYPE ImmediateRemovalNetworkGraph
+//#define GRAPH_TYPE DelayedRemovalNetworkGraph
 
 namespace mxnet {
 
