@@ -46,4 +46,11 @@ TopologyElement TopologyElement::deserialize(Packet& pkt, unsigned short maxNode
     return result;
 }
 
+
+bool TopologyElement::validateInPacket(Packet& packet, unsigned int offset,
+                                              unsigned short maxNodes) {
+    // Check that id is < maxNodes
+    return (packet[offset] < maxNodes);
+}
+
 } /* namespace mxnet */

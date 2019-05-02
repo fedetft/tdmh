@@ -59,8 +59,8 @@ public:
 
     static TopologyElement deserialize(Packet& pkt, unsigned short maxNodes);
 
-    //TODO: implement method
-    static bool validateInPacket(Packet& packet, unsigned int offset) { return true; }
+    static bool validateInPacket(Packet& packet, unsigned int offset,
+                                 unsigned short maxNodes);
 
     unsigned char getId() const { return id; }
 
