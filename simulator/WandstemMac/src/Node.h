@@ -17,7 +17,7 @@
 
 #include "NodeBase.h"
 #include "network_module/tdmh.h"
-#include "network_module/stream.h"
+#include "network_module/stream/stream.h"
 #include <thread>
 
 /**
