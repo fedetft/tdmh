@@ -204,7 +204,9 @@ unsigned char DynamicTimesyncDownlink::missedPacket() {
         internalStatus = DESYNCHRONIZED;
         synchronizer->reset();
     } else {
-        measuredFrameStart = computedFrameStart;
+        // NOTE: It is important that measuredFrameStart is a CORRECTED
+        // time, because it is used as is in the NetworkTime
+        measuredFrameStart = correct(computedFrameStart);
         std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->lostPacket();
         clockCorrection = clockCorrectionReceiverWindow.first;
         receiverWindow = clockCorrectionReceiverWindow.second;
