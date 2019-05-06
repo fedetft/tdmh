@@ -45,9 +45,12 @@ void DynamicTimesyncDownlink::periodicSync() {
     auto pred = std::bind(&DynamicTimesyncDownlink::isSyncPacket, this, _1, _2, true);
     auto rcvResult = pkt.recv(ctx, correctedStart, pred, Transceiver::Correct::UNCORR);
     if(rcvResult.error != RecvResult::ErrorCode::OK) {
+        // Turn off the radio because we don't need it anymore this round
+        ctx.transceiverIdle();
         auto n = missedPacket();
         if (ENABLE_TIMESYNC_DL_INFO_DBG) {
-            print_dbg("[T] miss u=%d w=%d\n", clockCorrection, receiverWindow);
+            auto nt = NetworkTime::now();
+            print_dbg("[T] miss NT=%lld u=%d w=%d\n", nt.get(), clockCorrection, receiverWindow);
             if (n >= networkConfig.getMaxMissedTimesyncs())
                 print_dbg("[T] lost sync\n");
         }
@@ -60,7 +63,11 @@ void DynamicTimesyncDownlink::periodicSync() {
         rebroadcast(pkt, measuredFrameStart);
         ctx.transceiverIdle();
         // TODO: make a struct containing the packetCounter
-        packetCounter = *reinterpret_cast<unsigned int*>(&pkt[7]);
+        packetCounter++;
+        auto newPacketCounter = *reinterpret_cast<unsigned int*>(&pkt[7]);
+        if(newPacketCounter != packetCounter)
+            print_dbg("[T] Received wrong packetCounter=%d (should be %d)", newPacketCounter, packetCounter);
+
         error = rcvResult.timestamp - computedFrameStart;
         std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->computeCorrection(error);
         missedPackets = 0;
@@ -82,7 +89,6 @@ void DynamicTimesyncDownlink::periodicSync() {
         }
     }
     greenLed::low();
-    ctx.transceiverIdle(); //Save power waiting for rebroadcast time
 }
 
 std::pair<long long, long long> DynamicTimesyncDownlink::getWakeupAndTimeout(long long tExpected) {
@@ -121,7 +127,8 @@ void DynamicTimesyncDownlink::resync() {
 
     // TODO: make a struct containing the packetCounter
     packetCounter = *reinterpret_cast<unsigned int*>(&pkt[7]);
-    NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() * networkConfig.getClockSyncPeriod() - correct(start));
+    NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() *
+                                                 networkConfig.getClockSyncPeriod() - correct(start));
     auto ntNow = NetworkTime::fromLocalTime(correctPacketTime);
     ctx.getUplink()->alignToNetworkTime(ntNow);
     ctx.getDataPhase()->alignToNetworkTime(ntNow);
@@ -189,6 +196,10 @@ long long DynamicTimesyncDownlink::correct(long long int uncorrected) {
 }
 
 unsigned char DynamicTimesyncDownlink::missedPacket() {
+    // We have not received the sync packet but we need to increment it
+    // to keep the NetworkTime up to date
+    packetCounter++;
+
     if(++missedPackets >= networkConfig.getMaxMissedTimesyncs()) {
         internalStatus = DESYNCHRONIZED;
         synchronizer->reset();
