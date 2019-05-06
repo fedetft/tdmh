@@ -49,7 +49,7 @@ const bool ENABLE_TIMESYNC_ERROR_DBG = true;
 const bool ENABLE_ROUNDTRIP_INFO_DBG = false;
 
 //prints the roundtrip subphase errors
-const bool ENABLE_ROUNDTRIP_ERROR_DBG = true;
+const bool ENABLE_ROUNDTRIP_ERROR_DBG = false;
 
 //prints the uplink phase debug info
 const bool ENABLE_UPLINK_INFO_DBG = false;
@@ -61,7 +61,7 @@ const bool ENABLE_UPLINK_VERB_DBG = false;
 const bool ENABLE_TOPOLOGY_INFO_DBG = false;
 
 //prints the slot number, if packets received and RSSI
-const bool ENABLE_TOPOLOGY_SHORT_SUMMARY = true;
+const bool ENABLE_TOPOLOGY_SHORT_SUMMARY = false;
 
 //prints the uplink phase debug info
 const bool ENABLE_UPLINK_DYN_INFO_DBG = false;
@@ -73,7 +73,7 @@ const bool ENABLE_UPLINK_DYN_VERB_DBG = false;
 const bool ENABLE_TOPOLOGY_DYN_INFO_DBG = false;
 
 //prints the slot number, if packets received and RSSI
-const bool ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY = true;
+const bool ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY = false;
 
 //prints the stream context debug info
 const bool ENABLE_STREAM_INFO_DBG = true;

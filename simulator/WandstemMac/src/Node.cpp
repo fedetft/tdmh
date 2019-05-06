@@ -103,19 +103,19 @@ try {
 void Node::application() {
     /* Wait for TDMH to become ready */
     MACContext* ctx = tdmh->getMACContext();
-//    while(!ctx->isReady()) ;
+    while(!ctx->isReady()) ;
     /* Open Stream from node 1 */
-//    if(address == 1) {
-//        sendData(ctx, Period::P1, Redundancy::NONE);
-//    }
+    if(address == 1) {
+        sendData(ctx, Period::P1, Redundancy::NONE);
+    }
     /* Open Stream from node 2 */
-//    if(address == 2) {
-//        sendData(ctx, Period::P1, Redundancy::NONE);
-//    }
+    if(address == 2) {
+        sendData(ctx, Period::P1, Redundancy::NONE);
+    }
     /* Open Stream from node 3 */
-//    if(address == 3) {
-//        sendData(ctx, Period::P1, Redundancy::NONE);
-//    }
+    if(address == 3) {
+        sendData(ctx, Period::P1, Redundancy::NONE);
+    }
 }
 
 void Node::sendData(MACContext* ctx, Period period, Redundancy redundancy) {

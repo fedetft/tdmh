@@ -87,14 +87,14 @@ void StreamManager::closeStreamsRelatedToServer(StreamId serverId) {
 }
 
 void StreamManager::registerStream(StreamInfo info, Stream* client) {
-    print_dbg("[SM] Stream registered! \n");
+    StreamId id = info.getStreamId();
+    print_dbg("[SM] Stream (%d,%d) registered! \n", id.src, id.dst);
     // Mutex lock to access the Stream map from the application thread.
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
 #else
     std::unique_lock<std::mutex> lck(streamMgr_mutex);
 #endif
-    StreamId id = info.getStreamId();
     // Register Stream class pointer in client map (if not already present)
     if(clientMap.find(id) == clientMap.end())
         clientMap[id] = client;

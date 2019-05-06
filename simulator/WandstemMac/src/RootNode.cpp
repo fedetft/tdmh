@@ -86,20 +86,20 @@ void RootNode::application() {
     while(!ctx->isReady()) {
     }
     /* Open a StreamServer to listen for incoming streams */
-//    mxnet::StreamServer server(*tdmh,      // Pointer to MediumAccessController
-//                 0,                 // Destination port
-//                 Period::P1,        // Period
-//                 1,                 // Payload size
-//                 Direction::TX,     // Direction
-//                 Redundancy::TRIPLE_SPATIAL); // Redundancy
-//    while(!server.isClosed()) {
-//        std::list<shared_ptr<Stream>> streamList;
-//        server.accept(streamList);
-//        for(auto& stream : streamList){
-//            thread t1(&RootNode::streamThread, this, stream);
-//            t1.detach();
-//        }
-//    }
+    mxnet::StreamServer server(*tdmh,      // Pointer to MediumAccessController
+                 0,                 // Destination port
+                 Period::P1,        // Period
+                 1,                 // Payload size
+                 Direction::TX,     // Direction
+                 Redundancy::TRIPLE_SPATIAL); // Redundancy
+    while(!server.isClosed()) {
+        std::list<shared_ptr<Stream>> streamList;
+        server.accept(streamList);
+        for(auto& stream : streamList){
+            thread t1(&RootNode::streamThread, this, stream);
+            t1.detach();
+        }
+    }
 }
 
 void RootNode::streamThread(shared_ptr<Stream> s) {
