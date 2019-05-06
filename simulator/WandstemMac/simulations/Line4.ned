@@ -35,6 +35,7 @@ network Line4
         }
         n2: Node {
             address = 2;
+            disconnect_time = 900000000000;
         }
         n3: Node {
             address = 3;

@@ -40,6 +40,7 @@ network Line8
         }
         n4: Node {
             address = 4;
+            disconnect_time = 400000000000;
         }
         n5: Node {
             address = 5;

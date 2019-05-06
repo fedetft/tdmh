@@ -32,7 +32,7 @@ network SimpleDiamond
         n1: Node {
             address = 1;
             @display("p=178,129");
-            disconnect_time = 900000000000;
+//            disconnect_time = 900000000000;
         }
         n2: Node {
             address = 2;
