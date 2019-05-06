@@ -32,17 +32,17 @@
 #include "network_module/network_configuration.h"
 #include "network_module/dynamic_tdmh.h"
 #include "network_module/master_tdmh.h"
-#include "network_module/timesync/networktime.h"
+#include "network_module/downlink_phase/timesync/networktime.h"
 #include "interfaces-impl/gpio_timer_corr.h"
 
 using namespace std;
 using namespace mxnet;
 using namespace miosix;
 
-const int maxNodes = 16;
+const int maxNodes = 8;
 const int maxHops = 6;
-const Period defaultPeriod = Period::P20;
-const Redundancy defaultRedundancy = Redundancy::TRIPLE_SPATIAL;
+const Period defaultPeriod = Period::P1;
+const Redundancy defaultRedundancy = Redundancy::NONE;
 
 FastMutex m;
 MediumAccessController *tdmh = nullptr;
@@ -279,16 +279,23 @@ int main()
 {
     Par p; // Stream parameters
 
-    /* Thread configurations for redundancy test with 4 nodes */
+    /* Thread configurations for redundancy test with 4 nodes (forced hops) */
     //auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
     //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1,1), Thread::JOINABLE);
     //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2,1), Thread::JOINABLE);
     //p.redundancy=Redundancy::TRIPLE_SPATIAL; auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,2), Thread::JOINABLE);
     //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,2), Thread::JOINABLE);
 
-    /* Thread configurations for redundancy test with 9 nodes */
-    auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+    /* Thread configurations for redundancy test with 4 nodes (not forced hops) */
+    //auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
     //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1), Thread::JOINABLE);
+    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2), Thread::JOINABLE);
+    //p.redundancy=Redundancy::TRIPLE_SPATIAL; auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
+    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
+
+    /* Thread configurations for redundancy test with 9 nodes */
+    //auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+    auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1), Thread::JOINABLE);
     //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2), Thread::JOINABLE);
     //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
     //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(4), Thread::JOINABLE);
@@ -305,6 +312,13 @@ int main()
     }
     Thread::sleep(5000);
     MACContext* ctx = tdmh->getMACContext();
+    // Remove this sleep loop when enabling stream code
+    for(;;)
+    {            
+        Thread::sleep(5000);
+    }
+
+    /*
     // Master node code
     if(ctx->getNetworkId() == 0) {
         Thread::create(statThread, 2048, MAIN_PRIORITY);
@@ -312,7 +326,7 @@ int main()
     }
     else
         dynamicApplication(p);
-
+    */       
 
 //     t1->join();
     
