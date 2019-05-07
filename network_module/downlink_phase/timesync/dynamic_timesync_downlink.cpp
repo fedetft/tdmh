@@ -49,7 +49,7 @@ void DynamicTimesyncDownlink::periodicSync() {
         ctx.transceiverIdle();
         auto n = missedPacket();
         if (ENABLE_TIMESYNC_DL_INFO_DBG) {
-            auto nt = NetworkTime::fromLocalTime(getSlotFrameStart());
+            auto nt = NetworkTime::fromLocalTime(getSlotframeStart());
             print_dbg("[T] miss NT=%lld u=%d w=%d\n", nt.get(), clockCorrection, receiverWindow);
             if (n >= networkConfig.getMaxMissedTimesyncs())
                 print_dbg("[T] lost sync\n");
