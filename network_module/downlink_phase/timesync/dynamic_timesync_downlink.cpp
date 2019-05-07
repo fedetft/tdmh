@@ -49,7 +49,7 @@ void DynamicTimesyncDownlink::periodicSync() {
         ctx.transceiverIdle();
         auto n = missedPacket();
         if (ENABLE_TIMESYNC_DL_INFO_DBG) {
-            auto nt = NetworkTime::now();
+            auto nt = NetworkTime::fromLocalTime(getSlotFrameStart());
             print_dbg("[T] miss NT=%lld u=%d w=%d\n", nt.get(), clockCorrection, receiverWindow);
             if (n >= networkConfig.getMaxMissedTimesyncs())
                 print_dbg("[T] lost sync\n");
@@ -75,8 +75,8 @@ void DynamicTimesyncDownlink::periodicSync() {
         receiverWindow = clockCorrectionReceiverWindow.second;
         updateVt();
         if (ENABLE_TIMESYNC_DL_INFO_DBG) {            
-            auto nt = NetworkTime::now();
-            print_dbg("[T] hop=%u NT=%lld ets=%lld ats=%lld e=%lld u=%d w=%d Mts=%lld rssi=%d\n",
+            auto nt = NetworkTime::fromLocalTime(getSlotframeStart());
+            print_dbg("[T] hop=%u NT=%lld ets=%lld ats=%lld e=%lld u=%d w=%d rssi=%d\n",
                       pkt[2],
                       nt.get(),
                       correctedStart,
@@ -84,7 +84,6 @@ void DynamicTimesyncDownlink::periodicSync() {
                       error,
                       clockCorrection,
                       receiverWindow,
-                      measuredFrameStart - pkt[2] * rebroadcastInterval,
                       rcvResult.rssi);
         }
     }
@@ -103,7 +102,6 @@ void DynamicTimesyncDownlink::resync() {
     //Even the Theoretic is started at this time, so the absolute time is dependent of the board
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[T] Resync\n");
-    //TODO: attach to strongest signal, not just to the first received packet
 
     greenLed::high();
 
@@ -113,33 +111,30 @@ void DynamicTimesyncDownlink::resync() {
     auto rcvResult = pkt.recv(ctx, infiniteTimeout, pred, Transceiver::Correct::UNCORR);
 
     greenLed::low();
-    auto start = rcvResult.timestamp - pkt[2] * rebroadcastInterval;
     ++pkt[2];
+    auto myHop = pkt[2];
+    measuredFrameStart = correct(rcvResult.timestamp);
+    rebroadcast(pkt, measuredFrameStart);
+    ctx.transceiverIdle();
+
     reset(rcvResult.timestamp);
     ctx.setHop(pkt[2]);
-    auto correctPacketTime = correct(rcvResult.timestamp);
-    rebroadcast(pkt, correctPacketTime);
-
-    ctx.transceiverIdle();
+    auto slotframeStart = getSlotframeStart();
 
     // NOTE: call resetMAC to clear the status of all the MAC components after resync
     resetMAC();
 
-    // TODO: make a struct containing the packetCounter
     packetCounter = *reinterpret_cast<unsigned int*>(&pkt[7]);
-    NetworkTime::setLocalNodeToNetworkTimeOffset(getTimesyncPacketCounter() *
-                                                 networkConfig.getClockSyncPeriod() - correct(start));
-    auto ntNow = NetworkTime::fromLocalTime(correctPacketTime);
+    NetworkTime::setLocalNodeToNetworkTimeOffset(packetCounter *
+                                                 networkConfig.getClockSyncPeriod() - slotframeStart);
+    auto ntNow = NetworkTime::fromLocalTime(slotframeStart);
     ctx.getUplink()->alignToNetworkTime(ntNow);
     ctx.getDataPhase()->alignToNetworkTime(ntNow);
 
-    if (ENABLE_TIMESYNC_DL_INFO_DBG)
-        print_dbg("[F] hop=%d ats=%lld w=%d mst=%lld rssi=%d\n",
-                pkt[2], rcvResult.timestamp, receiverWindow, start, rcvResult.rssi
+    if (ENABLE_TIMESYNC_DL_INFO_DBG)      
+        print_dbg("[T] hop=%d NT=%lld ats=%lld w=%d rssi=%d\n",
+                  pkt[2], ntNow.get(), rcvResult.timestamp, receiverWindow, rcvResult.rssi
         );
-
-    // TODO: Is this needed? This might cause a bug!
-    //static_cast<DynamicTopologyContext*>(ctx.getTopologyContext())->changeHop(pkt[2]);
 }
 
 inline void DynamicTimesyncDownlink::execute(long long slotStart)
@@ -151,15 +146,7 @@ inline void DynamicTimesyncDownlink::execute(long long slotStart)
         resync();
     } else {
         periodicSync();
-        //TODO implement roundtrip nodes list
-        //if (false && static_cast<DynamicTopologyContext*>(ctx.getTopologyContext())->hasSuccessor(0))
-            //a successor of the current node needs to perform RTT estimation
-            //listeningRTP.execute(slotStart + RoundtripSubphase::senderDelay);
-        //else if (false)
-            //i can perform RTT estimation
-            //askingRTP.execute(slotStart + RoundtripSubphase::senderDelay);
     }
-    ctx.transceiverIdle();
 }
 
 void DynamicTimesyncDownlink::rebroadcast(const Packet& pkt, long long arrivalTs){
@@ -171,7 +158,7 @@ void DynamicTimesyncDownlink::reset(long long hookPktTime) {
     //All the timestamps start from here, since i take this points as a ground reference
     //so no need to correct anything.
     synchronizer->reset();
-    measuredFrameStart = computedFrameStart = theoreticalFrameStart = hookPktTime;
+    computedFrameStart = theoreticalFrameStart = hookPktTime;
     receiverWindow = synchronizer->getReceiverWindow();
     clockCorrection = 0;
     missedPackets = 0;
@@ -199,14 +186,14 @@ unsigned char DynamicTimesyncDownlink::missedPacket() {
     // We have not received the sync packet but we need to increment it
     // to keep the NetworkTime up to date
     packetCounter++;
+    // NOTE: It is important that measuredFrameStart is a CORRECTED
+    // time, because it is used as is in the NetworkTime
+    measuredFrameStart = correct(computedFrameStart);
 
     if(++missedPackets >= networkConfig.getMaxMissedTimesyncs()) {
         internalStatus = DESYNCHRONIZED;
         synchronizer->reset();
     } else {
-        // NOTE: It is important that measuredFrameStart is a CORRECTED
-        // time, because it is used as is in the NetworkTime
-        measuredFrameStart = correct(computedFrameStart);
         std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->lostPacket();
         clockCorrection = clockCorrectionReceiverWindow.first;
         receiverWindow = clockCorrectionReceiverWindow.second;
