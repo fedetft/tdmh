@@ -252,53 +252,59 @@ bool ReceiveUplinkMessage::checkTopologiesAndSMEs(const NetworkConfiguration& co
     // Validate topologies in packets
     int remainingTopologies = tempHeader.numTopology;
     unsigned int topologiesInPacket = 0;
-    for(;;) {
-        // NOTE: Do the allocation also for the last packet
-        int packetTopologies = std::min<int>(remainingTopologies, remainingBytes / topologySize);
-        remainingTopologies -= packetTopologies;
-        remainingBytes -= packetTopologies * topologySize;
-        // Validate last received packet
-        if(numPackets == receivedPackets + 1) {
-            topologiesInPacket = packetTopologies;
-            // Check that TopologyElements in packet are valid
-            for(unsigned int i = 0; i < topologiesInPacket; i++) {
-                // Calculate TopologyElement offset in packet
-                unsigned int offset = topologySize * i;
-                // Check that there is enough data in the packet
-                if(offset + topologySize > packet.size()) return false;
-                if(TopologyElement::validateInPacket(packet, offset + headerSize, maxNodes) == false)
-                    return false;
+    // If no topologies in uplinkpacket, skip check
+    if(remainingTopologies != 0) {
+        for(;;) {
+            // NOTE: Do the allocation also for the last packet
+            int packetTopologies = std::min<int>(remainingTopologies, remainingBytes / topologySize);
+            remainingTopologies -= packetTopologies;
+            remainingBytes -= packetTopologies * topologySize;
+            // Validate last received packet
+            if(numPackets == receivedPackets + 1) {
+                topologiesInPacket = packetTopologies;
+                // Check that TopologyElements in packet are valid
+                for(unsigned int i = 0; i < topologiesInPacket; i++) {
+                    // Calculate TopologyElement offset in packet
+                    unsigned int offset = topologySize * i;
+                    // Check that there is enough data in the packet
+                    if(offset + topologySize > packet.size()) return false;
+                    if(TopologyElement::validateInPacket(packet, offset + headerSize, maxNodes) == false)
+                        return false;
+                }
             }
-        }
-        if(remainingTopologies == 0) break;
-        if(++numPackets > maxPackets) return false;
-        remainingBytes = getOtherUplinkPacketCapacity();
+            if(remainingTopologies == 0) break;
+            if(++numPackets > maxPackets) return false;
+            remainingBytes = getOtherUplinkPacketCapacity();
+        } 
     }
 
     // Validate SMEs in packets
     int remainingSMEs = tempHeader.numSME;
     int SMEsInPacket = 0;
-    for(;;) {
-        // NOTE: Do the allocation also for the last packet
-        int packetSMEs = std::min<int>(remainingSMEs, remainingBytes / smeSize);
-        remainingSMEs -= packetSMEs;
-        remainingBytes -= packetSMEs * smeSize;
-        // Validate last received packet
-        if(numPackets == receivedPackets + 1) {
-            SMEsInPacket = packetSMEs;
-            // Check that SMEs in packet are valid
-            for(int i = 0; i < SMEsInPacket; i++) {
-                // Calculate SME offset in packet
-                unsigned int offset = (topologySize * topologiesInPacket) + (smeSize * i);
-                // Check that there is enough data in the packet
-                if(offset + smeSize >= packet.size()) return false;
-                if(StreamManagementElement::validateInPacket(packet, offset + headerSize) == false)
-                    return false;
+    // If no SMEs in uplinkpacket, skip check
+    if(remainingSMEs != 0) {
+        for(;;) {
+            // NOTE: Do the allocation also for the last packet
+            int packetSMEs = std::min<int>(remainingSMEs, remainingBytes / smeSize);
+            remainingSMEs -= packetSMEs;
+            remainingBytes -= packetSMEs * smeSize;
+            // Validate last received packet
+            if(numPackets == receivedPackets + 1) {
+                SMEsInPacket = packetSMEs;
+                // Check that SMEs in packet are valid
+                for(int i = 0; i < SMEsInPacket; i++) {
+                    // Calculate SME offset in packet
+                    unsigned int offset = (topologySize * topologiesInPacket) + (smeSize * i);
+                    // Check that there is enough data in the packet
+                    if(offset + smeSize > packet.size()) return false;
+                    if(StreamManagementElement::validateInPacket(packet, offset + headerSize) == false)
+                        return false;
+                }
             }
+            if(remainingSMEs == 0) break;
+            if(++numPackets > maxPackets) return false;
+            remainingBytes = getOtherUplinkPacketCapacity();
         }
-        if(remainingSMEs == 0) break;
-        if(++numPackets > maxPackets) return false;
-        remainingBytes = getOtherUplinkPacketCapacity();
     }
     // Check size of data in packet
     if((topologiesInPacket * topologySize + SMEsInPacket * smeSize) != packet.size())
