@@ -44,288 +44,133 @@
 namespace mxnet {
 
 /**
- * The class StreamCollection represents a snapshot of the streams on the network
- * takend before starting the schedule computation
- * It is used by ScheduleComputation
- */
-class StreamCollection {
-public:
-    StreamCollection() {};
-    StreamCollection(std::map<StreamId, StreamInfo> map, bool modified,
-                     bool removed, bool added) : collection(map),
-                                                 modified_flag(modified),
-                                                 removed_flag(removed),
-                                                 added_flag(added) {}
-    ~StreamCollection() {};
-
-    /**
-     * @return the number of Streams saved
-     */
-    unsigned char getStreamNumber() { return collection.size(); }
-    /**
-     * get the status of a given Stream
-     */
-    StreamStatus getStreamStatus(StreamId id);
-    /**
-     * change the state of the saved Stream
-     */
-    void setStreamStatus(StreamId id, StreamStatus status);
-    /**
-     * @return vector containing all the streams
-     */
-    std::vector<StreamInfo> getStreams();
-    /**
-     * @return a vector of StreamInfo that matches the given status
-     */
-    std::vector<StreamInfo> getStreamsWithStatus(StreamStatus s);
-    /**
-     * @return true if there are streams not yet scheduled
-     */
-    bool hasSchedulableStreams();
-    /**
-     * @return true if the stream list was modified since last time the flag was cleared 
-     */
-    bool wasModified() const {
-        return modified_flag;
-    };
-    /**
-     * @return true if any stream was removed since last time the flag was cleared 
-     */
-    bool wasRemoved() const {
-        return removed_flag;
-    };
-    /**
-     * @return true if any stream was added since last time the flag was cleared 
-     */
-    bool wasAdded() const {
-        return added_flag;
-    };
-    void clear() {
-        collection.clear();
-        modified_flag = false;
-        removed_flag = false;
-        added_flag = false;
-    }
-    void swap(StreamCollection& rhs) {
-        collection.swap(rhs.collection);
-        std::swap(modified_flag, rhs.modified_flag);
-        std::swap(removed_flag, rhs.removed_flag);
-        std::swap(added_flag, rhs.added_flag);
-    }
-
-private:
-    /* Map containing information about Streams related to this node */
-    std::map<StreamId, StreamInfo> collection;
-    /* Snapshot copy of the bits in StreamManager */
-    bool modified_flag = false;
-    bool removed_flag = false;
-    bool added_flag = false;
-};
-
-/**
- * The class StreamManager contains pointers to all the Stream classes
- * created in the current node.
- * It is used by classes UplinkPhase, DataPhase
+ * The class StreamManager contains Stream and Server classes related
+ * to the node it is running on.
+ * The Stream classes represents the endpoints of a connection, while
+ * the Server class is used to comunicate to the network the availability
+ * of opening streams.
+ * Its methods are called by classes UplinkPhase, DataPhase, StreamAPI
  * NOTE: the methods of this class are protected by a mutex,
  * Do not call one method from another! or you will get a deadlock.
  */
 
 class StreamManager {
 public:
-    StreamManager(unsigned char id) : myId(id) {};
+    StreamManager(unsigned char myId) : myId(myId) {};
+
     ~StreamManager() {
-        closeAllStreams();
+        disconnect();
     }
+
     /**
-     * Reset the internal status of the StreamManager after resynchronization
+     * Update the internal status of the StreamManager after restoring
+     * the Timesync synchronization
      */
-    void reset() {
-        closeAllStreams();
-        serverMap.clear();
-        clientMap.clear();
-        streamMap.clear();
-        std::queue<StreamManagementElement>().swap(smeQueue);
-        std::queue<InfoElement>().swap(infoQueue);
-        modified_flag = false;
-        removed_flag = false;
-        added_flag = false;
+    void reconnect() {};
+
+    /**
+     * Update the internal status of the StreamManager after losing
+     * the Timesync synchronization
+     */
+    void disconnect() {
+        // Close streams
+        // Clear SME queue? (to delete outdated SMEs)
+        // TODO do something else?
     };
 
-    // Used by StreamManager destructor and when TDMH is shutting down
-    void closeAllStreams();
-
-    // Used by Scheduler when receiving StreamServer closing SME to close related streams
-    void closeStreamsRelatedToServer(StreamId id);
-
-    // Used by the Stream class to register itself in the Stream Map
-    void registerStream(StreamInfo info, Stream* client);
-
-    // Used by the Stream class to get removed from the Stream Map
-    void deregisterStream(StreamInfo info);
-
-    // Used by the StreamServer class to register itself in the Server Map
-    void registerStreamServer(StreamInfo info, StreamServer* server);
-
-    // Used by the StreamServer class to get removed from the Stream Map
-    void deregisterStreamServer(StreamInfo info);
-
-    /** Used to update the status of the Stream and wake up the corresponding thread
-     *  when receiving a new schedule containing that Stream.
-     *  used by the DataPhase called by ScheduleDownlink
+    /**
+     * The following methods are called by the StreamAPI and ServerAPI functions
+     * their function is mainly to pass external events to the right Stream
+     * or Server class
      */
-    void notifyStreams(const std::vector<ScheduleElement>& schedule);
+    // Creates a new Stream and returns the file-descriptor of the new Stream
+    int connect(unsigned char dst, unsigned char dstPort, StreamParameters params);
 
-    // Used by the DataPhase to put/get data to/from buffers
-    void putBuffer(StreamId id, Packet& pkt) {
-        // NOTE: call getStreamStatus before mutex to avoid a deadlock
-        if(getStreamStatus(id) == StreamStatus::CLOSED) {
-            print_dbg("DataPhase::receiveToStream: Stream (%d,%d) is CLOSED",
-                      id.src, id.dst);
-            return;
-        }
-        // Mutex lock to access the Stream map from the application thread.
-#ifdef _MIOSIX
-        miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-        std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-        if (clientMap.find(id) == clientMap.end())
-            throwRuntimeError("DataPhase::receiveToStream: stream (%d,%d) is not registered in node %d",
-                              id.src, id.dst, myId);
-        clientMap[id]->putRecvBuffer(pkt);
-    }
-    Packet getBuffer(StreamId id) {
-        // NOTE: call getStreamStatus before mutex to avoid a deadlock
-        if(getStreamStatus(id) == StreamStatus::CLOSED) {
-            print_dbg("DataPhase::sendFromStream: Stream (%d,%d) is CLOSED",
-                      id.src, id.dst);
-            Packet empty;
-            return empty;
-        }
-        // Mutex lock to access the Stream map from the application thread.
-#ifdef _MIOSIX
-        miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-        std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-        if (clientMap.find(id) == clientMap.end())
-            throwRuntimeError("DataPhase::sendFromStream: stream (%d,%d) is not registered in node %d",
-                              id.src, id.dst, myId);
-        return clientMap[id]->getSendBuffer();
-    }
+    // Puts data to be sent to a stream in a buffer, return the number of bytes sent
+    int write(int fd, const void* data, int size);
+
+    // Gets data received from a stream, return the number of bytes received
+    int read(int fd, void* data, int maxSize);
+
+    // Returns a StreamInfo, containing stream status and parameters
+    StreamInfo getStatus(int fd);
+
+    // Gets data received from a stream, return the number of bytes received
+    void close(int fd);
+
+    // Creates a new Server and returns the file-descriptor of the new Server
+    int listen(unsigned char port, StreamParameters params);
+
+    // Wait for incoming Streams, if a stream is present return the new Stream file-descriptor
+    int accept(int serverfd);
 
     /**
-     * @return the number of Streams saved, not counting LISTEN requests
+     * The following methods are called by other TDMH modules,
+     * like Uplink, Dataphase, or MACContext
+     * they are used to interface the StreamManager with the rest of TDMH
      */
-    unsigned char getStreamNumber();
+    // Used to trigger an action in all Stream and Server state machines
+    // that are currently in a loop (e.g. send SME after timeout)
+    void periodicUpdate();
 
-    /**
-     * @return the state of the saved Stream
-     */
-    StreamStatus getStreamStatus(StreamId id);
+    // Used by the DataPhase class to put received data in the right buffer
+    void putPacket(StreamId id, const Packet& data);
 
-    /**
-     * Change the state of the saved Stream
-     */
-    void setStreamStatus(StreamId id, StreamStatus status);
+    // Used by the DataPhase class to get data to sent from the right buffer
+    void getPacket(StreamId id, Packet& data);
 
-    /**
-     * @return the parameters of the saved Stream
-     */
-    StreamInfo getStreamInfo(StreamId id) { return streamMap[id]; }
+    // Used by the DataPhase to apply a received schedule
+    void applySchedule(const std::vector<ScheduleElement>& schedule);
 
-    /**
-     * Register in the Stream Map a single stream 
-     */
-    void addStream(const StreamInfo& stream);
+    // Used by the DataPhase to apply received info elements
+    void applyInfoElements(const std::vector<InfoElement>& infos);
 
-    /**
-     * @return a snapshot of streamMap 
-     */
-    StreamCollection getSnapshot();
-
-    /**
-     * Dequeue SMEs of smeQueue into an UpdatableQueue
-     * used by DynamicUplinkPhase
-     */
+    // Used by DynamicUplinkPhase, gets SMEs to send on the network
     void dequeueSMEs(UpdatableQueue<StreamId,StreamManagementElement>& queue);
 
-     /**
-     * @return the number of Info elements stored in the Queue
-     */
-    unsigned char getNumInfo();
-
     /**
-     * @return a number of element from the Info element queue to send on the network,
-     * used by ScheduleDistribution
+     * The following methods are called by StreamManager itself,
+     * or from the Stream and Server classes contained within.
      */
-    std::vector<InfoElement> dequeueInfo(unsigned char count);
+    // Used by Stream, Server, enqueues an SME to be sent on the network
+    void enqueueSME(StreamId id, StreamManagementElement sme);
 
-    /**
-     * Enqueue a list of Info elements received from other nodes, to be forwarded
-     * to the rest of the network.
-     * used by ScheduleDistribution
-     */
-    void enqueueInfo(std::vector<InfoElement> infos);
+private:
+    // Used by StreamManager::connect, allocates and returns the first available port
+    // if there are no available ports return -1
+    int allocateClientPort();
 
-    /**
-     * Consume the Info elements present in the queue and use the relevant information 
-     */
-    void receiveInfo();
+    // Used by StreamManager::close, sets a given port as free
+    void freeClientPort(int port);
 
-    /**
-     * @return true if the stream list was modified since last time the flag was cleared 
-     */
-    bool wasModified() const{
-        // Mutex lock to access the Stream map from the application thread.
-#ifdef _MIOSIX
-        miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-        std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-        return modified_flag;
-    };
+    // Used by StreamManager, closes and removes a Server on a given port
+    void removeServer(unsigned char port);
 
-    /**
-     * Set all flags to false
-     */
-    void clearFlags() {
-        // Mutex lock to access the Stream map from the application thread.
-#ifdef _MIOSIX
-        miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-        std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-        modified_flag = false;
-        removed_flag = false;
-        added_flag = false;
-    };
+    // Used by StreamManager, closes and removes a given Stream
+    void removeStream(StreamId id);
 
-protected:
     /* NetworkId of this node */
     unsigned char myId;
-    /* Map containing pointers to StreamServer classes in this node */
-    std::map<StreamId, StreamServer*> serverMap;
-    /* Map containing pointers to Stream classes in this node */
-    std::map<StreamId, Stream*> clientMap;
-    /* Map containing information about Streams and StreamServers related to this node */
-    std::map<StreamId, StreamInfo> streamMap;
-    /* FIFO queue of SME to send from the nodes to the master */
-    std::queue<StreamManagementElement> smeQueue;
-    /* FIFO queue of Info elements to send from the master to the nodes */
-    std::queue<InfoElement> infoQueue;
+    /* Counter used to assign progressive file-descriptors to Streams and Servers*/
+    int fdcounter = 1;
+    /* Map containing pointers to Stream classes, indexed by file-descriptors */
+    std::map<int, Stream*> fdt;
+    /* Map containing pointers to Stream classes, indexed by StreamId */
+    std::map<StreamId, Stream*> streams;
+    /* Map containing pointers to Server classes, indexed by port */
+    std::map<unsigned char, Server*> servers;
+    /* Vector containing the current availability of source ports */
+    std::vector<bool> clientPorts;
+    /* UpdatableQueue of SME to send to the network to reach the master node */
+    UpdatableQueue<StreamId, StreamManagementElement> smeQueue;
     /* Thread synchronization */
 #ifdef _MIOSIX
-    mutable miosix::Mutex streamMgr_mutex;
+    mutable miosix::Mutex mutexMap;
+    mutable miosix::Mutex mutexSme;
 #else
-    mutable std::mutex streamMgr_mutex;
+    mutable std::mutex mutexMap;
+    mutable std::mutex mutexSme;
 #endif
-    /* Flags used by the master node to get whether the streams were changed
-       IMPORTANT: this bit must be set to true whenever the data structure is modified */
-    bool modified_flag = false;
-    bool removed_flag = false;
-    bool added_flag = false;
 };
-
 
 } /* namespace mxnet */
