@@ -114,14 +114,16 @@ enum class Redundancy
 
 enum class StreamStatus : uint8_t
 {
-    CLOSED,          // No stream opened, or stream closed
-    LISTEN_REQ,      // Listen request sent by server
-    LISTEN,          // Listen acknowledged by the master
-    CONNECT_REQ,     // Connect request sent by client
-    CONNECT,         // Connect acknowledged by the master
-    ACCEPTED,        // Listen + Connect matched for the same Stream
-    ESTABLISHED,     // Accepted stream successfully routed and scheduled
-    REJECTED,        // Connect without Listen or routing/scheduling failed
+    CONNECTING,      // Connect request sent by client
+    CONNECT_FAILED,  // Connect request rejected by master
+    ACCEPT_WAIT,     // Server-side Stream opened after receiving a schedule
+    ESTABLISHED,     // Stream successfully accepted, routed and scheduled
+    REMOTELY_CLOSED, // Stream closed after receiving a schedule
+    REOPENED,        // Received a schedule containing a closed stream
+    CLOSE_WAIT,      // Stream closed by user, waiting for schedule without it
+    LISTEN_WAIT,     // Listen request sent by server
+    LISTEN_FAILED,   // Listen request rejected by master
+    LISTEN,          // Listen acknowledged by master
 };
 
 enum class Direction
@@ -177,12 +179,14 @@ class StreamInfo {
 public:
     StreamInfo() {}
     StreamInfo(StreamManagementElement sme, StreamStatus st);
-    StreamInfo(StreamInfo info, StreamStatus st)
-    {
-        id=info.id;
-        parameters=info.parameters;
-        status=st;
-    }
+    StreamInfo(StreamInfo info, StreamStatus st) : id(info.id),
+                                                   parameters(info.parameters),
+                                                   status(st) {}
+
+    StreamInfo(StreamId id, StreamParameters params, StreamStatus status) : id(id),
+                                                                            parameters(params),
+                                                                            status(st) {}
+
     StreamInfo(unsigned char src, unsigned char dst, unsigned char srcPort,
                unsigned char dstPort, Period period, unsigned char payloadSize,
                Direction direction, Redundancy redundancy=Redundancy::NONE,

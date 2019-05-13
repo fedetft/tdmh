@@ -32,73 +32,30 @@
 
 namespace mxnet {
 
-StreamStatus StreamCollection::getStreamStatus(StreamId id) {
-    return collection[id].getStatus();
-}
+int StreamManager::connect(unsigned char dst, unsigned char dstPort, StremParameters params) {
+    int srcPort = allocateClientPort();
+    if(srcPort == -1)
+        return -1;
 
-void StreamCollection::setStreamStatus(StreamId id, StreamStatus status) {
-    collection[id].setStatus(status);
-}
+    id = StreamId(myId, dst, srcPort, dstPort);
+    info = StreamInfo(id, params, StreamStatus::CONNECTING);
+    auto* = new Stream(info);
 
-std::vector<StreamInfo> StreamCollection::getStreams() {
-    std::vector<StreamInfo> result;
-    for(auto& stream : collection)
-        result.push_back(stream.second);
-    return result;
-}
-
-bool isSchedulable(std::pair<StreamId,StreamInfo> stream) {
-    StreamStatus status = stream.second.getStatus();
-    return (status == StreamStatus::ACCEPTED);
-}
-
-bool StreamCollection::hasSchedulableStreams() {
-    return std::count_if(collection.begin(), collection.end(), isSchedulable);
-}
-
-std::vector<StreamInfo> StreamCollection::getStreamsWithStatus(StreamStatus s) {
-    std::vector<StreamInfo> result;
-    for (auto& stream: collection) {
-        if(stream.second.getStatus() == s)
-            result.push_back(stream.second);
-    }
-    return result;
-}
-
-void StreamManager::closeAllStreams() {
-    print_dbg("[SM] Node %d: Closing all Streams\n", myId);
-    for(auto& stream: streamMap) {
-        if(getStreamStatus(stream.first) != StreamStatus::CLOSED)
-            setStreamStatus(stream.first, StreamStatus::CLOSED);
-    }
-}
-
-void StreamManager::closeStreamsRelatedToServer(StreamId serverId) {
-    print_dbg("[SM] Closing Streams related to StreamServer (%d,%d,%d,%d)\n",
-              serverId.src, serverId.dst, serverId.srcPort, serverId.dstPort);
-    for(auto& stream: streamMap) {
-        StreamId id = stream.first;
-        // StreamId used to match Stream with StreamServer
-        StreamId listenId(id.dst, id.dst, 0, id.dstPort);
-        // Close related streams but NOT StreamServer
-        if((listenId == serverId) && !(id == serverId))
-            setStreamStatus(id, StreamStatus::CLOSED);
-    }
-}
-
-void StreamManager::registerStream(StreamInfo info, Stream* client) {
-    StreamId id = info.getStreamId();
-    print_dbg("[SM] Stream (%d,%d) registered! \n", id.src, id.dst);
-    // Mutex lock to access the Stream map from the application thread.
+    // Lock mutexMap to access the shared Stream map
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
+    miosix::Lock<miosix::Mutex> lck(mutexMap);
 #else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
+    std::unique_lock<std::mutex> lck(mutexMap);
 #endif
-    // Register Stream class pointer in client map (if not already present)
-    if(clientMap.find(id) == clientMap.end())
+
+    // Check if a stream with these parameters is already present
+    if(streams.find(id) == streams.end())
         clientMap[id] = client;
     // Register Stream information and status (if not already present)
+    print_dbg("[SM] Stream (%d,%d) registered! \n", id.src, id.dst);
+
+
+
     // TODO: Manage coexistence of client-side and server-side stream in
     // streamMap on node 0
     if(streamMap.find(id) == streamMap.end())
