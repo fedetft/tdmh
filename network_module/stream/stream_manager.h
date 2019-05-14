@@ -149,6 +149,8 @@ private:
     // Used by StreamManager, closes and removes a given Stream
     void removeStream(StreamId id);
 
+    void printStreamStatus(StreamId id, StreamStatus status);
+
     /* NetworkId of this node */
     unsigned char myId;
     /* Counter used to assign progressive file-descriptors to Streams and Servers*/
@@ -165,11 +167,11 @@ private:
     UpdatableQueue<StreamId, StreamManagementElement> smeQueue;
     /* Thread synchronization */
 #ifdef _MIOSIX
-    mutable miosix::Mutex mutexMap;
-    mutable miosix::Mutex mutexSme;
+    mutable miosix::Mutex map_mutex;
+    mutable miosix::Mutex sme_mutex;
 #else
-    mutable std::mutex mutexMap;
-    mutable std::mutex mutexSme;
+    mutable std::mutex map_mutex;
+    mutable std::mutex sme_mutex;
 #endif
 };
 

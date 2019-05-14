@@ -37,34 +37,38 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StremParame
     if(srcPort == -1)
         return -1;
 
-    id = StreamId(myId, dst, srcPort, dstPort);
-    info = StreamInfo(id, params, StreamStatus::CONNECTING);
-    auto* = new Stream(info);
+    auto streamId = StreamId(myId, dst, srcPort, dstPort);
+    auto streamInfo = StreamInfo(id, params, StreamStatus::CONNECTING);
+    auto* stream = new Stream(streamInfo);
 
     // Lock mutexMap to access the shared Stream map
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(mutexMap);
-#else
-    std::unique_lock<std::mutex> lck(mutexMap);
-#endif
+    map_mutex.lock();
 
     // Check if a stream with these parameters is already present
-    if(streams.find(id) == streams.end())
-        clientMap[id] = client;
-    // Register Stream information and status (if not already present)
-    print_dbg("[SM] Stream (%d,%d) registered! \n", id.src, id.dst);
+    if(streams.find(id) != streams.end()) {
+        map_mutex.unlock();
+        delete stream;
+        freeClientPort(srcPort);
+        return -1;
+    }
+    streams[streamId] = stream;
+    int fd = fdcounter++;
+    fdt[fd] = stream;
 
+    map_mutex.unlock();
 
+    printStreamStatus(streamId, streamInfo.getStatus());
 
-    // TODO: Manage coexistence of client-side and server-side stream in
-    // streamMap on node 0
-    if(streamMap.find(id) == streamMap.end())
-        streamMap[id] = StreamInfo(info, StreamStatus::CONNECT_REQ);
-    // Push corresponding SME on the queue
-    smeQueue.push(StreamManagementElement(info, StreamStatus::CONNECT));
-    // Set flags
-    modified_flag = true;
-    added_flag = true;
+    // Make the stream wait for a schedule
+    int error = stream->connect(this);
+    if(error != 0) {
+        removeStream(stream);
+        delete stream;
+        freeClientPort(srcPort);
+        return -1;
+    }
+
+    return fd;
 }
 
 void StreamManager::deregisterStream(StreamInfo info) {
@@ -393,5 +397,41 @@ void StreamManager::receiveInfo() {
         infoQueue.pop();
     }
 }
+
+void StreamManager::printStreamStatus(StreamId id, StreamStatus status) {
+    if(!ENABLE_STREAM_MGR_INFO_DBG)
+        return;
+
+    print_dbg("[SM] Stream (%d,%d,%d,%d): ", id.src,id.dst,
+              id.srcPort,
+              id.dstPort);
+    switch(status){
+    case StreamStatus::CONNECTING:
+        printf("CONNECTING");
+        break;
+    case StreamStatus::CONNECT_FAILED:
+        printf("CONNECT_FAILED");
+        break;
+    case StreamStatus::ACCEPT_WAIT:
+        printf("ACCEPT_WAIT");
+        break;
+    case StreamStatus::ESTABLISHED:
+        printf("ESTABLISHED");
+        break;
+    case StreamStatus::REMOTELY_CLOSED:
+        printf("REMOTELY_CLOSED");
+        break;
+    case StreamStatus::REOPENED:
+        printf("REOPENED");
+        break;
+    case StreamStatus::CLOSE_WAIT:
+        printf("CLOSE_WAIT");
+        break;
+    default:
+        printf("INVALID!");
+    }
+    printf("\n");
+}
+
 
 } /* namespace mxnet */
