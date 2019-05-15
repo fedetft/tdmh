@@ -97,6 +97,7 @@ public:
 
     // Closes a Stream or Server on the application side, the Stream/Server
     // is kept in the StreamManager until the master acknowlede the closing.
+    // This method enqueues a CLOSED SME
     void close(int fd);
 
     // Creates a new Server and returns the file-descriptor of the new Server
@@ -150,7 +151,8 @@ private:
     // Used by StreamManager::removeStream, sets a given port as free
     void freeClientPort(int port);
 
-    // Closes and removes a Server on a given port
+    // Closes and removes a Server on a given port from the maps
+    // deleting the actual Server object
     // NOTE: remember to lock and unlock map_mutex
     void removeServer(unsigned char port);
 

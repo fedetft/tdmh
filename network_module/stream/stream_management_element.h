@@ -154,6 +154,27 @@ public:
     bool operator ==(const StreamId& other) const {
         return getKey() == other.getKey();
     }
+    /**
+     * @return the calculated StreamId of the server
+     */
+    StreamId getServerId() const {
+        return StreamId(dst, dst, 0, dstPort);
+    }
+    /**
+     * @return true if the StreamId belongs to a server
+     */
+    bool isServer() const {
+        if(src == dst && srcPort == 0)
+            return true;
+        else
+            return false;
+    }
+    /**
+     * @return true if the StreamId belongs to a stream
+     */
+    bool isStream() const {
+        return !isServer();
+    }
 
     unsigned int src:8;
     unsigned int dst:8;

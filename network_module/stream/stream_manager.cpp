@@ -40,17 +40,16 @@ void StreamManager::desync() {
 
     // Iterate over all streams
     for(auto& stream: streams) {
-        bool delete = stream->desync();
-        if(delete)
+        bool deleted = stream->desync();
+        if(deleted)
             deleteList.push_back(stream->getStreamId());
     }
+    map_mutex.unlock();
 
     // Delete all streams added to deleteList
     for(auto& streamId: deleteList) {
         removeStream(streamId);
     }
-
-    map_mutex.unlock();
 }
 
 int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParameters params) {
@@ -75,11 +74,11 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
     streams[streamId] = stream;
     int fd = fdcounter++;
     fdt[fd] = stream;
-
     map_mutex.unlock();
 
     printStreamStatus(streamId, streamInfo.getStatus());
     // Make the stream wait for a schedule
+    // NOTE: Make sure that stream enqueues a CONNECT SME
     int error = stream->connect(this);
     if(error != 0) {
         removeStream(stream);
@@ -169,7 +168,6 @@ int StreamManager::listen(unsigned char port, StreamParameters params) {
     servers[port] = server;
     int fd = fdcounter++;
     fdt[fd] = server;
-
     map_mutex.unlock();
 
     printServerStatus(serverId, serverInfo.getStatus());
@@ -177,7 +175,6 @@ int StreamManager::listen(unsigned char port, StreamParameters params) {
     int error = server->listen(this);
     if(error != 0) {
         removeServer(server);
-        delete server;
         return -1;
     }
     return fd;
@@ -245,6 +242,91 @@ void StreamManager::getPacket(StreamId id, Packet& data) {
 
     data = *stream.sendBuffer;
     //TODO: make sure that streamAPI::send() is returning now
+}
+
+void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) {
+    // Lock map_mutex to access the shared Stream map
+    map_mutex.lock();
+
+    // Create vector containing StreamId of all streams in map
+    // We will remove from this vector the streams present in the schedule,
+    // To get the remaining streams present in map but not in schedule.
+    std::vector<StreamId> removedStreams;
+    for (auto it=streams.begin(); it!=streams.end(); ++it)
+        removedStreams.push_back(it->first);
+
+    // Iterate over new schedule
+    for(auto& element : schedule) {
+        StreamId streamId = element.getStreamId();
+        auto streamit = streams.find(streamId);
+        // If stream present in schedule and map call addedStream()
+        if(streamit != streams.end()) {
+            streamit->second->addedStream();
+            // Remove streamId from removedStreams
+            removedStreams.erase(std::remove(removedStreams.begin(),
+                                             removedStreams.end(),
+                                             streamit->first),
+                                 removedStreams.end());
+        }
+        // If stream present in schedule and not in map,
+        else {
+            StreamParameters params = element.getStreamParams();
+            StreamId serverId = streamId.getServerId();
+            auto serverit = servers.find(serverId);
+            // If the corresponding server is present, create new stream in
+            // ACCEPT_WAIT status and register it in corresponding server
+            if(serverit != servers.end()) {
+                auto streamInfo = StreamInfo(streamId, params, StreamStatus::ACCEPT_WAIT);
+                auto* stream = new Stream(streamInfo);
+                streams[streamId] = stream;
+                int fd = fdcounter++;
+                fdt[fd] = stream;
+                serverit->second->addPendingStream(stream);
+            }
+            // If the corresponding server is not present, create new stream in
+            // CLOSE_WAIT status
+            else {
+                auto streamInfo = StreamInfo(streamId, params, StreamStatus::CLOSE_WAIT);
+                auto* stream = new Stream(streamInfo);
+                streams[streamId] = stream;
+                int fd = fdcounter++;
+                fdt[fd] = stream;
+                // NOTE: Make sure that stream enqueues a CLOSED SME
+                stream->close(this);
+            }
+        }
+    }
+    // If stream present in map and not in schedule, call removedStream()
+    for(auto& streamId : removedStreams) {
+        streams[streamId]->removedStream();
+    }
+}
+
+void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
+    // Iterate over info elements
+    for(auto& info : infos) {
+        StreamId id = info.getStreamId();
+        if (streamId.isServer()) {
+            auto serverit = servers.find(id);
+            // If server is present in map
+            if(serverit != servers.end()) {
+                InfoType type = info.getType();
+                if(type==InfoType::SERVER_ACCEPT)                             
+                    serverit->second->acceptedServer();
+                else if(type==InfoType::SERVER_REJECT)
+                    serverit->second->rejectedServer();
+            }
+        }
+        else {
+            auto streamit = streams.find(streamId);
+            // If stream is present in map
+            if(streamit != streams.end()) {
+                InfoType type = info.getType();
+                if(type==InfoType::STREAM_REJECT)
+                    streamit->second->rejectedStream();
+            }
+        }
+    }
 }
 
 void StreamManager::dequeueSMEs(UpdatableQueue<StreamId,StreamManagementElement>& queue) {

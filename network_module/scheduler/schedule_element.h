@@ -45,8 +45,9 @@ enum class Action
 
 enum class InfoType
 {
-    ACK_LISTEN   =0, // Signals that the master have received the Listen request
-    NACK_CONNECT =1  // Signals that the connect has failed for lack of a listen 
+    SERVER_ACCEPT =0, // Signals that the master has accepted the new Server
+    SERVER_REJECT =1; // Signals that the master has rejected the new Server
+    STREAM_REJECT =2  // Signals that the master has rejected the new Stream
 };
 
 struct ScheduleHeaderPkt {
