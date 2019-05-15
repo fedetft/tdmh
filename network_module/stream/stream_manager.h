@@ -66,13 +66,13 @@ public:
      * Update the internal status of the StreamManager after restoring
      * the Timesync synchronization
      */
-    void reconnect() {};
+    void resync() {};
 
     /**
      * Update the internal status of the StreamManager after losing
      * the Timesync synchronization
      */
-    void disconnect() {
+    void desync() {
         // Close streams
         // Clear SME queue? (to delete outdated SMEs)
         // TODO do something else?
@@ -95,7 +95,8 @@ public:
     // Returns a StreamInfo, containing stream status and parameters
     StreamInfo getStatus(int fd);
 
-    // Gets data received from a stream, return the number of bytes received
+    // Closes a Stream or Server on the application side, the Stream/Server
+    // is kept in the StreamManager until the master acknowlede the closing.
     void close(int fd);
 
     // Creates a new Server and returns the file-descriptor of the new Server
@@ -136,20 +137,34 @@ public:
     void enqueueSME(StreamId id, StreamManagementElement sme);
 
 private:
+
+    /**
+     * The following methods are called by StreamManager itself,
+     */
+
     // Used by StreamManager::connect, allocates and returns the first available port
     // if there are no available ports return -1
+    // NOTE: remember to lock and unlock map_mutex
     int allocateClientPort();
 
-    // Used by StreamManager::close, sets a given port as free
+    // Used by StreamManager::removeStream, sets a given port as free
     void freeClientPort(int port);
 
-    // Used by StreamManager, closes and removes a Server on a given port
+    // Closes and removes a Server on a given port
+    // NOTE: remember to lock and unlock map_mutex
     void removeServer(unsigned char port);
 
-    // Used by StreamManager, closes and removes a given Stream
+    // Closes and removes a given Stream from the maps
+    // deleting the actual Stream object
+    // Finally calling freeClientPort on the source port
+    // NOTE: remember to lock and unlock map_mutex
     void removeStream(StreamId id);
 
+    // Prints StreamId and status of a given Stream 
     void printStreamStatus(StreamId id, StreamStatus status);
+
+    // Prints StreamId and status of a given Server 
+    void printServerStatus(StreamId id, StreamStatus status);
 
     /* NetworkId of this node */
     unsigned char myId;
@@ -167,7 +182,9 @@ private:
     UpdatableQueue<StreamId, StreamManagementElement> smeQueue;
     /* Thread synchronization */
 #ifdef _MIOSIX
+    // Mutex to protect access to shared Stream/Server maps
     mutable miosix::Mutex map_mutex;
+    // Mutex to protect access to shared SME queue
     mutable miosix::Mutex sme_mutex;
 #else
     mutable std::mutex map_mutex;

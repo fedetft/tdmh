@@ -32,20 +32,41 @@
 
 namespace mxnet {
 
-int StreamManager::connect(unsigned char dst, unsigned char dstPort, StremParameters params) {
+void StreamManager::desync() {
+    std::vector<StreamId> deleteList;
+
+    // Lock map_mutex to access the shared Stream/Server map
+    map_mutex.lock();
+
+    // Iterate over all streams
+    for(auto& stream: streams) {
+        bool delete = stream->desync();
+        if(delete)
+            deleteList.push_back(stream->getStreamId());
+    }
+
+    // Delete all streams added to deleteList
+    for(auto& streamId: deleteList) {
+        removeStream(streamId);
+    }
+
+    map_mutex.unlock();
+}
+
+int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParameters params) {
     int srcPort = allocateClientPort();
     if(srcPort == -1)
         return -1;
 
     auto streamId = StreamId(myId, dst, srcPort, dstPort);
-    auto streamInfo = StreamInfo(id, params, StreamStatus::CONNECTING);
+    auto streamInfo = StreamInfo(streamId, params, StreamStatus::CONNECTING);
     auto* stream = new Stream(streamInfo);
 
-    // Lock mutexMap to access the shared Stream map
+    // Lock map_mutex to access the shared Stream map
     map_mutex.lock();
 
     // Check if a stream with these parameters is already present
-    if(streams.find(id) != streams.end()) {
+    if(streams.find(streamId) != streams.end()) {
         map_mutex.unlock();
         delete stream;
         freeClientPort(srcPort);
@@ -58,350 +79,201 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StremParame
     map_mutex.unlock();
 
     printStreamStatus(streamId, streamInfo.getStatus());
-
     // Make the stream wait for a schedule
     int error = stream->connect(this);
     if(error != 0) {
         removeStream(stream);
-        delete stream;
-        freeClientPort(srcPort);
         return -1;
     }
-
     return fd;
 }
 
-void StreamManager::deregisterStream(StreamInfo info) {
-    // Mutex lock to access the Stream map from the application thread.
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-    StreamId id = info.getStreamId();
-    // Remove Stream class pointer in stream map
-    clientMap.erase(id);
-    // Mark Stream as closed
-    if(streamMap.find(id) != streamMap.end())
-        streamMap[id].setStatus(StreamStatus::CLOSED);
-    // Send SME only if we are in a dynamic node to notify the master node
-    // of the stream being closed
-    if(myId != 0) {
-        // Push corresponding SME on the queue
-        smeQueue.push(StreamManagementElement(info, StreamStatus::CLOSED));
+int StreamManager::write(int fd, const void* data, int size) {
+    // Lock map_mutex to access the shared Stream map
+    map_mutex.lock();
+
+    // Check if a stream with these parameters is not present
+    if(fdt.find(fd) == fdt.end()) {
+        map_mutex.unlock();
+        return -1;
     }
-    // Set flags
-    modified_flag = true;
-    removed_flag = true;
+    auto* stream = fdt[fd];
+    map_mutex.unlock();
+
+    return stream->write(this, data, size);
 }
 
-void StreamManager::registerStreamServer(StreamInfo info, StreamServer* server) {
-    print_dbg("[SM] StreamServer registered! \n");
-    // Mutex lock to access the Stream map from the application thread.
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-    // Register StreamServer class pointer in server map
-    serverMap[info.getStreamId()] = server;
-    // If we are in a dynamic node, send SME
-    if(myId != 0) {
-        // Register Stream information and status
-        streamMap[info.getStreamId()] = StreamInfo(info, StreamStatus::LISTEN_REQ);
-        // Push corresponding SME on the queue
-        smeQueue.push(StreamManagementElement(info, StreamStatus::LISTEN));
+int StreamManager::read(int fd, void* data, int maxSize) {
+    // Lock map_mutex to access the shared Stream map
+    map_mutex.lock();
+
+    // Check if a stream with these parameters is not present
+    if(fdt.find(fd) == fdt.end()) {
+        map_mutex.unlock();
+        return -1;
     }
-    // If we are in the master node, no need to send SME
-    else {
-        // Register Stream information and status
-        streamMap[info.getStreamId()] = StreamInfo(info, StreamStatus::LISTEN);
-        server->notifyServer(StreamStatus::LISTEN);
-    }
-    // NOTE: Do NOT set modified flag because a Listen is NOT a Stream
+    auto* stream = fdt[fd];
+    map_mutex.unlock();
+
+    return stream->read(this, data, maxSize);
 }
 
-void StreamManager::deregisterStreamServer(StreamInfo info) {
-    // Mutex lock to access the Stream map from the application thread.
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-    StreamId id = info.getStreamId();
-    // Remove StreamServer class pointer in stream map
-    serverMap.erase(id);
-    // Mark Stream as closed
-    if(streamMap.find(id) != streamMap.end())
-        streamMap[id].setStatus(StreamStatus::CLOSED);
-    // Send SME only if we are in a dynamic node to notify the master node
-    // of the stream being closed
-    if(myId != 0) {
-        // Push corresponding SME on the queue
-        smeQueue.push(StreamManagementElement(info, StreamStatus::CLOSED));
+StreamInfo StreamManager::getStatus(int fd) {
+    // Lock map_mutex to access the shared Stream map
+    map_mutex.lock();
+
+    // Check if a stream with these parameters is not present
+    if(fdt.find(fd) == fdt.end()) {
+        map_mutex.unlock();
+        return -1;
     }
-    // NOTE: Do NOT set modified flag because a Listen is NOT a Stream
+    auto* stream = fdt[fd];
+    map_mutex.unlock();
+
+    return stream->getStatus(this);
 }
 
-void StreamManager::notifyStreams(const std::vector<ScheduleElement>& schedule) {
-    // Mutex lock to access the Stream map from the application thread.
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-    /* This set is used to avoid notifying multiple times the streams,
-       this happens when we have more than a ScheduleElement for Stream,
-       for example in case of multi-hop streams or redundancy
-       It is also used to wakeup the StreamServers on which we have done an
-       openStreams. Used to accept multiple streams at the same time */
-    std::map<StreamId, bool> visitedStreams;
-    for(auto& elem : schedule) {
-        StreamId id = elem.getStreamId();
-        if(visitedStreams.count(id))
-            continue;
-        // Add stream to visitedStreams but set the flag to false
-        visitedStreams[id] = false;
-        StreamInfo info = elem.getStreamInfo();
-        print_dbg("[SM] node %d: Notifying stream %d,%d\n", myId, id.src, id.dst);
-        StreamId listenId(id.dst, id.dst, 0, id.dstPort);
-        // If Client-side Stream is registered on this node, set status to ESTABLISHED
-        if ((serverMap.find(listenId) == serverMap.end()) &&
-            (clientMap.find(id) != clientMap.end())) {
-            // Update stream parameters (with the ones decided by Master node) and status
-            streamMap[id] = info;
-            clientMap[id]->setStreamInfo(info);
-            clientMap[id]->notifyStream(info.getStatus());
-            print_dbg("[SM] node %d: Client-side Stream %d,%d woke up!\n", myId, id.src, id.dst);
-        }
-        // If StreamServer (LISTEN) is registered on this node,
-        // and server-side stream is not already open, open it
-        /* Note that the LISTEN request of a stream can be only in one of the two
-           endpoints of the Stream, otherwise we have a loop */
-        if (serverMap.find(listenId) != serverMap.end() &&
-            (clientMap.find(id) == clientMap.end())) {
-            info.setStatus(StreamStatus::ESTABLISHED);
-            serverMap[listenId]->openStream(info);
-            /* Flag the StreamServer to wake it up after all the openStream() calls */
-            visitedStreams[id] = true;
-            print_dbg("[SM] node %d: Server-side Stream %d,%d opened!\n",myId, id.src, id.dst);
-            streamMap[id].setStatus(StreamStatus::ESTABLISHED);
-        }
+void StreamManager::close(int fd) {
+    // Lock map_mutex to access the shared Stream/Server map
+    map_mutex.lock();
+
+    // Check if a stream with these parameters is not present
+    if(fdt.find(fd) == fdt.end()) {
+        map_mutex.unlock();
+        return -1;
     }
-    /* Wake up Accept in StreamServer in which we called openStream() */
-    for(auto& visited : visitedStreams){
-        if(!visited.second)
-            continue;
-        StreamId id = visited.first;
-        StreamId listenId(id.dst, id.dst, 0, id.dstPort);
-        if(serverMap.find(listenId) != serverMap.end())
-            serverMap[listenId]->wakeAccept();
-    }
-    /* Close local ESTABLISHED streams not present in schedule */
-    for(auto& stream : streamMap) {
-        bool found = false;
-        for(auto& elem : schedule){
-            found |= (elem.getStreamId() == stream.first);
-        }
-        if(!found && stream.second.getStatus() == StreamStatus::ESTABLISHED) {
-            stream.second.setStatus(StreamStatus::CLOSED);
-            if(clientMap.find(stream.first) != clientMap.end())
-                clientMap[stream.first]->notifyStream(StreamStatus::CLOSED);
-            else
-                print_dbg("[SM] Cannot close Stream (%d,%d) in node %d: not found\n",
-                          stream.first.src, stream.first.dst, myId);
-        }
+    auto* endpoint = fdt[fd];
+    map_mutex.unlock();
+
+    StreamId id = endpoint->getStreamId();
+    bool deleted = endpoint->close(this);
+    if(deleted && id.src != id.dst) { 
+        removeStream(stream);
     }
 }
 
-bool isNotListen(std::pair<StreamId,StreamInfo> stream) {
-    StreamStatus status = stream.second.getStatus();
-    return (status != StreamStatus::LISTEN);
-}
+int StreamManager::listen(unsigned char port, StreamParameters params) {
+    auto serverId = StreamId(myId, myId, 0, port);
+    auto serverInfo = StreamInfo(serverId, params, StreamStatus::LISTEN_WAIT);
+    auto* server = new Server(serverInfo);
 
-unsigned char StreamManager::getStreamNumber() {
-    // Mutex lock to access the shared container StreamMap
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
+    // Lock map_mutex to access the shared Server map
+    map_mutex.lock();
 
-    return std::count_if(streamMap.begin(), streamMap.end(), isNotListen);
-}
-
-StreamStatus StreamManager::getStreamStatus(StreamId id) {
-    // Mutex lock to access the shared container StreamMap
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-    // Check if stream exists
-    if (streamMap.find(id) == streamMap.end())
-        return StreamStatus::CLOSED;
-    else
-        return streamMap[id].getStatus();
-}
-
-void StreamManager::setStreamStatus(StreamId id, StreamStatus status) {
-    // Mutex lock to access the shared container StreamMap
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-    // Check if stream exists
-    if (streamMap.find(id) != streamMap.end()) {
-        streamMap[id].setStatus(status);
-        // If id corresponds to local Stream
-        if(clientMap.find(id) != clientMap.end()) {            
-            print_dbg("[SM] Setting Stream (%d,%d) to status %d\n",
-                      id.src, id.dst, status);
-            clientMap[id]->notifyStream(status);
-        }
-        // If id corresponds to local StreamServer
-        else if(serverMap.find(id) != serverMap.end()) {
-            print_dbg("[SM] Setting StreamServer (%d,%d,%d,%d) to status %d\n",
-                      id.src, id.dst, id.srcPort, id.dstPort, status);        
-            serverMap[id]->notifyServer(status);
-        }
-        // Set flags
-        modified_flag = true;
-        if(status == StreamStatus::ACCEPTED)
-            added_flag = true;
-        if(status == StreamStatus::CLOSED)
-            removed_flag = true;
+    // Check if a server with these parameters is already present
+    if(servers.find(serverId) != servers.end()) {
+        map_mutex.unlock();
+        delete server;
+        return -1;
     }
-    else {
-        print_dbg("[SM] Stream or StreamServer with id(%d,%d) not found in node %d\n", id.src, id.dst, myId);
+    servers[port] = server;
+    int fd = fdcounter++;
+    fdt[fd] = server;
+
+    map_mutex.unlock();
+
+    printServerStatus(serverId, serverInfo.getStatus());
+    // Make the server wait for an info element confirming LISTEN status
+    int error = server->listen(this);
+    if(error != 0) {
+        removeServer(server);
+        delete server;
+        return -1;
     }
+    return fd;
 }
 
-void StreamManager::addStream(const StreamInfo& stream) {
-    // Mutex lock to access the shared container StreamMap
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-    streamMap[stream.getStreamId()] = stream;
-    // Set flags
-    modified_flag = true;
-    added_flag = true;
+int StreamManager::accept(int serverfd) {
+    // Lock map_mutex to access the shared Server map
+    map_mutex.lock();
+
+    // Check if a server with these parameters is not present
+    if(fdt.find(fd) == fdt.end()) {
+        map_mutex.unlock();
+        return -1;
+    }
+    auto* server = fdt[fd];
+    map_mutex.unlock();
+
+    return server->accept();
 }
 
-StreamCollection StreamManager::getSnapshot() {
-    // Mutex lock to access the shared container StreamMap
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-    return StreamCollection(streamMap, modified_flag, removed_flag, added_flag);
+void StreamManager::periodicUpdate() {
+    // Lock map_mutex to access the shared Stream/Server map
+    map_mutex.lock();
+
+    // Iterate over all streams
+    for(auto& stream: streams) {
+        stream->periodicUpdate();
+    }
+
+    // Iterate over all servers
+    for(auto& server: servers) {
+        server->periodicUpdate();
+    }
+
+    map_mutex.unlock();
+}
+
+void StreamManager::putPacket(StreamId id, const Packet& data) {
+    // Lock map_mutex to access the shared Stream map
+    map_mutex.lock();
+
+    // Check if a stream with these parameters is not present
+    if(fdt.find(fd) == fdt.end()) {
+        map_mutex.unlock();
+        return;
+    }
+    auto* stream = fdt[fd];
+    map_mutex.unlock();
+
+    *stream.recvBuffer = data;
+    //TODO: make sure that streamAPI::recv() is returning now
+}
+
+void StreamManager::getPacket(StreamId id, Packet& data) {
+    // Lock map_mutex to access the shared Stream map
+    map_mutex.lock();
+
+    // Check if a stream with these parameters is not present
+    if(fdt.find(fd) == fdt.end()) {
+        map_mutex.unlock();
+        return;
+    }
+    auto* stream = fdt[fd];
+    map_mutex.unlock();
+
+    data = *stream.sendBuffer;
+    //TODO: make sure that streamAPI::send() is returning now
 }
 
 void StreamManager::dequeueSMEs(UpdatableQueue<StreamId,StreamManagementElement>& queue) {
-    // Mutex lock to access the shared container StreamMap
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
+    // Lock sme_mutex to access the shared SME queue
+    sme_mutex.lock();
+
     while(!smeQueue.empty()) {
         auto temp = std::move(smeQueue.front());
         smeQueue.pop();
         StreamId tempId = temp.getStreamId();
         queue.enqueue(tempId, std::move(temp));
     }
+
+    sme_mutex.unlock();
 }
 
-unsigned char StreamManager::getNumInfo() {
-    // Mutex lock to access the shared container StreamMap
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-    return infoQueue.size();
+void StreamManager::enqueueSMEs(StreamId id, StreamManagementElement sme) {
+    // Lock sme_mutex to access the shared SME queue
+    sme_mutex.lock();
+
+    smeQueue.enqueue(id, sme);
+
+    sme_mutex.unlock();
 }
 
-std::vector<InfoElement> StreamManager::dequeueInfo(unsigned char count) {
-    // Mutex lock to access the shared container StreamMap
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-    unsigned char available = infoQueue.size();
-    unsigned char num = std::min(count, available);
-    std::vector<InfoElement> result;
-    result.reserve(num);
-    for(unsigned int i = 0; i < num; i++) {
-        result.push_back(infoQueue.front());
-        infoQueue.pop();
-    }
-    return result;
-}
-
-void StreamManager::enqueueInfo(std::vector<InfoElement> infos) {
-    // Mutex lock to access the shared container StreamMap
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-    for(auto& info : infos) {
-        infoQueue.push(info);
-    }
-}
-
-void StreamManager::receiveInfo() {
-    // Mutex lock to access the shared container StreamMap
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(streamMgr_mutex);
-#else
-    std::unique_lock<std::mutex> lck(streamMgr_mutex);
-#endif
-    while(!infoQueue.empty()) {
-        InfoElement info = infoQueue.front();
-        StreamId id = info.getStreamId();
-        // Check if stream exists
-        if (streamMap.find(id) != streamMap.end()) {
-            switch(info.getType()){
-            case InfoType::ACK_LISTEN:
-                if(streamMap[id].getStatus() == StreamStatus::LISTEN_REQ) {
-                    streamMap[id].setStatus(StreamStatus::LISTEN);
-                    // Notify Server thread
-                    if(serverMap.find(id) != serverMap.end()) {
-                        print_dbg("[SM] StreamServer %d->%d LISTEN\n", id.src, id.dst);
-                        serverMap[id]->notifyServer(StreamStatus::LISTEN);
-                    }
-                    else
-                        print_dbg("[SM] StreamServer %d->%d not present in serverMap. InfoType=LISTEN\n", id.src, id.dst);
-                }
-                break;
-            case InfoType::NACK_CONNECT:
-                if(streamMap[id].getStatus() == StreamStatus::CONNECT_REQ) {
-                    streamMap[id].setStatus(StreamStatus::REJECTED);
-                    // Notify Stream thread
-                    print_dbg("[SM] Stream %d->%d REJECTED\n", id.src, id.dst);
-                    if(clientMap.find(id) != clientMap.end())
-                        clientMap[id]->notifyStream(StreamStatus::REJECTED);
-                    else
-                        print_dbg("[SM] Stream %d->%d not present in clientMap. InfoType=NACK_CONNECT\n", id.src, id.dst);
-                }
-                break;
-            }
-        }
-        infoQueue.pop();
-    }
-}
 
 void StreamManager::printStreamStatus(StreamId id, StreamStatus status) {
     if(!ENABLE_STREAM_MGR_INFO_DBG)
         return;
-
     print_dbg("[SM] Stream (%d,%d,%d,%d): ", id.src,id.dst,
               id.srcPort,
               id.dstPort);
@@ -433,5 +305,33 @@ void StreamManager::printStreamStatus(StreamId id, StreamStatus status) {
     printf("\n");
 }
 
+void StreamManager::printServerStatus(StreamId id, StreamStatus status) {
+    if(!ENABLE_STREAM_MGR_INFO_DBG)
+        return;
+    print_dbg("[SM] Server (%d,%d): ", id.dst,id.dstPort);
+    switch(status){
+    case StreamStatus::LISTEN_WAIT:
+        printf("LISTEN_WAIT");
+        break;
+    case StreamStatus::LISTEN_FAILED:
+        printf("LISTEN_FAILED");
+        break;
+    case StreamStatus::LISTEN:
+        printf("LISTEN");
+        break;
+    case StreamStatus::REMOTELY_CLOSED:
+        printf("REMOTELY_CLOSED");
+        break;
+    case StreamStatus::REOPENED:
+        printf("REOPENED");
+        break;
+    case StreamStatus::CLOSE_WAIT:
+        printf("CLOSE_WAIT");
+        break;
+    default:
+        printf("INVALID!");
+    }
+    printf("\n");
+}
 
 } /* namespace mxnet */
