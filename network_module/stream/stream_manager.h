@@ -72,11 +72,7 @@ public:
      * Update the internal status of the StreamManager after losing
      * the Timesync synchronization
      */
-    void desync() {
-        // Close streams
-        // Clear SME queue? (to delete outdated SMEs)
-        // TODO do something else?
-    };
+    void desync();
 
     /**
      * The following methods are called by the StreamAPI and ServerAPI functions
@@ -93,7 +89,7 @@ public:
     int read(int fd, void* data, int maxSize);
 
     // Returns a StreamInfo, containing stream status and parameters
-    StreamInfo getStatus(int fd);
+    StreamInfo getInfo(int fd);
 
     // Closes a Stream or Server on the application side, the Stream/Server
     // is kept in the StreamManager until the master acknowlede the closing.
@@ -135,7 +131,7 @@ public:
      * or from the Stream and Server classes contained within.
      */
     // Used by Stream, Server, enqueues an SME to be sent on the network
-    void enqueueSME(StreamId id, StreamManagementElement sme);
+    void enqueueSME(StreamManagementElement sme);
 
 private:
 
@@ -172,8 +168,8 @@ private:
     unsigned char myId;
     /* Counter used to assign progressive file-descriptors to Streams and Servers*/
     int fdcounter = 1;
-    /* Map containing pointers to Stream classes, indexed by file-descriptors */
-    std::map<int, Stream*> fdt;
+    /* Map containing pointers to Stream and Server classes, indexed by file-descriptors */
+    std::map<int, Endpoint*> fdt;
     /* Map containing pointers to Stream classes, indexed by StreamId */
     std::map<StreamId, Stream*> streams;
     /* Map containing pointers to Server classes, indexed by port */

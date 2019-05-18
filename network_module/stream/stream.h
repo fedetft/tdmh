@@ -44,143 +44,210 @@ namespace mxnet {
 class StreamManager;
 
 /**
- * The class Stream represents a single opened stream.
- * It acts as a high-level API for that stream.
- * The stream is opened when the constructor is called, and closed when
- * the destructor is called.
+ * The class Endpoint is the parent class of Stream and Server
  */
-class Stream {
-    friend class StreamServer;
-public:
-    Stream(MediumAccessController& tdmh, unsigned char dst,
-           unsigned char dstPort, Period period, unsigned char payloadSize,
-           Direction direction, Redundancy redundancy);
-    /* Used to create an empty (CLOSED) stream to open with accept */
-    Stream(MediumAccessController& tdmh);
-    ~Stream() {
-        deregisterStream();
-    }
+class Endpoint {
+    Endpoint(StreamInfo info) : info(info);
 
-    /* Called from StreamManager, to update the status of the Stream
-     * and wake up the Stream thread */
-    void notifyStream(StreamStatus s);
-    /* Put data to send through this stream */
-    void send(const void* data, int size);
-    /* Get data received from this stream */
-    int recv(void* data, int maxSize);
-    /* Return true if stream has been closed or rejected */
-    bool isClosed() {
-        return ((info.getStatus() == StreamStatus::CLOSED) ||
-                (info.getStatus() == StreamStatus::REJECTED));
+    // Used by derived class Stream 
+    int connect(StreamManager* mgr) {
+        //This method should never be called on the base class
+        return -1;
     }
-    /* Return the StreamInfo containing endpoints and status */
-    StreamInfo getStreamInfo() {
+    // Used by derived class Stream 
+    int write(const void* data, int size) {
+        //This method should never be called on the base class
+        return -1;
+    }
+    // Used by derived class Stream 
+    int read(void* data, int maxSize) {
+        //This method should never be called on the base class
+        return -1;
+    }
+    // Used by derived class Stream 
+    void putPacket(const Packet& data) = 0;
+    // Used by derived class Stream 
+    void getPacket(Packet& data) = 0;
+    // Used by derived class Stream 
+    void addedStream() = 0;
+    // Used by derived class Stream 
+    bool removedStream() = 0;
+    // Used by derived class Stream 
+    void rejectedStream() = 0;
+    // Used by derived class Server
+    int listen() {
+        //This method should never be called on the base class
+        return -1;
+    }
+    // Used by derived class Server
+    int accept() {
+        //This method should never be called on the base class
+        return -1;
+    }
+    // Used by derived class Server
+    int addPendingStream(Stream* stream) {
+        //This method should never be called on the base class
+        return -1;
+    }
+    // Used by derived class Server
+    int acceptedServer() {
+        //This method should never be called on the base class
+        return -1;
+    }
+    // Used by derived class Server
+    int rejectedServer() {
+        //This method should never be called on the base class
+        return -1;
+    }
+    // Used by derived class Stream and Server 
+    StreamId getStreamId() {
+        return info.getStreamId();
+    }
+    // Used by derived class Stream and Server 
+    StreamId getStatus() {
+        return info.getStatus();
+    }
+    // Used by derived class Stream and Server
+    StreamInfo getInfo() {
         return info;
     }
-
-    /* ### Not to be called by the end user ### */
-    /* Used by the StreamManager class to get data from buffer */
-    Packet getSendBuffer();
-    /* Used by the StreamManager class to put data to buffer */
-    void putRecvBuffer(Packet& pkt);
-    /* Used by the StreamManager to update the stream parameters to the
-     * effective parameters decided by the master after negotiation */
-    void setStreamInfo(StreamInfo newInfo) {
-        info = newInfo;
-    }
+    // Used by derived class Stream and Server
+    bool close(StreamManager* mgr) = 0;
+    // Used by derived class Stream and Server
+    void periodicUpdate(StreamManager* mgr) = 0;
+    // Used by derived class Stream and Server
+    bool desync() = 0;
 
 private:
-    /* Used by the class constructor to register the Stream in the StreamManager */
-    void registerStream(StreamInfo i);
-    /* Used by the class destructor to deregister the Stream from the StreamManager */
-    void deregisterStream();
-    /* Reference to MediumAccessController */
-    MediumAccessController& tdmh;
-    /* Reference to StreamManager */
-    StreamManager* streamMgr;
-    /* Packet buffer for transmitting data */
-    Packet sendBuffer;
-    /* Packet buffer for receiving data */
-    Packet recvBuffer;
-    /* Information about this Stream */
+    // Change the status saved in StreamInfo
+    void setStatus(StreamStatus status) {
+        info.setStatus(status);
+    }
+
+    const int maxTimeout = 3;
+    /* Contains information of the endpoint and state machine status */
     StreamInfo info;
+    /* Used to send SME every N periodic updates */
+    int timeout;
+}
+
+/**
+ * The class Stream represents one of the two endpoint of a stream connection
+ */
+class Stream {
+    Stream(StreamInfo info) : Endpoint(info);
+
+    // Called by StreamManager after creation,
+    // used to send CONNECT SME and wait for addedStream()
+    int connect(StreamManager* mgr);
+
+    // Called by StreamAPI, to put in sendBuffer data to be sent
+    int write(const void* data, int size);
+
+    // Called by StreamAPI, to get from recvBuffer received data
+    int read(void* data, int maxSize);
+
+    // Called by StreamManager, to put data to recvBuffer
+    int putPacket(const Packet& data);
+
+    // Called by StreamManager, to get data from sendBuffer
+    int getPacket(Packet& data);
+
+    // Called by StreamManager when this stream is present in a received schedule
+    void addedStream();
+
+    // Called by StreamManager when this stream is NOT present in a received schedule
+    // Returns true if the Stream class can be deleted
+    bool removedStream();
+
+    // Called by StreamManager when a STREAM_REJECT info element is received
+    void rejectedStream();
+
+    // Called by StreamAPI, to close the stream on the user side
+    // Returns true if the Stream class can be deleted
+    bool close(StreamManager* mgr);
+
+    // Called by StreamManager, in a periodic way to allow resending SME
+    void periodicUpdate(StreamManager* mgr);
+
+    // Called by StreamManager when the Timesync desynchronizes, used to
+    // close the stream system-side in certain conditions
+    // Returns true if the Stream class can be deleted
+    bool desync();
+
+    Server* myServer;
+    Packet sendBuffer;
+    Packet recvBuffer;
     /* Redundancy Info */
     unsigned char timesSent = 0;
     unsigned char timesRecv = 0;
     /* Thread synchronization */
 #ifdef _MIOSIX
-    miosix::Mutex stream_mutex;
+    // Protects concurrent access at StreamInfo
+    miosix::Mutex status_mutex;
+    // Protects concurrent access at sendBuffer
     miosix::Mutex send_mutex;
+    // Protects concurrent access at recvBuffer
     miosix::Mutex recv_mutex;
-    miosix::ConditionVariable stream_cv;
+    miosix::ConditionVariable connect_cv;
     miosix::ConditionVariable send_cv;
     miosix::ConditionVariable recv_cv;
 #else
-    std::mutex stream_mutex;
+    std::mutex status_mutex;
     std::mutex send_mutex;
     std::mutex recv_mutex;
-    std::condition_variable stream_cv;
+    std::condition_variable connect_cv;
     std::condition_variable send_cv;
     std::condition_variable recv_cv;
 #endif
 };
 
 /**
- * The class StreamServer is created by a node that want to listen for
- * incoming streams. The listen request is forwarded to the master.
- * When a node connects, it returns a Stream object.
+ * The class Server is created to comunicate the possibility to accept incoming
+ * Streams
  */
-class StreamServer {
-public:
-    StreamServer(MediumAccessController& tdmh, unsigned char dstPort,
-                 Period period, unsigned char payloadSize,
-                 Direction direction, Redundancy redundancy);
-    ~StreamServer() {
-        deregisterStreamServer();
-    }
-    /* Used by the class destructor to deregister the Stream from the StreamManager */
-    void deregisterStreamServer();
-    /**
-     * Called from StreamManager, to update the status of the StreamServer
-     * and wake up the StreamServer thread */
-    void notifyServer(StreamStatus s);
-    /**
-     * Called from StreamManager, add a Stream to the queue
-     * of Streams ready to be opened */
-    void openStream(StreamInfo info);
-    /**
-     * To be called from StreamManager after all the openStream() have been called,
-     * wakes up the StreamServer thread */
-    void wakeAccept();
-    /**
-     * Opens a Stream object by modifying an empty stream.
-     * This function blocks unless a stream is opened
-     */
-    void accept(std::list<std::shared_ptr<Stream>>& stream);
-    /* Return true if StreamServer has been closed */
-    bool isClosed() {
-        return (info.getStatus() == StreamStatus::CLOSED);
-    }
+class Server {
+    Server(StreamInfo info) : Endpoint(info);
 
-private:
-    /* Reference to MediumAccessController */
-    MediumAccessController& tdmh;
-    /* Reference to StreamManager */
-    StreamManager* streamMgr;
-    /* Information about this Stream */
-    StreamInfo info;
-    /* Queue of opened Stream information (used for creating Stream classes) */
-    std::queue<StreamInfo> streamQueue;
+    // Called by StreamManager after creation,
+    // used to send LISTEN SME and wait for acceptedServer()
+    int listen(StreamManager* mgr);
+
+    // Called by StreamAPI, to get or wait for a new incoming stream
+    int accept();
+
+    // Called by StreamManager, used to add a Stream to the list of
+    // streams waiting for an accept
+    int addPendingStream(Stream* stream);
+
+    // Called by StreamManager when a SERVER_ACCEPT info element is received
+    int acceptedServer();
+
+    // Called by StreamManager when a SERVER_REJECT info element is received
+    int rejectedServer();
+
+    // Called by StreamAPI, to close the server on the user side
+    // Returns true if the Server class can be deleted
+    bool close(StreamManager* mgr);
+
+    // Called by StreamManager, in a periodic way to allow resending SME
+    void periodicUpdate(StreamManager* mgr);
+
+    // Called by StreamManager when the Timesync desynchronizes, used to
+    // close the server system-side in certain conditions
+    // Returns true if the Server class can be deleted
+    void desync();
+
+    std::list<Stream*> pendingAccept;
     /* Thread synchronization */
 #ifdef _MIOSIX
-    miosix::Mutex server_mutex;
-    miosix::ConditionVariable server_cv;
-    miosix::ConditionVariable stream_cv;
+    miosix::Mutex status_mutex;
+    miosix::ConditionVariable listen_cv;
 #else
-    std::mutex server_mutex;
-    std::condition_variable server_cv;
-    std::condition_variable stream_cv;
+    std::mutex status_mutex;
+    std::condition_variable listen_cv;
 #endif
-};
+
+}
 
 } /* namespace mxnet */

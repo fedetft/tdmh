@@ -32,112 +32,64 @@
 
 namespace mxnet {
 
-Stream::Stream(MediumAccessController& tdmh, unsigned char dst,
-               unsigned char dstPort, Period period, unsigned char payloadSize,
-               Direction direction, Redundancy redundancy=Redundancy::NONE) : tdmh(tdmh) {
-    // Save Stream parameters in StreamInfo
-    MACContext* ctx = tdmh.getMACContext();
-    streamMgr = ctx->getStreamManager();
-    unsigned char src = ctx->getNetworkId();
-    /* TODO: Implement srcPort, for the moment it is hardcoded to 0 */
-    unsigned char srcPort = 0;
-    StreamInfo i = StreamInfo(src, dst, srcPort, dstPort, period, payloadSize,
-                      direction, redundancy, StreamStatus::CONNECT_REQ);
-    registerStream(i);
-}
-
-Stream::Stream(MediumAccessController& tdmh) : tdmh(tdmh) {
+int Stream::connect(StreamManager* mgr) {
+    // Send CONNECT SME
+    mgr->enqueueSME(StreamManagementElement(info, SMEType::CONNECT));
+    // Lock mutex for concurrent access at StreamInfo
+    {
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
+        miosix::Lock<miosix::Mutex> lck(status_mutex);
 #else
-    std::unique_lock<std::mutex> lck(stream_mutex);
+        std::unique_lock<std::mutex> lck(status_mutex);
 #endif
-    MACContext* ctx = tdmh.getMACContext();
-    streamMgr = ctx->getStreamManager();
-    // Mark stream CLOSED
-    info.setStatus(StreamStatus::CLOSED);
-}
-
-void Stream::registerStream(StreamInfo i) {
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(stream_mutex);
-#else
-    std::unique_lock<std::mutex> lck(stream_mutex);
-#endif
-    // Set StreamInfo field
-    info = i;
-    // Register Stream to StreamManager
-    streamMgr->registerStream(info, this);
-    // Wait for notification from StreamStatus
-    while(info.getStatus() != StreamStatus::ESTABLISHED &&
-          info.getStatus() != StreamStatus::REJECTED) {
-        // Condition variable to wait for notification from StreamManager
-        stream_cv.wait(lck);
+        // Wait to get out of CONNECTING status
+        for(;;) {
+            if(getStatus() != StreamStatus::CONNECTING) break;
+            // Condition variable to wait for addedStream().
+            connect_cv.wait(lck);
+        }
+        auto status = getStatus();
     }
-    if(info.getStatus() == StreamStatus::REJECTED)
-        throw std::runtime_error("The stream cannot be routed or scheduled");
+    if(status == StreamStatus::CONNECT_FAILED)
+        return -1;
+    if(status == StreamStatus::ESTABLISHED)
+        return 0;
+    //TODO: check if we can end up in other states
+    else
+        return -2;
 }
 
-void Stream::deregisterStream() {
-#ifdef _MIOSIX
-        miosix::Lock<miosix::Mutex> lck(stream_mutex);
-#else
-        std::unique_lock<std::mutex> lck(stream_mutex);
-#endif
-        // Deregister Stream from StreamManager
-        streamMgr->deregisterStream(info);
-}
-
-void Stream::notifyStream(StreamStatus s) {
-    //FIXME: remove this print_dbg
-    print_dbg("[S] Calling notifyStream with status %d\n", s);
-    // Update the stream status
-    info.setStatus(s);
-    // Wake up the constructor
-#ifdef _MIOSIX
-    stream_cv.signal();
-#else
-    stream_cv.notify_one();
-#endif
-    // Wake up the send and receive methods
-#ifdef _MIOSIX
-    send_cv.signal();
-    recv_cv.signal();
-#else
-    send_cv.notify_one();
-    recv_cv.notify_one();
-#endif
-}
-
-void Stream::send(const void* data, int size) {
+int Stream::write(const void* data, int size) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(send_mutex);
 #else
     std::unique_lock<std::mutex> lck(send_mutex);
 #endif
-    // Wait for sendBuffer to be empty or stream CLOSED
-    while(sendBuffer.size() != 0 && info.getStatus() != StreamStatus::CLOSED) {
+    // Wait for sendBuffer to be empty or stream to be not ESTABLISHED
+    while(sendBuffer.size() != 0 && getStatus() == StreamStatus::ESTABLISHED) {
         // Condition variable to wait for buffer to be empty
         send_cv.wait(lck);
     }
-    if(info.getStatus() == StreamStatus::CLOSED)
-        return;
+    if(info.getStatus() != StreamStatus::ESTABLISHED)
+        return -1;
     else
         sendBuffer.put(data, size);
+    //TODO: Packet::put() do not return number of copied bytes
+    return 0;
 }
 
-int Stream::recv(void* data, int maxSize) {
+int Stream::read(StreamManager* mgr, const void* data, int size) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(recv_mutex);
 #else
     std::unique_lock<std::mutex> lck(recv_mutex);
 #endif
     // Wait for recvBuffer to be non empty
-    while(recvBuffer.size() == 0 && info.getStatus() != StreamStatus::CLOSED) {
+    while(recvBuffer.size() == 0 && info.getStatus() == StreamStatus::ESTABLISHED) {
         // Condition variable to wait for buffer to be non empty
         recv_cv.wait(lck);
     }
-    if(info.getStatus() == StreamStatus::CLOSED)
+    if(info.getStatus() != StreamStatus::ESTABLISHED)
         return -1;
     else {
         auto size = std::min<int>(maxSize, recvBuffer.size());
@@ -153,172 +105,307 @@ int Stream::recv(void* data, int maxSize) {
     }
 }
 
-Packet Stream::getSendBuffer() {
+void Stream::putPacket(const Packet& data) {
+    // Lock mutex for concurrent access at StreamInfo
+    status_mutex.lock();
     Redundancy r = info.getRedundancy();
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(send_mutex);
-#else
-    std::unique_lock<std::mutex> lck(send_mutex);
-#endif
-    auto result = sendBuffer;
-    // No redundancy: send value once
-    if(r == Redundancy::NONE) {
-        // Clear buffer
-        sendBuffer.clear();
-        // Wake up the Application thread calling the send
-#ifdef _MIOSIX
-        send_cv.signal();
-#else
-        send_cv.notify_one();
-#endif
-    }
-    // Double redundancy: send value twice before clear and notify
-    else if((r == Redundancy::DOUBLE) ||
-       (r == Redundancy::DOUBLE_SPATIAL)) {
-        if(++timesSent >= 2){
-            timesSent = 0;
-            sendBuffer.clear();
-#ifdef _MIOSIX
-            send_cv.signal();
-#else
-            send_cv.notify_one();
-#endif
-        }
-    }
-    // Triple redundancy: send value three times before clear and notify
-    else if((r == Redundancy::TRIPLE) ||
-       (r == Redundancy::TRIPLE_SPATIAL)) {
-        if(++timesSent >= 3){ 
-            timesSent = 0;
-            sendBuffer.clear();
-#ifdef _MIOSIX
-            send_cv.signal();
-#else
-            send_cv.notify_one();
-#endif
-        }  
-    }
-    return result;
-}
+    status_mutex.unlock();
 
-void Stream::putRecvBuffer(Packet& pkt) {
-    Redundancy r = info.getRedundancy();
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(recv_mutex);
-#else
-    std::unique_lock<std::mutex> lck(recv_mutex);
-#endif
+    // Lock mutex for concurrent access at recvBuffer
+    recv_mutex.lock();
     // Avoid overwriting valid data
     if(pkt.size() != 0)
-        recvBuffer = pkt;
+        recvBuffer = data;
+
+    bool wakeRead = false;
+    //TODO: Maybe it's better to handle redundancy
+    // with calls from the dataphase
     // No redundancy: notify right away
     if(r == Redundancy::NONE) {
-        // Wake up the Application thread calling the recv
+        wakeRead = true;
+    }
+    // Double redundancy: notify after receiving twice
+    else if((r == Redundancy::DOUBLE) ||
+            (r == Redundancy::DOUBLE_SPATIAL)) {
+        if(++timesRecv >= 2){
+            timesRecv = 0;
+            wakeRead = true;
+        }
+    }
+    // Triple redundancy: notify after receiving three times
+    else if((r == Redundancy::TRIPLE) ||
+            (r == Redundancy::TRIPLE_SPATIAL)) {
+        if(++timesRecv >= 3){ 
+            timesRecv = 0;
+            wakeRead = true;
+        }  
+    }
+
+    if(wakeRead) {
+        // Wake up the read method
 #ifdef _MIOSIX
         recv_cv.signal();
 #else
         recv_cv.notify_one();
 #endif
+        recv_mutex.unlock();
     }
-    // Double redundancy: notify after receiving twice
+}
+
+void Stream::getPacket(Packet& data) {
+    // Lock mutex for concurrent access at StreamInfo
+    status_mutex.lock();
+    Redundancy r = info.getRedundancy();
+    status_mutex.unlock();
+
+    // Lock mutex for concurrent access at recvBuffer
+    send_mutex.lock();
+    data = sendBuffer;
+
+    bool wakeWrite = false;
+    //TODO: Maybe it's better to handle redundancy
+    // with calls from the dataphase
+    // No redundancy: send value once
+    if(r == Redundancy::NONE) {
+        sendBuffer.clear();
+        wakeWrite = true;
+    }
+    // Double redundancy: send value twice before clear and notify
     else if((r == Redundancy::DOUBLE) ||
-       (r == Redundancy::DOUBLE_SPATIAL)) {
-        if(++timesRecv >= 2){
-            timesRecv = 0;
-#ifdef _MIOSIX
-            recv_cv.signal();
-#else
-            recv_cv.notify_one();
-#endif
+            (r == Redundancy::DOUBLE_SPATIAL)) {
+        if(++timesSent >= 2){
+            timesSent = 0;
+            sendBuffer.clear();
+            wakeWrite = true;
         }
     }
-    // Triple redundancy: notify after receiving three times
+    // Triple redundancy: send value three times before clear and notify
     else if((r == Redundancy::TRIPLE) ||
-       (r == Redundancy::TRIPLE_SPATIAL)) {
-        if(++timesRecv >= 3){ 
-            timesRecv = 0;
-#ifdef _MIOSIX
-            recv_cv.signal();
-#else
-            recv_cv.notify_one();
-#endif
+            (r == Redundancy::TRIPLE_SPATIAL)) {
+        if(++timesSent >= 3){ 
+            timesSent = 0;
+            sendBuffer.clear();
+            wakeWrite = true;
         }  
     }
-}
 
-StreamServer::StreamServer(MediumAccessController& tdmh, unsigned char dstPort,
-                           Period period, unsigned char payloadSize,
-                           Direction direction, Redundancy redundancy=Redundancy::NONE) : tdmh(tdmh) {
+    if(wakeWrite) {
+        // Wake up the write method
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(server_mutex);
+        send_cv.signal();
 #else
-    std::unique_lock<std::mutex> lck(server_mutex);
+        send_cv.notify_one();
 #endif
-    // Save Stream parameters in StreamInfo
-    MACContext* ctx = tdmh.getMACContext();
-    streamMgr = ctx->getStreamManager();
-    unsigned char dst = ctx->getNetworkId();
-    // NOTE: The StreamId of a LISTEN request is StreamId(dst, dst, 0, dstPort)
-    info = StreamInfo(dst, dst, 0, dstPort, period, payloadSize,
-                      direction, redundancy);
-    // Register Stream to StreamManager
-    streamMgr->registerStreamServer(info, this);
-    // Wait for notification from StreamStatus
-    while(info.getStatus() == StreamStatus::LISTEN_REQ) {
-        // Condition variable to wait for notification from StreamManager
-        server_cv.wait(lck);
+        send_mutex.unlock();
     }
-    if(info.getStatus() != StreamStatus::LISTEN &&
-       info.getStatus() != StreamStatus::ACCEPTED)
-        throw std::runtime_error("Server opening failed!");
 }
 
-void StreamServer::deregisterStreamServer() {
+void Stream::addedStream() {
+    // Lock mutex for concurrent access at StreamInfo
+    status_mutex.lock();
+    switch(getStatus()) {
+    case StreamStatus::CONNECTING:
+        setStatus(StreamStatus::ESTABLISHED);
+        break;
+    case StreamStatus::REMOTELY_CLOSED:
+        setStatus(StreamStatus::REOPENED);
+        break;
+    }
+    // Wake up the connect() method
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(server_mutex);
+    connect_cv.signal();
 #else
-    std::unique_lock<std::mutex> lck(server_mutex);
+    connect_cv.notify_one();
 #endif
-    // Deregister StreamServer from StreamManager
-    streamMgr->deregisterStreamServer(info);
+    status_mutex.unlock();
 }
 
-void StreamServer::notifyServer(StreamStatus s) {
-    // Update the stream status
-    info.setStatus(s);
-    // Wake up the Stream thread
+bool Stream::removedStream() {
+    bool deletable = false;
+    // Lock mutex for concurrent access at StreamInfo
+    status_mutex.lock();
+    switch(getStatus()) {
+    case StreamStatus::ACCEPT_WAIT:
+            deletable = true;
+            break;
+    case StreamStatus::ESTABLISHED:
+        setStatus(StreamStatus::REMOTELY_CLOSED);
+        break;
+    case StreamStatus::REOPENED:
+        setStatus(StreamStatus::REMOTELY_CLOSED);
+        break;
+    case StreamStatus::CLOSE_WAIT:
+        deletable = true;
+        break;
+    }
+    // Wake up the write and read methods
 #ifdef _MIOSIX
-    server_cv.signal();
+    send_cv.signal();
+    recv_cv.signal();
 #else
-    server_cv.notify_one();
+    send_cv.notify_one();
+    recv_cv.notify_one();
 #endif
+
+    status_mutex.unlock();
+    return deletable;
 }
 
-void StreamServer::openStream(StreamInfo info) {
-    // Push new stream info to queue
-    streamQueue.push(info);
-}
-
-void StreamServer::wakeAccept() {
-    // Wake up the Stream thread
+void Stream::rejectedStream() {
+    // Lock mutex for concurrent access at StreamInfo
+    status_mutex.lock();
+    switch(getStatus()) {
+    case StreamStatus::CONNECTING:
+        setStatus(StreamStatus::CONNECT_FAILED);
+        break;
+    }
+    // Wake up the connect() method
 #ifdef _MIOSIX
-    stream_cv.signal();
+    connect_cv.signal();
 #else
-    stream_cv.notify_one();
-#endif 
-}
-
-void StreamServer::accept(std::list<std::shared_ptr<Stream>>& stream) {
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(server_mutex);
-#else
-    std::unique_lock<std::mutex> lck(server_mutex);
+    connect_cv.notify_one();
 #endif
+    status_mutex.unlock();
+}
+
+bool Stream::close(StreamManager* mgr) {
+    bool deletable = false;
+    // Lock mutex for concurrent access at StreamInfo
+    status_mutex.lock();
+    switch(getStatus()) {
+    case StreamStatus::ESTABLISHED:
+        setStatus(StreamStatus::CLOSE_WAIT);
+        // Send CLOSED SME
+        mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+        break;
+    case StreamStatus::REMOTELY_CLOSED:
+        deletable = true;
+        break;
+    case StreamStatus::REOPENED:
+        setStatus(StreamStatus::CLOSE_WAIT);
+        break;
+    case StreamStatus::CLOSE_WAIT:
+        //NOTE: if we were created in CLOSE_WAIT, we need to send CLOSED SME
+        mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+        break;
+    }
+    // Wake up the write and read methods
+#ifdef _MIOSIX
+    send_cv.signal();
+    recv_cv.signal();
+#else
+    send_cv.notify_one();
+    recv_cv.notify_one();
+#endif
+    status_mutex.unlock();
+    return deletable;
+}
+
+void Stream::periodicUpdate(StreamManager* mgr) {
+    // Lock mutex for concurrent access at StreamInfo
+    status_mutex.lock();
+    switch(getStatus()) {
+    case StreamStatus::CONNECTING:
+        if(timeout-- <= 0) {
+            timeout = maxTimeout;
+            // Send CONNECT SME
+            mgr->enqueueSME(StreamManagementElement(info, SMEType::CONNECT));
+        }
+        break;
+    case StreamStatus::REOPENED:
+        if(timeout-- <= 0) {
+            timeout = maxTimeout;
+            // Send CLOSED SME
+            mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+        }
+        break;
+    case StreamStatus::CLOSE_WAIT:
+        if(timeout-- <= 0) {
+            timeout = maxTimeout;
+            // Send CLOSED SME
+            mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+        }
+        break;
+    }
+    status_mutex.unlock();
+}
+
+bool Stream::desync() {
+    bool deletable = false;
+    // Lock mutex for concurrent access at StreamInfo
+    status_mutex.lock();
+    switch(getStatus()) {
+    case StreamStatus::CONNECTING:
+        setStatus(StreamStatus::CONNECT_FAILED);
+        break;
+    case StreamStatus::ACCEPT_WAIT:
+        deletable = true;
+        break;
+    case StreamStatus::ESTABLISHED:
+        setStatus(StreamStatus::REMOTELY_CLOSED);
+        break;
+    case StreamStatus::REOPENED:
+        setStatus(StreamStatus::REMOTELY_CLOSED);
+        break;
+    case StreamStatus::CLOSE_WAIT:
+        deletable = true;
+        break;
+    }
+    // Wake up the connect() method
+#ifdef _MIOSIX
+    connect_cv.signal();
+#else
+    connect_cv.notify_one();
+#endif
+    // Wake up the write and read methods
+#ifdef _MIOSIX
+    send_cv.signal();
+    recv_cv.signal();
+#else
+    send_cv.notify_one();
+    recv_cv.notify_one();
+#endif
+    status_mutex.unlock();
+    return deletable;
+}
+
+int Server::listen(StreamManager* mgr) {
+    // Send LISTEN SME
+    mgr->enqueueSME(StreamManagementElement(info, SMEType::LISTEN));
+    // Lock mutex for concurrent access at StreamInfo
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
+        // Wait to get out of LISTEN_WAIT status
+        for(;;) {
+            if(getStatus() != StreamStatus::LISTEN_WAIT) break;
+            // Condition variable to wait for acceptedServer().
+            listen_cv.wait(lck);
+        }
+        auto status = getStatus();
+    }
+    if(status == StreamStatus::LISTEN_FAILED)
+        return -1;
+    if(status == StreamStatus::LISTEN)
+        return 0;
+}
+
+int Server::accept() {
+    // Lock mutex for concurrent access at StreamInfo
+    status_mutex.lock();
+    if(getStatus() != StreamStatus::LISTEN)
+        return -1;
+
     // Wait for opened stream
-    while(streamQueue.empty()) {
+    while(pendingAccept.empty()) {
         // Condition variable to wait for opened streams
-        stream_cv.wait(lck);
+        listen_cv.wait(lck);
     }
+
+    //TODO: complete implementation
     // The StreamServer was closed
     if(info.getStatus() == StreamStatus::CLOSED)
         return;
@@ -334,4 +421,46 @@ void StreamServer::accept(std::list<std::shared_ptr<Stream>>& stream) {
     }
 }
 
+void Server::addPendingStream(Stream* stream) {
+        // Push new stream info to queue
+        pendingAccept.push_back(stream);
 }
+
+void Server::acceptedServer() {
+    // Lock mutex for concurrent access at StreamInfo
+    status_mutex.lock();
+    switch(getStatus()) {
+    case StreamStatus::LISTEN_WAIT:
+        setStatus(StreamStatus::LISTEN);
+        break;
+    case StreamStatus::REMOTELY_CLOSED:
+        setStatus(StreamStatus::REOPENED);
+        break;
+    }
+    // Wake up the listen() method
+#ifdef _MIOSIX
+    listen_cv.signal();
+#else
+    listen_cv.notify_one();
+#endif
+    status_mutex.unlock();
+}
+
+void Server::rejectedServer() {
+    // Lock mutex for concurrent access at StreamInfo
+    status_mutex.lock();
+    switch(getStatus()) {
+    case StreamStatus::LISTEN_WAIT:
+        setStatus(StreamStatus::LISTEN_FAILED);
+        break;
+    }
+    // Wake up the listen() method
+#ifdef _MIOSIX
+    listen_cv.signal();
+#else
+    listen_cv.notify_one();
+#endif
+    status_mutex.unlock();
+}
+
+} /* namespace mxnet */

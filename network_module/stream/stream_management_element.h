@@ -133,6 +133,13 @@ enum class Direction
     TX_RX,           // The server and client transmit and receive data
 };
 
+enum class SMEType
+{
+    CONNECT =0,      // Signals that the dynamic node want to open a new stream
+    LISTEN =1,       // Signals that the dynamic node want to open a new server
+    CLOSED =2;       // Signals that the dynamic node has closed the stream or server
+};
+
 class StreamId {
 public:
     StreamId() {};
@@ -189,7 +196,7 @@ struct StreamParameters {
     unsigned int direction:2;
 } __attribute__((packed));
 
-struct SMEType {
+struct SMETypeStruct {
     unsigned int type:4;
 } __attribute__((packed));
 
@@ -254,7 +261,7 @@ class StreamManagementElement : public SerializableMessage {
 public:
     StreamManagementElement() {}
 
-    StreamManagementElement(StreamInfo info, StreamStatus t)
+    StreamManagementElement(StreamInfo info, SMEType t)
     {
         id=info.getStreamId();
         parameters=info.getStreamParameters();
@@ -265,7 +272,7 @@ public:
                             unsigned char srcPort, unsigned char dstPort,
                             Period period, unsigned char payloadSize,
                             Direction direction, Redundancy redundancy,
-                            StreamStatus st)
+                            SMEType st)
     {
         id.src=src;
         id.dst=dst;
@@ -291,8 +298,7 @@ public:
     Redundancy getRedundancy() const { return static_cast<Redundancy>(parameters.redundancy); }
     Period getPeriod() const { return static_cast<Period>(parameters.period); }
     unsigned short getPayloadSize() const { return parameters.payloadSize; }
-    StreamStatus getStatus() const { return getType(); }
-    StreamStatus getType() const { return static_cast<StreamStatus>(type.type); }
+    SMEType getType() const { return static_cast<SMEType>(type.type); }
 
     bool operator ==(const StreamManagementElement& other) const {
         return (id == other.getStreamId() && 
@@ -321,7 +327,7 @@ public:
 protected:
     StreamId id;
     StreamParameters parameters;
-    SMEType type;
+    SMETypeStruct type;
 };
 
 
