@@ -285,7 +285,7 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
                 streams[streamId] = stream;
                 int fd = fdcounter++;
                 fdt[fd] = stream;
-                server->addPendingStream(stream);
+                server->addPendingStream(fd);
             }
             // If the corresponding server is not present, create new stream in
             // CLOSE_WAIT status

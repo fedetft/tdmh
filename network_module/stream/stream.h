@@ -30,7 +30,7 @@
 #include "../tdmh.h"
 #include "../util/packet.h"
 #include "stream_management_element.h"
-#include <queue>
+#include <set>
 #include <memory>
 #ifdef _MIOSIX
 #include <miosix.h>
@@ -218,7 +218,7 @@ class Server {
 
     // Called by StreamManager, used to add a Stream to the list of
     // streams waiting for an accept
-    int addPendingStream(Stream* stream);
+    int addPendingStream(int fd);
 
     // Called by StreamManager when a SERVER_ACCEPT info element is received
     int acceptedServer();
@@ -238,7 +238,9 @@ class Server {
     // Returns true if the Server class can be deleted
     void desync();
 
-    std::list<Stream*> pendingAccept;
+    // Contains fd of streams not yet accepted
+    // It's a set to avoid duplicates
+    std::set<fd> pendingAccept;
     /* Thread synchronization */
 #ifdef _MIOSIX
     miosix::Mutex status_mutex;

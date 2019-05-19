@@ -140,7 +140,7 @@ void Stream::putPacket(const Packet& data) {
             wakeRead = true;
         }  
     }
-
+    recv_mutex.unlock();
     if(wakeRead) {
         // Wake up the read method
 #ifdef _MIOSIX
@@ -148,7 +148,6 @@ void Stream::putPacket(const Packet& data) {
 #else
         recv_cv.notify_one();
 #endif
-        recv_mutex.unlock();
     }
 }
 
@@ -188,7 +187,7 @@ void Stream::getPacket(Packet& data) {
             wakeWrite = true;
         }  
     }
-
+    send_mutex.unlock();
     if(wakeWrite) {
         // Wake up the write method
 #ifdef _MIOSIX
@@ -196,7 +195,6 @@ void Stream::getPacket(Packet& data) {
 #else
         send_cv.notify_one();
 #endif
-        send_mutex.unlock();
     }
 }
 
@@ -211,13 +209,13 @@ void Stream::addedStream() {
         setStatus(StreamStatus::REOPENED);
         break;
     }
+    status_mutex.unlock();
     // Wake up the connect() method
 #ifdef _MIOSIX
     connect_cv.signal();
 #else
     connect_cv.notify_one();
 #endif
-    status_mutex.unlock();
 }
 
 bool Stream::removedStream() {
@@ -238,6 +236,7 @@ bool Stream::removedStream() {
         deletable = true;
         break;
     }
+    status_mutex.unlock();
     // Wake up the write and read methods
 #ifdef _MIOSIX
     send_cv.signal();
@@ -246,8 +245,6 @@ bool Stream::removedStream() {
     send_cv.notify_one();
     recv_cv.notify_one();
 #endif
-
-    status_mutex.unlock();
     return deletable;
 }
 
@@ -259,13 +256,13 @@ void Stream::rejectedStream() {
         setStatus(StreamStatus::CONNECT_FAILED);
         break;
     }
+    status_mutex.unlock();
     // Wake up the connect() method
 #ifdef _MIOSIX
     connect_cv.signal();
 #else
     connect_cv.notify_one();
 #endif
-    status_mutex.unlock();
 }
 
 bool Stream::close(StreamManager* mgr) {
@@ -289,6 +286,7 @@ bool Stream::close(StreamManager* mgr) {
         mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
         break;
     }
+    status_mutex.unlock();
     // Wake up the write and read methods
 #ifdef _MIOSIX
     send_cv.signal();
@@ -297,7 +295,6 @@ bool Stream::close(StreamManager* mgr) {
     send_cv.notify_one();
     recv_cv.notify_one();
 #endif
-    status_mutex.unlock();
     return deletable;
 }
 
@@ -351,6 +348,7 @@ bool Stream::desync() {
         deletable = true;
         break;
     }
+    status_mutex.unlock();
     // Wake up the connect() method
 #ifdef _MIOSIX
     connect_cv.signal();
@@ -365,7 +363,6 @@ bool Stream::desync() {
     send_cv.notify_one();
     recv_cv.notify_one();
 #endif
-    status_mutex.unlock();
     return deletable;
 }
 
@@ -396,6 +393,7 @@ int Server::listen(StreamManager* mgr) {
 int Server::accept() {
     // Lock mutex for concurrent access at StreamInfo
     status_mutex.lock();
+    // Return error if server not open
     if(getStatus() != StreamStatus::LISTEN)
         return -1;
 
@@ -404,26 +402,22 @@ int Server::accept() {
         // Condition variable to wait for opened streams
         listen_cv.wait(lck);
     }
-
-    //TODO: complete implementation
-    // The StreamServer was closed
-    if(info.getStatus() == StreamStatus::CLOSED)
-        return;
-    while(!streamQueue.empty()) {
-        StreamInfo info = streamQueue.front();
-        StreamId id = info.getStreamId();
-        print_dbg("[S] StreamServer: Accepted the stream (%d,%d)\n", id.src, id.dst);
-        streamQueue.pop();
-        auto* newStream = new Stream(tdmh);
-        newStream->registerStream(info);
-        std::shared_ptr<Stream> ptr(newStream);
-        stream.push_back(ptr);
-    }
+    // Return error if server not open
+    if(getStatus() != StreamStatus::LISTEN)
+        return -1;
+    auto it = pendingAccept.begin();
+    int fd = *it;
+    pendingAccept.erase(it);
+    status_mutex.unlock();
+    return fd;
 }
 
-void Server::addPendingStream(Stream* stream) {
-        // Push new stream info to queue
-        pendingAccept.push_back(stream);
+void Server::addPendingStream(int fd) {
+    // Lock mutex for concurrent access at pendingAccept
+    status_mutex.lock();
+    // Push add new stream fd to set
+    pendingAccept.insert(fd);
+    status_mutex.unlock();
 }
 
 void Server::acceptedServer() {
@@ -437,13 +431,13 @@ void Server::acceptedServer() {
         setStatus(StreamStatus::REOPENED);
         break;
     }
+    status_mutex.unlock();
     // Wake up the listen() method
 #ifdef _MIOSIX
     listen_cv.signal();
 #else
     listen_cv.notify_one();
 #endif
-    status_mutex.unlock();
 }
 
 void Server::rejectedServer() {
@@ -454,13 +448,97 @@ void Server::rejectedServer() {
         setStatus(StreamStatus::LISTEN_FAILED);
         break;
     }
+    status_mutex.unlock();
     // Wake up the listen() method
 #ifdef _MIOSIX
     listen_cv.signal();
 #else
     listen_cv.notify_one();
 #endif
+}
+
+bool Server::close(StreamManager* mgr) {
+    bool deletable = false;
+    // Lock mutex for concurrent access at StreamInfo
+    status_mutex.lock();
+    switch(getStatus()) {
+    case StreamStatus::LISTEN:
+        setStatus(StreamStatus::CLOSE_WAIT);
+        // Send CLOSED SME
+        mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+        break;
+    case StreamStatus::REMOTELY_CLOSED:
+        deletable = true;
+        break;
+    case StreamStatus::REOPENED:
+        setStatus(StreamStatus::CLOSE_WAIT);
+        break;
+    }
     status_mutex.unlock();
+    // Wake up the listen and accept methods
+#ifdef _MIOSIX
+    listen_cv.signal();
+#else
+    listen_cv.notify_one();
+#endif
+    return deletable;
+}
+
+void Server::periodicUpdate(StreamManager* mgr) {
+    // Lock mutex for concurrent access at StreamInfo
+    status_mutex.lock();
+    switch(getStatus()) {
+    case StreamStatus::LISTEN_WAIT:
+        if(timeout-- <= 0) {
+            timeout = maxTimeout;
+            // Send LISTEN SME
+            mgr->enqueueSME(StreamManagementElement(info, SMEType::LISTEN));
+        }
+        break;
+    case StreamStatus::REOPENED:
+        if(timeout-- <= 0) {
+            timeout = maxTimeout;
+            // Send CLOSED SME
+            mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+        }
+        break;
+    case StreamStatus::CLOSE_WAIT:
+        if(timeout-- <= 0) {
+            timeout = maxTimeout;
+            // Send CLOSED SME
+            mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+        }
+        break;
+    }
+    status_mutex.unlock();
+}
+
+bool Server::desync() {
+    bool deletable = false;
+    // Lock mutex for concurrent access at StreamInfo
+    status_mutex.lock();
+    switch(getStatus()) {
+    case StreamStatus::LISTEN_WAIT:
+        setStatus(StreamStatus::LISTEN_FAILED);
+        break;
+    case StreamStatus::LISTEN:
+        setStatus(StreamStatus::REMOTELY_CLOSED);
+        break;
+    case StreamStatus::REOPENED:
+        setStatus(StreamStatus::REMOTELY_CLOSED);
+        break;
+    case StreamStatus::CLOSE_WAIT:
+        deletable = true;
+        break;
+    }
+    status_mutex.unlock();
+    // Wake up the listen and accept methods
+#ifdef _MIOSIX
+    listen_cv.signal();
+#else
+    listen_cv.notify_one();
+#endif
+    return deletable;
 }
 
 } /* namespace mxnet */
