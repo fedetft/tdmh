@@ -150,8 +150,14 @@ void StreamManager::close(int fd) {
 
     StreamId id = endpoint->getStreamId();
     bool deleted = endpoint->close(this);
-    if(deleted && id.src != id.dst) { 
-        removeStream(stream);
+    if(id.isServer()) {
+        if(deleted) {
+            removeServer(endpoint);
+        }
+        closeRelatedStreams(endpoint);
+    }
+    else if(deleted) {
+        removeStream(endpoint);
     }
 }
 

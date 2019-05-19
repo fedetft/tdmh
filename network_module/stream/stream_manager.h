@@ -158,6 +158,11 @@ private:
     // NOTE: remember to lock and unlock map_mutex
     void removeStream(StreamId id);
 
+    // When a Server is closed, we need to close the streams
+    // related to it
+    // NOTE: remember to lock and unlock map_mutex
+    void closeRelatedStreams(Server* server);
+
     // Prints StreamId and status of a given Stream 
     void printStreamStatus(StreamId id, StreamStatus status);
 
