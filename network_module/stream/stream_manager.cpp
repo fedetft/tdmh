@@ -265,7 +265,7 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
     for(auto& element : schedule) {
         StreamId streamId = element.getStreamId();
         auto streamit = streams.find(streamId);
-        // If stream present in schedule and map call addedStream()
+        // If stream in schedule is present in map, call addedStream()
         if(streamit != streams.end()) {
             auto* stream = streamit->second;
             stream->addedStream();
@@ -275,7 +275,7 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
                                              streamit->first),
                                  removedStreams.end());
         }
-        // If stream present in schedule and not in map,
+        // If stream in schedule is not present in map
         else {
             StreamParameters params = element.getStreamParams();
             StreamId serverId = streamId.getServerId();
@@ -292,9 +292,9 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
                 fdt[fd] = stream;
                 server->addPendingStream(fd);
             }
-            // If the corresponding server is not present, create new stream in
-            // CLOSE_WAIT status
+            // If the corresponding server is not present,
             else {
+                // 1. Create new stream in CLOSE_WAIT status
                 auto streamInfo = StreamInfo(streamId, params, StreamStatus::CLOSE_WAIT);
                 auto* stream = new Stream(streamInfo);
                 streams[streamId] = stream;
@@ -302,6 +302,14 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
                 fdt[fd] = stream;
                 // NOTE: Make sure that stream enqueues a CLOSED SME
                 stream->close(this);
+                // 2. Create new server in CLOSE_WAIT status
+                auto serverInfo = StreamInfo(serverId, params, StreamStatus::CLOSE_WAIT);
+                auto* server = new Server(serverInfo);
+                servers[port] = server;
+                int fd = fdcounter++;
+                fdt[fd] = server;
+                // NOTE: Make sure that the server enqueues a CLOSED SME
+                server->close(this);
             }
         }
     }
@@ -332,12 +340,10 @@ void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
                     server->rejectedServer();
             }
             // If server is not present
-            else if(info.getType() == InfoType::SERVER_OPENED) {
+            else if(id.isServer() && info.getType() == InfoType::SERVER_OPENED) {
                 // Create server in CLOSE_WAIT to warn the master node
                 // that this server is actually closed
-                auto serverId = info.getStreamId();
-                auto serverInfo = StreamInfo(serverId, info.getParameters(),
-                                             StreamStatus::CLOSE_WAIT);
+                auto serverInfo = StreamInfo(id, info.getParams(), StreamStatus::CLOSE_WAIT);
                 auto* server = new Server(serverInfo);
                 servers[port] = server;
                 int fd = fdcounter++;

@@ -230,7 +230,7 @@ public:
     StreamId getStreamId() const {
         return StreamId(content.src, content.dst, content.srcPort, content.dstPort);
     }
-    StreamParameters getParameters() const {
+    StreamParameters getParams() const {
         return StreamParameters{content.redundancy,
                                 content.period,
                                 content.payloadSize,
