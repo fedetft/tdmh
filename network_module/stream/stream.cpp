@@ -265,6 +265,19 @@ void Stream::rejectedStream() {
 #endif
 }
 
+void Stream::closedServer() {
+    // Lock mutex for concurrent access at StreamInfo
+    status_mutex.lock();
+    switch(getStatus()) {
+    case StreamStatus::ACCEPT_WAIT:
+        setStatus(StreamStatus::CLOSE_WAIT);
+        // Send CLOSED SME
+        mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+        break;
+    }
+    status_mutex.unlock();
+}
+
 bool Stream::close(StreamManager* mgr) {
     bool deletable = false;
     // Lock mutex for concurrent access at StreamInfo
@@ -473,6 +486,10 @@ bool Server::close(StreamManager* mgr) {
     case StreamStatus::REOPENED:
         setStatus(StreamStatus::CLOSE_WAIT);
         break;
+    }
+    // Close pendingAccept Streams
+    for(auto fd : pendingAccept) {
+        mgr->closedServer(fd);
     }
     status_mutex.unlock();
     // Wake up the listen and accept methods

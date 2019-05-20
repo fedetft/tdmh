@@ -154,7 +154,6 @@ void StreamManager::close(int fd) {
         if(deleted) {
             removeServer(endpoint);
         }
-        closeRelatedStreams(endpoint);
     }
     else if(deleted) {
         removeStream(endpoint);
@@ -364,6 +363,21 @@ void StreamManager::enqueueSME(StreamManagementElement sme) {
     sme_mutex.lock();
     smeQueue.enqueue(id, sme);
     sme_mutex.unlock();
+}
+
+void StreamManager::closedServer(int fd) {
+    // Lock map_mutex to access the shared Stream map
+    map_mutex.lock();
+
+    // Check if a stream with these parameters is not present
+    if(fdt.find(fd) == fdt.end()) {
+        map_mutex.unlock();
+        return;
+    }
+    auto* stream = fdt[fd];
+    map_mutex.unlock();
+
+    stream->closedServer();
 }
 
 int StreamManager::allocateClientPort() {

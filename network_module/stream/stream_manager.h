@@ -133,6 +133,8 @@ public:
     // Used by Stream, Server, enqueues an SME to be sent on the network
     void enqueueSME(StreamManagementElement sme);
 
+    // Used by Server, to closed pending streams after server close
+    void closedServer(int fd);
 private:
 
     /**
@@ -157,11 +159,6 @@ private:
     // Finally calling freeClientPort on the source port
     // NOTE: remember to lock and unlock map_mutex
     void removeStream(StreamId id);
-
-    // When a Server is closed, we need to close the streams
-    // related to it
-    // NOTE: remember to lock and unlock map_mutex
-    void closeRelatedStreams(Server* server);
 
     // Prints StreamId and status of a given Stream 
     void printStreamStatus(StreamId id, StreamStatus status);

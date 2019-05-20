@@ -163,6 +163,8 @@ class Stream {
     // Called by StreamManager when a STREAM_REJECT info element is received
     void rejectedStream();
 
+    void closedServer();
+
     // Called by StreamAPI, to close the stream on the user side
     // Returns true if the Stream class can be deleted
     bool close(StreamManager* mgr);
@@ -228,6 +230,7 @@ class Server {
 
     // Called by StreamAPI, to close the server on the user side
     // Returns true if the Server class can be deleted
+    // NOTE: closing the server also removes the pending streams
     bool close(StreamManager* mgr);
 
     // Called by StreamManager, in a periodic way to allow resending SME
