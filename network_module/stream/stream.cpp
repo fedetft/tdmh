@@ -38,7 +38,7 @@ int Stream::connect(StreamManager* mgr) {
     // Lock mutex for concurrent access at StreamInfo
     {
 #ifdef _MIOSIX
-        miosix::Lock<miosix::Mutex> lck(status_mutex);
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
 #else
         std::unique_lock<std::mutex> lck(status_mutex);
 #endif
@@ -61,7 +61,7 @@ int Stream::connect(StreamManager* mgr) {
 
 int Stream::write(const void* data, int size) {
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(send_mutex);
+    miosix::Lock<miosix::FastMutex> lck(send_mutex);
 #else
     std::unique_lock<std::mutex> lck(send_mutex);
 #endif
@@ -80,7 +80,7 @@ int Stream::write(const void* data, int size) {
 
 int Stream::read(StreamManager* mgr, const void* data, int size) {
 #ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(recv_mutex);
+    miosix::Lock<miosix::FastMutex> lck(recv_mutex);
 #else
     std::unique_lock<std::mutex> lck(recv_mutex);
 #endif
@@ -385,7 +385,7 @@ int Server::listen(StreamManager* mgr) {
     // Lock mutex for concurrent access at StreamInfo
     {
 #ifdef _MIOSIX
-        miosix::Lock<miosix::Mutex> lck(status_mutex);
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
 #else
         std::unique_lock<std::mutex> lck(status_mutex);
 #endif

@@ -171,11 +171,11 @@ private:
     /* Counter used to assign progressive file-descriptors to Streams and Servers*/
     int fdcounter = 1;
     /* Map containing pointers to Stream and Server classes, indexed by file-descriptors */
-    std::map<int, Endpoint*> fdt;
+    std::map<int, intrusive_ref_ptr<Endpoint>> fdt;
     /* Map containing pointers to Stream classes, indexed by StreamId */
-    std::map<StreamId, Stream*> streams;
+    std::map<StreamId, intrusive_ref_ptr<Stream>> streams;
     /* Map containing pointers to Server classes, indexed by port */
-    std::map<unsigned char, Server*> servers;
+    std::map<unsigned char, intrusive_ref_ptr<Server>> servers;
     /* Vector containing the current availability of source ports */
     std::vector<bool> clientPorts;
     /* UpdatableQueue of SME to send to the network to reach the master node */
@@ -183,9 +183,9 @@ private:
     /* Thread synchronization */
 #ifdef _MIOSIX
     // Mutex to protect access to shared Stream/Server maps
-    mutable miosix::Mutex map_mutex;
+    mutable miosix::FastMutex map_mutex;
     // Mutex to protect access to shared SME queue
-    mutable miosix::Mutex sme_mutex;
+    mutable miosix::FastMutex sme_mutex;
 #else
     mutable std::mutex map_mutex;
     mutable std::mutex sme_mutex;

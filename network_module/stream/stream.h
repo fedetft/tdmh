@@ -31,12 +31,16 @@
 #include "../util/packet.h"
 #include "stream_management_element.h"
 #include <set>
-#include <memory>
 #ifdef _MIOSIX
 #include <miosix.h>
+#include <kernel/intrusive.h>
 #else
+#include <memory>
 #include <mutex>
 #include <condition_variable>
+// Implement IntrusiveRefCounted using shared_ptr
+class IntrusiveRefCounted {};
+#define intrusive_ref_ptr shared_ptr
 #endif
 
 namespace mxnet {
@@ -45,8 +49,11 @@ class StreamManager;
 
 /**
  * The class Endpoint is the parent class of Stream and Server
+ * Classes of this type are reference counted, must be allocated on the heap
+ * and managed through intrusive_ref_ptr<FileBase>
  */
-class Endpoint {
+
+class Endpoint : public IntrusiveRefCounted {
     Endpoint(StreamInfo info) : info(info);
 
     // Used by derived class Stream 
@@ -186,11 +193,11 @@ class Stream {
     /* Thread synchronization */
 #ifdef _MIOSIX
     // Protects concurrent access at StreamInfo
-    miosix::Mutex status_mutex;
+    miosix::FastMutex status_mutex;
     // Protects concurrent access at sendBuffer
-    miosix::Mutex send_mutex;
+    miosix::FastMutex send_mutex;
     // Protects concurrent access at recvBuffer
-    miosix::Mutex recv_mutex;
+    miosix::FastMutex recv_mutex;
     miosix::ConditionVariable connect_cv;
     miosix::ConditionVariable send_cv;
     miosix::ConditionVariable recv_cv;
@@ -246,7 +253,7 @@ class Server {
     std::set<fd> pendingAccept;
     /* Thread synchronization */
 #ifdef _MIOSIX
-    miosix::Mutex status_mutex;
+    miosix::FastMutex status_mutex;
     miosix::ConditionVariable listen_cv;
 #else
     std::mutex status_mutex;
