@@ -35,8 +35,10 @@
 // For thread synchronization
 #ifdef _MIOSIX
 #include <miosix.h>
+#include <kernel/intrusive.h>
 #else
 #include <mutex>
+#include <memory>
 #endif
 #include <map>
 #include <queue>

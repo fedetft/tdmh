@@ -35,9 +35,9 @@
 #include <miosix.h>
 #include <kernel/intrusive.h>
 #else
-#include <memory>
 #include <mutex>
 #include <condition_variable>
+#include <memory>
 // Implement IntrusiveRefCounted using shared_ptr
 class IntrusiveRefCounted {};
 #define intrusive_ref_ptr shared_ptr
@@ -46,6 +46,8 @@ class IntrusiveRefCounted {};
 namespace mxnet {
 
 class StreamManager;
+class Stream;
+class Server;
 
 /**
  * The class Endpoint is the parent class of Stream and Server
@@ -53,9 +55,10 @@ class StreamManager;
  * and managed through intrusive_ref_ptr<FileBase>
  */
 
-class Endpoint : public IntrusiveRefCounted {
+class Endpoint : public miosix::IntrusiveRefCounted {
+public:
     Endpoint(StreamInfo info) : info(info), smeTimeout(smeTimeoutMax),
-                                failTimeout(failTimeoutMax);
+                                failTimeout(failTimeoutMax) {};
 
     // Used by derived class Stream 
     int connect(StreamManager* mgr) {
@@ -73,15 +76,15 @@ class Endpoint : public IntrusiveRefCounted {
         return -1;
     }
     // Used by derived class Stream 
-    void putPacket(const Packet& data) = 0;
+    virtual void putPacket(const Packet& data) = 0;
     // Used by derived class Stream 
-    void getPacket(Packet& data) = 0;
+    virtual void getPacket(Packet& data) = 0;
     // Used by derived class Stream 
-    void addedStream() = 0;
+    virtual void addedStream() = 0;
     // Used by derived class Stream 
-    bool removedStream() = 0;
+    virtual bool removedStream() = 0;
     // Used by derived class Stream 
-    void rejectedStream() = 0;
+    virtual void rejectedStream() = 0;
     // Used by derived class Server
     int listen() {
         //This method should never be called on the base class
@@ -112,7 +115,7 @@ class Endpoint : public IntrusiveRefCounted {
         return info.getStreamId();
     }
     // Used by derived class Stream and Server 
-    StreamId getStatus() {
+    StreamStatus getStatus() {
         return info.getStatus();
     }
     // Used by derived class Stream and Server
@@ -120,11 +123,11 @@ class Endpoint : public IntrusiveRefCounted {
         return info;
     }
     // Used by derived class Stream and Server
-    bool close(StreamManager* mgr) = 0;
+    virtual bool close(StreamManager* mgr) = 0;
     // Used by derived class Stream and Server
-    void periodicUpdate(StreamManager* mgr) = 0;
+    virtual void periodicUpdate(StreamManager* mgr) = 0;
     // Used by derived class Stream and Server
-    bool desync() = 0;
+    virtual bool desync() = 0;
 
 private:
     // Change the status saved in StreamInfo
@@ -145,13 +148,14 @@ private:
     /* Used to send SME every N periodic updates */
     int smeTimeout;
     int failTimeout;
-}
+};
 
 /**
  * The class Stream represents one of the two endpoint of a stream connection
  */
-class Stream {
-    Stream(StreamInfo info) : Endpoint(info);
+class Stream : public Endpoint {
+public:
+    Stream(StreamInfo info) : Endpoint(info) {};
 
     // Called by StreamManager after creation,
     // used to send CONNECT SME and wait for addedStream()
@@ -164,10 +168,10 @@ class Stream {
     int read(void* data, int maxSize);
 
     // Called by StreamManager, to put data to recvBuffer
-    int putPacket(const Packet& data);
+    void putPacket(const Packet& data);
 
     // Called by StreamManager, to get data from sendBuffer
-    int getPacket(Packet& data);
+    void getPacket(Packet& data);
 
     // Called by StreamManager when this stream is present in a received schedule
     void addedStream();
@@ -224,8 +228,9 @@ class Stream {
  * The class Server is created to comunicate the possibility to accept incoming
  * Streams
  */
-class Server {
-    Server(StreamInfo info) : Endpoint(info);
+class Server : public Endpoint {
+public:
+    Server(StreamInfo info) : Endpoint(info) {};
 
     // Called by StreamManager after creation,
     // used to send LISTEN SME and wait for acceptedServer()
@@ -255,11 +260,11 @@ class Server {
     // Called by StreamManager when the Timesync desynchronizes, used to
     // close the server system-side in certain conditions
     // Returns true if the Server class can be deleted
-    void desync();
+    bool desync();
 
     // Contains fd of streams not yet accepted
     // It's a set to avoid duplicates
-    std::set<fd> pendingAccept;
+    std::set<int> pendingAccept;
     /* Thread synchronization */
 #ifdef _MIOSIX
     miosix::FastMutex status_mutex;
@@ -269,6 +274,6 @@ class Server {
     std::condition_variable listen_cv;
 #endif
 
-}
+};
 
 } /* namespace mxnet */

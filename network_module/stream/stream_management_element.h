@@ -137,7 +137,7 @@ enum class SMEType
 {
     CONNECT =0,      // Signals that the dynamic node want to open a new stream
     LISTEN =1,       // Signals that the dynamic node want to open a new server
-    CLOSED =2;       // Signals that the dynamic node has closed the stream or server
+    CLOSED =2        // Signals that the dynamic node has closed the stream or server
 };
 
 class StreamId {
@@ -206,19 +206,19 @@ struct SMETypeStruct {
 class StreamInfo {
 public:
     StreamInfo() {}
-    StreamInfo(StreamManagementElement sme, StreamStatus st);
+    StreamInfo(StreamManagementElement sme, StreamStatus status);
     StreamInfo(StreamInfo info, StreamStatus st) : id(info.id),
                                                    parameters(info.parameters),
                                                    status(st) {}
 
     StreamInfo(StreamId id, StreamParameters params, StreamStatus status) : id(id),
                                                                             parameters(params),
-                                                                            status(st) {}
+                                                                            status(status) {}
 
     StreamInfo(unsigned char src, unsigned char dst, unsigned char srcPort,
                unsigned char dstPort, Period period, unsigned char payloadSize,
-               Direction direction, Redundancy redundancy=Redundancy::NONE,
-               StreamStatus st=StreamStatus::CLOSED)
+               Direction direction, Redundancy redundancy,
+               StreamStatus st)
     {
         id.src=src;
         id.dst=dst;
@@ -290,7 +290,7 @@ public:
     void serialize(Packet& pkt) const override;
     static StreamManagementElement deserialize(Packet& pkt);
     StreamId getStreamId() const { return id; }
-    StreamParameters getStreamParameters() const { return parameters; }
+    StreamParameters getParams() const { return parameters; }
     unsigned char getSrc() const { return id.src; }
     unsigned char getSrcPort() const { return id.srcPort; }
     unsigned char getDst() const { return id.dst; }
