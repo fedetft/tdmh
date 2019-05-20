@@ -85,7 +85,7 @@ void ScheduleComputation::run() {
                 sched_cv.wait(lck);
             }
             // Take snapshot of stream requests and network topology
-            stream_snapshot = stream_mgmt.getSnapshot();
+            stream_snapshot = stream_collection.getSnapshot();
             // Get new graph snapshot if graph changed
             graph_changed = false;
             uplink_phase->updateSchedulerNetworkGraph(*this);

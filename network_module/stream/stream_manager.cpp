@@ -254,7 +254,6 @@ void StreamManager::getPacket(StreamId id, Packet& data) {
 void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) {
     // Lock map_mutex to access the shared Stream map
     map_mutex.lock();
-
     // Create vector containing StreamId of all streams in map
     // We will remove from this vector the streams present in the schedule,
     // To get the remaining streams present in map but not in schedule.
@@ -283,7 +282,8 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
             auto serverit = servers.find(serverId);
             // If the corresponding server is present, create new stream in
             // ACCEPT_WAIT status and register it in corresponding server
-            if(serverit != servers.end()) {
+            if(serverit != servers.end() &&
+               (serverit->second->getStatus() == StreamStatus::LISTEN)) {
                 auto* server = serverit->second;
                 auto streamInfo = StreamInfo(streamId, params, StreamStatus::ACCEPT_WAIT);
                 auto* stream = new Stream(streamInfo);
@@ -311,9 +311,12 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
         if(streams[streamId]->removedStream())
             removeStream(streamId);
     }
+    map_mutex.unlock();
 }
 
 void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
+    // Lock map_mutex to access the shared Stream map
+    map_mutex.lock();
     // Iterate over info elements
     for(auto& info : infos) {
         StreamId id = info.getStreamId();
@@ -323,10 +326,24 @@ void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
             if(serverit != servers.end()) {
                 auto* server = server->second;
                 InfoType type = info.getType();
-                if(type==InfoType::SERVER_ACCEPT)                             
+                if(type==InfoType::SERVER_OPENED)
                     server->acceptedServer();
-                else if(type==InfoType::SERVER_REJECT)
+                else if(type==InfoType::SERVER_CLOSED)
                     server->rejectedServer();
+            }
+            // If server is not present
+            else if(info.getType() == InfoType::SERVER_OPENED) {
+                // Create server in CLOSE_WAIT to warn the master node
+                // that this server is actually closed
+                auto serverId = info.getStreamId();
+                auto serverInfo = StreamInfo(serverId, info.getParameters(),
+                                             StreamStatus::CLOSE_WAIT);
+                auto* server = new Server(serverInfo);
+                servers[port] = server;
+                int fd = fdcounter++;
+                fdt[fd] = server;
+                // NOTE: Make sure that the server enqueues a CLOSED SME
+                server->close(this);
             }
         }
         else {
@@ -340,6 +357,7 @@ void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
             }
         }
     }
+    map_mutex.unlock();
 }
 
 void StreamManager::dequeueSMEs(UpdatableQueue<StreamId,StreamManagementElement>& queue) {

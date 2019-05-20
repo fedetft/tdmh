@@ -45,8 +45,8 @@ enum class Action
 
 enum class InfoType
 {
-    SERVER_ACCEPT =0, // Signals that the master has accepted the new Server
-    SERVER_REJECT =1; // Signals that the master has rejected the new Server
+    SERVER_OPENED =0, // Signals that the master has accepted the new Server
+    SERVER_CLOSED =1, // Signals that the master has rejected the new Server
     STREAM_REJECT =2  // Signals that the master has rejected the new Stream
 };
 
@@ -229,6 +229,12 @@ public:
     std::size_t size() const override { return sizeof(ScheduleElementPkt); }
     StreamId getStreamId() const {
         return StreamId(content.src, content.dst, content.srcPort, content.dstPort);
+    }
+    StreamParameters getParameters() const {
+        return StreamParameters{content.redundancy,
+                                content.period,
+                                content.payloadSize,
+                                content.direction};
     }
     unsigned char getSrc() const { return content.src; }
     unsigned char getDst() const { return content.dst; }

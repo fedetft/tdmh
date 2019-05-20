@@ -82,7 +82,7 @@ public:
     void beginScheduling();
 
     /**
-     * Receives a vector of SME from the network and register them in the StreamManager
+     * Receives a vector of SME from the network and register them in the StreamCollection
      */
     void receiveSMEs(ReceiveUplinkMessage& msg);
 
@@ -200,6 +200,7 @@ private:
 
     /* Classes containing information about Streams */
     StreamManager stream_mgmt;
+    StreamCollection stream_collection;
     StreamCollection stream_snapshot;
     // Class containing latest schedule, size in tiles and schedule ID
     Schedule schedule;

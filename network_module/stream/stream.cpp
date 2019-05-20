@@ -486,6 +486,10 @@ bool Server::close(StreamManager* mgr) {
     case StreamStatus::REOPENED:
         setStatus(StreamStatus::CLOSE_WAIT);
         break;
+    case StreamStatus::CLOSE_WAIT:
+        //NOTE: if we were created in CLOSE_WAIT, we need to send CLOSED SME
+        mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+        break;
     }
     // Close pendingAccept Streams
     for(auto fd : pendingAccept) {
