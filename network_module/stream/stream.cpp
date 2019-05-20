@@ -316,22 +316,22 @@ void Stream::periodicUpdate(StreamManager* mgr) {
     status_mutex.lock();
     switch(getStatus()) {
     case StreamStatus::CONNECTING:
-        if(timeout-- <= 0) {
-            timeout = maxTimeout;
+        if(smeTimeout-- <= 0) {
+            smeTimeout = smeTimeoutMax;
             // Send CONNECT SME
             mgr->enqueueSME(StreamManagementElement(info, SMEType::CONNECT));
         }
         break;
     case StreamStatus::REOPENED:
-        if(timeout-- <= 0) {
-            timeout = maxTimeout;
+        if(smeTimeout-- <= 0) {
+            smeTimeout = smeTimeoutMax;
             // Send CLOSED SME
             mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
         }
         break;
     case StreamStatus::CLOSE_WAIT:
-        if(timeout-- <= 0) {
-            timeout = maxTimeout;
+        if(smeTimeout-- <= 0) {
+            smeTimeout = smeTimeoutMax;
             // Send CLOSED SME
             mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
         }
@@ -510,28 +510,40 @@ void Server::periodicUpdate(StreamManager* mgr) {
     status_mutex.lock();
     switch(getStatus()) {
     case StreamStatus::LISTEN_WAIT:
-        if(timeout-- <= 0) {
-            timeout = maxTimeout;
+        if(smeTimeout-- <= 0) {
+            smeTimeout = smeTimeoutMax;
             // Send LISTEN SME
             mgr->enqueueSME(StreamManagementElement(info, SMEType::LISTEN));
         }
+        if(failTimeout-- <= 0) {
+            // Give up opening server and close it
+            setStatus(StreamStatus::LISTEN_FAILED);
+            // Send CLOSED SME
+            mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+        }
         break;
     case StreamStatus::REOPENED:
-        if(timeout-- <= 0) {
-            timeout = maxTimeout;
+        if(smeTimeout-- <= 0) {
+            smeTimeout = smeTimeoutMax;
             // Send CLOSED SME
             mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
         }
         break;
     case StreamStatus::CLOSE_WAIT:
-        if(timeout-- <= 0) {
-            timeout = maxTimeout;
+        if(smeTimeout-- <= 0) {
+            smeTimeout = smeTimeoutMax;
             // Send CLOSED SME
             mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
         }
         break;
     }
     status_mutex.unlock();
+    // Wake up the listen and accept methods
+#ifdef _MIOSIX
+    listen_cv.signal();
+#else
+    listen_cv.notify_one();
+#endif
 }
 
 bool Server::desync() {

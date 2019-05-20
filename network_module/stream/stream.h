@@ -54,7 +54,8 @@ class StreamManager;
  */
 
 class Endpoint : public IntrusiveRefCounted {
-    Endpoint(StreamInfo info) : info(info);
+    Endpoint(StreamInfo info) : info(info), smeTimeout(smeTimeoutMax),
+                                failTimeout(failTimeoutMax);
 
     // Used by derived class Stream 
     int connect(StreamManager* mgr) {
@@ -129,13 +130,21 @@ private:
     // Change the status saved in StreamInfo
     void setStatus(StreamStatus status) {
         info.setStatus(status);
+        // NOTE: Reset the sme and fail timeouts after state change
+        smeTimeout = smeTimeoutMax;
+        failTimeout = failTimeoutMax;
     }
 
-    const int maxTimeout = 3;
+    // TODO:Integrate these constants in NetworkConfiguration
+    /* Constants defining the maximum value of the sme and fail timeout
+     * In number of periodicUpdate() cycles */
+    const int smeTimeoutMax = 3;
+    const int failTimeoutMax = 9;
     /* Contains information of the endpoint and state machine status */
     StreamInfo info;
     /* Used to send SME every N periodic updates */
-    int timeout;
+    int smeTimeout;
+    int failTimeout;
 }
 
 /**
