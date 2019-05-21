@@ -33,8 +33,7 @@ namespace mxnet {
 
 class DynamicScheduleDownlinkPhase : public ScheduleDownlinkPhase {
 public:
-    DynamicScheduleDownlinkPhase(MACContext& ctx) : ScheduleDownlinkPhase(ctx),
-                                                    streamMgr(ctx.getStreamManager()) {};
+    DynamicScheduleDownlinkPhase(MACContext& ctx) : ScheduleDownlinkPhase(ctx) {};
     DynamicScheduleDownlinkPhase() = delete;
     DynamicScheduleDownlinkPhase(const DynamicScheduleDownlinkPhase& orig) = delete;
     void execute(long long slotStart) override;
@@ -73,8 +72,8 @@ private:
     // Next schedule being received
     ScheduleHeader nextHeader;
     std::vector<ScheduleElement> nextSchedule;
-    // Pointer to StreamManager, to deliver info elements
-    StreamManager* const streamMgr;
+    // Next vector of info elements being received
+    std::vector<ScheduleElement> nextInfos;
 };
 
 }

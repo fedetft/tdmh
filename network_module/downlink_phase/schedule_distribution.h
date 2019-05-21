@@ -71,6 +71,7 @@ public:
 protected:
     ScheduleDownlinkPhase(MACContext& ctx) : MACPhase(ctx),
                                              streamColl(ctx.getStreamCollection()),
+                                             streamMgr(ctx.getStreamManager()),
                                              dataPhase(ctx.getDataPhase()) {}
 
     /* Called after receiving a complete schedule,
@@ -91,12 +92,19 @@ protected:
     ScheduleHeader header;
     // Copy of last computed/received schedule
     std::vector<ScheduleElement> schedule;
+    // Copy of last computed/received info elements
+    std::vector<ScheduleElement> infos;
+
     // Current schedule lenght in tiles
     unsigned long explicitScheduleID = 0;
     std::vector<ExplicitScheduleElement> explicitSchedule;
-    StreamCollection* const streamColl;
     bool distributing = false;
 private:
+    // Pointer to StreamCollection, used to get info elements to distribute
+    StreamCollection* const streamColl;
+    // Pointer to StreamManager, used to apply distributed schedule and info elements
+    StreamManager* const streamMgr;
+    // Pointer to DataPhase, used to apply distributed schedule
     DataPhase* const dataPhase;
 };
 

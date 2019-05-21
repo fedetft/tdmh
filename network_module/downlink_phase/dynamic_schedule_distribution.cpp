@@ -96,8 +96,7 @@ ScheduleHeader DynamicScheduleDownlinkPhase::decodePacket(Packet& pkt) {
     unsigned int numPackets = newHeader.getTotalPacket();
     // Received Info Packet
     if(numPackets == 0){
-        std::vector<InfoElement> infos(elements.begin(), elements.end());
-        streamMgr->enqueueInfo(infos);
+        nextInfos = elements;
     }
     // Received Schedule + Info packet
     else {
@@ -106,7 +105,7 @@ ScheduleHeader DynamicScheduleDownlinkPhase::decodePacket(Packet& pkt) {
         auto firstInfo = std::find_if(elements.begin(), elements.end(), [](ScheduleElement s){
                          return (s.getTx()==0 && s.getRx()==0); });
         if(firstInfo != elements.end()) {
-            std::vector<InfoElement> infos(firstInfo, elements.end());
+            nextInfos = std::vector<InfoElement>(firstInfo, elements.end());
             elements.erase(firstInfo, elements.end());
         }
         // We received a new schedule, replace currently received
@@ -169,6 +168,7 @@ bool DynamicScheduleDownlinkPhase::isScheduleComplete() {
 void DynamicScheduleDownlinkPhase::replaceRunningSchedule() {
     header = nextHeader;
     schedule = nextSchedule;
+    infos = nextInfos;
 }
 
 void DynamicScheduleDownlinkPhase::printStatus() {

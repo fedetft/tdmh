@@ -151,10 +151,15 @@ void ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
     if (currentTile >= header.getActivationTile()) {
         if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
             print_dbg("[SD] Activating schedule n.%2lu\n", explicitScheduleID);
-        dataPhase->setSchedule(explicitSchedule, schedule);
+        // Apply schedule to DataPhase
+        dataPhase->setSchedule(explicitSchedule);
         dataPhase->setScheduleTiles(header.getScheduleTiles());
         dataPhase->setScheduleActivationTile(header.getActivationTile());
         dataPhase->setScheduleID(explicitScheduleID);
+        // Apply schedule to StreamManager
+        streamMgr->applySchedule(schedule);
+        // Apply info elements to StreamManager
+        streamMgr->applyInfoElements(infos);
         // NOTE: Setting this flag to false enables Schedule Computation
         distributing = false;
     }
