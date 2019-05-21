@@ -62,12 +62,25 @@ StreamStatus StreamCollection::streamEstablished(StreamId id) {
     // Check that this is a stream
     if(id.isServer())
         return;
-
     auto it = collection.find(id);
     // If stream is present in collection
     if(it != collection.end()) {
-        auto status = it->second->getStatus();
-        
+        StreamInfo& stream = it->second;
+        if(stream.getStatus() == StreamStatus::ACCEPTED)
+            stream.setStatus(StreamStatus::ESTABLISHED);
+    }
+}
+
+StreamStatus StreamCollection::streamRejected(StreamId id) {
+    // Check that this is a stream
+    if(id.isServer())
+        return;
+    auto it = collection.find(id);
+    // If stream is present in collection
+    if(it != collection.end()) {
+        StreamInfo& stream = it->second;
+        if(stream.getStatus() == StreamStatus::ACCEPTED)
+            stream.setStatus(StreamStatus::REJECTED);
     }
 }
 
