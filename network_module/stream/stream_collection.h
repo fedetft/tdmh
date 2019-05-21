@@ -65,9 +65,16 @@ public:
     /**
      * @return the number of Streams saved
      */
-    unsigned char getStreamNumber() {
+    unsigned int getStreamNumber() {
         return collection.size();
     }
+    /**
+     * @return the number of Info elements in Queue
+     */
+    unsigned int getNumInfo() {
+        return infoQueue.size();
+    }
+
     /**
      * get the status of a given Stream
      */
@@ -82,6 +89,10 @@ public:
      * @return a vector of StreamInfo that matches the given status
      */
     std::vector<StreamInfo> getStreamsWithStatus(StreamStatus s);
+    /**
+     * @return the number of Info elements in Queue
+     */
+    std::vector<InfoElement> dequeueInfo(unsigned int num);
     /**
      * @return true if there are streams not yet scheduled
      */

@@ -70,7 +70,7 @@ public:
 
 protected:
     ScheduleDownlinkPhase(MACContext& ctx) : MACPhase(ctx),
-                                             streamMgr(ctx.getStreamManager()),
+                                             streamColl(ctx.getStreamCollection()),
                                              dataPhase(ctx.getDataPhase()) {}
 
     /* Called after receiving a complete schedule,
@@ -94,7 +94,7 @@ protected:
     // Current schedule lenght in tiles
     unsigned long explicitScheduleID = 0;
     std::vector<ExplicitScheduleElement> explicitSchedule;
-    StreamManager* const streamMgr;
+    StreamCollection* const streamColl;
     bool distributing = false;
 private:
     DataPhase* const dataPhase;

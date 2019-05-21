@@ -92,6 +92,10 @@ public:
         return &stream_mgr;
     }
 
+    StreamCollection* getStreamCollection() {
+        return &stream_collection;
+    }
+
     void setUplinkPhase(MasterUplinkPhase* uplink) {
         uplink_phase = uplink;
     }

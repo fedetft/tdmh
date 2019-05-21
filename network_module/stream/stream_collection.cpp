@@ -96,6 +96,17 @@ std::vector<StreamInfo> StreamCollection::getStreamsWithStatus(StreamStatus s) {
     return result;
 }
 
+std::vector<InfoElement> StreamCollection::dequeueInfo(unsigned int num) {
+    std::vector<InfoElement> result;
+    for(unsigned int i = 0; i < num; i++) {
+        if(infoQueue.empty())
+            return;
+        result.push_back(infoQueue.front());
+        infoQueue.pop();
+    }
+    return result;
+}
+
 void StreamCollection::updateStream(StreamInfo& stream, StreamManagementElement& sme) {
     StreamId id = sme.getStreamId();
     SMEType type = sme.getType();
