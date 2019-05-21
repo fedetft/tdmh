@@ -89,7 +89,7 @@ public:
     void open(const StreamInfo& stream);
 
     StreamManager* getStreamManager() {
-        return &stream_mgmt;
+        return &stream_mgr;
     }
 
     void setUplinkPhase(MasterUplinkPhase* uplink) {
@@ -199,7 +199,7 @@ private:
     };
 
     /* Class containing Streams and Servers related to this node */
-    StreamManager stream_mgmt;
+    StreamManager stream_mgr;
     /* Class containing a map of all the Streams and Servers in the network
      * and a queue of InfoElements to send on the network */
     StreamCollection stream_collection;

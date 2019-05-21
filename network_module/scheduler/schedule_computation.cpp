@@ -43,7 +43,7 @@
 namespace mxnet {
 
 ScheduleComputation::ScheduleComputation(MACContext& mac_ctx) :
-    stream_mgmt(0), // Initialize StreamManager with ID=0 (Master node)
+    stream_mgr(0), // Initialize StreamManager with ID=0 (Master node)
     schedule(0, superframe.size()), // Initialize Schedule with ID=0 and tile_size = superframe size
     mac_ctx(mac_ctx), netconfig(mac_ctx.getNetworkConfig()),
     superframe(netconfig.getControlSuperframeStructure()),
@@ -80,7 +80,7 @@ void ScheduleComputation::run() {
             for(;;)
             {
                 if(uplink_phase->wasModified()) break;
-                if(stream_mgmt.wasModified()) break;
+                if(stream_mgr.wasModified()) break;
                 // Condition variable to wait for beginScheduling().
                 sched_cv.wait(lck);
             }
@@ -90,7 +90,7 @@ void ScheduleComputation::run() {
             graph_changed = false;
             uplink_phase->updateSchedulerNetworkGraph(*this);
             // Clear modified bit to detect changes to streams
-            stream_mgmt.clearFlags();
+            stream_mgr.clearFlags();
         }
         /* IMPORTANT!: From now on use only the snapshot classes
            `stream_snapshot` and `network_graph` */
@@ -226,7 +226,7 @@ void ScheduleComputation::updateStreams(const std::list<ScheduleElement>& final_
        After this we find the ACCEPTED streams that were not scheduled
        so we did not mark them as ESTABLISHED.
        For those streams set status and send INFO element to notify remote nodes.
-       We are setting the status also in stream_mgmt as an exception to the rule said above
+       We are setting the status also in stream_mgr as an exception to the rule said above
        because a node cannot tell if its connect request was rejected by looking at the schedule.
        We are setting the status of the REJECTED streams before the schedule
        activation time but this should not have unwanted side effects */
@@ -246,11 +246,11 @@ void ScheduleComputation::updateStreams(const std::list<ScheduleElement>& final_
         if(stream.getStatus() == StreamStatus::ACCEPTED) {
             // setStreamStatus handles notifying the constructor
             stream_snapshot.setStreamStatus(stream.getStreamId(), StreamStatus::REJECTED);
-            stream_mgmt.setStreamStatus(stream.getStreamId(), StreamStatus::REJECTED);
+            stream_mgr.setStreamStatus(stream.getStreamId(), StreamStatus::REJECTED);
             // Enqueue NACK_CONNECT to inform Stream in other nodes
             std::vector<InfoElement> infos;
             infos.push_back(InfoElement(stream.getStreamId(), InfoType::NACK_CONNECT));
-            stream_mgmt.enqueueInfo(infos);
+            stream_mgr.enqueueInfo(infos);
         }
     }
 }
@@ -307,7 +307,7 @@ void ScheduleComputation::open(const StreamInfo& stream) {
 #else
     std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-    stream_mgmt.addStream(stream);
+    stream_mgr.addStream(stream);
 }
 
 std::pair<std::list<ScheduleElement>,
