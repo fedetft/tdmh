@@ -127,6 +127,9 @@ void StreamCollection::updateStream(StreamInfo& stream, StreamManagementElement&
     if(status == StreamStatus::ESTABLISHED && type == SMEType::CLOSED) {
         // Delete stream because it has been closed
         map.erase(id);
+        // Set flags
+        removed_flag = true;
+        modified_flag = true;
     }
 }
 
@@ -171,6 +174,9 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
                 auto newParams = negotiateParameters(serverParams, clientParams);
                 // Create ACCEPTED stream with new parameters
                 collection[id] = StreamInfo(id, newParams, StreamStatus::ACCEPTED);
+                // Set flags
+                added_flag = true;
+                modified_flag = true;
             } 
         }
         // Server absent

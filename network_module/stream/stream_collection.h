@@ -115,11 +115,17 @@ public:
     bool wasAdded() const {
         return added_flag;
     };
-    void clear() {
-        collection.clear();
+    /**
+     * Reset all the flags to false 
+     */
+    void clearFlags() {
         modified_flag = false;
         removed_flag = false;
         added_flag = false;
+    }
+    void clear() {
+        collection.clear();
+        clearFlags();
     }
     void swap(StreamCollection& rhs) {
         collection.swap(rhs.collection);

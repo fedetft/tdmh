@@ -80,17 +80,17 @@ void ScheduleComputation::run() {
             for(;;)
             {
                 if(uplink_phase->wasModified()) break;
-                if(stream_mgr.wasModified()) break;
+                if(stream_collection.wasModified()) break;
                 // Condition variable to wait for beginScheduling().
                 sched_cv.wait(lck);
             }
             // Take snapshot of stream requests and network topology
-            stream_snapshot = stream_collection.getSnapshot();
+            stream_snapshot = stream_collection;
             // Get new graph snapshot if graph changed
             graph_changed = false;
             uplink_phase->updateSchedulerNetworkGraph(*this);
             // Clear modified bit to detect changes to streams
-            stream_mgr.clearFlags();
+            stream_collection.clearFlags();
         }
         /* IMPORTANT!: From now on use only the snapshot classes
            `stream_snapshot` and `network_graph` */
