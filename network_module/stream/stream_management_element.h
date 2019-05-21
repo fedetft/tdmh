@@ -206,6 +206,7 @@ struct SMETypeStruct {
 class StreamInfo {
 public:
     StreamInfo() {}
+    //TODO: remove this constructor, it should never be used
     StreamInfo(StreamManagementElement sme, StreamStatus status);
     StreamInfo(StreamInfo info, StreamStatus st) : id(info.id),
                                                    parameters(info.parameters),
@@ -214,7 +215,7 @@ public:
     StreamInfo(StreamId id, StreamParameters params, StreamStatus status) : id(id),
                                                                             parameters(params),
                                                                             status(status) {}
-
+    //TODO: remove this constructor, it should never be used
     StreamInfo(unsigned char src, unsigned char dst, unsigned char srcPort,
                unsigned char dstPort, Period period, unsigned char payloadSize,
                Direction direction, Redundancy redundancy,

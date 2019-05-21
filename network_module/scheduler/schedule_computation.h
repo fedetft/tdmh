@@ -198,10 +198,11 @@ private:
         return temp ? (a / temp * b) : 0;
     };
 
-    /* Classes containing information about Streams */
+    /* Class containing Streams and Servers related to this node */
     StreamManager stream_mgmt;
+    /* Class containing a map of all the Streams and Servers in the network
+     * and a queue of InfoElements to send on the network */
     StreamCollection stream_collection;
-    StreamCollection stream_snapshot;
     // Class containing latest schedule, size in tiles and schedule ID
     Schedule schedule;
 
