@@ -40,7 +40,7 @@
 #include <memory>
 // Implement IntrusiveRefCounted using shared_ptr
 class IntrusiveRefCounted {};
-#define intrusive_ref_ptr shared_ptr
+#define miosix::intrusive_ref_ptr std::shared_ptr
 #endif
 
 namespace mxnet {

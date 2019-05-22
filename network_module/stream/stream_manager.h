@@ -61,7 +61,7 @@ public:
     StreamManager(unsigned char myId) : myId(myId) {};
 
     ~StreamManager() {
-        disconnect();
+        desync();
     }
 
     /**
@@ -173,11 +173,11 @@ private:
     /* Counter used to assign progressive file-descriptors to Streams and Servers*/
     int fdcounter = 1;
     /* Map containing pointers to Stream and Server classes, indexed by file-descriptors */
-    std::map<int, intrusive_ref_ptr<Endpoint>> fdt;
+    std::map<int, miosix::intrusive_ref_ptr<Endpoint>> fdt;
     /* Map containing pointers to Stream classes, indexed by StreamId */
-    std::map<StreamId, intrusive_ref_ptr<Stream>> streams;
+    std::map<StreamId, miosix::intrusive_ref_ptr<Stream>> streams;
     /* Map containing pointers to Server classes, indexed by port */
-    std::map<unsigned char, intrusive_ref_ptr<Server>> servers;
+    std::map<unsigned char, miosix::intrusive_ref_ptr<Server>> servers;
     /* Vector containing the current availability of source ports */
     std::vector<bool> clientPorts;
     /* UpdatableQueue of SME to send to the network to reach the master node */
