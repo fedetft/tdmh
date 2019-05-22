@@ -39,8 +39,9 @@
 #include <condition_variable>
 #include <memory>
 // Implement IntrusiveRefCounted using shared_ptr
+namespace miosix {
 class IntrusiveRefCounted {};
-#define miosix::intrusive_ref_ptr std::shared_ptr
+}
 #endif
 
 namespace mxnet {
@@ -55,23 +56,24 @@ class Server;
  * and managed through intrusive_ref_ptr<FileBase>
  */
 
-class Endpoint : public miosix::IntrusiveRefCounted {
+    class Endpoint : public miosix::IntrusiveRefCounted {
 public:
     Endpoint(StreamInfo info) : info(info), smeTimeout(smeTimeoutMax),
                                 failTimeout(failTimeoutMax) {};
+    virtual ~Endpoint() {};
 
     // Used by derived class Stream 
-    int connect(StreamManager* mgr) {
+    virtual int connect(StreamManager* mgr) {
         //This method should never be called on the base class
         return -1;
     }
     // Used by derived class Stream 
-    int write(const void* data, int size) {
+    virtual int write(const void* data, int size) {
         //This method should never be called on the base class
         return -1;
     }
     // Used by derived class Stream 
-    int read(void* data, int maxSize) {
+    virtual int read(void* data, int maxSize) {
         //This method should never be called on the base class
         return -1;
     }
@@ -86,40 +88,40 @@ public:
     // Used by derived class Stream 
     virtual void rejectedStream() = 0;
     // Used by derived class Server
-    int listen() {
+    virtual int listen() {
         //This method should never be called on the base class
         return -1;
     }
     // Used by derived class Server
-    int accept() {
+    virtual int accept() {
         //This method should never be called on the base class
         return -1;
     }
     // Used by derived class Server
-    int addPendingStream(Stream* stream) {
+    virtual int addPendingStream(Stream* stream) {
         //This method should never be called on the base class
         return -1;
     }
     // Used by derived class Server
-    int acceptedServer() {
+    virtual int acceptedServer() {
         //This method should never be called on the base class
         return -1;
     }
     // Used by derived class Server
-    int rejectedServer() {
+    virtual int rejectedServer() {
         //This method should never be called on the base class
         return -1;
     }
     // Used by derived class Stream and Server 
-    StreamId getStreamId() {
+    virtual StreamId getStreamId() {
         return info.getStreamId();
     }
     // Used by derived class Stream and Server 
-    StreamStatus getStatus() {
+    virtual StreamStatus getStatus() {
         return info.getStatus();
     }
     // Used by derived class Stream and Server
-    StreamInfo getInfo() {
+    virtual StreamInfo getInfo() {
         return info;
     }
     // Used by derived class Stream and Server
