@@ -231,10 +231,10 @@ public:
         return StreamId(content.src, content.dst, content.srcPort, content.dstPort);
     }
     StreamParameters getParams() const {
-        return StreamParameters{content.redundancy,
+        return StreamParameters(content.redundancy,
                                 content.period,
                                 content.payloadSize,
-                                content.direction};
+                                content.direction);
     }
     unsigned char getSrc() const { return content.src; }
     unsigned char getDst() const { return content.dst; }
