@@ -32,8 +32,35 @@
 #endif
 #include "interfaces-impl/transceiver.h"
 #include "network_configuration.h"
+#include "stream/stream_parameters.h"
 
 namespace mxnet {
+
+/* These functions are the API for the Streams and Servers */
+
+// Creates a new Stream and returns the file-descriptor of the new Stream
+int connect(unsigned char dst, unsigned char dstPort, StreamParameters params);
+
+// Puts data to be sent to a stream in a buffer, return the number of bytes sent
+int write(int fd, const void* data, int size);
+
+// Gets data received from a stream, return the number of bytes received
+int read(int fd, void* data, int maxSize);
+
+// Returns a StreamInfo, containing stream status and parameters
+StreamInfo getInfo(int fd);
+
+// Closes a Stream or Server on the application side, the Stream/Server
+// is kept in the StreamManager until the master acknowlede the closing.
+// This method enqueues a CLOSED SME
+void close(int fd);
+
+// Creates a new Server and returns the file-descriptor of the new Server
+int listen(unsigned char port, StreamParameters params);
+
+// Wait for incoming Streams, if a stream is present return the new Stream file-descriptor
+int accept(int serverfd);
+
 class MACContext;
 class UplinkPhase;
 class ScheduleDownlinkPhase;
@@ -78,5 +105,5 @@ private:
 private:
     bool async;
 };
-}
 
+} // namespace mxnet

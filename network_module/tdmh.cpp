@@ -30,6 +30,51 @@
 
 namespace mxnet {
 
+/* Global variable containing a pointer to StreamManager, to use the StreamAPI */
+static StreamManager* sm = nullptr;
+
+int connect(unsigned char dst, unsigned char dstPort, StreamParameters params) {
+    if(sm == nullptr)
+        return -1;
+    return sm->connect(dst, dstPort, params);
+}
+
+int write(int fd, const void* data, int size) {
+    if(sm == nullptr)
+        return -1;
+    return sm->write(fd, data, size);
+}
+
+int read(int fd, void* data, int maxSize) {
+if(sm == nullptr)
+    return -1;
+return sm->read(fd, data, maxSize);
+}
+
+StreamInfo getInfo(int fd) {
+if(sm == nullptr)
+    return -1;
+return sm->getInfo(fd);
+}
+
+void close(int fd) {
+if(sm == nullptr)
+    return -1;
+return sm->close(fd);
+}
+
+int listen(unsigned char port, StreamParameters params) {
+if(sm == nullptr)
+    return -1;
+return sm->listen(port, params);
+}
+
+int accept(int serverfd) {
+if(sm == nullptr)
+    return -1;
+return sm->accept(serverfd);
+}
+
 MediumAccessController::~MediumAccessController() {
     delete ctx;
 }
@@ -37,6 +82,8 @@ MediumAccessController::~MediumAccessController() {
 void MediumAccessController::run() {
     try{
         async = false;
+        // Set StreamManager* global variable
+        sm = ctx->getStreamManager();
         ctx->run();
     }
     catch(...){

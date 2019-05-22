@@ -68,8 +68,8 @@ public:
 class StreamThreadPar
 {
 public:
-    StreamThreadPar(shared_ptr<Stream>& stream) : stream(stream) {}
-    shared_ptr<Stream> stream;
+    StreamThreadPar(int stream) : stream(stream) {};
+    int stream;
 };
 
 
@@ -202,12 +202,13 @@ struct Data
 void streamThread(void *arg)
 {
     auto *s = reinterpret_cast<StreamThreadPar*>(arg);
-    StreamInfo info = s->stream->getStreamInfo();
+    int stream = s->stream;
+    StreamInfo info = getInfo(stream);
     StreamId id = info.getStreamId();
     printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
-    while(!s->stream->isClosed()){
+    while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
         Data data;
-        int len = s->stream->recv(&data, sizeof(data));
+        int len = read(stream, &data, sizeof(data));
         if(len != sizeof(data))
             printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
                    id.src, id.dst, len);
@@ -224,19 +225,22 @@ void masterApplication() {
     while(!ctx->isReady()) {
         Thread::sleep(1000);
     }
-    /* Open a StreamServer to listen for incoming streams */
-    mxnet::StreamServer server(*tdmh,      // Pointer to MediumAccessController
-                               0,                 // Destination port
-                               Period::P1,        // Period
-                               1,                 // Payload size
-                               Direction::TX,     // Direction
-                               Redundancy::TRIPLE_SPATIAL); // Redundancy
-    while(!server.isClosed()) {
-        std::list<shared_ptr<Stream>> streamList;
-        server.accept(streamList);
-        for(auto& stream : streamList){
-            Thread::create(streamThread, 2048, MAIN_PRIORITY, new StreamThreadPar(stream));
-        }
+    auto params = StreamParameters(Redundancy::TRIPLE_SPATIAL, // Redundancy
+                                   Period::P1,                 // Period                  
+                                   1,                          // Payload size
+                                   Direction::TX);             // Direction
+    unsigned char port = 1;
+    printf("[A] Opening server on port %d\n", port);
+    /* Open a Server to listen for incoming streams */
+    int server = listen(port,                 // Destination port
+                        params);           // Server parameters
+    if(server < 0) {                
+        printf("[A] Server opening failed! error=%d\n", server);
+        return;
+    }
+    while(getInfo(server).getStatus() == StreamStatus::LISTEN) {
+        int stream = accept(server);
+        Thread::create(streamThread, 2048, MAIN_PRIORITY, new StreamThreadPar(stream));
     }
 }
 
@@ -251,19 +255,22 @@ void dynamicApplication(Par p) {
     /* Open Stream from node */
     while(true){
         try{
+            auto params = StreamParameters(p.redundancy, p.period, 1, Direction::TX);
+            unsigned char dest = 0;
             /* Open a Stream to another node */
-            mxnet::Stream s(*tdmh,            // Pointer to MediumAccessController
-                            0,                 // Destination node
-                            0,                 // Destination port
-                            p.period,          // Period
-                            1,                 // Payload size
-                            Direction::TX,     // Direction
-                            p.redundancy);     // Redundancy
+            printf("[A] Opening stream to node %d\n", dest);
+            int stream = connect(dest,          // Destination node
+                                 1,             // Destination port
+                                 params);       // Stream parameters
+            if(stream < 0) {                
+                printf("[A] Stream opening failed! error=%d\n", stream);
+                continue;
+            }
             printf("[A] Stream opened \n");
             unsigned int counter = 0;
-            while(!s.isClosed()) {
+            while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
                 Data data(ctx->getNetworkId(), counter);
-                s.send(&data, sizeof(data));
+                write(stream, &data, sizeof(data));
                 printf("[A] Sent ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
                        data.id, data.time, data.minHeap, data.heap, data.counter);
                 counter++;
