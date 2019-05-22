@@ -120,20 +120,24 @@ void Node::application() {
 
 void Node::sendData(MACContext* ctx, Period period, Redundancy redundancy) {
     try{
+        auto params = StreamParameters(redundancy, period, 1, Direction::TX);
+        unsigned char dest = 0;
+
         /* Open a Stream to another node */
-        mxnet::Stream s(*tdmh,             // Pointer to MediumAccessController
-                        0,                 // Destination node
-                        0,                 // Destination port
-                        period,            // Period
-                        1,                 // Payload size
-                        Direction::TX,     // Direction
-                        redundancy); // Redundancy
+        printf("[A] Opening stream to node %d\n", dest);
+        int stream = connect(dest,          // Destination node
+                             1,             // Destination port
+                             params);       // Stream parameters
+        if(stream < 0) {                
+            printf("[A] Stream opening failed! error=%d\n", stream);
+            return;
+        }
         printf("[A] Stream opened \n");
         unsigned int counter = 0;
-        while(!s.isClosed()) {
+        while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
             Data data(ctx->getNetworkId(), counter);
-            s.send(&data, sizeof(data));
-            //printf("[A] Sent ID=%d Counter=%u\n", data.id, data.counter);
+            write(stream, &data, sizeof(data));
+            printf("[A] Sent ID=%d Counter=%u\n", data.id, data.counter);
             counter++;
         }
         printf("[A] Stream was closed\n");

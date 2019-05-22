@@ -85,31 +85,34 @@ void RootNode::application() {
     MACContext* ctx = tdmh->getMACContext();
     while(!ctx->isReady()) {
     }
-    /* Open a StreamServer to listen for incoming streams */
-    mxnet::StreamServer server(*tdmh,      // Pointer to MediumAccessController
-                 0,                 // Destination port
-                 Period::P1,        // Period
-                 1,                 // Payload size
-                 Direction::TX,     // Direction
-                 Redundancy::TRIPLE_SPATIAL); // Redundancy
-    while(!server.isClosed()) {
-        std::list<shared_ptr<Stream>> streamList;
-        server.accept(streamList);
-        for(auto& stream : streamList){
-            thread t1(&RootNode::streamThread, this, stream);
-            t1.detach();
-        }
+    auto params = StreamParameters(Redundancy::TRIPLE_SPATIAL, // Redundancy
+                                   Period::P1,                 // Period                  
+                                   1,                          // Payload size
+                                   Direction::TX);             // Direction
+    unsigned char port = 1;
+    printf("[A] Opening server on port %d\n", port);
+    /* Open a Server to listen for incoming streams */
+    int server = listen(port,              // Destination port
+                        params);           // Server parameters
+    if(server < 0) {                
+        printf("[A] Server opening failed! error=%d\n", server);
+        return;
+    }
+    while(getInfo(server).getStatus() == StreamStatus::LISTEN) {
+        int stream = accept(server);
+        thread t1(&RootNode::streamThread, this, stream);
+        t1.detach();
     }
 }
 
-void RootNode::streamThread(shared_ptr<Stream> s) {
+void RootNode::streamThread(int stream) {
     try{
-        StreamInfo info = s->getStreamInfo();
+        StreamInfo info = getInfo(stream);
         StreamId id = info.getStreamId();
         printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
-        while(!s->isClosed()){
+        while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
             Data data;
-            int len = s->recv(&data, sizeof(data));
+            int len = read(stream, &data, sizeof(data));
             if(len != sizeof(data))
                 printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
                         id.src, id.dst, len);

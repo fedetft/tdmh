@@ -232,7 +232,7 @@ void masterApplication() {
     unsigned char port = 1;
     printf("[A] Opening server on port %d\n", port);
     /* Open a Server to listen for incoming streams */
-    int server = listen(port,                 // Destination port
+    int server = listen(port,              // Destination port
                         params);           // Server parameters
     if(server < 0) {                
         printf("[A] Server opening failed! error=%d\n", server);

@@ -34,7 +34,7 @@ public:
 protected:
     virtual void activity();
     void application();
-    void streamThread(std::shared_ptr<mxnet::Stream> s);
+    void streamThread(int stream);
 
 
     /* Pointer to tdmh class for opening streams */
