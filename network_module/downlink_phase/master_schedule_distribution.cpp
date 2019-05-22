@@ -71,7 +71,7 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     // ScheduleID = 0 means the first schedule is not ready
     if(header.getScheduleID() == 0) {
         // If InfoElements available, send a SchedulePkt with InfoElements only
-        if(streamMgr->getNumInfo() != 0)
+        if(streamColl->getNumInfo() != 0)
             sendInfoPkt(slotStart);
         return;
     }
@@ -92,7 +92,7 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
         }
         checkTimeSetSchedule(slotStart);
         // If InfoElements available, send a SchedulePkt with InfoElements only
-        if(streamMgr->getNumInfo() != 0)
+        if(streamColl->getNumInfo() != 0)
             sendInfoPkt(slotStart);
         return;
     }
@@ -173,7 +173,7 @@ void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
     }
     // Add info elements to packet
     unsigned char numInfo = packetCapacity - sched;
-    auto infos = streamMgr->dequeueInfo(numInfo);
+    auto infos = streamColl->dequeueInfo(numInfo);
     for(auto& info : infos)
         info.serialize(pkt);
     // Send schedule downlink packet
@@ -197,9 +197,9 @@ void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart) {
     // Add Info packet header
     infoHeader.serialize(pkt);
     // Add info elements to packet
-    unsigned int availableInfo = streamMgr->getNumInfo();
+    unsigned int availableInfo = streamColl->getNumInfo();
     unsigned int numInfo = std::min(packetCapacity, availableInfo);
-    auto infos = streamMgr->dequeueInfo(numInfo);
+    auto infos = streamColl->dequeueInfo(numInfo);
     for(auto& info : infos)
         info.serialize(pkt);
     // Send schedule downlink packet

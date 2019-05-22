@@ -73,7 +73,7 @@ private:
     ScheduleHeader nextHeader;
     std::vector<ScheduleElement> nextSchedule;
     // Next vector of info elements being received
-    std::vector<ScheduleElement> nextInfos;
+    std::vector<InfoElement> nextInfos;
 };
 
 }
