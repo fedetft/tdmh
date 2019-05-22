@@ -172,12 +172,22 @@ private:
     unsigned char myId;
     /* Counter used to assign progressive file-descriptors to Streams and Servers*/
     int fdcounter = 1;
+
+#ifdef _MIOSIX
     /* Map containing pointers to Stream and Server classes, indexed by file-descriptors */
     std::map<int, miosix::intrusive_ref_ptr<Endpoint>> fdt;
     /* Map containing pointers to Stream classes, indexed by StreamId */
     std::map<StreamId, miosix::intrusive_ref_ptr<Stream>> streams;
     /* Map containing pointers to Server classes, indexed by port */
     std::map<unsigned char, miosix::intrusive_ref_ptr<Server>> servers;
+#else    /* Map containing pointers to Stream and Server classes, indexed by file-descriptors */
+    std::map<int, std::shared_ptr<Endpoint>> fdt;
+    /* Map containing pointers to Stream classes, indexed by StreamId */
+    std::map<StreamId, std::shared_ptr<Stream>> streams;
+    /* Map containing pointers to Server classes, indexed by port */
+    std::map<unsigned char, std::shared_ptr<Server>> servers;
+
+#endif
     /* Vector containing the current availability of source ports */
     std::vector<bool> clientPorts;
     /* UpdatableQueue of SME to send to the network to reach the master node */

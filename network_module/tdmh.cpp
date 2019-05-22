@@ -53,14 +53,13 @@ return sm->read(fd, data, maxSize);
 
 StreamInfo getInfo(int fd) {
 if(sm == nullptr)
-    return -1;
+    return StreamInfo();
 return sm->getInfo(fd);
 }
 
 void close(int fd) {
-if(sm == nullptr)
-    return -1;
-return sm->close(fd);
+if(sm != nullptr)
+    sm->close(fd);
 }
 
 int listen(unsigned char port, StreamParameters params) {
@@ -87,7 +86,6 @@ void MediumAccessController::run() {
         ctx->run();
     }
     catch(...){
-        ctx->getStreamManager()->closeAllStreams();
         throw;
     }
 }

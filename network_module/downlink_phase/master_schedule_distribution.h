@@ -35,7 +35,8 @@ namespace mxnet {
 
 class MasterScheduleDownlinkPhase : public ScheduleDownlinkPhase {
 public:
-    MasterScheduleDownlinkPhase(MACContext& ctx, ScheduleComputation& sch);
+    MasterScheduleDownlinkPhase(MACContext& ctx, ScheduleComputation& sch,
+                                StreamCollection* scoll);
     MasterScheduleDownlinkPhase() = delete;
     MasterScheduleDownlinkPhase(const MasterScheduleDownlinkPhase& orig) = delete;
     virtual ~MasterScheduleDownlinkPhase() {};
