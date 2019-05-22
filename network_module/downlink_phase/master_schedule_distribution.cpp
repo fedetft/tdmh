@@ -36,8 +36,10 @@ using namespace miosix;
 
 namespace mxnet {
 
-MasterScheduleDownlinkPhase::MasterScheduleDownlinkPhase(MACContext& ctx, ScheduleComputation& sch) :
-        ScheduleDownlinkPhase(ctx),schedule_comp(sch) {
+MasterScheduleDownlinkPhase::MasterScheduleDownlinkPhase(MACContext& ctx,
+                                                         ScheduleComputation& sch,
+                                                         StreamCollection* scoll) :
+    ScheduleDownlinkPhase(ctx), schedule_comp(sch), streamColl(scoll) {
     // Get number of downlink slots
     unsigned tileSize = ctx.getSlotsInTileCount();
     unsigned dataslotsDownlinktile = ctx.getDataSlotsInDownlinkTileCount();

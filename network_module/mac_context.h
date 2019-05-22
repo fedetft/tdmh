@@ -188,11 +188,6 @@ public:
     StreamManager* const getStreamManager() const { return streamMgr; }
 
     /**
-     * @return the StreamCollection
-     */
-    StreamCollection* const getStreamCollection() const { return streamColl; }
-
-    /**
      * @return the number of slots (of data slot size) in a generic tile
      */
     unsigned getSlotsInTileCount() const { return numSlotInTile; }
@@ -281,7 +276,6 @@ protected:
     ScheduleDownlinkPhase* scheduleDistribution = nullptr;
     DataPhase* data = nullptr;
     StreamManager* streamMgr = nullptr;
-    StreamCollection* streamColl = nullptr;
 
     unsigned long long dataSlotDuration;
     unsigned long long downlinkSlotDuration;

@@ -29,6 +29,7 @@
 
 
 #include "../stream/stream_manager.h"
+#include "../stream/stream_collection.h"
 #include "../uplink_phase/topology/network_graph.h"
 #include "../uplink_phase/uplink_message.h"
 #include "../network_configuration.h"
@@ -43,7 +44,6 @@
 #include <list>
 #include <vector>
 #include <tuple>
-#include <iterator>
 
 namespace mxnet {
 

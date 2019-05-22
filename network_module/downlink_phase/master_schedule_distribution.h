@@ -29,6 +29,7 @@
 
 #include "schedule_distribution.h"
 #include "../scheduler/schedule_computation.h"
+#include "../stream/stream_collection.h"
 
 namespace mxnet {
 
@@ -50,12 +51,15 @@ public:
 
 private:
     unsigned long getTilesToDistributeSchedule(unsigned int numPackets);
-    // Reference to ScheduleComputation class to get current schedule
-    ScheduleComputation& schedule_comp;
     // Last schedule element sent
     unsigned position = 0;
     unsigned downlinkSlots = 0;
     unsigned packetCapacity = 0;
+
+    // Reference to ScheduleComputation class to get current schedule
+    ScheduleComputation& schedule_comp;
+    // Pointer to StreamCollection, used to get info elements to distribute
+    StreamCollection* const streamColl;
 };
 
 }

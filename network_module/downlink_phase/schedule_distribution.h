@@ -70,7 +70,6 @@ public:
 
 protected:
     ScheduleDownlinkPhase(MACContext& ctx) : MACPhase(ctx),
-                                             streamColl(ctx.getStreamCollection()),
                                              streamMgr(ctx.getStreamManager()),
                                              dataPhase(ctx.getDataPhase()) {}
 
@@ -100,8 +99,6 @@ protected:
     std::vector<ExplicitScheduleElement> explicitSchedule;
     bool distributing = false;
 private:
-    // Pointer to StreamCollection, used to get info elements to distribute
-    StreamCollection* const streamColl;
     // Pointer to StreamManager, used to apply distributed schedule and info elements
     StreamManager* const streamMgr;
     // Pointer to DataPhase, used to apply distributed schedule

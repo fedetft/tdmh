@@ -32,6 +32,7 @@
 #include "downlink_phase/master_schedule_distribution.h"
 #include "uplink_phase/master_uplink_phase.h"
 #include "scheduler/schedule_computation.h"
+#include "stream/stream_collection.h"
 
 namespace mxnet {
 
@@ -46,9 +47,14 @@ public:
     void beginScheduling() {
       scheduleComputation.beginScheduling();
     };
+    /**
+     * @return the StreamCollection
+     */
+    StreamCollection* const getStreamCollection() const { return streamColl; }
 
 private:
     ScheduleComputation scheduleComputation;
+    StreamCollection* streamColl = nullptr;
 };
 
 } /* namespace mxnet */

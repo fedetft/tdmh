@@ -31,6 +31,8 @@
 #include "stream_management_element.h"
 // For InfoElement
 #include "../scheduler/schedule_element.h"
+// For ReceiveUplinkMessage
+#include "../uplink_phase/uplink_message.h"
 #include <map>
 
 namespace mxnet {
@@ -165,3 +167,5 @@ private:
     bool removed_flag = false;
     bool added_flag = false;
 };
+
+} // namespace mxnet
