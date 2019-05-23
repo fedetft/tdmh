@@ -87,8 +87,10 @@ public:
     virtual bool removedStream() = 0;
     // Used by derived class Stream 
     virtual void rejectedStream() = 0;
+    // Used by derived class Stream 
+    virtual void closedServer() = 0;
     // Used by derived class Server
-    virtual int listen() {
+    virtual int listen(StreamManager* mgr) {
         //This method should never be called on the base class
         return -1;
     }
@@ -98,7 +100,7 @@ public:
         return -1;
     }
     // Used by derived class Server
-    virtual int addPendingStream(Stream* stream) {
+    virtual int addPendingStream(int fd) {
         //This method should never be called on the base class
         return -1;
     }
@@ -168,43 +170,45 @@ public:
 
     // Called by StreamManager after creation,
     // used to send CONNECT SME and wait for addedStream()
-    int connect(StreamManager* mgr);
+    int connect(StreamManager* mgr) override;
 
     // Called by StreamAPI, to put in sendBuffer data to be sent
-    int write(const void* data, int size);
+    int write(const void* data, int size) override;
 
     // Called by StreamAPI, to get from recvBuffer received data
-    int read(void* data, int maxSize);
+    int read(void* data, int maxSize) override;
 
     // Called by StreamManager, to put data to recvBuffer
-    void putPacket(const Packet& data);
+    void putPacket(const Packet& data) override;
 
     // Called by StreamManager, to get data from sendBuffer
-    void getPacket(Packet& data);
+    void getPacket(Packet& data) override;
 
     // Called by StreamManager when this stream is present in a received schedule
-    void addedStream();
+    void addedStream() override;
 
     // Called by StreamManager when this stream is NOT present in a received schedule
     // Returns true if the Stream class can be deleted
-    bool removedStream();
+    bool removedStream() override;
 
     // Called by StreamManager when a STREAM_REJECT info element is received
-    void rejectedStream();
+    void rejectedStream() override;
 
-    void closedServer();
+    // Called by StreamManager when the corresponding server is closed
+    // It puts the status in CLOSE_WAIT if the stream was in ACCEPT_WAIT
+    void closedServer() override;
 
     // Called by StreamAPI, to close the stream on the user side
     // Returns true if the Stream class can be deleted
-    bool close(StreamManager* mgr);
+    bool close(StreamManager* mgr) override;
 
     // Called by StreamManager, in a periodic way to allow resending SME
-    void periodicUpdate(StreamManager* mgr);
+    void periodicUpdate(StreamManager* mgr) override;
 
     // Called by StreamManager when the Timesync desynchronizes, used to
     // close the stream system-side in certain conditions
     // Returns true if the Stream class can be deleted
-    bool desync();
+    bool desync() override;
 
     Server* myServer;
     Packet sendBuffer;
@@ -243,33 +247,33 @@ public:
 
     // Called by StreamManager after creation,
     // used to send LISTEN SME and wait for acceptedServer()
-    int listen(StreamManager* mgr);
+    int listen(StreamManager* mgr) override;
 
     // Called by StreamAPI, to get or wait for a new incoming stream
-    int accept();
+    int accept() override;
 
     // Called by StreamManager, used to add a Stream to the list of
     // streams waiting for an accept
-    int addPendingStream(int fd);
+    int addPendingStream(int fd) override;
 
     // Called by StreamManager when a SERVER_ACCEPT info element is received
-    int acceptedServer();
+    int acceptedServer() override;
 
     // Called by StreamManager when a SERVER_REJECT info element is received
-    int rejectedServer();
+    int rejectedServer() override;
 
     // Called by StreamAPI, to close the server on the user side
     // Returns true if the Server class can be deleted
     // NOTE: closing the server also removes the pending streams
-    bool close(StreamManager* mgr);
+    bool close(StreamManager* mgr) override;
 
     // Called by StreamManager, in a periodic way to allow resending SME
-    void periodicUpdate(StreamManager* mgr);
+    void periodicUpdate(StreamManager* mgr) override;
 
     // Called by StreamManager when the Timesync desynchronizes, used to
     // close the server system-side in certain conditions
     // Returns true if the Server class can be deleted
-    bool desync();
+    bool desync() override;
 
     // Contains fd of streams not yet accepted
     // It's a set to avoid duplicates
