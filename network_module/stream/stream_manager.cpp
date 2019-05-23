@@ -280,7 +280,7 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
         }
         // If stream in schedule is not present in map
         else {
-            StreamParameters params = element.getStreamParams();
+            StreamParameters params = element.getParams();
             StreamId serverId = streamId.getServerId();
             unsigned char port = serverId.dstPort;
             auto serverit = servers.find(port);
@@ -307,7 +307,7 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
                 // NOTE: Make sure that stream enqueues a CLOSED SME
                 stream->close(this);
                 // 2. Create new server in CLOSE_WAIT status
-                int fd = fdcounter++;
+                fd = fdcounter++;
                 auto serverInfo = StreamInfo(serverId, params, StreamStatus::CLOSE_WAIT);
                 auto* server = new Server(fd, serverInfo);
                 servers[port] = server;
@@ -332,12 +332,12 @@ void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
     // Iterate over info elements
     for(auto& info : infos) {
         StreamId id = info.getStreamId();
-        if (streamId.isServer()) {
+        if(id.isServer()) {
             unsigned char port = id.dstPort;
             auto serverit = servers.find(port);
             // If server is present in map
             if(serverit != servers.end()) {
-                auto server = server->second;
+                auto server = serverit->second;
                 InfoType type = info.getType();
                 if(type==InfoType::SERVER_OPENED)
                     server->acceptedServer();
@@ -358,7 +358,7 @@ void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
             }
         }
         else {
-            auto streamit = streams.find(streamId);
+            auto streamit = streams.find(id);
             // If stream is present in map
             if(streamit != streams.end()) {
                 auto stream = streamit->second;
@@ -376,8 +376,7 @@ void StreamManager::dequeueSMEs(UpdatableQueue<StreamId,StreamManagementElement>
     sme_mutex.lock();
 
     while(!smeQueue.empty()) {
-        auto temp = std::move(smeQueue.front());
-        smeQueue.pop();
+        auto temp = smeQueue.dequeue();
         StreamId tempId = temp.getStreamId();
         queue.enqueue(tempId, std::move(temp));
     }
@@ -428,9 +427,8 @@ int StreamManager::allocateClientPort() {
 void StreamManager::freeClientPort(unsigned char port) {
     // Invalid port number provided
     if(port < 0 || port > (maxPorts-1))
-        return -1;
-    else
-        clientPorts[i] = false;
+        return;
+    clientPorts[port] = false;
 }
 
 void StreamManager::removeServer(unsigned char port) {
@@ -443,11 +441,11 @@ void StreamManager::removeServer(unsigned char port) {
     if(serverit == servers.end())
         return;
 
-    auto server = *serverit;
+    auto server = serverit->second;
     int fd = server->getFd();
-    servers.delete(port); 
-    fdt.delete(fd);
-    delete server;
+    servers.erase(port); 
+    fdt.erase(fd);
+    delete server.get();
 }
 
 void StreamManager::removeStream(StreamId id) {
@@ -460,13 +458,12 @@ void StreamManager::removeStream(StreamId id) {
     if(streamit == streams.end())
         return;
 
-    auto stream = *streamit;
+    auto stream = streamit->second;
     int fd = stream->getFd();
-    stream.delete(id);
-    fdt.delete(fd);
-    delete stream;
-    unsigned char port = id.srcPort;
-    freeClientPort(srcPort);
+    streams.erase(id);
+    fdt.erase(fd);
+    delete stream.get();
+    freeClientPort(id.srcPort);
 }
 
 void StreamManager::printStreamStatus(StreamId id, StreamStatus status) {
