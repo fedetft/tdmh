@@ -271,7 +271,7 @@ void Stream::rejectedStream() {
 #endif
 }
 
-void Stream::closedServer() {
+void Stream::closedServer(StreamManager* mgr) {
     // Lock mutex for concurrent access at StreamInfo
     status_mutex.lock();
     switch(getStatus()) {
@@ -410,16 +410,22 @@ int Server::listen(StreamManager* mgr) {
             listen_cv.wait(lck);
         }
         auto status = getStatus();
+        if(status == StreamStatus::LISTEN_FAILED)
+            return -1;
+        if(status == StreamStatus::LISTEN)
+            return 0;
+        else
+            return -2;
     }
-    if(status == StreamStatus::LISTEN_FAILED)
-        return -1;
-    if(status == StreamStatus::LISTEN)
-        return 0;
 }
 
 int Server::accept() {
     // Lock mutex for concurrent access at StreamInfo
-    status_mutex.lock();
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+    std::unique_lock<std::mutex> lck(status_mutex);
+#endif
     // Return error if server not open
     if(getStatus() != StreamStatus::LISTEN)
         return -1;
@@ -435,7 +441,6 @@ int Server::accept() {
     auto it = pendingAccept.begin();
     int fd = *it;
     pendingAccept.erase(it);
-    status_mutex.unlock();
     return fd;
 }
 

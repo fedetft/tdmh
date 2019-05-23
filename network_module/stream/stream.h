@@ -79,17 +79,17 @@ public:
     }
     // TODO: The base class implementation of these functions should throw an error?
     // Used by derived class Stream 
-    virtual void putPacket(const Packet& data) {};
+    virtual void putPacket(const Packet& data) {}
     // Used by derived class Stream 
-    virtual void getPacket(Packet& data) {};
+    virtual void getPacket(Packet& data) {}
     // Used by derived class Stream 
-    virtual void addedStream() {};
+    virtual void addedStream() {}
     // Used by derived class Stream 
-    virtual bool removedStream() { return false; };
+    virtual bool removedStream() { return false; }
     // Used by derived class Stream 
-    virtual void rejectedStream() {};
+    virtual void rejectedStream() {}
     // Used by derived class Stream 
-    virtual void closedServer() {};
+    virtual void closedServer(StreamManager* mgr) {}
     // Used by derived class Server
     virtual int listen(StreamManager* mgr) {
         //This method should never be called on the base class
@@ -101,20 +101,11 @@ public:
         return -1;
     }
     // Used by derived class Server
-    virtual int addPendingStream(int fd) {
-        //This method should never be called on the base class
-        return -1;
-    }
+    virtual void addPendingStream(int fd) {}
     // Used by derived class Server
-    virtual int acceptedServer() {
-        //This method should never be called on the base class
-        return -1;
-    }
+    virtual void acceptedServer() {}
     // Used by derived class Server
-    virtual int rejectedServer() {
-        //This method should never be called on the base class
-        return -1;
-    }
+    virtual void rejectedServer() {}
     // Used by derived class Stream and Server 
     StreamId getStreamId() {
         return info.getStreamId();
@@ -197,7 +188,7 @@ public:
 
     // Called by StreamManager when the corresponding server is closed
     // It puts the status in CLOSE_WAIT if the stream was in ACCEPT_WAIT
-    void closedServer() override;
+    void closedServer(StreamManager* mgr) override;
 
     // Called by StreamAPI, to close the stream on the user side
     // Returns true if the Stream class can be deleted
@@ -255,13 +246,13 @@ public:
 
     // Called by StreamManager, used to add a Stream to the list of
     // streams waiting for an accept
-    int addPendingStream(int fd) override;
+    void addPendingStream(int fd) override;
 
     // Called by StreamManager when a SERVER_ACCEPT info element is received
-    int acceptedServer() override;
+    void acceptedServer() override;
 
     // Called by StreamManager when a SERVER_REJECT info element is received
-    int rejectedServer() override;
+    void rejectedServer() override;
 
     // Called by StreamAPI, to close the server on the user side
     // Returns true if the Server class can be deleted

@@ -405,7 +405,7 @@ void StreamManager::closedServer(int fd) {
     auto stream = fdt[fd];
     map_mutex.unlock();
 
-    stream->closedServer();
+    stream->closedServer(this);
 }
 
 int StreamManager::allocateClientPort() {
