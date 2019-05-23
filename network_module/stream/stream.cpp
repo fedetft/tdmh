@@ -49,14 +49,14 @@ int Stream::connect(StreamManager* mgr) {
             connect_cv.wait(lck);
         }
         auto status = getStatus();
+        if(status == StreamStatus::CONNECT_FAILED)
+            return -1;
+        if(status == StreamStatus::ESTABLISHED)
+            return 0;
+        //TODO: check if we can end up in other states
+        else
+            return -2;
     }
-    if(status == StreamStatus::CONNECT_FAILED)
-        return -1;
-    if(status == StreamStatus::ESTABLISHED)
-        return 0;
-    //TODO: check if we can end up in other states
-    else
-        return -2;
 }
 
 int Stream::write(const void* data, int size) {
@@ -78,7 +78,7 @@ int Stream::write(const void* data, int size) {
     return 0;
 }
 
-int Stream::read(StreamManager* mgr, const void* data, int size) {
+int Stream::read(void* data, int maxSize) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::FastMutex> lck(recv_mutex);
 #else
@@ -114,7 +114,7 @@ void Stream::putPacket(const Packet& data) {
     // Lock mutex for concurrent access at recvBuffer
     recv_mutex.lock();
     // Avoid overwriting valid data
-    if(pkt.size() != 0)
+    if(data.size() != 0)
         recvBuffer = data;
 
     bool wakeRead = false;
@@ -208,6 +208,8 @@ void Stream::addedStream() {
     case StreamStatus::REMOTELY_CLOSED:
         setStatus(StreamStatus::REOPENED);
         break;
+    default:
+        break;
     }
     status_mutex.unlock();
     // Wake up the connect() method
@@ -235,6 +237,8 @@ bool Stream::removedStream() {
     case StreamStatus::CLOSE_WAIT:
         deletable = true;
         break;
+    default:
+        break;
     }
     status_mutex.unlock();
     // Wake up the write and read methods
@@ -255,6 +259,8 @@ void Stream::rejectedStream() {
     case StreamStatus::CONNECTING:
         setStatus(StreamStatus::CONNECT_FAILED);
         break;
+    default:
+        break;
     }
     status_mutex.unlock();
     // Wake up the connect() method
@@ -273,6 +279,8 @@ void Stream::closedServer() {
         setStatus(StreamStatus::CLOSE_WAIT);
         // Send CLOSED SME
         mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+        break;
+    default:
         break;
     }
     status_mutex.unlock();
@@ -297,6 +305,8 @@ bool Stream::close(StreamManager* mgr) {
     case StreamStatus::CLOSE_WAIT:
         //NOTE: if we were created in CLOSE_WAIT, we need to send CLOSED SME
         mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+        break;
+    default:
         break;
     }
     status_mutex.unlock();
@@ -336,6 +346,8 @@ void Stream::periodicUpdate(StreamManager* mgr) {
             mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
         }
         break;
+    default:
+        break;
     }
     status_mutex.unlock();
 }
@@ -359,6 +371,8 @@ bool Stream::desync() {
         break;
     case StreamStatus::CLOSE_WAIT:
         deletable = true;
+        break;
+    default:
         break;
     }
     status_mutex.unlock();
@@ -443,6 +457,8 @@ void Server::acceptedServer() {
     case StreamStatus::REMOTELY_CLOSED:
         setStatus(StreamStatus::REOPENED);
         break;
+    default:
+        break;
     }
     status_mutex.unlock();
     // Wake up the listen() method
@@ -459,6 +475,8 @@ void Server::rejectedServer() {
     switch(getStatus()) {
     case StreamStatus::LISTEN_WAIT:
         setStatus(StreamStatus::LISTEN_FAILED);
+        break;
+    default:
         break;
     }
     status_mutex.unlock();
@@ -489,6 +507,8 @@ bool Server::close(StreamManager* mgr) {
     case StreamStatus::CLOSE_WAIT:
         //NOTE: if we were created in CLOSE_WAIT, we need to send CLOSED SME
         mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+        break;
+    default:
         break;
     }
     // Close pendingAccept Streams
@@ -536,6 +556,8 @@ void Server::periodicUpdate(StreamManager* mgr) {
             mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
         }
         break;
+    default:
+        break;
     }
     status_mutex.unlock();
     // Wake up the listen and accept methods
@@ -562,6 +584,8 @@ bool Server::desync() {
         break;
     case StreamStatus::CLOSE_WAIT:
         deletable = true;
+        break;
+    default:
         break;
     }
     status_mutex.unlock();

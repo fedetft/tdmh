@@ -138,7 +138,7 @@ public:
     // Used by derived class Stream and Server
     virtual bool desync() = 0;
 
-private:
+protected:
     // Change the status saved in StreamInfo
     void setStatus(StreamStatus status) {
         info.setStatus(status);
