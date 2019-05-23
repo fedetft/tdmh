@@ -58,7 +58,7 @@ class Server;
 
     class Endpoint : public miosix::IntrusiveRefCounted {
 public:
-    Endpoint(StreamInfo info) : info(info), smeTimeout(smeTimeoutMax),
+    Endpoint(int fd, StreamInfo info) : fd(fd), info(info), smeTimeout(smeTimeoutMax),
                                 failTimeout(failTimeoutMax) {};
     virtual ~Endpoint() {};
 
@@ -113,16 +113,20 @@ public:
         return -1;
     }
     // Used by derived class Stream and Server 
-    virtual StreamId getStreamId() {
+    StreamId getStreamId() {
         return info.getStreamId();
     }
     // Used by derived class Stream and Server 
-    virtual StreamStatus getStatus() {
+    StreamStatus getStatus() {
         return info.getStatus();
     }
     // Used by derived class Stream and Server
-    virtual StreamInfo getInfo() {
+    StreamInfo getInfo() {
         return info;
+    }
+    // Used by StreamManager removeServer() and removeStream()
+    int getFd() {
+        return fd;
     }
     // Used by derived class Stream and Server
     virtual bool close(StreamManager* mgr) = 0;
@@ -145,6 +149,9 @@ private:
      * In number of periodicUpdate() cycles */
     const int smeTimeoutMax = 3;
     const int failTimeoutMax = 9;
+
+    /* Copy of the file descriptor number, useful for deleting object from fdt */
+    int fd;
     /* Contains information of the endpoint and state machine status */
     StreamInfo info;
     /* Used to send SME every N periodic updates */
@@ -157,7 +164,7 @@ private:
  */
 class Stream : public Endpoint {
 public:
-    Stream(StreamInfo info) : Endpoint(info) {};
+    Stream(int fd, StreamInfo info) : Endpoint(fd, info) {};
 
     // Called by StreamManager after creation,
     // used to send CONNECT SME and wait for addedStream()
@@ -232,7 +239,7 @@ public:
  */
 class Server : public Endpoint {
 public:
-    Server(StreamInfo info) : Endpoint(info) {};
+    Server(int fd, StreamInfo info) : Endpoint(fd, info) {};
 
     // Called by StreamManager after creation,
     // used to send LISTEN SME and wait for acceptedServer()

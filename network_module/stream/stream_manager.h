@@ -58,7 +58,12 @@ namespace mxnet {
 
 class StreamManager {
 public:
-    StreamManager(unsigned char myId) : myId(myId) {};
+    StreamManager(unsigned char myId) : myId(myId) {
+        // Inizialize clientPorts to false (all ports unused)
+        for (int i = 0; i < maxPorts; ++i) {
+            clientPorts[i] = false;
+        }
+    }
 
     ~StreamManager() {
         desync();
@@ -149,7 +154,7 @@ private:
     int allocateClientPort();
 
     // Used by StreamManager::removeStream, sets a given port as free
-    void freeClientPort(int port);
+    void freeClientPort(unsigned char port);
 
     // Closes and removes a Server on a given port from the maps
     // deleting the actual Server object
@@ -188,7 +193,9 @@ private:
     std::map<unsigned char, std::shared_ptr<Server>> servers;
 
 #endif
-    /* Vector containing the current availability of source ports */
+    const unsigned int maxPorts = 16;
+    /* Vector containing the current availability of source ports
+     * 0= port free, 1= port used */
     std::vector<bool> clientPorts;
     /* UpdatableQueue of SME to send to the network to reach the master node */
     UpdatableQueue<StreamId, StreamManagementElement> smeQueue;

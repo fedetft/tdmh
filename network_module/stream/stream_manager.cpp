@@ -39,7 +39,8 @@ void StreamManager::desync() {
     map_mutex.lock();
 
     // Iterate over all streams
-    for(auto& stream: streams) {
+    for(auto& pair: streams) {
+        auto stream = pair.second;
         bool deleted = stream->desync();
         if(deleted)
             deleteList.push_back(stream->getStreamId());
@@ -85,7 +86,7 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
     // NOTE: Make sure that stream enqueues a CONNECT SME
     int error = stream->connect(this);
     if(error != 0) {
-        removeStream(stream);
+        removeStream(streamId);
         return -1;
     }
     return fd;
@@ -169,7 +170,7 @@ int StreamManager::listen(unsigned char port, StreamParameters params) {
     map_mutex.lock();
 
     // Check if a server with these parameters is already present
-    if(servers.find(serverId) != servers.end()) {
+    if(servers.find(port) != servers.end()) {
         map_mutex.unlock();
         delete server;
         return -1;
@@ -279,7 +280,8 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
         else {
             StreamParameters params = element.getStreamParams();
             StreamId serverId = streamId.getServerId();
-            auto serverit = servers.find(serverId);
+            unsigned char port = serverId.dstPort;
+            auto serverit = servers.find(port);
             // If the corresponding server is present, create new stream in
             // ACCEPT_WAIT status and register it in corresponding server
             if(serverit != servers.end() &&
@@ -329,7 +331,8 @@ void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
     for(auto& info : infos) {
         StreamId id = info.getStreamId();
         if (streamId.isServer()) {
-            auto serverit = servers.find(id);
+            unsigned char port = id.dstPort;
+            auto serverit = servers.find(port);
             // If server is present in map
             if(serverit != servers.end()) {
                 auto* server = server->second;
@@ -405,7 +408,63 @@ void StreamManager::closedServer(int fd) {
 }
 
 int StreamManager::allocateClientPort() {
-    for(int i=0; i<)    
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+    std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+    for(int i = 0; i < maxPorts; i++) {
+        if(clientPorts[i] == false) {
+            clientPorts[i] = true;
+            return i;
+        }
+    }
+    // No free port found
+    return -1;
+}
+
+void StreamManager::freeClientPort(unsigned char port) {
+    // Invalid port number provided
+    if(port < 0 || port > (maxPorts-1))
+        return -1;
+    else
+        clientPorts[i] = false;
+}
+
+void StreamManager::removeServer(unsigned char port) {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+    std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+    auto serverit = servers.find(port);
+    if(serverit == servers.end())
+        return;
+
+    auto server = *serverit;
+    int fd = server->getFd();
+    servers.delete(port); 
+    fdt.delete(fd);
+    delete server;
+}
+
+void StreamManager::removeStream(StreamId id) {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+    std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+    auto streamit = streams.find(id);
+    if(streamit == streams.end())
+        return;
+
+    auto stream = *streamit;
+    int fd = stream->getFd();
+    stream.delete(id);
+    fdt.delete(fd);
+    delete stream;
+    unsigned char port = id.srcPort;
+    freeClientPort(srcPort);
 }
 
 void StreamManager::printStreamStatus(StreamId id, StreamStatus status) {
