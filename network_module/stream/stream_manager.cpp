@@ -61,10 +61,7 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
     int srcPort = allocateClientPort();
     if(srcPort == -1)
         return -1;
-
     auto streamId = StreamId(myId, dst, srcPort, dstPort);
-    auto streamInfo = StreamInfo(streamId, params, StreamStatus::CONNECTING);
-    auto* stream = new Stream(streamInfo);
 
     // Lock map_mutex to access the shared Stream map
     map_mutex.lock();
@@ -72,12 +69,13 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
     // Check if a stream with these parameters is already present
     if(streams.find(streamId) != streams.end()) {
         map_mutex.unlock();
-        delete stream;
         freeClientPort(srcPort);
         return -1;
     }
-    streams[streamId] = stream;
     int fd = fdcounter++;
+    auto streamInfo = StreamInfo(streamId, params, StreamStatus::CONNECTING);
+    auto* stream = new Stream(fd, streamInfo);
+    streams[streamId] = stream;
     fdt[fd] = stream;
     map_mutex.unlock();
 
@@ -101,7 +99,7 @@ int StreamManager::write(int fd, const void* data, int size) {
         map_mutex.unlock();
         return -1;
     }
-    auto* stream = fdt[fd];
+    auto stream = fdt[fd];
     map_mutex.unlock();
 
     return stream->write(data, size);
@@ -116,7 +114,7 @@ int StreamManager::read(int fd, void* data, int maxSize) {
         map_mutex.unlock();
         return -1;
     }
-    auto* stream = fdt[fd];
+    auto stream = fdt[fd];
     map_mutex.unlock();
 
     return stream->read(data, maxSize);
@@ -129,12 +127,12 @@ StreamInfo StreamManager::getInfo(int fd) {
     // Check if a stream with these parameters is not present
     if(fdt.find(fd) == fdt.end()) {
         map_mutex.unlock();
-        return -1;
+        return StreamInfo();
     }
-    auto* stream = fdt[fd];
+    auto stream = fdt[fd];
     map_mutex.unlock();
 
-    return stream->getInfo(this);
+    return stream->getInfo();
 }
 
 void StreamManager::close(int fd) {
@@ -144,27 +142,26 @@ void StreamManager::close(int fd) {
     // Check if a stream with these parameters is not present
     if(fdt.find(fd) == fdt.end()) {
         map_mutex.unlock();
-        return -1;
+        return;
     }
-    auto* endpoint = fdt[fd];
+    auto endpoint = fdt[fd];
     map_mutex.unlock();
 
     StreamId id = endpoint->getStreamId();
     bool deleted = endpoint->close(this);
     if(id.isServer()) {
+        unsigned char port = id.dstPort;
         if(deleted) {
-            removeServer(endpoint);
+            removeServer(port);
         }
     }
     else if(deleted) {
-        removeStream(endpoint);
+        removeStream(id);
     }
 }
 
 int StreamManager::listen(unsigned char port, StreamParameters params) {
     auto serverId = StreamId(myId, myId, 0, port);
-    auto serverInfo = StreamInfo(serverId, params, StreamStatus::LISTEN_WAIT);
-    auto* server = new Server(serverInfo);
 
     // Lock map_mutex to access the shared Server map
     map_mutex.lock();
@@ -172,11 +169,12 @@ int StreamManager::listen(unsigned char port, StreamParameters params) {
     // Check if a server with these parameters is already present
     if(servers.find(port) != servers.end()) {
         map_mutex.unlock();
-        delete server;
         return -1;
     }
-    servers[port] = server;
     int fd = fdcounter++;
+    auto serverInfo = StreamInfo(serverId, params, StreamStatus::LISTEN_WAIT);
+    auto* server = new Server(fd, serverInfo);
+    servers[port] = server;
     fdt[fd] = server;
     map_mutex.unlock();
 
@@ -184,7 +182,8 @@ int StreamManager::listen(unsigned char port, StreamParameters params) {
     // Make the server wait for an info element confirming LISTEN status
     int error = server->listen(this);
     if(error != 0) {
-        removeServer(server);
+        unsigned char port = serverId.dstPort;
+        removeServer(port);
         return -1;
     }
     return fd;
@@ -199,7 +198,7 @@ int StreamManager::accept(int serverfd) {
         map_mutex.unlock();
         return -1;
     }
-    auto* server = fdt[fd];
+    auto server = fdt[fd];
     map_mutex.unlock();
 
     return server->accept();
@@ -231,7 +230,7 @@ void StreamManager::putPacket(StreamId id, const Packet& data) {
         map_mutex.unlock();
         return;
     }
-    auto* stream = fdt[fd];
+    auto stream = fdt[fd];
     map_mutex.unlock();
 
     stream->putPacket(data);
@@ -246,7 +245,7 @@ void StreamManager::getPacket(StreamId id, Packet& data) {
         map_mutex.unlock();
         return;
     }
-    auto* stream = fdt[fd];
+    auto stream = fdt[fd];
     map_mutex.unlock();
 
     stream->getPacket(data);
@@ -268,7 +267,7 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
         auto streamit = streams.find(streamId);
         // If stream in schedule is present in map, call addedStream()
         if(streamit != streams.end()) {
-            auto* stream = streamit->second;
+            auto stream = streamit->second;
             stream->addedStream();
             // Remove streamId from removedStreams
             removedStreams.erase(std::remove(removedStreams.begin(),
@@ -286,29 +285,29 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
             // ACCEPT_WAIT status and register it in corresponding server
             if(serverit != servers.end() &&
                (serverit->second->getStatus() == StreamStatus::LISTEN)) {
-                auto* server = serverit->second;
-                auto streamInfo = StreamInfo(streamId, params, StreamStatus::ACCEPT_WAIT);
-                auto* stream = new Stream(streamInfo);
-                streams[streamId] = stream;
                 int fd = fdcounter++;
+                auto streamInfo = StreamInfo(streamId, params, StreamStatus::ACCEPT_WAIT);
+                auto* stream = new Stream(fd, streamInfo);
+                streams[streamId] = stream;
                 fdt[fd] = stream;
+                auto server = serverit->second;
                 server->addPendingStream(fd);
             }
             // If the corresponding server is not present,
             else {
                 // 1. Create new stream in CLOSE_WAIT status
-                auto streamInfo = StreamInfo(streamId, params, StreamStatus::CLOSE_WAIT);
-                auto* stream = new Stream(streamInfo);
-                streams[streamId] = stream;
                 int fd = fdcounter++;
+                auto streamInfo = StreamInfo(streamId, params, StreamStatus::CLOSE_WAIT);
+                auto* stream = new Stream(fd, streamInfo);
+                streams[streamId] = stream;
                 fdt[fd] = stream;
                 // NOTE: Make sure that stream enqueues a CLOSED SME
                 stream->close(this);
                 // 2. Create new server in CLOSE_WAIT status
-                auto serverInfo = StreamInfo(serverId, params, StreamStatus::CLOSE_WAIT);
-                auto* server = new Server(serverInfo);
-                servers[port] = server;
                 int fd = fdcounter++;
+                auto serverInfo = StreamInfo(serverId, params, StreamStatus::CLOSE_WAIT);
+                auto* server = new Server(fd, serverInfo);
+                servers[port] = server;
                 fdt[fd] = server;
                 // NOTE: Make sure that the server enqueues a CLOSED SME
                 server->close(this);
@@ -335,7 +334,7 @@ void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
             auto serverit = servers.find(port);
             // If server is present in map
             if(serverit != servers.end()) {
-                auto* server = server->second;
+                auto server = server->second;
                 InfoType type = info.getType();
                 if(type==InfoType::SERVER_OPENED)
                     server->acceptedServer();
@@ -346,10 +345,10 @@ void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
             else if(id.isServer() && info.getType() == InfoType::SERVER_OPENED) {
                 // Create server in CLOSE_WAIT to warn the master node
                 // that this server is actually closed
-                auto serverInfo = StreamInfo(id, info.getParams(), StreamStatus::CLOSE_WAIT);
-                auto* server = new Server(serverInfo);
-                servers[port] = server;
                 int fd = fdcounter++;
+                auto serverInfo = StreamInfo(id, info.getParams(), StreamStatus::CLOSE_WAIT);
+                auto* server = new Server(fd, serverInfo);
+                servers[port] = server;
                 fdt[fd] = server;
                 // NOTE: Make sure that the server enqueues a CLOSED SME
                 server->close(this);
@@ -359,7 +358,7 @@ void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
             auto streamit = streams.find(streamId);
             // If stream is present in map
             if(streamit != streams.end()) {
-                auto* stream = streamit->second;
+                auto stream = streamit->second;
                 InfoType type = info.getType();
                 if(type==InfoType::STREAM_REJECT)
                     stream->rejectedStream();
@@ -401,7 +400,7 @@ void StreamManager::closedServer(int fd) {
         map_mutex.unlock();
         return;
     }
-    auto* stream = fdt[fd];
+    auto stream = fdt[fd];
     map_mutex.unlock();
 
     stream->closedServer();
