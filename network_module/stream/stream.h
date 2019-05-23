@@ -77,18 +77,19 @@ public:
         //This method should never be called on the base class
         return -1;
     }
+    // TODO: The base class implementation of these functions should throw an error?
     // Used by derived class Stream 
-    virtual void putPacket(const Packet& data) = 0;
+    virtual void putPacket(const Packet& data) {};
     // Used by derived class Stream 
-    virtual void getPacket(Packet& data) = 0;
+    virtual void getPacket(Packet& data) {};
     // Used by derived class Stream 
-    virtual void addedStream() = 0;
+    virtual void addedStream() {};
     // Used by derived class Stream 
-    virtual bool removedStream() = 0;
+    virtual bool removedStream() { return false; };
     // Used by derived class Stream 
-    virtual void rejectedStream() = 0;
+    virtual void rejectedStream() {};
     // Used by derived class Stream 
-    virtual void closedServer() = 0;
+    virtual void closedServer() {};
     // Used by derived class Server
     virtual int listen(StreamManager* mgr) {
         //This method should never be called on the base class

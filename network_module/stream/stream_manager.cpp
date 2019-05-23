@@ -194,11 +194,12 @@ int StreamManager::accept(int serverfd) {
     map_mutex.lock();
 
     // Check if a server with these parameters is not present
-    if(fdt.find(fd) == fdt.end()) {
+    auto serverit = fdt.find(serverfd);
+    if(serverit == fdt.end()) {
         map_mutex.unlock();
         return -1;
     }
-    auto server = fdt[fd];
+    auto server = serverit->second;
     map_mutex.unlock();
 
     return server->accept();
@@ -210,12 +211,12 @@ void StreamManager::periodicUpdate() {
 
     // Iterate over all streams
     for(auto& stream: streams) {
-        stream->periodicUpdate();
+        stream.second->periodicUpdate(this);
     }
 
     // Iterate over all servers
     for(auto& server: servers) {
-        server->periodicUpdate();
+        server.second->periodicUpdate(this);
     }
 
     map_mutex.unlock();
@@ -226,11 +227,12 @@ void StreamManager::putPacket(StreamId id, const Packet& data) {
     map_mutex.lock();
 
     // Check if a stream with these parameters is not present
-    if(fdt.find(fd) == fdt.end()) {
+    auto streamit = streams.find(id);
+    if(streamit == streams.end()) {
         map_mutex.unlock();
         return;
     }
-    auto stream = fdt[fd];
+    auto stream = streamit->second;
     map_mutex.unlock();
 
     stream->putPacket(data);
@@ -241,11 +243,12 @@ void StreamManager::getPacket(StreamId id, Packet& data) {
     map_mutex.lock();
 
     // Check if a stream with these parameters is not present
-    if(fdt.find(fd) == fdt.end()) {
+    auto streamit = streams.find(id);
+    if(streamit == streams.end()) {
         map_mutex.unlock();
         return;
     }
-    auto stream = fdt[fd];
+    auto stream = streamit->second;
     map_mutex.unlock();
 
     stream->getPacket(data);
