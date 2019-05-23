@@ -96,7 +96,7 @@ ScheduleHeader DynamicScheduleDownlinkPhase::decodePacket(Packet& pkt) {
     unsigned int numPackets = newHeader.getTotalPacket();
     // Received Info Packet
     if(numPackets == 0){
-        nextInfos = elements;
+        nextInfos = std::vector<InfoElement>(elements.begin(), elements.end());
     }
     // Received Schedule + Info packet
     else {

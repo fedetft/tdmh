@@ -92,7 +92,7 @@ protected:
     // Copy of last computed/received schedule
     std::vector<ScheduleElement> schedule;
     // Copy of last computed/received info elements
-    std::vector<ScheduleElement> infos;
+    std::vector<InfoElement> infos;
 
     // Current schedule lenght in tiles
     unsigned long explicitScheduleID = 0;

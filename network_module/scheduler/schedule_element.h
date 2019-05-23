@@ -169,6 +169,12 @@ public:
                           static_cast<Redundancy>(content.redundancy),
                           StreamStatus::ESTABLISHED);
     }
+    StreamParameters getParams() const {
+        return StreamParameters(content.redundancy,
+                                content.period,
+                                content.payloadSize,
+                                content.direction);
+    }
     unsigned char getSrc() const { return content.src; }
     unsigned char getDst() const { return content.dst; }
     unsigned char getSrcPort() const { return content.srcPort; }
@@ -187,15 +193,13 @@ public:
         return content.src | content.dst<<8 | content.srcPort<<16 | content.dstPort<<20;
     }
 
-private:
+protected:
     ScheduleElementPkt content;
 };
 
-class InfoElement : public SerializableMessage {
+class InfoElement : public ScheduleElement {
 public:
-    InfoElement() {
-        std::memset(&content, 0, sizeof(ScheduleElementPkt));
-    }
+    InfoElement() : ScheduleElement() {};
     // Constructor copying data from ScheduleElement
     // Used when parsing SchedulePacket that contains Info elements
     InfoElement(ScheduleElement s) {
@@ -226,34 +230,8 @@ public:
 
     void serialize(Packet& pkt) const override;
     static InfoElement deserialize(Packet& pkt);
-    std::size_t size() const override { return sizeof(ScheduleElementPkt); }
-    StreamId getStreamId() const {
-        return StreamId(content.src, content.dst, content.srcPort, content.dstPort);
-    }
-    StreamParameters getParams() const {
-        return StreamParameters(content.redundancy,
-                                content.period,
-                                content.payloadSize,
-                                content.direction);
-    }
-    unsigned char getSrc() const { return content.src; }
-    unsigned char getDst() const { return content.dst; }
-    unsigned char getSrcPort() const { return content.srcPort; }
-    unsigned char getDstPort() const { return content.dstPort; }
-    unsigned char getTx() const { return content.tx; }
-    unsigned char getRx() const { return content.rx; }
     InfoType getType() const { return static_cast<InfoType>(content.offset); }
 
-    /**
-     * \return an unique key for each stream
-     */
-    unsigned int getKey() const
-    {
-        return content.src | content.dst<<8 | content.srcPort<<16 | content.dstPort<<20;
-    }
-
-private:
-    ScheduleElementPkt content;
 };
 
 
