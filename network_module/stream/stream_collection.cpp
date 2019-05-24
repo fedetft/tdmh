@@ -141,7 +141,7 @@ void StreamCollection::updateServer(MasterStreamInfo& server, StreamManagementEl
     if(status == MasterStreamStatus::LISTEN) {
         if(type == SMEType::CLOSED) {
             // Delete server because it has been closed by remote node
-            map.erase(id);
+            collection.erase(id);
             // Enqueue SERVER_CLOSED info element
             infoQueue.enqueue(id, InfoElement(id, InfoType::SERVER_CLOSED));
         }
@@ -160,10 +160,12 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
         // Check for corresponding Server
         auto serverId = id.getServerId();
         // Server present (can only be in LISTEN status)
-        if(collection.find(serverId) != collection.end()) {
-            auto serverParams = collection[serverId].getParams();
+        auto serverit = collection.find(serverId);
+        if(serverit != collection.end()) {
+            auto server = serverit->second;
+            auto serverParams = server.getParams();
             // If the direction of client and server don't match, reject stream
-            if(toInt(serverParams.direction) != toInt(clientParams.direction)) {
+            if(serverParams.direction != clientParams.direction) {
                 // Create REJECTED stream
                 collection[id] = MasterStreamInfo(id, clientParams, MasterStreamStatus::REJECTED);
                 // Enqueue STREAM_REJECT info element
@@ -207,23 +209,22 @@ void StreamCollection::createServer(StreamManagementElement& sme) {
 
 StreamParameters negotiateParameters(StreamParameters& serverParams,
                                      StreamParameters& clientParams) {
+    /* NOTE: during the negotiation we compare the "unsigned int" parameters
+     * only converting the resulting parameters, this to avoid double conversions. */
     // Pick the lowest redundancy level between Client and Server
-    Redundancy redundancy = std::min(toInt(serverParams.redundancy),
-                                     toInt(clientParams.redundancy));
+    Redundancy redundancy = static_cast<Redundancy>(std::min(serverParams.redundancy,
+                                                             clientParams.redundancy));
     // Pick the highest period between Client and Server
-    Period period = std::max(toInt(serverParams.period),
-                             toInt(clientParams.period));
+    Period period = static_cast<Period>(std::max(serverParams.period,
+                                                 clientParams.period));
     // Pick the lowest payloadSize between Client and Server
-    unsigned short payloadSize = std::min(toInt(serverParams.payloadSize),
-                                          toInt(clientParams.payloadSize));
+    unsigned short payloadSize = std::min(serverParams.payloadSize,
+                                          clientParams.payloadSize);
     // We assume that direction is the same between Client and Server,
     // Because we checked it in createStream(). So just copy it from one of them
-    Direction direction = clientParams.direction;
+    Direction direction = clientParams.getDirection();
     // Create resulting StreamParameters struct
-    StreamParameters newParams = {static_cast<unsigned int>(redundancy),
-                                  static_cast<unsigned int>(period),
-                                  payloadSize,
-                                  statis_cast<unsigned int>(direction)};
+    StreamParameters newParams(redundancy, period, payloadSize, direction);
     return newParams;
 }
 
