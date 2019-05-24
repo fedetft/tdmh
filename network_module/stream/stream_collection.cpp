@@ -81,8 +81,11 @@ void StreamCollection::streamRejected(StreamId id) {
     // If stream is present in collection
     if(it != collection.end()) {
         MasterStreamInfo& stream = it->second;
-        if(stream.getStatus() == MasterStreamStatus::ACCEPTED)
+        if(stream.getStatus() == MasterStreamStatus::ACCEPTED) {
             stream.setStatus(MasterStreamStatus::REJECTED);
+            // Enqueue STREAM_REJECT info element
+            infoQueue.enqueue(id, InfoElement(id, InfoType::STREAM_REJECT));
+        }
     }
 }
 
