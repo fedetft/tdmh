@@ -98,7 +98,7 @@ std::pair<long long, long long> DynamicTimesyncDownlink::getWakeupAndTimeout(lon
             );
 }
 
-void DynamicTimesyncDownlink::resync() {
+void DynamicTimesyncDownlink::resyncTime() {
     //Even the Theoretic is started at this time, so the absolute time is dependent of the board
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
         print_dbg("[T] Resync\n");
@@ -122,7 +122,7 @@ void DynamicTimesyncDownlink::resync() {
     auto slotframeStart = getSlotframeStart();
 
     // NOTE: call resetMAC to clear the status of all the MAC components after resync
-    resetMAC();
+    resyncMAC();
 
     packetCounter = *reinterpret_cast<unsigned int*>(&pkt[7]);
     NetworkTime::setLocalNodeToNetworkTimeOffset(packetCounter *
@@ -143,7 +143,7 @@ inline void DynamicTimesyncDownlink::execute(long long slotStart)
     next();
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     if (internalStatus == DESYNCHRONIZED) {
-        resync();
+        resyncTime();
     } else {
         periodicSync();
     }
@@ -193,6 +193,7 @@ unsigned char DynamicTimesyncDownlink::missedPacket() {
     if(++missedPackets >= networkConfig.getMaxMissedTimesyncs()) {
         internalStatus = DESYNCHRONIZED;
         synchronizer->reset();
+        desyncMAC();
     } else {
         std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->lostPacket();
         clockCorrection = clockCorrectionReceiverWindow.first;
@@ -202,11 +203,18 @@ unsigned char DynamicTimesyncDownlink::missedPacket() {
     return missedPackets;
 }
 
-void DynamicTimesyncDownlink::resetMAC() {
-    ctx.getUplink()->reset();
-    ctx.getScheduleDistribution()->reset();
-    ctx.getDataPhase()->reset();
-    ctx.getStreamManager()->reset();
+void DynamicTimesyncDownlink::resyncMAC() {
+    ctx.getUplink()->resync();
+    ctx.getScheduleDistribution()->resync();
+    ctx.getDataPhase()->resync();
+    ctx.getStreamManager()->resync();
+}
+
+void DynamicTimesyncDownlink::desyncMAC() {
+    ctx.getUplink()->desync();
+    ctx.getScheduleDistribution()->desync();
+    ctx.getDataPhase()->desync();
+    ctx.getStreamManager()->desync();
 }
 
 }

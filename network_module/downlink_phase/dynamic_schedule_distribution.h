@@ -40,7 +40,7 @@ public:
     /**
      * Reset the internal status of the ScheduleDownlinkPhase after resynchronization
      */
-    void reset() override {
+    void resync() override {
         // Base class status
         header = ScheduleHeader();
         schedule.clear();
@@ -53,6 +53,10 @@ public:
         nextHeader = ScheduleHeader();
         nextSchedule.clear();
     };
+    /**
+     * This method is called after desynchronization
+     */
+    void desync() override {};
 
     virtual ~DynamicScheduleDownlinkPhase() {};
     ScheduleHeader decodePacket(Packet& pkt);

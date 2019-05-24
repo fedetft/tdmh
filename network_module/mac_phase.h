@@ -69,10 +69,16 @@ public:
     virtual void advance(long long slotStart) = 0;
 
     /**
-     * Clear the internal state of the phase.
-     * Called after resynchronization to avoid working with old data
+     * Perform functionality restoring operations.
+     * Called after resynchronization
      */
-    virtual void reset() = 0;
+    virtual void resync() = 0;
+
+    /**
+     * Clear the internal state of the phase.
+     * Called after desynchronization to avoid working with old data
+     */
+    virtual void desync() = 0;
 
 protected:
     MACContext& ctx;

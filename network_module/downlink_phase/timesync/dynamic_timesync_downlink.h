@@ -97,10 +97,6 @@ protected:
         }
         return true;
     }
-    /**
-     * Master node do not need reset since it never loses synchronization
-     */
-    void reset() override {};
 
     /**
      * Since the node is synchronized, it performs the step in the FLOPSYNC-2 controller
@@ -111,7 +107,7 @@ protected:
      * Since the node is not synchronizes, it listens to the channel for an undefined time
      * to reinitialize the FLOPSYNC-2 controller
      */
-    void resync();
+    void resyncTime();
 
     /**
      * Resets the data calculated by and useful for the controller
@@ -137,12 +133,35 @@ protected:
 
     /**
      * To be called after setHop, every time the MAC resynchronizes
-     * calls reset methods in every mac_phase containing some status
+     * calls resync methods in every mac_phase containing some status
      * to avoid working with old data
      * NOTE: used only on dynamic mac_phases since the master node
      * can never be desynchronized since it's the one giving the time.
      */
-    void resetMAC();
+    void resyncMAC();
+
+    /**
+     * To be called every time the MAC desynchronizes
+     * calls desync methods in every mac_phase containing some status
+     * NOTE: used only on dynamic mac_phases since the master node
+     * can never be desynchronized since it's the one giving the time.
+     */
+    void desyncMAC();
+
+    /**
+     * This function needs to be implemented because we are inheriting from
+     * MacPhase but is useless since the timesync is the one caling the resync
+     * and desync methods, not the other way around.
+     */
+    void resync() override {};
+
+    /**
+     * This function needs to be implemented because we are inheriting from
+     * MacPhase but is useless since the timesync is the one caling the resync
+     * and desync methods, not the other way around.
+     */
+    void desync() override {};
+
 
     //AskingRoundtripPhase askingRTP;
     miosix::TimeConversion* const tc;

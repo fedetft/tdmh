@@ -67,7 +67,7 @@ public:
     /**
      * Reset the internal status of the DataPhase after resynchronization
      */
-    void reset() override {
+    void resync() override {
         tileSlot = 0;
         scheduleID = 0;
         scheduleTiles = 0;
@@ -76,6 +76,10 @@ public:
         currentSchedule.clear();
         buffer = Packet();
     };
+    /**
+     * Called after desynchronization
+     */
+    void desync() override {};
 
     /* Five possible actions, as described by the explicit schedule */
     void sleep(long long slotStart);

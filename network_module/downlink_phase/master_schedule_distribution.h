@@ -42,9 +42,14 @@ public:
     virtual ~MasterScheduleDownlinkPhase() {};
     void execute(long long slotStart) override;
     /**
-     * Master node do not need reset since it never loses synchronization
+     * Master node do not need resync since it never loses synchronization
      */
-    void reset() override {};
+    void resync() override {};
+
+    /**
+     * Master node do not need desync since it never loses synchronization
+     */
+    void desync() override {};
     void getCurrentSchedule(long long slotStart);
     void sendSchedulePkt(long long slotstart);
     void sendInfoPkt(long long slotstart);

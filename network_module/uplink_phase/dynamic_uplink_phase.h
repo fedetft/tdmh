@@ -58,7 +58,7 @@ public:
     /**
      * Reset the internal status of the UplinkPhase after resynchronization
      */
-    void reset() override {
+    void resync() override {
         // Base class status
         nextNode = nodesCount - 1;
         // Derived class status
@@ -66,6 +66,11 @@ public:
         smeQueue.clear();
         myNeighborTable.clear(ctx.getHop());
     };
+
+    /**
+     * Called after losing the Timesync synchronization
+     */
+    void desync() {};
 
     /**
      * Starts expecting a message from the node to which the slot is assigned
