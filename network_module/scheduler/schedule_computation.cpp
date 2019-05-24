@@ -521,22 +521,7 @@ void ScheduleComputation::printStreams(const std::vector<MasterStreamInfo>& stre
         printf("%d   %d-->%d   %2d  ", stream.getKey(), stream.getSrc(),
                stream.getDst(), toInt(stream.getPeriod()));
         switch(stream.getStatus()){
-        case MasterStreamStatus::CLOSED:
-            printf("CLD");
-            break;
-        case MasterStreamStatus::LISTEN_REQ:
-            printf("LIR");
-            break;
-        case MasterStreamStatus::LISTEN:
-            printf("LIS");
-            break;
-        case MasterStreamStatus::CONNECT_REQ:
-            printf("COR");
-            break;
-        case MasterStreamStatus::CONNECT:
-            printf("CON");
-            break;
-       case MasterStreamStatus::ACCEPTED:
+        case MasterStreamStatus::ACCEPTED:
             printf("ACC");
             break;
         case MasterStreamStatus::ESTABLISHED:
@@ -544,6 +529,9 @@ void ScheduleComputation::printStreams(const std::vector<MasterStreamInfo>& stre
             break;
         case MasterStreamStatus::REJECTED:
             printf("REJ");
+            break;
+        case MasterStreamStatus::LISTEN:
+            printf("LIS");
             break;
         }
         printf("\n");
