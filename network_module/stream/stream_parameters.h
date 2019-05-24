@@ -277,6 +277,10 @@ public:
     unsigned char getSrcPort() const { return id.srcPort; }
     unsigned char getDst() const { return id.dst; }
     unsigned char getDstPort() const { return id.dstPort; }
+    Redundancy getRedundancy() const { return parameters.getRedundancy(); }
+    Period getPeriod() const { return parameters.getPeriod(); }
+    unsigned short getPayloadSize() const { return parameters.getPayloadSize(); }
+    Direction getDirection() const { return parameters.getDirection(); }
     MasterStreamStatus getStatus() const { return status; }
     unsigned int getKey() const { return id.getKey(); }
     void setStatus(MasterStreamStatus s) { status=s; }

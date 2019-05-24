@@ -142,7 +142,7 @@ void ScheduleComputation::run() {
 #else
             std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-            // Update stream_snapshot for printing result and notify REJECTED streams
+            // Update stream_collection for printing result and notify REJECTED streams
             updateStreams(newSchedule.schedule);
             // Overwrite current schedule with new one
             schedule.swap(newSchedule);
@@ -180,7 +180,7 @@ Schedule ScheduleComputation::scheduleEstablishedStreams(unsigned long id) {
     if(ENABLE_SCHEDULE_COMP_INFO_DBG)
         printf("[SC] Topology changed or a stream was removed, re-scheduling established streams\n");
     // Get already ESTABLISHED streams, to reschedule
-    auto established_streams = stream_snapshot.getStreamsWithStatus(StreamStatus::ESTABLISHED);
+    auto established_streams = stream_snapshot.getStreamsWithStatus(MasterStreamStatus::ESTABLISHED);
     if(ENABLE_SCHEDULE_COMP_INFO_DBG)
         printf("[SC] Established streams: %u\n", established_streams.size());
     // We are starting from an empty schedule, no need to check for conflicts
@@ -196,10 +196,10 @@ void ScheduleComputation::scheduleAcceptedStreams(Schedule& currSchedule) {
     if(ENABLE_SCHEDULE_COMP_INFO_DBG)
         printf("[SC] Scheduling accepted streams\n");
     // Get ACCEPTED streams, to schedule
-    auto accepted_streams = stream_snapshot.getStreamsWithStatus(StreamStatus::ACCEPTED);
+    auto accepted_streams = stream_snapshot.getStreamsWithStatus(MasterStreamStatus::ACCEPTED);
     //Sort accepted streams based on highest period first
     std::sort(accepted_streams.begin(), accepted_streams.end(),
-              [](StreamInfo a, StreamInfo b) {
+              [](MasterStreamInfo a, MasterStreamInfo b) {
                   return toInt(a.getPeriod()) > toInt(b.getPeriod());});
     if(ENABLE_SCHEDULE_COMP_INFO_DBG)
         printf("[SC] Accepted streams: %u\n", accepted_streams.size());
@@ -215,7 +215,7 @@ void ScheduleComputation::scheduleAcceptedStreams(Schedule& currSchedule) {
 
 void ScheduleComputation::updateStreams(const std::list<ScheduleElement>& final_schedule) {
     /* NOTE: Here we need to set the streams which were successfully scheduled
-       as ESTABLISHED in stream_snapshot.
+       as ESTABLISHED in stream_collection.
        We do so to be able to set later the streams that were not scheduled
        (still ACCEPTED after scheduling) as REJECTED.
 
@@ -223,52 +223,49 @@ void ScheduleComputation::updateStreams(const std::list<ScheduleElement>& final_
        because doing so would mean applying the schedule before its activation time.
        The status in StreamManager must be changed ONLY in the ScheduleDistribution
 
-       After this we find the ACCEPTED streams that were not scheduled
-       so we did not mark them as ESTABLISHED.
-       For those streams set status and send INFO element to notify remote nodes.
-       We are setting the status also in stream_mgr as an exception to the rule said above
-       because a node cannot tell if its connect request was rejected by looking at the schedule.
-       We are setting the status of the REJECTED streams before the schedule
-       activation time but this should not have unwanted side effects */
-
-    // Temporarily mark all ESTABLISHED streams as CLOSED in stream_snapshot
-    for(auto& stream: stream_snapshot.getStreams()) {
-        if(stream.getStatus() == StreamStatus::ESTABLISHED) {
-            stream_snapshot.setStreamStatus(stream.getStreamId(), StreamStatus::CLOSED);
-        }
-    }
+    /* Here we update the StreamCollection, not the snapshot */
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+    std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
     // Mark successfully scheduled Streams as ESTABLISHED in stream_snapshot
     for(auto& sched: final_schedule) {
-        stream_snapshot.setStreamStatus(sched.getStreamId(), StreamStatus::ESTABLISHED);
+        stream_collection.streamEstablished(sched.getStreamId());
     }
     // Mark streams that are still ACCEPTED after scheduling as REJECTED
     for(auto& stream: stream_snapshot.getStreams()) {
-        if(stream.getStatus() == StreamStatus::ACCEPTED) {
-            // setStreamStatus handles notifying the constructor
-            stream_snapshot.setStreamStatus(stream.getStreamId(), StreamStatus::REJECTED);
-            stream_mgr.setStreamStatus(stream.getStreamId(), StreamStatus::REJECTED);
-            // Enqueue NACK_CONNECT to inform Stream in other nodes
-            std::vector<InfoElement> infos;
-            infos.push_back(InfoElement(stream.getStreamId(), InfoType::NACK_CONNECT));
-            stream_mgr.enqueueInfo(infos);
+        if(stream.getStatus() == MasterStreamStatus::ACCEPTED) {
+            stream_collection.streamRejected(stream.getStreamId());
         }
     }
 }
 
 void ScheduleComputation::finalPrint() {
+    /* Get updated stream status from StreamCollection */
+    std::vector<MasterStreamInfo> streams;
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+        std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
+        streams = stream_collection.getStreams();
+    }
+    /* Print the schedule and updated stream status */
     if(ENABLE_STREAM_LIST_INFO_DBG) {
         printf("[SC] ## Results ##\n");
         printf("[SC] Final schedule, ID:%lu\n", schedule.id);
         printSchedule(schedule);
         printf("[SC] Stream list after scheduling:\n");
-        printStreams(stream_snapshot.getStreams());
+        printStreams(streams);
     }
     // To avoid caching of stdout
     fflush(stdout);
 }
 
 std::pair<std::list<ScheduleElement>,
-          unsigned int> ScheduleComputation::routeAndScheduleStreams(std::vector<StreamInfo>& stream_list,
+          unsigned int> ScheduleComputation::routeAndScheduleStreams(std::vector<MasterStreamInfo>& stream_list,
                                                                      const std::list<ScheduleElement>& current_schedule,
                                                                      const unsigned int schedSize) {
     if(stream_list.empty()) {
@@ -299,15 +296,6 @@ void ScheduleComputation::receiveSMEs(ReceiveUplinkMessage& msg) {
     std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
     stream_collection.receiveSMEs(msg);
-}
-
-void ScheduleComputation::open(const StreamInfo& stream) {
-#ifdef _MIOSIX
-    miosix::Lock<miosix::Mutex> lck(sched_mutex);
-#else
-    std::unique_lock<std::mutex> lck(sched_mutex);
-#endif
-    stream_mgr.addStream(stream);
 }
 
 std::pair<std::list<ScheduleElement>,
@@ -527,34 +515,34 @@ void ScheduleComputation::printSchedule(const Schedule& sched) {
     }
 }
 
-void ScheduleComputation::printStreams(const std::vector<StreamInfo>& stream_list) {
+void ScheduleComputation::printStreams(const std::vector<MasterStreamInfo>& stream_list) {
     printf("ID SRC DST  PER STS\n");
     for(auto& stream : stream_list) {
         printf("%d   %d-->%d   %2d  ", stream.getKey(), stream.getSrc(),
                stream.getDst(), toInt(stream.getPeriod()));
         switch(stream.getStatus()){
-        case StreamStatus::CLOSED:
+        case MasterStreamStatus::CLOSED:
             printf("CLD");
             break;
-        case StreamStatus::LISTEN_REQ:
+        case MasterStreamStatus::LISTEN_REQ:
             printf("LIR");
             break;
-        case StreamStatus::LISTEN:
+        case MasterStreamStatus::LISTEN:
             printf("LIS");
             break;
-        case StreamStatus::CONNECT_REQ:
+        case MasterStreamStatus::CONNECT_REQ:
             printf("COR");
             break;
-        case StreamStatus::CONNECT:
+        case MasterStreamStatus::CONNECT:
             printf("CON");
             break;
-       case StreamStatus::ACCEPTED:
+       case MasterStreamStatus::ACCEPTED:
             printf("ACC");
             break;
-        case StreamStatus::ESTABLISHED:
+        case MasterStreamStatus::ESTABLISHED:
             printf("EST");
             break;
-        case StreamStatus::REJECTED:
+        case MasterStreamStatus::REJECTED:
             printf("REJ");
             break;
         }
@@ -570,7 +558,7 @@ void ScheduleComputation::printStreamList(const std::list<std::list<ScheduleElem
                                        stream.getRx(), toInt(stream.getPeriod()));
 }
 
-std::list<std::list<ScheduleElement>> Router::run(std::vector<StreamInfo>& stream_list) {
+std::list<std::list<ScheduleElement>> Router::run(std::vector<MasterStreamInfo>& stream_list) {
     std::list<std::list<ScheduleElement>> routed_streams;
     if(ENABLE_SCHEDULE_COMP_INFO_DBG)
         printf("[SC] Routing %d stream requests\n", stream_list.size());
@@ -702,7 +690,7 @@ std::list<std::list<ScheduleElement>> Router::run(std::vector<StreamInfo>& strea
     return routed_streams;
 }
 
-std::list<unsigned char> Router::breadthFirstSearch(StreamInfo stream) {
+std::list<unsigned char> Router::breadthFirstSearch(MasterStreamInfo stream) {
     unsigned char root = stream.getSrc();
     unsigned char dest = stream.getDst();
     // Check that the source node exists in the graph
@@ -773,7 +761,7 @@ std::list<unsigned char> Router::construct_path(unsigned char node,
 }
 
 std::list<ScheduleElement> Router::pathToSchedule(const std::list<unsigned char>& path,
-                                                  const StreamInfo& stream) {
+                                                  const MasterStreamInfo& stream) {
     /* Es: path: 0 1 2 3 schedule: 0->1 1->2 2->3 */
     std::list<ScheduleElement> result;
     if(!path.size())
@@ -803,7 +791,7 @@ void Router::printPathList(const std::list<std::list<unsigned char>>& path_list)
     }
 }
 
-std::list<std::list<unsigned char>> Router::depthFirstSearch(StreamInfo stream,
+std::list<std::list<unsigned char>> Router::depthFirstSearch(MasterStreamInfo stream,
                                                                unsigned int limit) {
     unsigned char src = stream.getSrc();
     unsigned char dst = stream.getDst();

@@ -86,8 +86,6 @@ public:
      */
     void receiveSMEs(ReceiveUplinkMessage& msg);
 
-    void open(const StreamInfo& stream);
-
     StreamManager* getStreamManager() {
         return &stream_mgr;
     }
@@ -132,7 +130,7 @@ private:
      * Runs the Router and the Scheduler to produce a new schedule
      */
     std::pair<std::list<ScheduleElement>,
-              unsigned int> routeAndScheduleStreams(std::vector<StreamInfo>& stream_list,
+              unsigned int> routeAndScheduleStreams(std::vector<MasterStreamInfo>& stream_list,
                                                     const std::list<ScheduleElement>& current_schedule,
                                                     const unsigned int sched_size);
     /**
@@ -184,7 +182,7 @@ private:
         return schedule.id;
     }
 
-    void printStreams(const std::vector<StreamInfo>& stream_list);
+    void printStreams(const std::vector<MasterStreamInfo>& stream_list);
 
     void printStreamList(const std::list<std::list<ScheduleElement>>& stream_list);        
 
@@ -246,17 +244,17 @@ public:
         scheduler(scheduler), more_hops(more_hops) {};
     virtual ~Router() {};
 
-    std::list<std::list<ScheduleElement>> run(std::vector<StreamInfo>& stream_list);
+    std::list<std::list<ScheduleElement>> run(std::vector<MasterStreamInfo>& stream_list);
 
 private:
-    std::list<unsigned char> breadthFirstSearch(StreamInfo stream);
+    std::list<unsigned char> breadthFirstSearch(MasterStreamInfo stream);
     std::list<unsigned char> construct_path(unsigned char node, std::map<const unsigned char, unsigned char>& parent_of);
     /* Transform path ( 0 1 2 3 ) to schedule (0->1 1->2 2->3) */
     std::list<ScheduleElement> pathToSchedule(const std::list<unsigned char>& path,
-                                                      const StreamInfo& stream);
+                                                      const MasterStreamInfo& stream);
     void printPath(const std::list<unsigned char>& path);
     void printPathList(const std::list<std::list<unsigned char>>& path_list);
-    std::list<std::list<unsigned char>> depthFirstSearch(StreamInfo stream, unsigned int limit);
+    std::list<std::list<unsigned char>> depthFirstSearch(MasterStreamInfo stream, unsigned int limit);
     // Recursive function
     void dfsRun(unsigned char start, unsigned char target, unsigned int limit,
                 std::vector<bool>& visited, std::list<unsigned char>& path,
