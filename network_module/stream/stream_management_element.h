@@ -59,7 +59,9 @@ public:
         parameters=info.getParams();
         type.type=static_cast<unsigned int>(t);
     }
-   
+
+    //TODO: remove this constructor, you should never craft a SME
+    // by setting all the fields
     StreamManagementElement(unsigned char src, unsigned char dst,
                             unsigned char srcPort, unsigned char dstPort,
                             Period period, unsigned char payloadSize,

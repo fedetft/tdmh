@@ -193,6 +193,7 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
 }
 
 void StreamCollection::createServer(StreamManagementElement& sme) {
+    StreamId id = sme.getStreamId();
     SMEType type = sme.getType();
     StreamParameters params = sme.getParams();
     if(type == SMEType::LISTEN) {
@@ -228,3 +229,4 @@ StreamParameters negotiateParameters(StreamParameters& serverParams,
     return newParams;
 }
 
+} // namespace mxnet
