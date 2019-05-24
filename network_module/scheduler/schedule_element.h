@@ -133,10 +133,11 @@ public:
         // because it is a single-hop transmission
         content.tx = stream.getSrc();
         content.rx = stream.getDst();
-        content.redundancy = static_cast<unsigned int>(stream.getRedundancy());
-        content.period = static_cast<unsigned int>(stream.getPeriod());
-        content.payloadSize = stream.getPayloadSize();
-        content.direction = static_cast<unsigned int>(stream.getDirection());
+        auto params = stream.getParams();
+        content.redundancy = params.redundancy;
+        content.period = params.period;
+        content.payloadSize = params.payloadSize;
+        content.direction = params.direction;
         content.offset = off;
     };
 
@@ -148,10 +149,11 @@ public:
         content.dstPort = stream.getDstPort();
         content.tx = tx;
         content.rx = rx;
-        content.redundancy = static_cast<unsigned int>(stream.getRedundancy());
-        content.period = static_cast<unsigned int>(stream.getPeriod());
-        content.payloadSize = stream.getPayloadSize();
-        content.direction = static_cast<unsigned int>(stream.getDirection());
+        auto params = stream.getParams();
+        content.redundancy = params.redundancy;
+        content.period = params.period;
+        content.payloadSize = params.payloadSize;
+        content.direction = params.direction;
         content.offset = off;
     };
 
@@ -162,12 +164,17 @@ public:
         return StreamId(content.src, content.dst, content.srcPort, content.dstPort);
     }
     StreamInfo getStreamInfo() const {
-        return StreamInfo(content.src, content.dst, content.srcPort,
-                          content.dstPort,
-                          static_cast<Period>(content.period), content.payloadSize,
-                          static_cast<Direction>(content.direction),
-                          static_cast<Redundancy>(content.redundancy),
-                          StreamStatus::ESTABLISHED);
+        StreamId id;
+        id.src = content.src;
+        id.dst = content.dst;
+        id.srcPort = content.srcPort;
+        id.dstPort = content.dstPort;
+        StreamParameters params;
+        params.redundancy = content.redundancy;
+        params.period = content.period;
+        params.payloadSize = content.payloadSize;
+        params.direction = content.direction;
+        return StreamInfo(id, params, StreamStatus::ESTABLISHED);
     }
     StreamParameters getParams() const {
         return StreamParameters(content.redundancy,

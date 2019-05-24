@@ -113,7 +113,12 @@ enum class Direction
     TX_RX,           // The server and client transmit and receive data
 };
 
-struct StreamParameters {
+/* This class contains all the parameters that distinguish a Stream.
+   NOTE: use the getters to get the parameters in enum format (e.g Period)
+   while you can use the public field directly to access the unsigned int format
+   e.g (parameters.redundancy), to compare two parameters without double conversion */
+class StreamParameters {
+public:
     StreamParameters() {};
     StreamParameters(Redundancy red, Period per,
                      unsigned char size, Direction dir) {
@@ -123,11 +128,19 @@ struct StreamParameters {
         direction=static_cast<unsigned int>(dir);
     }
     /* Constructor used to create a StreamParameters from already packed data */
-    StreamParameters(unsigned int redundancy, unsigned int period,
-                     unsigned int payloadSize, unsigned int direction) : redundancy(redundancy),
-                                                                         period(period),
-                                                                         payloadSize(payloadSize),
-                                                                         direction(direction) {};
+    StreamParameters(unsigned int redundancy,
+                     unsigned int period,
+                     unsigned int payloadSize,
+                     unsigned int direction) : redundancy(redundancy),
+                                               period(period),
+                                               payloadSize(payloadSize),
+                                               direction(direction) {};
+
+    Redundancy getRedundancy() const { return static_cast<Redundancy>(redundancy); }
+    Period getPeriod() const { return static_cast<Period>(period); }
+    unsigned char getPayloadSize() const { return payloadSize; }
+    Direction getDirection() const { return static_cast<Direction>(direction); }
+
     unsigned int redundancy:3;
     unsigned int period:4;
     unsigned int payloadSize:7;
@@ -221,33 +234,17 @@ public:
     StreamInfo(StreamId id, StreamParameters params, StreamStatus status) : id(id),
                                                                             parameters(params),
                                                                             status(status) {}
-    //TODO: remove this constructor, it should never be used
-    StreamInfo(unsigned char src, unsigned char dst, unsigned char srcPort,
-               unsigned char dstPort, Period period, unsigned char payloadSize,
-               Direction direction, Redundancy redundancy,
-               StreamStatus st)
-    {
-        id.src=src;
-        id.dst=dst;
-        id.srcPort=srcPort;
-        id.dstPort=dstPort;
-        parameters.redundancy=static_cast<unsigned int>(redundancy);
-        parameters.period=static_cast<unsigned int>(period);
-        parameters.payloadSize=payloadSize;
-        parameters.direction=static_cast<unsigned int>(direction);
-        status=st;
-    }
 
     StreamId getStreamId() const { return id; }
-    StreamParameters getStreamParameters() const { return parameters; }
+    StreamParameters getParams() const { return parameters; }
     unsigned char getSrc() const { return id.src; }
     unsigned char getSrcPort() const { return id.srcPort; }
     unsigned char getDst() const { return id.dst; }
     unsigned char getDstPort() const { return id.dstPort; }
-    Redundancy getRedundancy() const { return static_cast<Redundancy>(parameters.redundancy); }
-    Period getPeriod() const { return static_cast<Period>(parameters.period); }
-    unsigned short getPayloadSize() const { return parameters.payloadSize; }
-    Direction getDirection() const { return static_cast<Direction>(parameters.direction); }
+    Redundancy getRedundancy() const { return parameters.getRedundancy(); }
+    Period getPeriod() const { return parameters.getPeriod(); }
+    unsigned short getPayloadSize() const { return parameters.getPayloadSize(); }
+    Direction getDirection() const { return parameters.getDirection(); }
     StreamStatus getStatus() const { return status; }
     unsigned int getKey() const { return id.getKey(); }
     void setStatus(StreamStatus s) { status=s; }
@@ -261,7 +258,7 @@ protected:
 };
 
 /**
- *  StreamInfo is used to save the status of a Stream internally to TDMH
+ *  MasterStreamInfo is used to save the status of a Stream internally to TDMH
  */
 class MasterStreamInfo {
 public:
@@ -273,33 +270,13 @@ public:
     MasterStreamInfo(StreamId id, StreamParameters params, MasterStreamStatus status) : id(id),
                                                                             parameters(params),
                                                                             status(status) {}
-    //TODO: remove this constructor, it should never be used
-    MasterStreamInfo(unsigned char src, unsigned char dst, unsigned char srcPort,
-               unsigned char dstPort, Period period, unsigned char payloadSize,
-               Direction direction, Redundancy redundancy,
-               MasterStreamStatus st)
-    {
-        id.src=src;
-        id.dst=dst;
-        id.srcPort=srcPort;
-        id.dstPort=dstPort;
-        parameters.redundancy=static_cast<unsigned int>(redundancy);
-        parameters.period=static_cast<unsigned int>(period);
-        parameters.payloadSize=payloadSize;
-        parameters.direction=static_cast<unsigned int>(direction);
-        status=st;
-    }
 
     StreamId getStreamId() const { return id; }
-    StreamParameters getStreamParameters() const { return parameters; }
+    StreamParameters getParams() const { return parameters; }
     unsigned char getSrc() const { return id.src; }
     unsigned char getSrcPort() const { return id.srcPort; }
     unsigned char getDst() const { return id.dst; }
     unsigned char getDstPort() const { return id.dstPort; }
-    Redundancy getRedundancy() const { return static_cast<Redundancy>(parameters.redundancy); }
-    Period getPeriod() const { return static_cast<Period>(parameters.period); }
-    unsigned short getPayloadSize() const { return parameters.payloadSize; }
-    Direction getDirection() const { return static_cast<Direction>(parameters.direction); }
     MasterStreamStatus getStatus() const { return status; }
     unsigned int getKey() const { return id.getKey(); }
     void setStatus(MasterStreamStatus s) { status=s; }

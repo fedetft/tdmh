@@ -56,7 +56,7 @@ public:
     StreamManagementElement(StreamInfo info, SMEType t)
     {
         id=info.getStreamId();
-        parameters=info.getStreamParameters();
+        parameters=info.getParams();
         type.type=static_cast<unsigned int>(t);
     }
    
