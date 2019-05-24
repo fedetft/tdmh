@@ -121,7 +121,7 @@ class StreamParameters {
 public:
     StreamParameters() {};
     StreamParameters(Redundancy red, Period per,
-                     unsigned char size, Direction dir) {
+                     unsigned short size, Direction dir) {
         redundancy=static_cast<unsigned int>(red);
         period=static_cast<unsigned int>(per);
         payloadSize=size;
@@ -138,7 +138,7 @@ public:
 
     Redundancy getRedundancy() const { return static_cast<Redundancy>(redundancy); }
     Period getPeriod() const { return static_cast<Period>(period); }
-    unsigned char getPayloadSize() const { return payloadSize; }
+    unsigned short getPayloadSize() const { return payloadSize; }
     Direction getDirection() const { return static_cast<Direction>(direction); }
 
     unsigned int redundancy:3;
