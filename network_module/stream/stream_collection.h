@@ -27,7 +27,7 @@
 
 #pragma once
 
-// For StreamId, StreamManagementElement
+// For StreamId, StreamStatus, StreamManagementElement
 #include "stream_management_element.h"
 // For InfoElement
 #include "../scheduler/schedule_element.h"
@@ -45,7 +45,7 @@ namespace mxnet {
 class StreamCollection {
 public:
     StreamCollection() {};
-    StreamCollection(std::map<StreamId, StreamInfo> map, bool modified,
+    StreamCollection(std::map<StreamId, MasterStreamInfo> map, bool modified,
                      bool removed, bool added) : collection(map),
                                                  modified_flag(modified),
                                                  removed_flag(removed),
@@ -80,17 +80,17 @@ public:
     /**
      * get the status of a given Stream
      */
-    StreamStatus getStreamStatus(StreamId id) {
+    MasterStreamStatus getStreamStatus(StreamId id) {
         return collection[id].getStatus();
     }
     /**
      * @return vector containing all the streams
      */
-    std::vector<StreamInfo> getStreams();
+    std::vector<MasterStreamInfo> getStreams();
     /**
-     * @return a vector of StreamInfo that matches the given status
+     * @return a vector of MasterStreamInfo that matches the given status
      */
-    std::vector<StreamInfo> getStreamsWithStatus(StreamStatus s);
+    std::vector<MasterStreamInfo> getStreamsWithStatus(MasterStreamStatus s);
     /**
      * @return the number of Info elements in Queue
      */
@@ -140,11 +140,11 @@ private:
     /**
      * Called by receiveSMEs(), used to update the status of the Stream 
      */
-    void updateStream(StreamInfo& stream, StreamManagementElement& sme);
+    void updateStream(MasterStreamInfo& stream, StreamManagementElement& sme);
     /**
      * Called by receiveSMEs(), used to update the status of the Server
      */
-    void updateServer(StreamInfo& server, StreamManagementElement& sme);
+    void updateServer(MasterStreamInfo& server, StreamManagementElement& sme);
     /**
      * Called by receiveSMEs(), used to create a new Stream in collection 
      */
@@ -159,7 +159,7 @@ private:
     StreamParameters negotiateParameters(StreamParameters& serverParams, StreamParameters& clientParams);
 
     /* Map containing information about all Streams and Server in the network */
-    std::map<StreamId, StreamInfo> collection;
+    std::map<StreamId, MasterStreamInfo> collection;
     /* UpdatableQueue of Info elements to send to the network */
     UpdatableQueue<StreamId, InfoElement> infoQueue;
     /* Flags that record the changes to the Streams */

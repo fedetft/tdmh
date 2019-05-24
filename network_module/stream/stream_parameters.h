@@ -183,6 +183,7 @@ public:
     unsigned int dstPort:4;
 } __attribute__((packed));
 
+/* This class contains the stream statuses as seen by the dynamic node */
 enum class StreamStatus : uint8_t
 {
      CONNECTING,      // Connect request sent by client
@@ -196,6 +197,16 @@ enum class StreamStatus : uint8_t
      LISTEN_FAILED,   // Listen request rejected by master
      LISTEN,          // Listen acknowledged by master
 };
+
+/* This class contains the stream statuses as seen by the master node */
+enum class MasterStreamStatus : uint8_t
+    {
+     ACCEPTED,        // Stream received by master and related server present
+     ESTABLISHED,     // Stream received and scheduled by master
+     REJECTED,        // Stream received by master and related server absent
+     LISTEN,          // Listen received by master
+    };
+
 
 /**
  *  StreamInfo is used to save the status of a Stream internally to TDMH
@@ -248,5 +259,58 @@ protected:
     StreamParameters parameters;
     StreamStatus status;
 };
+
+/**
+ *  StreamInfo is used to save the status of a Stream internally to TDMH
+ */
+class MasterStreamInfo {
+public:
+    MasterStreamInfo() {}
+    MasterStreamInfo(MasterStreamInfo info, MasterStreamStatus st) : id(info.id),
+                                                   parameters(info.parameters),
+                                                   status(st) {}
+
+    MasterStreamInfo(StreamId id, StreamParameters params, MasterStreamStatus status) : id(id),
+                                                                            parameters(params),
+                                                                            status(status) {}
+    //TODO: remove this constructor, it should never be used
+    MasterStreamInfo(unsigned char src, unsigned char dst, unsigned char srcPort,
+               unsigned char dstPort, Period period, unsigned char payloadSize,
+               Direction direction, Redundancy redundancy,
+               MasterStreamStatus st)
+    {
+        id.src=src;
+        id.dst=dst;
+        id.srcPort=srcPort;
+        id.dstPort=dstPort;
+        parameters.redundancy=static_cast<unsigned int>(redundancy);
+        parameters.period=static_cast<unsigned int>(period);
+        parameters.payloadSize=payloadSize;
+        parameters.direction=static_cast<unsigned int>(direction);
+        status=st;
+    }
+
+    StreamId getStreamId() const { return id; }
+    StreamParameters getStreamParameters() const { return parameters; }
+    unsigned char getSrc() const { return id.src; }
+    unsigned char getSrcPort() const { return id.srcPort; }
+    unsigned char getDst() const { return id.dst; }
+    unsigned char getDstPort() const { return id.dstPort; }
+    Redundancy getRedundancy() const { return static_cast<Redundancy>(parameters.redundancy); }
+    Period getPeriod() const { return static_cast<Period>(parameters.period); }
+    unsigned short getPayloadSize() const { return parameters.payloadSize; }
+    Direction getDirection() const { return static_cast<Direction>(parameters.direction); }
+    MasterStreamStatus getStatus() const { return status; }
+    unsigned int getKey() const { return id.getKey(); }
+    void setStatus(MasterStreamStatus s) { status=s; }
+    void setRedundancy(Redundancy r) { parameters.redundancy=static_cast<unsigned int>(r); }
+    void setPeriod(Period p) { parameters.period=static_cast<unsigned int>(p); }
+
+protected:
+    StreamId id;
+    StreamParameters parameters;
+    MasterStreamStatus status;
+};
+
 
 } /* namespace mxnet */

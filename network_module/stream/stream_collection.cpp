@@ -25,12 +25,13 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
+#include "stream_collection.h"
 #include <algorithm>
 #include <set>
 
 namespace mxnet {
 
-StreamStatus StreamCollection::receiveSMEs(ReceiveUplinkMessage& msg) {
+void StreamCollection::receiveSMEs(ReceiveUplinkMessage& msg) {
     auto numSME = msg.getNumPacketSMEs();
     for(int i=0; i < numSME; i++) {
         auto sme = msg.getSME();
@@ -39,12 +40,13 @@ StreamStatus StreamCollection::receiveSMEs(ReceiveUplinkMessage& msg) {
         auto it = collection.find(id);
         // If stream/server is present in collection
         if(it != collection.end()) {
+            auto stream = it->second;
             // SME belongs to stream
             if(id.isStream())
-                updateStream(*it, sme);
+                updateStream(stream, sme);
             // SME belongs to server
             else
-                updateServer(*it, sme);
+                updateServer(stream, sme);
         }
         // If stream/server is not present in collection
         else {
@@ -58,50 +60,50 @@ StreamStatus StreamCollection::receiveSMEs(ReceiveUplinkMessage& msg) {
     }
 }
 
-StreamStatus StreamCollection::streamEstablished(StreamId id) {
+void StreamCollection::streamEstablished(StreamId id) {
     // Check that this is a stream
     if(id.isServer())
         return;
     auto it = collection.find(id);
     // If stream is present in collection
     if(it != collection.end()) {
-        StreamInfo& stream = it->second;
-        if(stream.getStatus() == StreamStatus::ACCEPTED)
-            stream.setStatus(StreamStatus::ESTABLISHED);
+        MasterStreamInfo& stream = it->second;
+        if(stream.getStatus() == MasterStreamStatus::ACCEPTED)
+            stream.setStatus(MasterStreamStatus::ESTABLISHED);
     }
 }
 
-StreamStatus StreamCollection::streamRejected(StreamId id) {
+void StreamCollection::streamRejected(StreamId id) {
     // Check that this is a stream
     if(id.isServer())
         return;
     auto it = collection.find(id);
     // If stream is present in collection
     if(it != collection.end()) {
-        StreamInfo& stream = it->second;
-        if(stream.getStatus() == StreamStatus::ACCEPTED)
-            stream.setStatus(StreamStatus::REJECTED);
+        MasterStreamInfo& stream = it->second;
+        if(stream.getStatus() == MasterStreamStatus::ACCEPTED)
+            stream.setStatus(MasterStreamStatus::REJECTED);
     }
 }
 
-std::vector<StreamInfo> StreamCollection::getStreams() {
-    std::vector<StreamInfo> result;
+std::vector<MasterStreamInfo> StreamCollection::getStreams() {
+    std::vector<MasterStreamInfo> result;
     for(auto& stream : collection)
         result.push_back(stream.second);
     return result;
 }
 
-bool isSchedulable(std::pair<StreamId,StreamInfo> stream) {
-    StreamStatus status = stream.second.getStatus();
-    return (status == StreamStatus::ACCEPTED);
+bool isSchedulable(std::pair<StreamId,MasterStreamInfo> stream) {
+    MasterStreamStatus status = stream.second.getStatus();
+    return (status == MasterStreamStatus::ACCEPTED);
 }
 
 bool StreamCollection::hasSchedulableStreams() {
     return std::count_if(collection.begin(), collection.end(), isSchedulable);
 }
 
-std::vector<StreamInfo> StreamCollection::getStreamsWithStatus(StreamStatus s) {
-    std::vector<StreamInfo> result;
+std::vector<MasterStreamInfo> StreamCollection::getStreamsWithStatus(MasterStreamStatus s) {
+    std::vector<MasterStreamInfo> result;
     for (auto& stream: collection) {
         if(stream.second.getStatus() == s)
             result.push_back(stream.second);
@@ -111,33 +113,32 @@ std::vector<StreamInfo> StreamCollection::getStreamsWithStatus(StreamStatus s) {
 
 std::vector<InfoElement> StreamCollection::dequeueInfo(unsigned int num) {
     std::vector<InfoElement> result;
-    for(unsigned int i = 0; i < num; i++) {
-        if(infoQueue.empty())
-            return;
-        result.push_back(infoQueue.front());
-        infoQueue.pop();
+    unsigned int i=0;
+    while(i<num && !infoQueue.empty()) {
+        result.push_back(infoQueue.dequeue());
+        i++;
     }
     return result;
 }
 
-void StreamCollection::updateStream(StreamInfo& stream, StreamManagementElement& sme) {
+void StreamCollection::updateStream(MasterStreamInfo& stream, StreamManagementElement& sme) {
     StreamId id = sme.getStreamId();
     SMEType type = sme.getType();
     auto status = stream.getStatus();
-    if(status == StreamStatus::ESTABLISHED && type == SMEType::CLOSED) {
+    if(status == MasterStreamStatus::ESTABLISHED && type == SMEType::CLOSED) {
         // Delete stream because it has been closed
-        map.erase(id);
+        collection.erase(id);
         // Set flags
         removed_flag = true;
         modified_flag = true;
     }
 }
 
-void StreamCollection::updateServer(StreamInfo& server, StreamManagementElement& sme) {
+void StreamCollection::updateServer(MasterStreamInfo& server, StreamManagementElement& sme) {
     StreamId id = sme.getStreamId();
     SMEType type = sme.getType();
     auto status = server.getStatus();
-    if(status == StreamStatus::LISTEN) {
+    if(status == MasterStreamStatus::LISTEN) {
         if(type == SMEType::CLOSED) {
             // Delete server because it has been closed by remote node
             map.erase(id);
@@ -164,7 +165,7 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
             // If the direction of client and server don't match, reject stream
             if(toInt(serverParams.direction) != toInt(clientParams.direction)) {
                 // Create REJECTED stream
-                collection[id] = StreamInfo(id, clientParams, StreamStatus::REJECTED);
+                collection[id] = MasterStreamInfo(id, clientParams, MasterStreamStatus::REJECTED);
                 // Enqueue STREAM_REJECT info element
                 infoQueue.enqueue(id, InfoElement(id, InfoType::STREAM_REJECT));
             }
@@ -173,7 +174,7 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
                 // Negotiate parameters between client and servers
                 auto newParams = negotiateParameters(serverParams, clientParams);
                 // Create ACCEPTED stream with new parameters
-                collection[id] = StreamInfo(id, newParams, StreamStatus::ACCEPTED);
+                collection[id] = MasterStreamInfo(id, newParams, MasterStreamStatus::ACCEPTED);
                 // Set flags
                 added_flag = true;
                 modified_flag = true;
@@ -182,7 +183,7 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
         // Server absent
         else {
             // Create REJECTED stream
-            collection[id] = StreamInfo(id, clientParams, StreamStatus::REJECTED);
+            collection[id] = MasterStreamInfo(id, clientParams, MasterStreamStatus::REJECTED);
             // Enqueue STREAM_REJECT info element
             infoQueue.enqueue(id, InfoElement(id, InfoType::STREAM_REJECT));
         }
@@ -194,7 +195,7 @@ void StreamCollection::createServer(StreamManagementElement& sme) {
     StreamParameters params = sme.getParams();
     if(type == SMEType::LISTEN) {
         // Create server
-        collection[id] = StreamInfo(id, params, StreamStatus::LISTEN);
+        collection[id] = MasterStreamInfo(id, params, MasterStreamStatus::LISTEN);
         // Enqueue SERVER_OPENED info element
         infoQueue.enqueue(id, InfoElement(id, InfoType::SERVER_OPENED));
     }
