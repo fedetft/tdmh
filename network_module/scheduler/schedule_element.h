@@ -124,7 +124,7 @@ public:
     }
 
     // Constructor for single-hop stream
-    ScheduleElement(StreamInfo stream, unsigned int off=0) {
+    ScheduleElement(MasterStreamInfo stream, unsigned int off=0) {
         content.src = stream.getSrc();
         content.dst = stream.getDst();
         content.srcPort = stream.getSrcPort();
@@ -142,7 +142,7 @@ public:
     };
 
     // Constructor for multi-hop stream
-    ScheduleElement(StreamInfo stream, unsigned char tx, unsigned char rx, unsigned int off=0) {
+    ScheduleElement(MasterStreamInfo stream, unsigned char tx, unsigned char rx, unsigned int off=0) {
         content.src = stream.getSrc();
         content.dst = stream.getDst();
         content.srcPort = stream.getSrcPort();
