@@ -453,7 +453,6 @@ void StreamManager::removeStream(StreamId id) {
     int fd = stream->getFd();
     streams.erase(id);
     fdt.erase(fd);
-    delete stream.get();
     freeClientPort(id.srcPort);
 }
 
@@ -471,7 +470,6 @@ void StreamManager::removeServer(unsigned char port) {
         int fd = server->getFd();
         servers.erase(port); 
         fdt.erase(fd);
-        delete server.get();
 }
 
 void StreamManager::printStreamStatus(StreamId id, StreamStatus status) {
