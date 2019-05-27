@@ -72,17 +72,14 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
         freeClientPort(srcPort);
         return -1;
     }
-    int fd = fdcounter++;
-    auto streamInfo = StreamInfo(streamId, params, StreamStatus::CONNECTING);
-    auto* stream = new Stream(fd, streamInfo);
-    streams[streamId] = stream;
-    fdt[fd] = stream;
+    StreamInfo streamInfo(streamId, params, StreamStatus::CONNECTING);
+    int fd = addStream(streamInfo);
     map_mutex.unlock();
 
     printStreamStatus(streamId, streamInfo.getStatus());
     // Make the stream wait for a schedule
     // NOTE: Make sure that stream enqueues a CONNECT SME
-    int error = stream->connect(this);
+    int error = fdt[fd]->connect(this);
     if(error != 0) {
         removeStream(streamId);
         return -1;
@@ -171,16 +168,13 @@ int StreamManager::listen(unsigned char port, StreamParameters params) {
         map_mutex.unlock();
         return -1;
     }
-    int fd = fdcounter++;
-    auto serverInfo = StreamInfo(serverId, params, StreamStatus::LISTEN_WAIT);
-    auto* server = new Server(fd, serverInfo);
-    servers[port] = server;
-    fdt[fd] = server;
+    StreamInfo serverInfo(serverId, params, StreamStatus::LISTEN_WAIT);
+    int fd = addServer(serverInfo);
     map_mutex.unlock();
 
     printServerStatus(serverId, serverInfo.getStatus());
     // Make the server wait for an info element confirming LISTEN status
-    int error = server->listen(this);
+    int error = fdt[fd]->listen(this);
     if(error != 0) {
         unsigned char port = serverId.dstPort;
         removeServer(port);
@@ -288,32 +282,23 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
             // ACCEPT_WAIT status and register it in corresponding server
             if(serverit != servers.end() &&
                (serverit->second->getStatus() == StreamStatus::LISTEN)) {
-                int fd = fdcounter++;
-                auto streamInfo = StreamInfo(streamId, params, StreamStatus::ACCEPT_WAIT);
-                auto* stream = new Stream(fd, streamInfo);
-                streams[streamId] = stream;
-                fdt[fd] = stream;
+                StreamInfo streamInfo(streamId, params, StreamStatus::ACCEPT_WAIT);
+                int fd = addStream(streamInfo);
                 auto server = serverit->second;
                 server->addPendingStream(fd);
             }
             // If the corresponding server is not present,
             else {
                 // 1. Create new stream in CLOSE_WAIT status
-                int fd = fdcounter++;
-                auto streamInfo = StreamInfo(streamId, params, StreamStatus::CLOSE_WAIT);
-                auto* stream = new Stream(fd, streamInfo);
-                streams[streamId] = stream;
-                fdt[fd] = stream;
+                StreamInfo streamInfo(streamId, params, StreamStatus::CLOSE_WAIT);
+                int fd = addStream(streamInfo);
                 // NOTE: Make sure that stream enqueues a CLOSED SME
-                stream->close(this);
+                fdt[fd]->close(this);
                 // 2. Create new server in CLOSE_WAIT status
-                fd = fdcounter++;
-                auto serverInfo = StreamInfo(serverId, params, StreamStatus::CLOSE_WAIT);
-                auto* server = new Server(fd, serverInfo);
-                servers[port] = server;
-                fdt[fd] = server;
+                StreamInfo serverInfo(serverId, params, StreamStatus::CLOSE_WAIT);
+                fd = addServer(serverInfo);
                 // NOTE: Make sure that the server enqueues a CLOSED SME
-                server->close(this);
+                fdt[fd]->close(this);
             }
         }
     }
@@ -348,13 +333,10 @@ void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
             else if(id.isServer() && info.getType() == InfoType::SERVER_OPENED) {
                 // Create server in CLOSE_WAIT to warn the master node
                 // that this server is actually closed
-                int fd = fdcounter++;
-                auto serverInfo = StreamInfo(id, info.getParams(), StreamStatus::CLOSE_WAIT);
-                auto* server = new Server(fd, serverInfo);
-                servers[port] = server;
-                fdt[fd] = server;
+                StreamInfo serverInfo(id, info.getParams(), StreamStatus::CLOSE_WAIT);
+                int fd = addServer(serverInfo);
                 // NOTE: Make sure that the server enqueues a CLOSED SME
-                server->close(this);
+                fdt[fd]->close(this);
             }
         }
         else {
@@ -431,21 +413,30 @@ void StreamManager::freeClientPort(unsigned char port) {
     clientPorts[port] = false;
 }
 
-void StreamManager::removeServer(unsigned char port) {
+int StreamManager::addStream(StreamInfo streamInfo) {
+    int fd = fdcounter++;
 #ifdef _MIOSIX
-    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+    miosix::intrusive_ref_ptr<Stream> stream(new Stream(fd, streamInfo));
 #else
-    std::unique_lock<std::mutex> lck(map_mutex);
+    std::shared_ptr<Stream> stream(new Stream(fd, streamInfo));
 #endif
-    auto serverit = servers.find(port);
-    if(serverit == servers.end())
-        return;
+    StreamId streamId = streamInfo.getStreamId();
+    streams[streamId] = stream;
+    fdt[fd] = stream;
+    return fd;
+}
 
-    auto server = serverit->second;
-    int fd = server->getFd();
-    servers.erase(port); 
-    fdt.erase(fd);
-    delete server.get();
+int StreamManager::addServer(StreamInfo serverInfo) {
+    int fd = fdcounter++;
+#ifdef _MIOSIX
+    miosix::intrusive_ref_ptr<Server> server(new Server(fd, serverInfo));
+#else
+    std::shared_ptr<Server> server(new Server(fd, serverInfo));
+#endif
+    unsigned char port = serverInfo.getStreamId().dstPort;
+    servers[port] = server;
+    fdt[fd] = server;
+    return fd;
 }
 
 void StreamManager::removeStream(StreamId id) {
@@ -464,6 +455,23 @@ void StreamManager::removeStream(StreamId id) {
     fdt.erase(fd);
     delete stream.get();
     freeClientPort(id.srcPort);
+}
+
+void StreamManager::removeServer(unsigned char port) {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        auto serverit = servers.find(port);
+        if(serverit == servers.end())
+            return;
+
+        auto server = serverit->second;
+        int fd = server->getFd();
+        servers.erase(port); 
+        fdt.erase(fd);
+        delete server.get();
 }
 
 void StreamManager::printStreamStatus(StreamId id, StreamStatus status) {

@@ -156,16 +156,30 @@ private:
     // Used by StreamManager::removeStream, sets a given port as free
     void freeClientPort(unsigned char port);
 
-    // Closes and removes a Server on a given port from the maps
-    // deleting the actual Server object
-    // NOTE: remember to lock and unlock map_mutex
-    void removeServer(unsigned char port);
+    // Performs the operations needed to add a new Stream to the maps
+    // It allocates a new fd number, it creates a new stream and adds it
+    // to the map streams and fdt
+    // returning the fd
+    // NOTE: to be called with the mutex locked
+    int addStream(StreamInfo streamInfo);
+
+    // Performs the operations needed to add a new Server to the maps
+    // It allocates a new fd number, it creates a new server and adds it
+    // to the map servers and fdt
+    // returning the fd
+    // NOTE: to be called with the mutex locked
+    int addServer(StreamInfo serverInfo);
 
     // Closes and removes a given Stream from the maps
     // deleting the actual Stream object
     // Finally calling freeClientPort on the source port
     // NOTE: remember to lock and unlock map_mutex
     void removeStream(StreamId id);
+
+    // Closes and removes a Server on a given port from the maps
+    // deleting the actual Server object
+    // NOTE: remember to lock and unlock map_mutex
+    void removeServer(unsigned char port);
 
     // Prints StreamId and status of a given Stream 
     void printStreamStatus(StreamId id, StreamStatus status);
