@@ -211,6 +211,7 @@ public:
      */
     RuntimeBitset getSenderTopology() const { return topology; }
 
+private:
     /**
      * @return the next TopologyElement, extracting it from the packet
      */
@@ -224,8 +225,6 @@ public:
     StreamManagementElement getSME() {
         return StreamManagementElement::deserialize(packet);
     }
-
-private:
 
     /**
      * Checks the IEEE 802.15.4 header of the current packet.

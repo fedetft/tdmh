@@ -284,13 +284,14 @@ std::pair<std::list<ScheduleElement>,
     return scheduleStreams(routed_streams, current_schedule, schedSize);
 }
 
-void ScheduleComputation::receiveSMEs(ReceiveUplinkMessage& msg) {
+void ScheduleComputation::receiveSMEs(UpdatableQueue<StreamId,
+                                      StreamManagementElement>& smes) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
     std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-    stream_collection.receiveSMEs(msg);
+    stream_collection.receiveSMEs(smes);
 }
 
 std::pair<std::list<ScheduleElement>,

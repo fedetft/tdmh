@@ -57,19 +57,19 @@ void MasterUplinkPhase::execute(long long slotStart)
     
         if(message.getAssignee() == myId)
         {
-            topology.handleForwardedTopologies(message);
-            scheduleComputation.receiveSMEs(message);
-            
+            message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
             for(int i = 1; i < numPackets; i++)
             {
                 // NOTE: If we fail to receive a Packet of the UplinkMessage,
                 // do not wait for remaining packets
                 // TODO: do recv at next uplink slot (slotstart + slot duration)
                 if(message.recv(ctx, slotStart) == false) break;
-                topology.handleForwardedTopologies(message);
-                scheduleComputation.receiveSMEs(message);
+                message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
             }
         }
+        // Receive topology and smes from the network
+        topology.handleForwardedTopologies(topologyQueue);
+        scheduleComputation.receiveSMEs(smeQueue);
         
     } else {
         topology.missedMessage(currentNode);

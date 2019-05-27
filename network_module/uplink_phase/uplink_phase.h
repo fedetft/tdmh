@@ -32,6 +32,8 @@
 #include "../mac_context.h"
 #include "../downlink_phase/timesync/networktime.h"
 #include "../stream/stream_manager.h"
+#include "../util/updatable_queue.h"
+#include "topology/topology_element.h"
 
 namespace mxnet {
 
@@ -94,6 +96,10 @@ protected:
     const unsigned char nodesCount; ///< Cached NetworkConfiguration::getMaxNodes()
     
     unsigned char nextNode;         ///< Next node to talk in the round-robin
+    // Queues used in dynamic nodes to collect and forward topologies and sme
+    // and in master node to process received topologies and sme
+    UpdatableQueue<unsigned char,TopologyElement> topologyQueue;
+    UpdatableQueue<StreamId,StreamManagementElement> smeQueue;
 };
 
 } // namespace mxnet

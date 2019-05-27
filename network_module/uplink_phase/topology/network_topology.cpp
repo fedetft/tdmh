@@ -90,13 +90,14 @@ void NetworkTopology::missedMessage(unsigned char currentNode) {
     }
 }
 
-void NetworkTopology::handleForwardedTopologies(ReceiveUplinkMessage& message) {
+void NetworkTopology::handleForwardedTopologies(UpdatableQueue<unsigned char,
+                                                TopologyElement>& topologies) {
     // Lock mutex to access NetworkGraph (shared with ScheduleComputation).
     graph_mutex.lock();
 
-    int numTopologies = message.getNumPacketTopologies();
+    int numTopologies = topologies.size();
     for(int i=0; i<numTopologies; i++) {
-        doReceivedTopology(message.getForwardedTopology());
+        doReceivedTopology(topologies.dequeue());
     }
 
     // Unlock mutex, we finished modifying the graph

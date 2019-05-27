@@ -31,10 +31,11 @@
 
 namespace mxnet {
 
-void StreamCollection::receiveSMEs(ReceiveUplinkMessage& msg) {
-    auto numSME = msg.getNumPacketSMEs();
+void StreamCollection::receiveSMEs(UpdatableQueue<StreamId,
+                                   StreamManagementElement>& smes) {
+    auto numSME = smes.size();
     for(int i=0; i < numSME; i++) {
-        auto sme = msg.getSME();
+        auto sme = smes.dequeue();
         StreamId id = sme.getStreamId();
 
         auto it = collection.find(id);

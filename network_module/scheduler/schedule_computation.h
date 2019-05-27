@@ -84,7 +84,7 @@ public:
     /**
      * Receives a vector of SME from the network and register them in the StreamCollection
      */
-    void receiveSMEs(ReceiveUplinkMessage& msg);
+    void receiveSMEs(UpdatableQueue<StreamId, StreamManagementElement>& smes);
 
     StreamManager* getStreamManager() {
         return &stream_mgr;

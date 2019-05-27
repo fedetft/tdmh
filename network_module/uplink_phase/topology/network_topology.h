@@ -58,7 +58,8 @@ public:
 
     void missedMessage(unsigned char currentNode);
 
-    void handleForwardedTopologies(ReceiveUplinkMessage& message);
+    void handleForwardedTopologies(UpdatableQueue<unsigned char,
+                                   TopologyElement>& topologies);
 
     std::vector<std::pair<unsigned char, unsigned char>> getEdges() {
         std::vector<std::pair<unsigned char, unsigned char>> result;

@@ -30,7 +30,6 @@
 
 #include "../network_configuration.h"
 #include "uplink_phase.h"
-#include "../util/updatable_queue.h"
 #include "topology/neighbor_table.h"
 
 namespace mxnet {
@@ -86,8 +85,6 @@ public:
     void sendMyUplink(long long slotStart);
 
 private:
-    UpdatableQueue<unsigned char,TopologyElement> topologyQueue;
-    UpdatableQueue<StreamId,StreamManagementElement> smeQueue;
     NeighborTable myNeighborTable;
 };
 

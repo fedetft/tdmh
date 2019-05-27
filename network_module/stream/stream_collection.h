@@ -55,7 +55,8 @@ public:
     /**
      * Receives a vector of SME from the network
      */
-    void receiveSMEs(ReceiveUplinkMessage& msg);
+    void receiveSMEs(UpdatableQueue<StreamId,
+                     StreamManagementElement>& smes);
     /**
      * The given stream has been scheduled
      */
