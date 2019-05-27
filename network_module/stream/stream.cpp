@@ -107,40 +107,50 @@ int Stream::read(void* data, int maxSize) {
 
 void Stream::putPacket(const Packet& data) {
     // Lock mutex for concurrent access at StreamInfo
-    status_mutex.lock();
-    Redundancy r = info.getRedundancy();
-    status_mutex.unlock();
-
-    // Lock mutex for concurrent access at recvBuffer
-    recv_mutex.lock();
-    // Avoid overwriting valid data
-    if(data.size() != 0)
-        recvBuffer = data;
-
-    bool wakeRead = false;
-    //TODO: Maybe it's better to handle redundancy
-    // with calls from the dataphase
-    // No redundancy: notify right away
-    if(r == Redundancy::NONE) {
-        wakeRead = true;
+    Redundancy r;
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
+        r = info.getRedundancy();
     }
-    // Double redundancy: notify after receiving twice
-    else if((r == Redundancy::DOUBLE) ||
-            (r == Redundancy::DOUBLE_SPATIAL)) {
-        if(++timesRecv >= 2){
-            timesRecv = 0;
+    bool wakeRead = false;
+    // Lock mutex for concurrent access at recvBuffer
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(recv_mutex);
+#else
+        std::unique_lock<std::mutex> lck(recv_mutex);
+#endif
+        // Avoid overwriting valid data
+        if(data.size() != 0)
+            recvBuffer = data;
+
+        //TODO: Maybe it's better to handle redundancy
+        // with calls from the dataphase
+        // No redundancy: notify right away
+        if(r == Redundancy::NONE) {
             wakeRead = true;
         }
+        // Double redundancy: notify after receiving twice
+        else if((r == Redundancy::DOUBLE) ||
+                (r == Redundancy::DOUBLE_SPATIAL)) {
+            if(++timesRecv >= 2){
+                timesRecv = 0;
+                wakeRead = true;
+            }
+        }
+        // Triple redundancy: notify after receiving three times
+        else if((r == Redundancy::TRIPLE) ||
+                (r == Redundancy::TRIPLE_SPATIAL)) {
+            if(++timesRecv >= 3){
+                timesRecv = 0;
+                wakeRead = true;
+            }
+        }
     }
-    // Triple redundancy: notify after receiving three times
-    else if((r == Redundancy::TRIPLE) ||
-            (r == Redundancy::TRIPLE_SPATIAL)) {
-        if(++timesRecv >= 3){ 
-            timesRecv = 0;
-            wakeRead = true;
-        }  
-    }
-    recv_mutex.unlock();
     if(wakeRead) {
         // Wake up the read method
 #ifdef _MIOSIX
@@ -153,41 +163,51 @@ void Stream::putPacket(const Packet& data) {
 
 void Stream::getPacket(Packet& data) {
     // Lock mutex for concurrent access at StreamInfo
-    status_mutex.lock();
-    Redundancy r = info.getRedundancy();
-    status_mutex.unlock();
-
-    // Lock mutex for concurrent access at recvBuffer
-    send_mutex.lock();
-    data = sendBuffer;
-
-    bool wakeWrite = false;
-    //TODO: Maybe it's better to handle redundancy
-    // with calls from the dataphase
-    // No redundancy: send value once
-    if(r == Redundancy::NONE) {
-        sendBuffer.clear();
-        wakeWrite = true;
+    Redundancy r;
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
+        r = info.getRedundancy();
     }
-    // Double redundancy: send value twice before clear and notify
-    else if((r == Redundancy::DOUBLE) ||
-            (r == Redundancy::DOUBLE_SPATIAL)) {
-        if(++timesSent >= 2){
-            timesSent = 0;
+    bool wakeWrite = false;
+    // Lock mutex for concurrent access at sendBuffer
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(send_mutex);
+#else
+        std::unique_lock<std::mutex> lck(send_mutex);
+#endif
+        data = sendBuffer;
+
+        //TODO: Maybe it's better to handle redundancy
+        // with calls from the dataphase
+        // No redundancy: send value once
+        if(r == Redundancy::NONE) {
             sendBuffer.clear();
             wakeWrite = true;
         }
+        // Double redundancy: send value twice before clear and notify
+        else if((r == Redundancy::DOUBLE) ||
+                (r == Redundancy::DOUBLE_SPATIAL)) {
+            if(++timesSent >= 2){
+                timesSent = 0;
+                sendBuffer.clear();
+                wakeWrite = true;
+            }
+        }
+        // Triple redundancy: send value three times before clear and notify
+        else if((r == Redundancy::TRIPLE) ||
+                (r == Redundancy::TRIPLE_SPATIAL)) {
+            if(++timesSent >= 3){ 
+                timesSent = 0;
+                sendBuffer.clear();
+                wakeWrite = true;
+            }  
+        }
     }
-    // Triple redundancy: send value three times before clear and notify
-    else if((r == Redundancy::TRIPLE) ||
-            (r == Redundancy::TRIPLE_SPATIAL)) {
-        if(++timesSent >= 3){ 
-            timesSent = 0;
-            sendBuffer.clear();
-            wakeWrite = true;
-        }  
-    }
-    send_mutex.unlock();
     if(wakeWrite) {
         // Wake up the write method
 #ifdef _MIOSIX
@@ -200,18 +220,25 @@ void Stream::getPacket(Packet& data) {
 
 void Stream::addedStream() {
     // Lock mutex for concurrent access at StreamInfo
-    status_mutex.lock();
-    switch(getStatus()) {
-    case StreamStatus::CONNECTING:
-        setStatus(StreamStatus::ESTABLISHED);
-        break;
-    case StreamStatus::REMOTELY_CLOSED:
-        setStatus(StreamStatus::REOPENED);
-        break;
-    default:
-        break;
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
+
+        status_mutex.lock();
+        switch(getStatus()) {
+        case StreamStatus::CONNECTING:
+            setStatus(StreamStatus::ESTABLISHED);
+            break;
+        case StreamStatus::REMOTELY_CLOSED:
+            setStatus(StreamStatus::REOPENED);
+            break;
+        default:
+            break;
+        }
     }
-    status_mutex.unlock();
     // Wake up the connect() method
 #ifdef _MIOSIX
     connect_cv.signal();
@@ -223,24 +250,29 @@ void Stream::addedStream() {
 bool Stream::removedStream() {
     bool deletable = false;
     // Lock mutex for concurrent access at StreamInfo
-    status_mutex.lock();
-    switch(getStatus()) {
-    case StreamStatus::ACCEPT_WAIT:
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
+        switch(getStatus()) {
+        case StreamStatus::ACCEPT_WAIT:
             deletable = true;
             break;
-    case StreamStatus::ESTABLISHED:
-        setStatus(StreamStatus::REMOTELY_CLOSED);
-        break;
-    case StreamStatus::REOPENED:
-        setStatus(StreamStatus::REMOTELY_CLOSED);
-        break;
-    case StreamStatus::CLOSE_WAIT:
-        deletable = true;
-        break;
-    default:
-        break;
+        case StreamStatus::ESTABLISHED:
+            setStatus(StreamStatus::REMOTELY_CLOSED);
+            break;
+        case StreamStatus::REOPENED:
+            setStatus(StreamStatus::REMOTELY_CLOSED);
+            break;
+        case StreamStatus::CLOSE_WAIT:
+            deletable = true;
+            break;
+        default:
+            break;
+        }
     }
-    status_mutex.unlock();
     // Wake up the write and read methods
 #ifdef _MIOSIX
     send_cv.signal();
@@ -254,15 +286,20 @@ bool Stream::removedStream() {
 
 void Stream::rejectedStream() {
     // Lock mutex for concurrent access at StreamInfo
-    status_mutex.lock();
-    switch(getStatus()) {
-    case StreamStatus::CONNECTING:
-        setStatus(StreamStatus::CONNECT_FAILED);
-        break;
-    default:
-        break;
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
+        switch(getStatus()) {
+        case StreamStatus::CONNECTING:
+            setStatus(StreamStatus::CONNECT_FAILED);
+            break;
+        default:
+            break;
+        }
     }
-    status_mutex.unlock();
     // Wake up the connect() method
 #ifdef _MIOSIX
     connect_cv.signal();
@@ -273,7 +310,11 @@ void Stream::rejectedStream() {
 
 void Stream::closedServer(StreamManager* mgr) {
     // Lock mutex for concurrent access at StreamInfo
-    status_mutex.lock();
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+    std::unique_lock<std::mutex> lck(status_mutex);
+#endif
     switch(getStatus()) {
     case StreamStatus::ACCEPT_WAIT:
         setStatus(StreamStatus::CLOSE_WAIT);
@@ -283,33 +324,37 @@ void Stream::closedServer(StreamManager* mgr) {
     default:
         break;
     }
-    status_mutex.unlock();
 }
 
 bool Stream::close(StreamManager* mgr) {
     bool deletable = false;
     // Lock mutex for concurrent access at StreamInfo
-    status_mutex.lock();
-    switch(getStatus()) {
-    case StreamStatus::ESTABLISHED:
-        setStatus(StreamStatus::CLOSE_WAIT);
-        // Send CLOSED SME
-        mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
-        break;
-    case StreamStatus::REMOTELY_CLOSED:
-        deletable = true;
-        break;
-    case StreamStatus::REOPENED:
-        setStatus(StreamStatus::CLOSE_WAIT);
-        break;
-    case StreamStatus::CLOSE_WAIT:
-        //NOTE: if we were created in CLOSE_WAIT, we need to send CLOSED SME
-        mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
-        break;
-    default:
-        break;
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
+        switch(getStatus()) {
+        case StreamStatus::ESTABLISHED:
+            setStatus(StreamStatus::CLOSE_WAIT);
+            // Send CLOSED SME
+            mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+            break;
+        case StreamStatus::REMOTELY_CLOSED:
+            deletable = true;
+            break;
+        case StreamStatus::REOPENED:
+            setStatus(StreamStatus::CLOSE_WAIT);
+            break;
+        case StreamStatus::CLOSE_WAIT:
+            //NOTE: if we were created in CLOSE_WAIT, we need to send CLOSED SME
+            mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+            break;
+        default:
+            break;
+        }
     }
-    status_mutex.unlock();
     // Wake up the write and read methods
 #ifdef _MIOSIX
     send_cv.signal();
@@ -323,7 +368,11 @@ bool Stream::close(StreamManager* mgr) {
 
 void Stream::periodicUpdate(StreamManager* mgr) {
     // Lock mutex for concurrent access at StreamInfo
-    status_mutex.lock();
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+    std::unique_lock<std::mutex> lck(status_mutex);
+#endif
     switch(getStatus()) {
     case StreamStatus::CONNECTING:
         if(smeTimeout-- <= 0) {
@@ -349,33 +398,37 @@ void Stream::periodicUpdate(StreamManager* mgr) {
     default:
         break;
     }
-    status_mutex.unlock();
 }
 
 bool Stream::desync() {
     bool deletable = false;
     // Lock mutex for concurrent access at StreamInfo
-    status_mutex.lock();
-    switch(getStatus()) {
-    case StreamStatus::CONNECTING:
-        setStatus(StreamStatus::CONNECT_FAILED);
-        break;
-    case StreamStatus::ACCEPT_WAIT:
-        deletable = true;
-        break;
-    case StreamStatus::ESTABLISHED:
-        setStatus(StreamStatus::REMOTELY_CLOSED);
-        break;
-    case StreamStatus::REOPENED:
-        setStatus(StreamStatus::REMOTELY_CLOSED);
-        break;
-    case StreamStatus::CLOSE_WAIT:
-        deletable = true;
-        break;
-    default:
-        break;
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
+        switch(getStatus()) {
+        case StreamStatus::CONNECTING:
+            setStatus(StreamStatus::CONNECT_FAILED);
+            break;
+        case StreamStatus::ACCEPT_WAIT:
+            deletable = true;
+            break;
+        case StreamStatus::ESTABLISHED:
+            setStatus(StreamStatus::REMOTELY_CLOSED);
+            break;
+        case StreamStatus::REOPENED:
+            setStatus(StreamStatus::REMOTELY_CLOSED);
+            break;
+        case StreamStatus::CLOSE_WAIT:
+            deletable = true;
+            break;
+        default:
+            break;
+        }
     }
-    status_mutex.unlock();
     // Wake up the connect() method
 #ifdef _MIOSIX
     connect_cv.signal();
@@ -446,26 +499,34 @@ int Server::accept() {
 
 void Server::addPendingStream(int fd) {
     // Lock mutex for concurrent access at pendingAccept
-    status_mutex.lock();
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+    std::unique_lock<std::mutex> lck(status_mutex);
+#endif
     // Push add new stream fd to set
     pendingAccept.insert(fd);
-    status_mutex.unlock();
 }
 
 void Server::acceptedServer() {
     // Lock mutex for concurrent access at StreamInfo
-    status_mutex.lock();
-    switch(getStatus()) {
-    case StreamStatus::LISTEN_WAIT:
-        setStatus(StreamStatus::LISTEN);
-        break;
-    case StreamStatus::REMOTELY_CLOSED:
-        setStatus(StreamStatus::REOPENED);
-        break;
-    default:
-        break;
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
+        switch(getStatus()) {
+        case StreamStatus::LISTEN_WAIT:
+            setStatus(StreamStatus::LISTEN);
+            break;
+        case StreamStatus::REMOTELY_CLOSED:
+            setStatus(StreamStatus::REOPENED);
+            break;
+        default:
+            break;
+        }
     }
-    status_mutex.unlock();
     // Wake up the listen() method
 #ifdef _MIOSIX
     listen_cv.signal();
@@ -476,15 +537,20 @@ void Server::acceptedServer() {
 
 void Server::rejectedServer() {
     // Lock mutex for concurrent access at StreamInfo
-    status_mutex.lock();
-    switch(getStatus()) {
-    case StreamStatus::LISTEN_WAIT:
-        setStatus(StreamStatus::LISTEN_FAILED);
-        break;
-    default:
-        break;
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
+        switch(getStatus()) {
+        case StreamStatus::LISTEN_WAIT:
+            setStatus(StreamStatus::LISTEN_FAILED);
+            break;
+        default:
+            break;
+        }
     }
-    status_mutex.unlock();
     // Wake up the listen() method
 #ifdef _MIOSIX
     listen_cv.signal();
@@ -496,31 +562,36 @@ void Server::rejectedServer() {
 bool Server::close(StreamManager* mgr) {
     bool deletable = false;
     // Lock mutex for concurrent access at StreamInfo
-    status_mutex.lock();
-    switch(getStatus()) {
-    case StreamStatus::LISTEN:
-        setStatus(StreamStatus::CLOSE_WAIT);
-        // Send CLOSED SME
-        mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
-        break;
-    case StreamStatus::REMOTELY_CLOSED:
-        deletable = true;
-        break;
-    case StreamStatus::REOPENED:
-        setStatus(StreamStatus::CLOSE_WAIT);
-        break;
-    case StreamStatus::CLOSE_WAIT:
-        //NOTE: if we were created in CLOSE_WAIT, we need to send CLOSED SME
-        mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
-        break;
-    default:
-        break;
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
+        switch(getStatus()) {
+        case StreamStatus::LISTEN:
+            setStatus(StreamStatus::CLOSE_WAIT);
+            // Send CLOSED SME
+            mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+            break;
+        case StreamStatus::REMOTELY_CLOSED:
+            deletable = true;
+            break;
+        case StreamStatus::REOPENED:
+            setStatus(StreamStatus::CLOSE_WAIT);
+            break;
+        case StreamStatus::CLOSE_WAIT:
+            //NOTE: if we were created in CLOSE_WAIT, we need to send CLOSED SME
+            mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+            break;
+        default:
+            break;
+        }
+        // Close pendingAccept Streams
+        for(auto fd : pendingAccept) {
+            mgr->closedServer(fd);
+        }
     }
-    // Close pendingAccept Streams
-    for(auto fd : pendingAccept) {
-        mgr->closedServer(fd);
-    }
-    status_mutex.unlock();
     // Wake up the listen and accept methods
 #ifdef _MIOSIX
     listen_cv.signal();
@@ -532,39 +603,44 @@ bool Server::close(StreamManager* mgr) {
 
 void Server::periodicUpdate(StreamManager* mgr) {
     // Lock mutex for concurrent access at StreamInfo
-    status_mutex.lock();
-    switch(getStatus()) {
-    case StreamStatus::LISTEN_WAIT:
-        if(smeTimeout-- <= 0) {
-            smeTimeout = smeTimeoutMax;
-            // Send LISTEN SME
-            mgr->enqueueSME(StreamManagementElement(info, SMEType::LISTEN));
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
+        switch(getStatus()) {
+        case StreamStatus::LISTEN_WAIT:
+            if(smeTimeout-- <= 0) {
+                smeTimeout = smeTimeoutMax;
+                // Send LISTEN SME
+                mgr->enqueueSME(StreamManagementElement(info, SMEType::LISTEN));
+            }
+            if(failTimeout-- <= 0) {
+                // Give up opening server and close it
+                setStatus(StreamStatus::LISTEN_FAILED);
+                // Send CLOSED SME
+                mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+            }
+            break;
+        case StreamStatus::REOPENED:
+            if(smeTimeout-- <= 0) {
+                smeTimeout = smeTimeoutMax;
+                // Send CLOSED SME
+                mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+            }
+            break;
+        case StreamStatus::CLOSE_WAIT:
+            if(smeTimeout-- <= 0) {
+                smeTimeout = smeTimeoutMax;
+                // Send CLOSED SME
+                mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+            }
+            break;
+        default:
+            break;
         }
-        if(failTimeout-- <= 0) {
-            // Give up opening server and close it
-            setStatus(StreamStatus::LISTEN_FAILED);
-            // Send CLOSED SME
-            mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
-        }
-        break;
-    case StreamStatus::REOPENED:
-        if(smeTimeout-- <= 0) {
-            smeTimeout = smeTimeoutMax;
-            // Send CLOSED SME
-            mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
-        }
-        break;
-    case StreamStatus::CLOSE_WAIT:
-        if(smeTimeout-- <= 0) {
-            smeTimeout = smeTimeoutMax;
-            // Send CLOSED SME
-            mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
-        }
-        break;
-    default:
-        break;
     }
-    status_mutex.unlock();
     // Wake up the listen and accept methods
 #ifdef _MIOSIX
     listen_cv.signal();
@@ -576,24 +652,29 @@ void Server::periodicUpdate(StreamManager* mgr) {
 bool Server::desync() {
     bool deletable = false;
     // Lock mutex for concurrent access at StreamInfo
-    status_mutex.lock();
-    switch(getStatus()) {
-    case StreamStatus::LISTEN_WAIT:
-        setStatus(StreamStatus::LISTEN_FAILED);
-        break;
-    case StreamStatus::LISTEN:
-        setStatus(StreamStatus::REMOTELY_CLOSED);
-        break;
-    case StreamStatus::REOPENED:
-        setStatus(StreamStatus::REMOTELY_CLOSED);
-        break;
-    case StreamStatus::CLOSE_WAIT:
-        deletable = true;
-        break;
-    default:
-        break;
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
+        switch(getStatus()) {
+        case StreamStatus::LISTEN_WAIT:
+            setStatus(StreamStatus::LISTEN_FAILED);
+            break;
+        case StreamStatus::LISTEN:
+            setStatus(StreamStatus::REMOTELY_CLOSED);
+            break;
+        case StreamStatus::REOPENED:
+            setStatus(StreamStatus::REMOTELY_CLOSED);
+            break;
+        case StreamStatus::CLOSE_WAIT:
+            deletable = true;
+            break;
+        default:
+            break;
+        }
     }
-    status_mutex.unlock();
     // Wake up the listen and accept methods
 #ifdef _MIOSIX
     listen_cv.signal();
