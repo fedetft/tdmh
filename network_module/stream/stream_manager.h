@@ -60,8 +60,9 @@ class StreamManager {
 public:
     StreamManager(unsigned char myId) : myId(myId) {
         // Inizialize clientPorts to false (all ports unused)
+        clientPorts.reserve(maxPorts);
         for (int i = 0; i < maxPorts; ++i) {
-            clientPorts[i] = false;
+            clientPorts.push_back(false);
         }
     }
 

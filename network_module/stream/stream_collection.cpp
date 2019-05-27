@@ -177,7 +177,7 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
             // Otherwise create new stream
             else {
                 // Negotiate parameters between client and servers
-                auto newParams = negotiateParameters(serverParams, clientParams);
+                StreamParameters newParams = negotiateParameters(serverParams, clientParams);
                 // Create ACCEPTED stream with new parameters
                 collection[id] = MasterStreamInfo(id, newParams, MasterStreamStatus::ACCEPTED);
                 // Set flags
@@ -211,8 +211,8 @@ void StreamCollection::createServer(StreamManagementElement& sme) {
     }
 }
 
-StreamParameters negotiateParameters(StreamParameters& serverParams,
-                                     StreamParameters& clientParams) {
+StreamParameters StreamCollection::negotiateParameters(StreamParameters& serverParams,
+                                                       StreamParameters& clientParams) {
     /* NOTE: during the negotiation we compare the "unsigned int" parameters
      * only converting the resulting parameters, this to avoid double conversions. */
     // Pick the lowest redundancy level between Client and Server
