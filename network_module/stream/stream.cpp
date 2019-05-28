@@ -226,8 +226,6 @@ void Stream::addedStream() {
 #else
         std::unique_lock<std::mutex> lck(status_mutex);
 #endif
-
-        status_mutex.lock();
         switch(getStatus()) {
         case StreamStatus::CONNECTING:
             setStatus(StreamStatus::ESTABLISHED);
