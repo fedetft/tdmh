@@ -124,14 +124,16 @@ void Node::sendData(MACContext* ctx, Period period, Redundancy redundancy) {
         unsigned char dest = 0;
 
         /* Open a Stream to another node */
-        printf("[A] Opening stream to node %d\n", dest);
-        int stream = connect(dest,          // Destination node
+        int stream;
+        do{
+            printf("[A] Node %d: Opening stream to node %d\n", address, dest);
+            stream = connect(dest,          // Destination node
                              1,             // Destination port
                              params);       // Stream parameters
-        if(stream < 0) {                
-            printf("[A] Stream opening failed! error=%d\n", stream);
-            return;
-        }
+            if(stream < 0) {                
+                printf("[A] Stream opening failed! error=%d\n", stream);
+            }
+        }while(stream < 0);
         printf("[A] Stream opened \n");
         unsigned int counter = 0;
         while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
