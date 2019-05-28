@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "stream_collection.h"
+#include "../util/debug_settings.h"
 #include <algorithm>
 #include <set>
 
@@ -136,6 +137,10 @@ void StreamCollection::updateStream(MasterStreamInfo& stream, StreamManagementEl
         removed_flag = true;
         modified_flag = true;
     }
+    if(status == MasterStreamStatus::REJECTED) {
+        // Try to open a new stream because the one we have is REJECTED
+        createStream(sme);
+    }
 }
 
 void StreamCollection::updateServer(MasterStreamInfo& server, StreamManagementElement& sme) {
@@ -144,6 +149,8 @@ void StreamCollection::updateServer(MasterStreamInfo& server, StreamManagementEl
     auto status = server.getStatus();
     if(status == MasterStreamStatus::LISTEN) {
         if(type == SMEType::CLOSED) {
+            if(ENABLE_STREAM_LIST_INFO_DBG)
+                printf("[SC] Server (%d,%d,%d,%d) Closed\n", id.src,id.dst,id.srcPort,id.dstPort);
             // Delete server because it has been closed by remote node
             collection.erase(id);
             // Enqueue SERVER_CLOSED info element
@@ -170,6 +177,8 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
             auto serverParams = server.getParams();
             // If the direction of client and server don't match, reject stream
             if(serverParams.direction != clientParams.direction) {
+                if(ENABLE_STREAM_LIST_INFO_DBG)
+                    printf("[SC] Stream (%d,%d,%d,%d) Rejected: parameters don't match\n", id.src,id.dst,id.srcPort,id.dstPort);
                 // Create REJECTED stream
                 collection[id] = MasterStreamInfo(id, clientParams, MasterStreamStatus::REJECTED);
                 // Enqueue STREAM_REJECT info element
@@ -177,6 +186,8 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
             }
             // Otherwise create new stream
             else {
+                if(ENABLE_STREAM_LIST_INFO_DBG)
+                    printf("[SC] Stream (%d,%d,%d,%d) Accepted\n", id.src,id.dst,id.srcPort,id.dstPort);
                 // Negotiate parameters between client and servers
                 StreamParameters newParams = negotiateParameters(serverParams, clientParams);
                 // Create ACCEPTED stream with new parameters
@@ -188,6 +199,8 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
         }
         // Server absent
         else {
+            if(ENABLE_STREAM_LIST_INFO_DBG)
+                printf("[SC] Stream (%d,%d,%d,%d) Rejected: server missing\n", id.src,id.dst,id.srcPort,id.dstPort);
             // Create REJECTED stream
             collection[id] = MasterStreamInfo(id, clientParams, MasterStreamStatus::REJECTED);
             // Enqueue STREAM_REJECT info element
@@ -201,6 +214,8 @@ void StreamCollection::createServer(StreamManagementElement& sme) {
     SMEType type = sme.getType();
     StreamParameters params = sme.getParams();
     if(type == SMEType::LISTEN) {
+        if(ENABLE_STREAM_LIST_INFO_DBG)
+            printf("[SC] Server (%d,%d,%d,%d) Accepted\n", id.src,id.dst,id.srcPort,id.dstPort);
         // Create server
         collection[id] = MasterStreamInfo(id, params, MasterStreamStatus::LISTEN);
         // Enqueue SERVER_OPENED info element

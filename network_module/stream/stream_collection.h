@@ -53,6 +53,19 @@ public:
     ~StreamCollection() {};
 
     /**
+     * Operator = used by ScheduleComputation to take a snapshot of
+     * the StreamCollection.
+     * It is not necessary to copy over UpdatableQueues
+     */
+    StreamCollection& operator=(StreamCollection& other) {
+        collection = other.collection;
+        modified_flag = other.modified_flag;
+        removed_flag = other.removed_flag;
+        added_flag = other.added_flag;
+        return *this;
+    }
+
+    /**
      * Receives a vector of SME from the network
      */
     void receiveSMEs(UpdatableQueue<StreamId,
