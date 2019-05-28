@@ -199,13 +199,15 @@ void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart) {
     // Add info elements to packet
     unsigned int availableInfo = streamColl->getNumInfo();
     unsigned int numInfo = std::min(packetCapacity, availableInfo);
-    auto infos = streamColl->dequeueInfo(numInfo);
+    std::vector<InfoElement> infos = streamColl->dequeueInfo(numInfo);
     for(auto& info : infos)
         info.serialize(pkt);
     // Send schedule downlink packet
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     pkt.send(ctx, slotStart);
     ctx.transceiverIdle();
+    // NOTE: Apply vector of Info elements to local StreamManager
+    streamMgr->applyInfoElements(infos);
 }
 
 }

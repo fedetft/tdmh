@@ -98,9 +98,10 @@ protected:
     unsigned long explicitScheduleID = 0;
     std::vector<ExplicitScheduleElement> explicitSchedule;
     bool distributing = false;
-private:
+protected:
     // Pointer to StreamManager, used to apply distributed schedule and info elements
     StreamManager* const streamMgr;
+private:
     // Pointer to DataPhase, used to apply distributed schedule
     DataPhase* const dataPhase;
 };
