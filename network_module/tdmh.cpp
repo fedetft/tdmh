@@ -27,52 +27,69 @@
 
 #include "tdmh.h"
 #include "mac_context.h"
+#ifdef _MIOSIX
+/* Global variable containing a pointer to StreamManager, to use the StreamAPI */
+static mxnet::StreamManager* sm = nullptr;
+static inline mxnet::StreamManager* getStreamManager() { return sm; }
+static inline void setStreamManager(mxnet::StreamManager* streamManager) {
+    sm = streamManager;
+}
+#endif
 
 namespace mxnet {
 
-/* Global variable containing a pointer to StreamManager, to use the StreamAPI */
-static StreamManager* sm = nullptr;
-
+// NOTE: This Stream API can be used only in Miosix, not in simulation
+// because in simulation the various nodes will end up using a single
+// StreamManager because of the global variable shared between threads
+#ifdef _MIOSIX
 int connect(unsigned char dst, unsigned char dstPort, StreamParameters params) {
-    if(sm == nullptr)
+    StreamManager* streamManager = getStreamManager();
+    if(streamManager == nullptr)
         return -1;
-    return sm->connect(dst, dstPort, params);
+    return streamManager->connect(dst, dstPort, params);
 }
 
 int write(int fd, const void* data, int size) {
-    if(sm == nullptr)
+    StreamManager* streamManager = getStreamManager();
+    if(streamManager == nullptr)
         return -1;
-    return sm->write(fd, data, size);
+    return streamManager->write(fd, data, size);
 }
 
 int read(int fd, void* data, int maxSize) {
-if(sm == nullptr)
-    return -1;
-return sm->read(fd, data, maxSize);
+    StreamManager* streamManager = getStreamManager();
+    if(streamManager == nullptr)
+        return -1;
+    return streamManager->read(fd, data, maxSize);
 }
 
 StreamInfo getInfo(int fd) {
-if(sm == nullptr)
-    return StreamInfo();
-return sm->getInfo(fd);
+    StreamManager* streamManager = getStreamManager();
+    if(streamManager == nullptr)
+        return StreamInfo();
+    return streamManager->getInfo(fd);
 }
 
 void close(int fd) {
-if(sm != nullptr)
-    sm->close(fd);
+    StreamManager* streamManager = getStreamManager();
+    if(streamManager != nullptr)
+        streamManager->close(fd);
 }
 
 int listen(unsigned char port, StreamParameters params) {
-if(sm == nullptr)
-    return -1;
-return sm->listen(port, params);
+    StreamManager* streamManager = getStreamManager();
+    if(streamManager == nullptr)
+        return -1;
+    return streamManager->listen(port, params);
 }
 
 int accept(int serverfd) {
-if(sm == nullptr)
-    return -1;
-return sm->accept(serverfd);
+    StreamManager* streamManager = getStreamManager();
+    if(streamManager == nullptr)
+        return -1;
+    return streamManager->accept(serverfd);
 }
+#endif
 
 MediumAccessController::~MediumAccessController() {
     delete ctx;
@@ -81,8 +98,10 @@ MediumAccessController::~MediumAccessController() {
 void MediumAccessController::run() {
     try{
         async = false;
+#ifdef _MIOSIX
         // Set StreamManager* global variable
-        sm = ctx->getStreamManager();
+        setStreamManager(ctx->getStreamManager());
+#endif
         ctx->run();
     }
     catch(...){

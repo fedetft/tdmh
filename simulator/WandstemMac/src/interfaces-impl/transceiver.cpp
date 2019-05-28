@@ -46,6 +46,7 @@ Transceiver::Transceiver() : MiosixInterface() {
 }
 
 Transceiver& Transceiver::instance() {
+    // TODO: properly use mutex
     auto* curNode = MiosixStaticInterface::getNode();
     Transceiver* retval;
     std::map<NodeBase*, Transceiver*>::iterator it = Transceiver::instances.find(curNode);

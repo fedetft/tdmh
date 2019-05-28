@@ -17,7 +17,7 @@
 
 #include "NodeBase.h"
 #include "network_module/tdmh.h"
-#include "network_module/stream/stream.h"
+#include "network_module/stream/stream_manager.h"
 #include <thread>
 #include <atomic>
 #include <memory>
@@ -34,7 +34,7 @@ public:
 protected:
     virtual void activity();
     void application();
-    void streamThread(int stream);
+    void streamThread(std::pair<int, mxnet::StreamManager*> arg);
 
 
     /* Pointer to tdmh class for opening streams */

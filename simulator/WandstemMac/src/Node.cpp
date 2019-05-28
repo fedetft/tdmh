@@ -93,7 +93,7 @@ try {
     }
     
 } catch(exception& e) {
-    //Note: omnet++ seems to terminate coroutines with an exception
+    //NOTE: omnet++ seems to terminate coroutines with an exception
     //of type cStackCleanupException. Squelch these
     if(string(typeid(e).name()).find("cStackCleanupException")==string::npos)
         cerr<<"\nException thrown: "<<e.what()<<endl;
@@ -120,6 +120,9 @@ void Node::application() {
 
 void Node::sendData(MACContext* ctx, Period period, Redundancy redundancy) {
     try{
+        // NOTE: we can't use Stream API functions in simulator
+        // so we have to get a pointer to StreamManager
+        StreamManager* mgr = ctx->getStreamManager();
         auto params = StreamParameters(redundancy, period, 1, Direction::TX);
         unsigned char dest = 0;
 
@@ -127,7 +130,7 @@ void Node::sendData(MACContext* ctx, Period period, Redundancy redundancy) {
         int stream;
         do{
             printf("[A] Node %d: Opening stream to node %d\n", address, dest);
-            stream = connect(dest,          // Destination node
+            stream = mgr->connect(dest,          // Destination node
                              1,             // Destination port
                              params);       // Stream parameters
             if(stream < 0) {                
@@ -136,9 +139,9 @@ void Node::sendData(MACContext* ctx, Period period, Redundancy redundancy) {
         }while(stream < 0);
         printf("[A] Stream opened \n");
         unsigned int counter = 0;
-        while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
+        while(mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
             Data data(ctx->getNetworkId(), counter);
-            write(stream, &data, sizeof(data));
+            mgr->write(stream, &data, sizeof(data));
             printf("[A] Sent ID=%d Counter=%u\n", data.id, data.counter);
             counter++;
         }

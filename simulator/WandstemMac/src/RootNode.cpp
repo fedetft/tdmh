@@ -85,34 +85,40 @@ void RootNode::application() {
     MACContext* ctx = tdmh->getMACContext();
     while(!ctx->isReady()) {
     }
+    // NOTE: we can't use Stream API functions in simulator
+    // so we have to get a pointer to StreamManager
+    StreamManager* mgr = ctx->getStreamManager();
     auto params = StreamParameters(Redundancy::TRIPLE_SPATIAL, // Redundancy
-                                   Period::P1,                 // Period                  
+                                   Period::P1,                 // Period          
                                    1,                          // Payload size
                                    Direction::TX);             // Direction
     unsigned char port = 1;
     printf("[A] Opening server on port %d\n", port);
     /* Open a Server to listen for incoming streams */
-    int server = listen(port,              // Destination port
+    int server = mgr->listen(port,              // Destination port
                         params);           // Server parameters
     if(server < 0) {                
         printf("[A] Server opening failed! error=%d\n", server);
         return;
     }
-    while(getInfo(server).getStatus() == StreamStatus::LISTEN) {
-        int stream = accept(server);
-        thread t1(&RootNode::streamThread, this, stream);
+    while(mgr->getInfo(server).getStatus() == StreamStatus::LISTEN) {
+        int stream = mgr->accept(server);
+        pair<int, StreamManager*> arg = make_pair(stream, mgr);
+        thread t1(&RootNode::streamThread, this, arg);
         t1.detach();
     }
 }
 
-void RootNode::streamThread(int stream) {
+void RootNode::streamThread(pair<int, StreamManager*> arg) {
     try{
-        StreamInfo info = getInfo(stream);
+        int stream = arg.first;
+        StreamManager* mgr = arg.second;
+        StreamInfo info = mgr->getInfo(stream);
         StreamId id = info.getStreamId();
         printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
-        while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
+        while(mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
             Data data;
-            int len = read(stream, &data, sizeof(data));
+            int len = mgr->read(stream, &data, sizeof(data));
             if(len != sizeof(data))
                 printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
                         id.src, id.dst, len);
