@@ -116,6 +116,12 @@ std::vector<MasterStreamInfo> StreamCollection::getStreamsWithStatus(MasterStrea
     return result;
 }
 
+void StreamCollection::enqueueInfo(StreamId id, InfoType type) {
+    InfoElement info(id, type);
+    // Add to sending queue
+    infoQueue.enqueue(id, info);
+}
+
 std::vector<InfoElement> StreamCollection::dequeueInfo(unsigned int num) {
     std::vector<InfoElement> result;
     unsigned int i=0;
@@ -154,11 +160,11 @@ void StreamCollection::updateServer(MasterStreamInfo& server, StreamManagementEl
             // Delete server because it has been closed by remote node
             collection.erase(id);
             // Enqueue SERVER_CLOSED info element
-            infoQueue.enqueue(id, InfoElement(id, InfoType::SERVER_CLOSED));
+            enqueueInfo(id, InfoType::SERVER_CLOSED);
         }
         else if(type == SMEType::LISTEN) {
             // Enqueue again SERVER_OPENED info element
-            infoQueue.enqueue(id, InfoElement(id, InfoType::SERVER_OPENED));
+            enqueueInfo(id, InfoType::SERVER_OPENED);
         }
     }
 }
@@ -182,7 +188,7 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
                 // Create REJECTED stream
                 collection[id] = MasterStreamInfo(id, clientParams, MasterStreamStatus::REJECTED);
                 // Enqueue STREAM_REJECT info element
-                infoQueue.enqueue(id, InfoElement(id, InfoType::STREAM_REJECT));
+                enqueueInfo(id, InfoType::STREAM_REJECT);
             }
             // Otherwise create new stream
             else {
@@ -204,7 +210,7 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
             // Create REJECTED stream
             collection[id] = MasterStreamInfo(id, clientParams, MasterStreamStatus::REJECTED);
             // Enqueue STREAM_REJECT info element
-            infoQueue.enqueue(id, InfoElement(id, InfoType::STREAM_REJECT));
+            enqueueInfo(id, InfoType::STREAM_REJECT);
         }
     }
 }
@@ -219,11 +225,11 @@ void StreamCollection::createServer(StreamManagementElement& sme) {
         // Create server
         collection[id] = MasterStreamInfo(id, params, MasterStreamStatus::LISTEN);
         // Enqueue SERVER_OPENED info element
-        infoQueue.enqueue(id, InfoElement(id, InfoType::SERVER_OPENED));
+        enqueueInfo(id, InfoType::SERVER_OPENED);
     }
     if(type == SMEType::CLOSED) {
         // Enqueue again SERVER_CLOSED info element
-        infoQueue.enqueue(id, InfoElement(id, InfoType::SERVER_CLOSED));
+        enqueueInfo(id, InfoType::SERVER_CLOSED);
     }
 }
 

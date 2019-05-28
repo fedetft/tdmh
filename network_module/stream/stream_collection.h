@@ -85,7 +85,7 @@ public:
         return collection.size();
     }
     /**
-     * @return the number of Info elements in Queue
+     * @return the number of Info elements in queue
      */
     unsigned int getNumInfo() {
         return infoQueue.size();
@@ -106,7 +106,11 @@ public:
      */
     std::vector<MasterStreamInfo> getStreamsWithStatus(MasterStreamStatus s);
     /**
-     * @return the number of Info elements in Queue
+     * put a new info element in the queue
+     */
+    void enqueueInfo(StreamId id, InfoType type);
+    /**
+     * pops a number of Info elements from the Queue
      */
     std::vector<InfoElement> dequeueInfo(unsigned int num);
     /**
