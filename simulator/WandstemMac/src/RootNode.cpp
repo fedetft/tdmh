@@ -113,9 +113,14 @@ void RootNode::streamThread(pair<int, StreamManager*> arg) {
     try{
         int stream = arg.first;
         StreamManager* mgr = arg.second;
-        StreamInfo info = mgr->getInfo(stream);
-        StreamId id = info.getStreamId();
+        StreamId id = mgr->getInfo(stream).getStreamId();
         printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
+        StreamStatus status;
+        // Wait for the stream to open
+        do {
+            status = mgr->getInfo(stream).getStatus();
+        }while(status != StreamStatus::ESTABLISHED);
+        // Receive data until the stream is closed
         while(mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
             Data data;
             int len = mgr->read(stream, &data, sizeof(data));

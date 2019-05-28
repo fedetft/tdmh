@@ -84,6 +84,8 @@ public:
     virtual void getPacket(Packet& data) {}
     // Used by derived class Stream 
     virtual void addedStream() {}
+    // Used by derived class Stream
+    virtual void acceptedStream() {}
     // Used by derived class Stream 
     virtual bool removedStream() { return false; }
     // Used by derived class Stream 
@@ -178,6 +180,9 @@ public:
 
     // Called by StreamManager when this stream is present in a received schedule
     void addedStream() override;
+
+    // Called by StreamManager to change status of stream, after it has been accepted
+    void acceptedStream() override;
 
     // Called by StreamManager when this stream is NOT present in a received schedule
     // Returns true if the Stream class can be deleted

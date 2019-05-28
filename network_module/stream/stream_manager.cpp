@@ -196,7 +196,13 @@ int StreamManager::accept(int serverfd) {
     auto server = serverit->second;
     map_mutex.unlock();
 
-    return server->accept();
+    int fd = server->accept();
+    // If we got a valid fd from accept
+    if(fd > 0) {
+        // Change accepted stream status to ESTABLISHED
+        fdt[fd]->acceptedStream();
+    } 
+    return fd;
 }
 
 void StreamManager::periodicUpdate() {

@@ -245,6 +245,24 @@ void Stream::addedStream() {
 #endif
 }
 
+void Stream::acceptedStream() {
+    // Lock mutex for concurrent access at StreamInfo
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
+        switch(getStatus()) {
+        case StreamStatus::ACCEPT_WAIT:
+            setStatus(StreamStatus::ESTABLISHED);
+            break;
+        default:
+            break;
+        }
+    }
+}
+
 bool Stream::removedStream() {
     bool deletable = false;
     // Lock mutex for concurrent access at StreamInfo
@@ -489,6 +507,7 @@ int Server::accept() {
     // Return error if server not open
     if(getStatus() != StreamStatus::LISTEN)
         return -1;
+    // Return first stream fd from pendingAccept
     auto it = pendingAccept.begin();
     int fd = *it;
     pendingAccept.erase(it);
