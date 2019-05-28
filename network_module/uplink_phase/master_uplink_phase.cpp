@@ -57,6 +57,7 @@ void MasterUplinkPhase::execute(long long slotStart)
     
         if(message.getAssignee() == myId)
         {
+            // Enqueue topology and SMEs from the network
             message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
             for(int i = 1; i < numPackets; i++)
             {
@@ -67,8 +68,11 @@ void MasterUplinkPhase::execute(long long slotStart)
                 message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
             }
         }
-        // Receive topology and smes from the network
+        // Enqueue SMEs from the Master node itself
+        streamMgr->dequeueSMEs(smeQueue);
+        // Consume elements from the topology queue
         topology.handleForwardedTopologies(topologyQueue);
+        // Consume elements from the SME queue
         scheduleComputation.receiveSMEs(smeQueue);
         
     } else {
