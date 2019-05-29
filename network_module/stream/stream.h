@@ -83,7 +83,7 @@ public:
     // Used by derived class Stream 
     virtual void getPacket(Packet& data) {}
     // Used by derived class Stream 
-    virtual void addedStream() {}
+    virtual void addedStream(StreamParameters newParams) {}
     // Used by derived class Stream
     virtual void acceptedStream() {}
     // Used by derived class Stream 
@@ -160,7 +160,8 @@ protected:
  */
 class Stream : public Endpoint {
 public:
-    Stream(int fd, StreamInfo info) : Endpoint(fd, info) {};
+    Stream(int fd, StreamInfo info) : Endpoint(fd, info),
+                                      redundancy(info.getRedundancy()) {};
 
     // Called by StreamManager after creation,
     // used to send CONNECT SME and wait for addedStream()
@@ -179,7 +180,7 @@ public:
     void getPacket(Packet& data) override;
 
     // Called by StreamManager when this stream is present in a received schedule
-    void addedStream() override;
+    void addedStream(StreamParameters newParams) override;
 
     // Called by StreamManager to change status of stream, after it has been accepted
     void acceptedStream() override;
@@ -210,7 +211,9 @@ public:
     Server* myServer;
     Packet sendBuffer;
     Packet recvBuffer;
-    /* Redundancy Info */
+    /* Cached Redundancy Info */
+    Redundancy redundancy;
+    /* Redundancy Counters */
     unsigned char timesSent = 0;
     unsigned char timesRecv = 0;
     /* Thread synchronization */

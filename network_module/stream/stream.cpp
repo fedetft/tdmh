@@ -218,7 +218,7 @@ void Stream::getPacket(Packet& data) {
     }
 }
 
-void Stream::addedStream() {
+void Stream::addedStream(StreamParameters newParams) {
     // Lock mutex for concurrent access at StreamInfo
     {
 #ifdef _MIOSIX
@@ -237,6 +237,11 @@ void Stream::addedStream() {
             break;
         }
     }
+    // NOTE: Update stream parameters and cached redundancy,
+    // they may have changed after negotiation with server
+    info.setParams(newParams);
+    redundancy = info.getRedundancy();
+
     // Wake up the connect() method
 #ifdef _MIOSIX
     connect_cv.signal();

@@ -248,6 +248,7 @@ public:
     StreamStatus getStatus() const { return status; }
     unsigned int getKey() const { return id.getKey(); }
     void setStatus(StreamStatus s) { status=s; }
+    void setParams(StreamParameters newParameters) { parameters=newParameters; }
     void setRedundancy(Redundancy r) { parameters.redundancy=static_cast<unsigned int>(r); }
     void setPeriod(Period p) { parameters.period=static_cast<unsigned int>(p); }
 

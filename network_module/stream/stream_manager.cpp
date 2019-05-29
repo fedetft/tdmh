@@ -198,7 +198,7 @@ int StreamManager::accept(int serverfd) {
 
     int fd = server->accept();
     // If we got a valid fd from accept
-    if(fd > 0) {
+    if(fd > 0) { 
         // Change accepted stream status to ESTABLISHED
         fdt[fd]->acceptedStream();
     } 
@@ -271,7 +271,9 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
         // If stream in schedule is present in map, call addedStream()
         if(streamit != streams.end()) {
             auto stream = streamit->second;
-            stream->addedStream();
+            // NOTE: Update stream parameters,
+            // they may have changed after negotiation with server
+            stream->addedStream(element.getParams());
             // Remove streamId from removedStreams
             removedStreams.erase(std::remove(removedStreams.begin(),
                                              removedStreams.end(),
