@@ -124,13 +124,19 @@ void RootNode::streamThread(pair<int, StreamManager*> arg) {
         while(mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
             Data data;
             int len = mgr->read(stream, &data, sizeof(data));
-            if(len != sizeof(data))
-                printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
-                        id.src, id.dst, len);
-            else
-                printf("[A] Received data from Stream (%d,%d): ID=%d Counter=%u\n",
-                       id.src, id.dst, data.id, data.counter);
+            if(len >= 0) {
+                if(len == sizeof(data))
+                    printf("[A] Received data from Stream (%d,%d): ID=%d Counter=%u\n",
+                            id.src, id.dst, data.id, data.counter);
+                else
+                    printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
+                            id.src, id.dst, len);
+            }
+            else if(len = -2) {
+                printf("[E] No data received from Stream (%d,%d)\n", id.src, id.dst);
+            }
         }
+        printf("[A] Stream (%d,%d) was closed\n", id.src, id.dst);
     }catch(...){
         printf("Exception thrown in streamThread\n");
     }

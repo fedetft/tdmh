@@ -137,7 +137,8 @@ void Node::sendData(MACContext* ctx, Period period, Redundancy redundancy) {
                 printf("[A] Stream opening failed! error=%d\n", stream);
             }
         }while(stream < 0);
-        printf("[A] Stream opened \n");
+        StreamId id = mgr->getInfo(stream).getStreamId();
+        printf("[A] Stream (%d,%d) opened \n", id.src, id.dst);
         unsigned int counter = 0;
         while(mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
             Data data(ctx->getNetworkId(), counter);
