@@ -283,6 +283,9 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
     // Iterate over new schedule
     for(auto& element : schedule) {
         StreamId streamId = element.getStreamId();
+        // NOTE: We care only of streams of which we are source or destination 
+        if(streamId.src != myId && streamId.dst != myId)
+            continue;
         auto streamit = streams.find(streamId);
         // If stream in schedule is present in map, call addedStream()
         if(streamit != streams.end()) {
