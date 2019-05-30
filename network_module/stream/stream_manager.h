@@ -120,10 +120,14 @@ public:
     void periodicUpdate();
 
     // Used by the DataPhase class to put received data in the right buffer
-    void putPacket(StreamId id, const Packet& data);
+    void receivePacket(StreamId id, const Packet& data);
+
+    // Used by the DataPhase class when an incoming packet is missed
+    void missPacket(StreamId id);
 
     // Used by the DataPhase class to get data to sent from the right buffer
-    void getPacket(StreamId id, Packet& data);
+    // Return true if we have data to send
+    bool sendPacket(StreamId id, Packet& data);
 
     // Used by the DataPhase to apply a received schedule
     void applySchedule(const std::vector<ScheduleElement>& schedule);

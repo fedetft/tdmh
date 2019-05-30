@@ -64,12 +64,16 @@ void DataPhase::sleep(long long slotStart) {
 }
 void DataPhase::sendFromStream(long long slotStart, StreamId id) {
     Packet pkt;
-    stream.getPacket(id, pkt);
-    ctx.configureTransceiver(ctx.getTransceiverConfig());
-    pkt.send(ctx, slotStart);
-    ctx.transceiverIdle();
-    if(ENABLE_DATA_INFO_DBG)
-        print_dbg("[D] (%d,%d) sent packet @%lld\n", id.src, id.dst, slotStart);
+    bool pktReady = stream.sendPacket(id, pkt);
+    if(pktReady) {
+        ctx.configureTransceiver(ctx.getTransceiverConfig());
+        pkt.send(ctx, slotStart);
+        ctx.transceiverIdle();
+        if(ENABLE_DATA_INFO_DBG)
+            print_dbg("[D] (%d,%d) sent packet @%lld\n", id.src, id.dst, slotStart);
+    }
+    else
+        sleep(slotStart);
 }
 void DataPhase::receiveToStream(long long slotStart, StreamId id) {
     Packet pkt;
@@ -77,14 +81,13 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
     auto rcvResult = pkt.recv(ctx, slotStart);
     ctx.transceiverIdle();
     if(rcvResult.error == RecvResult::ErrorCode::OK) {
-        stream.putPacket(id, pkt);
+        stream.receivePacket(id, pkt);
         if(ENABLE_DATA_INFO_DBG)
             print_dbg("[D] (%d,%d) received packet @%lld\n", id.src, id.dst, slotStart);
     }
     // Avoid overwriting valid data
     else {
-        Packet emptyPkt;
-        stream.putPacket(id, emptyPkt);
+        stream.missPacket(id);
         if(ENABLE_DATA_ERROR_DBG)
             print_dbg("[D] (%d,%d) missed packet @%lld\n", id.src, id.dst, slotStart);
     }

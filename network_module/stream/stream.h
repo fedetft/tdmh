@@ -79,9 +79,11 @@ public:
     }
     // TODO: The base class implementation of these functions should throw an error?
     // Used by derived class Stream 
-    virtual void putPacket(const Packet& data) {}
+    virtual void receivePacket(const Packet& data) {}
+    // Used by derived class Stream
+    virtual void missPacket() {}
     // Used by derived class Stream 
-    virtual void getPacket(Packet& data) {}
+    virtual bool sendPacket(Packet& data) { return false; }
     // Used by derived class Stream 
     virtual void addedStream(StreamParameters newParams) {}
     // Used by derived class Stream
@@ -160,8 +162,9 @@ protected:
  */
 class Stream : public Endpoint {
 public:
-    Stream(int fd, StreamInfo info) : Endpoint(fd, info),
-                                      redundancy(info.getRedundancy()) {};
+    Stream(int fd, StreamInfo info) : Endpoint(fd, info) {
+        updateRedundancy();
+    }
 
     // Called by StreamManager after creation,
     // used to send CONNECT SME and wait for addedStream()
@@ -174,10 +177,14 @@ public:
     int read(void* data, int maxSize) override;
 
     // Called by StreamManager, to put data to recvBuffer
-    void putPacket(const Packet& data) override;
+    void receivePacket(const Packet& data) override;
+
+    // Called by StreamManager, when we missed an inbound packet
+    void missPacket() override;
 
     // Called by StreamManager, to get data from sendBuffer
-    void getPacket(Packet& data) override;
+    // Return true if we have data to send
+    bool sendPacket(Packet& data) override;
 
     // Called by StreamManager when this stream is present in a received schedule
     void addedStream(StreamParameters newParams) override;
@@ -209,32 +216,53 @@ public:
     bool desync() override;
 
     Server* myServer;
-    Packet sendBuffer;
-    Packet recvBuffer;
+    Packet txPacket;
+    Packet rxPacket;
     /* Cached Redundancy Info */
     Redundancy redundancy;
+    unsigned int redundancyCount = 0;
     /* Redundancy Counters */
-    unsigned char timesSent = 0;
-    unsigned char timesRecv = 0;
+    unsigned char txCount = 0;
+    unsigned char rxCount = 0;
+    bool received = false;
+    bool txPacketReady = false;
+    /* Variables shared with the application thread */
+    bool txWakeUp = false;
+    bool rxWakeUp = false;
+    bool receivedShared = false;
+    bool nextTxPacketReady = false;
+    Packet rxPacketShared;
+    Packet nextTxPacket;
+
     /* Thread synchronization */
 #ifdef _MIOSIX
     // Protects concurrent access at StreamInfo
     miosix::FastMutex status_mutex;
     // Protects concurrent access at sendBuffer
-    miosix::FastMutex send_mutex;
+    miosix::FastMutex tx_mutex;
     // Protects concurrent access at recvBuffer
-    miosix::FastMutex recv_mutex;
+    miosix::FastMutex rx_mutex;
     miosix::ConditionVariable connect_cv;
-    miosix::ConditionVariable send_cv;
-    miosix::ConditionVariable recv_cv;
+    miosix::ConditionVariable tx_cv;
+    miosix::ConditionVariable rx_cv;
 #else
     std::mutex status_mutex;
-    std::mutex send_mutex;
-    std::mutex recv_mutex;
+    std::mutex tx_mutex;
+    std::mutex rx_mutex;
     std::condition_variable connect_cv;
-    std::condition_variable send_cv;
-    std::condition_variable recv_cv;
+    std::condition_variable tx_cv;
+    std::condition_variable rx_cv;
 #endif
+private:
+    // Called by Stream itself, used to update cached redundancy info
+    void updateRedundancy();
+    // Called by Stream itself, to copy received packet to application packet
+    void updateRxPacket();
+    // Called by Stream itself, to copy application packet to send packet
+    void updateTxPacket();
+    // Called by Stream itself, when the stream status changes and we need to wake up
+    // the write and read methods
+    void wakeWriteRead();
 };
 
 /**

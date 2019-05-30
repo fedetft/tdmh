@@ -60,162 +60,94 @@ int Stream::connect(StreamManager* mgr) {
 }
 
 int Stream::write(const void* data, int size) {
+    {
 #ifdef _MIOSIX
-    miosix::Lock<miosix::FastMutex> lck(send_mutex);
+        miosix::Lock<miosix::FastMutex> lck(tx_mutex);
 #else
-    std::unique_lock<std::mutex> lck(send_mutex);
+        std::unique_lock<std::mutex> lck(tx_mutex);
 #endif
-    // Wait for sendBuffer to be empty or stream to be not ESTABLISHED
-    while(sendBuffer.size() != 0 && getStatus() == StreamStatus::ESTABLISHED) {
-        // Condition variable to wait for buffer to be empty
-        send_cv.wait(lck);
+        // Wait for sendBuffer to be empty or stream to be not ESTABLISHED
+        while(txWakeUp == false) {
+            // Condition variable to wait for buffer to be empty
+            tx_cv.wait(lck);
+        }
+        if(nextTxPacketReady == false) {
+            nextTxPacket.put(data, size);
+            return size;
+        }
     }
-    if(info.getStatus() != StreamStatus::ESTABLISHED)
-        return -1;
-    else
-        sendBuffer.put(data, size);
-    //TODO: Packet::put() do not return number of copied bytes
-    return 0;
+    {
+        // Lock mutex to access StreamInfo
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
+        if(info.getStatus() != StreamStatus::ESTABLISHED)
+            return -1;
+    }
+    //NOTE: we should never end up here
+    return -2;
 }
 
 int Stream::read(void* data, int maxSize) {
+    {
 #ifdef _MIOSIX
-    miosix::Lock<miosix::FastMutex> lck(recv_mutex);
+        miosix::Lock<miosix::FastMutex> lck(rx_mutex);
 #else
-    std::unique_lock<std::mutex> lck(recv_mutex);
+        std::unique_lock<std::mutex> lck(rx_mutex);
 #endif
-    // Wait for recvBuffer to be non empty
-    while(recvBuffer.size() == 0 && info.getStatus() == StreamStatus::ESTABLISHED) {
-        // Condition variable to wait for buffer to be non empty
-        recv_cv.wait(lck);
-    }
-    if(info.getStatus() != StreamStatus::ESTABLISHED)
-        return -1;
-    else {
-        auto size = std::min<int>(maxSize, recvBuffer.size());
-        try {
-            recvBuffer.get(data, size);
-            recvBuffer.clear();
-            return size;
+        // Wait for rxWakeUp condition to be true
+        while(rxWakeUp == false) {
+            rx_cv.wait(lck);
         }
-        // Received wrong size packet
-        catch(PacketUnderflowException& ){
+        if(receivedShared == true) {
+            auto size = std::min<int>(maxSize, rxPacketShared.size());
+            try {
+                rxPacketShared.get(data, size);
+                rxPacketShared.clear();
+                return size;
+            }
+            // Received wrong size packet
+            catch(PacketUnderflowException& ){
+                return -1;
+            }
+        }
+    }
+    // Stream was closed
+    {
+        // Lock mutex to access StreamInfo
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
+        if(info.getStatus() != StreamStatus::ESTABLISHED)
             return -1;
-        }
     }
+    // We did not receive any data this round
+    return -2;
 }
 
-void Stream::putPacket(const Packet& data) {
-    // Lock mutex for concurrent access at StreamInfo
-    Redundancy r;
-    {
-#ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(status_mutex);
-#else
-        std::unique_lock<std::mutex> lck(status_mutex);
-#endif
-        r = info.getRedundancy();
-    }
-    bool wakeRead = false;
-    // Lock mutex for concurrent access at recvBuffer
-    {
-#ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(recv_mutex);
-#else
-        std::unique_lock<std::mutex> lck(recv_mutex);
-#endif
-        // Avoid overwriting valid data
-        if(data.size() != 0)
-            recvBuffer = data;
-
-        //TODO: Maybe it's better to handle redundancy
-        // with calls from the dataphase
-        // No redundancy: notify right away
-        if(r == Redundancy::NONE) {
-            wakeRead = true;
-        }
-        // Double redundancy: notify after receiving twice
-        else if((r == Redundancy::DOUBLE) ||
-                (r == Redundancy::DOUBLE_SPATIAL)) {
-            if(++timesRecv >= 2){
-                timesRecv = 0;
-                wakeRead = true;
-            }
-        }
-        // Triple redundancy: notify after receiving three times
-        else if((r == Redundancy::TRIPLE) ||
-                (r == Redundancy::TRIPLE_SPATIAL)) {
-            if(++timesRecv >= 3){
-                timesRecv = 0;
-                wakeRead = true;
-            }
-        }
-    }
-    if(wakeRead) {
-        // Wake up the read method
-#ifdef _MIOSIX
-        recv_cv.signal();
-#else
-        recv_cv.notify_one();
-#endif
-    }
+void Stream::receivePacket(const Packet& data) {
+    rxPacket = data;
+    received = true;
+    updateRxPacket();
 }
 
-void Stream::getPacket(Packet& data) {
-    // Lock mutex for concurrent access at StreamInfo
-    Redundancy r;
-    {
-#ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(status_mutex);
-#else
-        std::unique_lock<std::mutex> lck(status_mutex);
-#endif
-        r = info.getRedundancy();
-    }
-    bool wakeWrite = false;
-    // Lock mutex for concurrent access at sendBuffer
-    {
-#ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(send_mutex);
-#else
-        std::unique_lock<std::mutex> lck(send_mutex);
-#endif
-        data = sendBuffer;
+void Stream::missPacket() {
+    // No data to receive
+    updateRxPacket();
+}
 
-        //TODO: Maybe it's better to handle redundancy
-        // with calls from the dataphase
-        // No redundancy: send value once
-        if(r == Redundancy::NONE) {
-            sendBuffer.clear();
-            wakeWrite = true;
-        }
-        // Double redundancy: send value twice before clear and notify
-        else if((r == Redundancy::DOUBLE) ||
-                (r == Redundancy::DOUBLE_SPATIAL)) {
-            if(++timesSent >= 2){
-                timesSent = 0;
-                sendBuffer.clear();
-                wakeWrite = true;
-            }
-        }
-        // Triple redundancy: send value three times before clear and notify
-        else if((r == Redundancy::TRIPLE) ||
-                (r == Redundancy::TRIPLE_SPATIAL)) {
-            if(++timesSent >= 3){ 
-                timesSent = 0;
-                sendBuffer.clear();
-                wakeWrite = true;
-            }  
-        }
+bool Stream::sendPacket(Packet& data) {
+    updateTxPacket();
+    if(txPacketReady) {        
+        data = txPacket;
+        return true;
     }
-    if(wakeWrite) {
-        // Wake up the write method
-#ifdef _MIOSIX
-        send_cv.signal();
-#else
-        send_cv.notify_one();
-#endif
-    }
+    else
+        return false;
 }
 
 void Stream::addedStream(StreamParameters newParams) {
@@ -240,8 +172,7 @@ void Stream::addedStream(StreamParameters newParams) {
     // NOTE: Update stream parameters and cached redundancy,
     // they may have changed after negotiation with server
     info.setParams(newParams);
-    redundancy = info.getRedundancy();
-
+    updateRedundancy();
     // Wake up the connect() method
 #ifdef _MIOSIX
     connect_cv.signal();
@@ -295,13 +226,7 @@ bool Stream::removedStream() {
         }
     }
     // Wake up the write and read methods
-#ifdef _MIOSIX
-    send_cv.signal();
-    recv_cv.signal();
-#else
-    send_cv.notify_one();
-    recv_cv.notify_one();
-#endif
+    wakeWriteRead();
     return deletable;
 }
 
@@ -377,13 +302,7 @@ bool Stream::close(StreamManager* mgr) {
         }
     }
     // Wake up the write and read methods
-#ifdef _MIOSIX
-    send_cv.signal();
-    recv_cv.signal();
-#else
-    send_cv.notify_one();
-    recv_cv.notify_one();
-#endif
+    wakeWriteRead();
     return deletable;
 }
 
@@ -457,14 +376,112 @@ bool Stream::desync() {
     connect_cv.notify_one();
 #endif
     // Wake up the write and read methods
-#ifdef _MIOSIX
-    send_cv.signal();
-    recv_cv.signal();
-#else
-    send_cv.notify_one();
-    recv_cv.notify_one();
-#endif
+    wakeWriteRead();
     return deletable;
+}
+
+
+void Stream::updateRedundancy() {
+    redundancy = info.getRedundancy();
+    // No redundancy: notify after receiving
+    if(redundancy == Redundancy::NONE) {
+        redundancyCount = 1;
+    }
+    // Double redundancy: notify after receiving twice
+    else if((redundancy == Redundancy::DOUBLE) ||
+            (redundancy == Redundancy::DOUBLE_SPATIAL)) {
+        redundancyCount = 2;
+    }
+    // Triple redundancy: notify after receiving three times
+    else if((redundancy == Redundancy::TRIPLE) ||
+            (redundancy == Redundancy::TRIPLE_SPATIAL)) {
+        redundancyCount = 3;
+    }
+}
+
+void Stream::updateRxPacket() {
+    // Stream Redundancy logic
+    if(++rxCount >= redundancyCount) {
+        // Reset received packet counter
+        rxCount = 0;
+        {
+            // Lock mutex for shared access with application thread
+#ifdef _MIOSIX
+            miosix::Lock<miosix::FastMutex> lck(rx_mutex);
+#else
+            std::unique_lock<std::mutex> lck(rx_mutex);
+#endif
+            // Copy received packet to variabled shared with application
+            rxPacketShared = rxPacket;
+            receivedShared = received;
+            rxWakeUp = true;
+            // Wake up the read method
+#ifdef _MIOSIX
+            rx_cv.signal();
+#else
+            rx_cv.notify_one();
+#endif
+        }
+        rxPacket.clear();
+        received = false;
+    }
+}
+
+void Stream::updateTxPacket() {
+    // Stream Redundancy logic
+    if(++txCount >= redundancyCount) {
+        // Reset received packet counter
+        txCount = 0;
+        {
+            // Lock mutex for shared access with application thread
+#ifdef _MIOSIX
+            miosix::Lock<miosix::FastMutex> lck(tx_mutex);
+#else
+            std::unique_lock<std::mutex> lck(tx_mutex);
+#endif
+            // Copy received packet to variabled shared with application
+            txPacket = nextTxPacket;
+            txPacketReady = nextTxPacketReady;
+            // Wake up the write method
+#ifdef _MIOSIX
+            tx_cv.signal();
+#else
+            tx_cv.notify_one();
+#endif
+        }
+    }
+}
+
+void Stream::wakeWriteRead() {
+    {    // Lock mutex for shared access with application thread
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(tx_mutex);
+#else
+        std::unique_lock<std::mutex> lck(tx_mutex);
+#endif
+        txWakeUp = true;
+        // Wake up the write method
+#ifdef _MIOSIX
+        tx_cv.signal();
+#else
+        tx_cv.notify_one();
+#endif
+        }
+    {
+        // Lock mutex for shared access with application thread
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(rx_mutex);
+#else
+        std::unique_lock<std::mutex> lck(rx_mutex);
+#endif
+        rxWakeUp = true;
+        // Wake up the read method
+#ifdef _MIOSIX
+        rx_cv.signal();
+#else
+        rx_cv.notify_one();
+#endif
+    }
 }
 
 int Server::listen(StreamManager* mgr) {

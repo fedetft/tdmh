@@ -222,7 +222,7 @@ void StreamManager::periodicUpdate() {
     map_mutex.unlock();
 }
 
-void StreamManager::putPacket(StreamId id, const Packet& data) {
+void StreamManager::receivePacket(StreamId id, const Packet& data) {
     // Lock map_mutex to access the shared Stream map
     map_mutex.lock();
 
@@ -235,10 +235,26 @@ void StreamManager::putPacket(StreamId id, const Packet& data) {
     auto stream = streamit->second;
     map_mutex.unlock();
 
-    stream->putPacket(data);
+    stream->receivePacket(data);
 }
 
-void StreamManager::getPacket(StreamId id, Packet& data) {
+void StreamManager::missPacket(StreamId id) {
+        // Lock map_mutex to access the shared Stream map
+        map_mutex.lock();
+
+        // Check if a stream with these parameters is not present
+        auto streamit = streams.find(id);
+        if(streamit == streams.end()) {
+            map_mutex.unlock();
+            return;
+        }
+        auto stream = streamit->second;
+        map_mutex.unlock();
+
+        stream->missPacket();
+}
+
+bool StreamManager::sendPacket(StreamId id, Packet& data) {
     // Lock map_mutex to access the shared Stream map
     map_mutex.lock();
 
@@ -246,12 +262,12 @@ void StreamManager::getPacket(StreamId id, Packet& data) {
     auto streamit = streams.find(id);
     if(streamit == streams.end()) {
         map_mutex.unlock();
-        return;
+        return false;
     }
     auto stream = streamit->second;
     map_mutex.unlock();
 
-    stream->getPacket(data);
+    return stream->sendPacket(data);
 }
 
 void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) {
