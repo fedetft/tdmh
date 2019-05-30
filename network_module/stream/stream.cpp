@@ -106,6 +106,7 @@ int Stream::read(void* data, int maxSize) {
     while(rxWakeUp == false) {
         rx_cv.wait(lck);
     }
+    rxWakeUp = false;
     if(receivedShared == true) {
         auto size = std::min<int>(maxSize, rxPacketShared.size());
         try {
