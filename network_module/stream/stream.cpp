@@ -66,21 +66,41 @@ int Stream::write(const void* data, int size) {
     std::unique_lock<std::mutex> lck(tx_mutex);
 #endif
     if(nextTxPacketReady == false) {
-        nextTxPacket.put(data, size);
-        nextTxPacketReady = true;
-        return size;
+        try {
+            nextTxPacket.put(data, size);
+            nextTxPacketReady = true;
+            return size;
+        }
+        // Calling write with size too big
+        catch(PacketOverflowException& ){
+            return -1;
+        }
     }
-    while(nextTxPacketReady == true && getStatus() == StreamStatus::ESTABLISHED){
-        // Condition variable to wait for buffer to be empty
+    // Wait for txWakeUp condition to be true
+    while(txWakeUp == false){
         tx_cv.wait(lck);
     }
+    // Reset txWakeup variable
+    txWakeUp = false;
     if(nextTxPacketReady == false) {
-        nextTxPacket.put(data, size);
-        nextTxPacketReady = true;
-        return size;
+        try {
+            nextTxPacket.put(data, size);
+            nextTxPacketReady = true;
+            return size;
+        }
+        // Calling write with size too big
+        catch(PacketOverflowException& ){
+            return -1;
+        }
     }
-    // The stream has been closed
-    return -1;
+    // The stream was closed
+    if(getStatus() != StreamStatus::ESTABLISHED) { 
+        return -2;
+    }
+    // We did not send any data this round
+    else {
+        return -1;
+    }
 }
 
 int Stream::read(void* data, int maxSize) {
@@ -106,6 +126,7 @@ int Stream::read(void* data, int maxSize) {
     while(rxWakeUp == false) {
         rx_cv.wait(lck);
     }
+    // Reset rxWakeup variable
     rxWakeUp = false;
     if(receivedShared == true) {
         auto size = std::min<int>(maxSize, rxPacketShared.size());
@@ -122,11 +143,11 @@ int Stream::read(void* data, int maxSize) {
     }
     // The stream was closed
     if(getStatus() != StreamStatus::ESTABLISHED) { 
-        return -1;
+        return -2;
     }
     // We did not receive any data this round
     else {
-        return -2;
+        return -1;
     }
 }
 
@@ -200,6 +221,7 @@ bool Stream::sendPacket(Packet& data) {
             if(nextTxPacketReady == true) {
                 txPacket = nextTxPacket;
                 txPacketReady = true;
+                nextTxPacket.clear();
                 nextTxPacketReady = false;
             }
             // Wake up the write method

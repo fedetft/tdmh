@@ -38,6 +38,11 @@
 
 namespace mxnet {
 
+class PacketOverflowException : public std::range_error {
+public:
+    PacketOverflowException(const std::string& err) : range_error(err) {}
+};
+
 class PacketUnderflowException : public std::range_error {
 public:
     PacketUnderflowException(const std::string& err) : range_error(err) {}
