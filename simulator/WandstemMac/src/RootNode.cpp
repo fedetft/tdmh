@@ -132,7 +132,8 @@ void RootNode::streamThread(pair<int, StreamManager*> arg) {
                     printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
                             id.src, id.dst, len);
             }
-            else if(len = -2) {
+            else if(len == -1) {
+                // No data received
                 printf("[E] No data received from Stream (%d,%d)\n", id.src, id.dst);
             }
         }

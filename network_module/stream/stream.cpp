@@ -583,6 +583,12 @@ void Server::addPendingStream(int fd) {
 #endif
     // Push add new stream fd to set
     pendingAccept.insert(fd);
+    // Wake up the accept() method
+#ifdef _MIOSIX
+    listen_cv.signal();
+#else
+    listen_cv.notify_one();
+#endif
 }
 
 void Server::acceptedServer() {
