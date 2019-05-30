@@ -60,89 +60,157 @@ int Stream::connect(StreamManager* mgr) {
 }
 
 int Stream::write(const void* data, int size) {
-    {
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(tx_mutex);
+    miosix::Lock<miosix::FastMutex> lck(tx_mutex);
 #else
-        std::unique_lock<std::mutex> lck(tx_mutex);
+    std::unique_lock<std::mutex> lck(tx_mutex);
 #endif
-        // Wait for sendBuffer to be empty or stream to be not ESTABLISHED
-        while(txWakeUp == false) {
-            // Condition variable to wait for buffer to be empty
-            tx_cv.wait(lck);
-        }
-        if(nextTxPacketReady == false) {
-            nextTxPacket.put(data, size);
-            return size;
-        }
+    if(nextTxPacketReady == false) {
+        nextTxPacket.put(data, size);
+        nextTxPacketReady = true;
+        return size;
     }
-    {
-        // Lock mutex to access StreamInfo
-#ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(status_mutex);
-#else
-        std::unique_lock<std::mutex> lck(status_mutex);
-#endif
-        if(info.getStatus() != StreamStatus::ESTABLISHED)
-            return -1;
+    while(nextTxPacketReady == true && getStatus() == StreamStatus::ESTABLISHED){
+        // Condition variable to wait for buffer to be empty
+        tx_cv.wait(lck);
     }
-    //NOTE: we should never end up here
-    return -2;
+    if(nextTxPacketReady == false) {
+        nextTxPacket.put(data, size);
+        nextTxPacketReady = true;
+        return size;
+    }
+    // The stream has been closed
+    return -1;
 }
 
 int Stream::read(void* data, int maxSize) {
-    {
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(rx_mutex);
+    miosix::Lock<miosix::FastMutex> lck(rx_mutex);
 #else
-        std::unique_lock<std::mutex> lck(rx_mutex);
+    std::unique_lock<std::mutex> lck(rx_mutex);
 #endif
-        // Wait for rxWakeUp condition to be true
-        while(rxWakeUp == false) {
-            rx_cv.wait(lck);
+    if(receivedShared == true) {
+        auto size = std::min<int>(maxSize, rxPacketShared.size());
+        try {
+            rxPacketShared.get(data, size);
+            rxPacketShared.clear();
+            receivedShared = false;
+            return size;
         }
-        if(receivedShared == true) {
-            auto size = std::min<int>(maxSize, rxPacketShared.size());
-            try {
-                rxPacketShared.get(data, size);
-                rxPacketShared.clear();
-                return size;
-            }
-            // Received wrong size packet
-            catch(PacketUnderflowException& ){
-                return -1;
-            }
+        // Received wrong size packet
+        catch(PacketUnderflowException& ){
+            return -1;
         }
     }
-    // Stream was closed
-    {
-        // Lock mutex to access StreamInfo
-#ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(status_mutex);
-#else
-        std::unique_lock<std::mutex> lck(status_mutex);
-#endif
-        if(info.getStatus() != StreamStatus::ESTABLISHED)
+    // Wait for rxWakeUp condition to be true
+    while(rxWakeUp == false) {
+        rx_cv.wait(lck);
+    }
+    if(receivedShared == true) {
+        auto size = std::min<int>(maxSize, rxPacketShared.size());
+        try {
+            rxPacketShared.get(data, size);
+            rxPacketShared.clear();
+            receivedShared = false;
+            return size;
+        }
+        // Received wrong size packet
+        catch(PacketUnderflowException& ){
             return -1;
+        }
+    }
+    // The stream was closed
+    if(getStatus() != StreamStatus::ESTABLISHED) { 
+        return -1;
     }
     // We did not receive any data this round
-    return -2;
+    else {
+        return -2;
+    }
 }
 
 void Stream::receivePacket(const Packet& data) {
+    // NOTE: we use a duplicated rxPacket to acquire data before locking the mutex
     rxPacket = data;
     received = true;
-    updateRxPacket();
+    // Stream Redundancy logic
+    if(++rxCount >= redundancyCount) {
+        // Reset received packet counter
+        rxCount = 0;
+        {
+            // Lock mutex for shared access with application thread
+#ifdef _MIOSIX
+            miosix::Lock<miosix::FastMutex> lck(rx_mutex);
+#else
+            std::unique_lock<std::mutex> lck(rx_mutex);
+#endif
+            // Copy received packet to variabled shared with application
+            rxPacketShared = rxPacket;
+            receivedShared = received;
+            rxPacket.clear();
+            received = false;
+            rxWakeUp = true;
+            // Wake up the read method
+#ifdef _MIOSIX
+            rx_cv.signal();
+#else
+            rx_cv.notify_one();
+#endif
+        }
+    }
 }
 
 void Stream::missPacket() {
     // No data to receive
-    updateRxPacket();
+    // Stream Redundancy logic
+    if(++rxCount >= redundancyCount) {
+        // Reset received packet counter
+        rxCount = 0;
+        {
+            // Lock mutex for shared access with application thread
+#ifdef _MIOSIX
+            miosix::Lock<miosix::FastMutex> lck(rx_mutex);
+#else
+            std::unique_lock<std::mutex> lck(rx_mutex);
+#endif
+            rxWakeUp = true;
+            // Wake up the read method
+#ifdef _MIOSIX
+            rx_cv.signal();
+#else
+            rx_cv.notify_one();
+#endif
+        }
+    }
 }
 
 bool Stream::sendPacket(Packet& data) {
-    updateTxPacket();
-    if(txPacketReady) {        
+    // Stream Redundancy logic
+    if(++txCount >= redundancyCount) {
+        // Reset received packet counter
+        txCount = 0;
+        {
+            // Lock mutex for shared access with application thread
+#ifdef _MIOSIX
+            miosix::Lock<miosix::FastMutex> lck(tx_mutex);
+#else
+            std::unique_lock<std::mutex> lck(tx_mutex);
+#endif
+            if(nextTxPacketReady == true) {
+                txPacket = nextTxPacket;
+                txPacketReady = true;
+                nextTxPacketReady = false;
+            }
+            // Wake up the write method
+            txWakeUp = true;
+#ifdef _MIOSIX
+            tx_cv.signal();
+#else
+            tx_cv.notify_one();
+#endif
+        }
+    }
+    if(txPacketReady) {
         data = txPacket;
         return true;
     }
@@ -396,59 +464,6 @@ void Stream::updateRedundancy() {
     else if((redundancy == Redundancy::TRIPLE) ||
             (redundancy == Redundancy::TRIPLE_SPATIAL)) {
         redundancyCount = 3;
-    }
-}
-
-void Stream::updateRxPacket() {
-    // Stream Redundancy logic
-    if(++rxCount >= redundancyCount) {
-        // Reset received packet counter
-        rxCount = 0;
-        {
-            // Lock mutex for shared access with application thread
-#ifdef _MIOSIX
-            miosix::Lock<miosix::FastMutex> lck(rx_mutex);
-#else
-            std::unique_lock<std::mutex> lck(rx_mutex);
-#endif
-            // Copy received packet to variabled shared with application
-            rxPacketShared = rxPacket;
-            receivedShared = received;
-            rxWakeUp = true;
-            // Wake up the read method
-#ifdef _MIOSIX
-            rx_cv.signal();
-#else
-            rx_cv.notify_one();
-#endif
-        }
-        rxPacket.clear();
-        received = false;
-    }
-}
-
-void Stream::updateTxPacket() {
-    // Stream Redundancy logic
-    if(++txCount >= redundancyCount) {
-        // Reset received packet counter
-        txCount = 0;
-        {
-            // Lock mutex for shared access with application thread
-#ifdef _MIOSIX
-            miosix::Lock<miosix::FastMutex> lck(tx_mutex);
-#else
-            std::unique_lock<std::mutex> lck(tx_mutex);
-#endif
-            // Copy received packet to variabled shared with application
-            txPacket = nextTxPacket;
-            txPacketReady = nextTxPacketReady;
-            // Wake up the write method
-#ifdef _MIOSIX
-            tx_cv.signal();
-#else
-            tx_cv.notify_one();
-#endif
-        }
     }
 }
 

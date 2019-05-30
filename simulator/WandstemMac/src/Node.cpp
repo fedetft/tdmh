@@ -142,8 +142,8 @@ void Node::sendData(MACContext* ctx, Period period, Redundancy redundancy) {
         unsigned int counter = 0;
         while(mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
             Data data(ctx->getNetworkId(), counter);
-            mgr->write(stream, &data, sizeof(data));
-            printf("[A] Sent ID=%d Counter=%u\n", data.id, data.counter);
+            int len = mgr->write(stream, &data, sizeof(data));
+            printf("[A] Sent ID=%d Counter=%u, result=%d \n", data.id, data.counter, len);
             counter++;
         }
         printf("[A] Stream was closed\n");
