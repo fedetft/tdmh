@@ -155,7 +155,7 @@ void StreamCollection::updateServer(MasterStreamInfo& server, StreamManagementEl
     auto status = server.getStatus();
     if(status == MasterStreamStatus::LISTEN) {
         if(type == SMEType::CLOSED) {
-            if(ENABLE_STREAM_LIST_INFO_DBG)
+            if(SCHEDULER_SUMMARY_DBG)
                 printf("[SC] Server (%d,%d,%d,%d) Closed\n", id.src,id.dst,id.srcPort,id.dstPort);
             // Delete server because it has been closed by remote node
             collection.erase(id);
@@ -183,7 +183,7 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
             auto serverParams = server.getParams();
             // If the direction of client and server don't match, reject stream
             if(serverParams.direction != clientParams.direction) {
-                if(ENABLE_STREAM_LIST_INFO_DBG)
+                if(SCHEDULER_SUMMARY_DBG)
                     printf("[SC] Stream (%d,%d,%d,%d) Rejected: parameters don't match\n", id.src,id.dst,id.srcPort,id.dstPort);
                 // Create REJECTED stream
                 collection[id] = MasterStreamInfo(id, clientParams, MasterStreamStatus::REJECTED);
@@ -192,7 +192,7 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
             }
             // Otherwise create new stream
             else {
-                if(ENABLE_STREAM_LIST_INFO_DBG)
+                if(SCHEDULER_SUMMARY_DBG)
                     printf("[SC] Stream (%d,%d,%d,%d) Accepted\n", id.src,id.dst,id.srcPort,id.dstPort);
                 // Negotiate parameters between client and servers
                 StreamParameters newParams = negotiateParameters(serverParams, clientParams);
@@ -205,7 +205,7 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
         }
         // Server absent
         else {
-            if(ENABLE_STREAM_LIST_INFO_DBG)
+            if(SCHEDULER_SUMMARY_DBG)
                 printf("[SC] Stream (%d,%d,%d,%d) Rejected: server missing\n", id.src,id.dst,id.srcPort,id.dstPort);
             // Create REJECTED stream
             collection[id] = MasterStreamInfo(id, clientParams, MasterStreamStatus::REJECTED);
@@ -220,7 +220,7 @@ void StreamCollection::createServer(StreamManagementElement& sme) {
     SMEType type = sme.getType();
     StreamParameters params = sme.getParams();
     if(type == SMEType::LISTEN) {
-        if(ENABLE_STREAM_LIST_INFO_DBG)
+        if(SCHEDULER_SUMMARY_DBG)
             printf("[SC] Server (%d,%d,%d,%d) Accepted\n", id.src,id.dst,id.srcPort,id.dstPort);
         // Create server
         collection[id] = MasterStreamInfo(id, params, MasterStreamStatus::LISTEN);

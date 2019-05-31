@@ -78,11 +78,11 @@ const bool ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY = false;
 //prints the stream context debug info
 const bool ENABLE_STREAM_INFO_DBG = true;
 
-//prints information on stream status in the master node
-const bool ENABLE_STREAM_LIST_INFO_DBG = true;
+//prints summary information on scheduling in the master node
+const bool SCHEDULER_SUMMARY_DBG = true;
 
-//prints the schedule computation info in the master node
-const bool ENABLE_SCHEDULE_COMP_INFO_DBG = false;
+//prints detailed information on scheduling in the master node
+const bool SCHEDULER_DETAILED_DBG = false;
 
 //prints the schedule distribution info in the master node
 const bool ENABLE_SCHEDULE_DIST_MAS_INFO_DBG = false;
