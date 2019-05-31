@@ -138,15 +138,19 @@ protected:
     void setStatus(StreamStatus status) {
         info.setStatus(status);
         // NOTE: Reset the sme and fail timeouts after state change
+        resetTimeouts();
+    }
+    // Used by derived class Stream and Server
+    void resetTimeouts() {
         smeTimeout = smeTimeoutMax;
         failTimeout = failTimeoutMax;
     }
 
     // TODO:Integrate these constants in NetworkConfiguration
     /* Constants defining the maximum value of the sme and fail timeout
-     * In number of periodicUpdate() cycles */
-    const int smeTimeoutMax = 3;
-    const int failTimeoutMax = 9;
+     * In number of tiles */
+    const int smeTimeoutMax = 200;
+    const int failTimeoutMax = 1000;
 
     /* Copy of the file descriptor number, useful for deleting object from fdt */
     int fd;
@@ -263,10 +267,6 @@ public:
 private:
     // Called by Stream itself, used to update cached redundancy info
     void updateRedundancy();
-    // Called by Stream itself, to copy received packet to application packet
-    void updateRxPacket();
-    // Called by Stream itself, to copy application packet to send packet
-    void updateTxPacket();
     // Called by Stream itself, when the stream status changes and we need to wake up
     // the write and read methods
     void wakeWriteRead();

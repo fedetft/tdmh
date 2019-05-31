@@ -207,7 +207,9 @@ void MACContext::run()
             data->run(currentNextDeadline);
             currentNextDeadline += dataSlotDuration;
         }
-        
+        /* Call periodicUpdate to Streams and Servers */
+        streamMgr->periodicUpdate();
+
         currentNextDeadline += tileSlackTime;
         if(++tileCounter >= controlSuperframe.size())
         {

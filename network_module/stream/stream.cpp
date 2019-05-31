@@ -685,6 +685,7 @@ bool Server::close(StreamManager* mgr) {
 }
 
 void Server::periodicUpdate(StreamManager* mgr) {
+    bool changed = false;
     // Lock mutex for concurrent access at StreamInfo
     {
 #ifdef _MIOSIX
@@ -700,10 +701,13 @@ void Server::periodicUpdate(StreamManager* mgr) {
                 mgr->enqueueSME(StreamManagementElement(info, SMEType::LISTEN));
             }
             if(failTimeout-- <= 0) {
+                smeTimeout = smeTimeoutMax;
+                failTimeout = failTimeoutMax;
                 // Give up opening server and close it
                 setStatus(StreamStatus::LISTEN_FAILED);
                 // Send CLOSED SME
                 mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+                changed = true;
             }
             break;
         case StreamStatus::REOPENED:
@@ -724,12 +728,14 @@ void Server::periodicUpdate(StreamManager* mgr) {
             break;
         }
     }
-    // Wake up the listen and accept methods
+    if(changed) {
+        // Wake up the listen and accept methods
 #ifdef _MIOSIX
-    listen_cv.signal();
+        listen_cv.signal();
 #else
-    listen_cv.notify_one();
+        listen_cv.notify_one();
 #endif
+    }
 }
 
 bool Server::desync() {
