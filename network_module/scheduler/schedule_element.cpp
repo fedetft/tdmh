@@ -41,21 +41,29 @@ ScheduleHeader ScheduleHeader::deserialize(Packet& pkt) {
 
 
 void ScheduleElement::serialize(Packet& pkt) const {
+    pkt.put(&id, sizeof(StreamId));
+    pkt.put(&params, sizeof(StreamParameters));
     pkt.put(&content, sizeof(ScheduleElementPkt));
 }
 
 ScheduleElement ScheduleElement::deserialize(Packet& pkt) {
     ScheduleElement result;
+    pkt.get(&result.id, sizeof(StreamId));
+    pkt.get(&result.params, sizeof(StreamParameters));
     pkt.get(&result.content, sizeof(ScheduleElementPkt));
     return result;
 }
 
 void InfoElement::serialize(Packet& pkt) const {
+    pkt.put(&id, sizeof(StreamId));
+    pkt.put(&params, sizeof(StreamParameters));
     pkt.put(&content, sizeof(ScheduleElementPkt));
 }
 
 InfoElement InfoElement::deserialize(Packet& pkt) {
     InfoElement result;
+    pkt.get(&result.id, sizeof(StreamId));
+    pkt.get(&result.params, sizeof(StreamParameters));
     pkt.get(&result.content, sizeof(ScheduleElementPkt));
     return result;
 }
@@ -68,7 +76,7 @@ void SchedulePacket::serialize(Packet& pkt) const {
 
 SchedulePacket SchedulePacket::deserialize(Packet& pkt) {
     ScheduleHeader header = ScheduleHeader::deserialize(pkt);
-    auto count = pkt.size() / sizeof(ScheduleElementPkt);
+    auto count = pkt.size() / ScheduleElement::maxSize();
     std::vector<ScheduleElement> elements;
     elements.clear();
     elements.reserve(count);

@@ -125,7 +125,6 @@ public:
         // because it is a single-hop transmission
         content.tx = id.src;
         content.rx = id.dst;
-        auto params = stream.getParams();
         content.offset = off;
     };
 
@@ -140,7 +139,11 @@ public:
 
     void serialize(Packet& pkt) const override;
     static ScheduleElement deserialize(Packet& pkt);
-    std::size_t size() const override { return sizeof(ScheduleElementPkt); }
+    std::size_t size() const override { return maxSize(); }
+    static std::size_t maxSize() {
+        return (sizeof(StreamId) +
+                sizeof(StreamParameters) +
+                sizeof(ScheduleElementPkt)); }
     StreamId getStreamId() const { return id; }
     StreamParameters getParams() const { return params; }
     StreamInfo getStreamInfo() const {
