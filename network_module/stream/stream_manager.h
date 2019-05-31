@@ -178,12 +178,12 @@ private:
     // Closes and removes a given Stream from the maps
     // deleting the actual Stream object
     // Finally calling freeClientPort on the source port
-    // NOTE: remember to lock and unlock map_mutex
+    // NOTE: to be called with the mutex locked
     void removeStream(StreamId id);
 
     // Closes and removes a Server on a given port from the maps
     // deleting the actual Server object
-    // NOTE: remember to lock and unlock map_mutex
+    // NOTE: to be called with the mutex locked
     void removeServer(unsigned char port);
 
     // Prints StreamId and status of a given Stream 

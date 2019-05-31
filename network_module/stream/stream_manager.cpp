@@ -34,24 +34,25 @@ namespace mxnet {
 
 void StreamManager::desync() {
     std::vector<StreamId> deleteList;
-
-    // Lock map_mutex to access the shared Stream/Server map
-    map_mutex.lock();
-
-    // Iterate over all streams
-    for(auto& pair: streams) {
-        auto stream = pair.second;
-        bool deleted = stream->desync();
-        if(deleted)
-            deleteList.push_back(stream->getStreamId());
+    {
+        // Lock map_mutex to access the shared Stream/Server map
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        // Iterate over all streams
+        for(auto& pair: streams) {
+            auto stream = pair.second;
+            bool deleted = stream->desync();
+            if(deleted)
+                deleteList.push_back(stream->getStreamId());
+        }
+        // Delete all streams added to deleteList
+        for(auto& streamId: deleteList) {
+            removeStream(streamId);
+        }
     }
-    map_mutex.unlock();
-
-    // Delete all streams added to deleteList
-    for(auto& streamId: deleteList) {
-        removeStream(streamId);
-    }
-
     // Clear SME queue, otherwise we could be sending old SMEs
     // after resync()
     smeQueue.clear();
@@ -62,217 +63,282 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
     if(srcPort == -1)
         return -1;
     auto streamId = StreamId(myId, dst, srcPort, dstPort);
-
-    // Lock map_mutex to access the shared Stream map
-    map_mutex.lock();
-
-    // Check if a stream with these parameters is already present
-    if(streams.find(streamId) != streams.end()) {
-        map_mutex.unlock();
-        freeClientPort(srcPort);
-        return -1;
-    }
     StreamInfo streamInfo(streamId, params, StreamStatus::CONNECTING);
-    int fd = addStream(streamInfo);
-    map_mutex.unlock();
-
-    printStreamStatus(streamId, streamInfo.getStatus());
+    int fd = -1;
+    Endpoint* stream;
+    {
+        // Lock map_mutex to access the shared Stream map
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        // Check if a stream with these parameters is already present
+        if(streams.find(streamId) != streams.end()) {
+            freeClientPort(srcPort);
+            return -1;
+        }
+        fd = addStream(streamInfo);
+        // Check if a server with these parameters is present
+        auto streamit = fdt.find(fd);
+        if(streamit == fdt.end()) {
+            return -1;
+        }
+        stream = streamit->second.get();
+    }
     // Make the stream wait for a schedule
     // NOTE: Make sure that stream enqueues a CONNECT SME
-    int error = fdt[fd]->connect(this);
+    int error = stream->connect(this);
     if(error != 0) {
         removeStream(streamId);
         return -1;
     }
+    printStreamStatus(streamId, streamInfo.getStatus());
     return fd;
 }
 
 int StreamManager::write(int fd, const void* data, int size) {
-    // Lock map_mutex to access the shared Stream map
-    map_mutex.lock();
-
-    // Check if a stream with these parameters is not present
-    if(fdt.find(fd) == fdt.end()) {
-        map_mutex.unlock();
-        return -1;
+    Endpoint* stream;
+    {
+        // Lock map_mutex to access the shared Stream map
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        // Check if a stream with these parameters is not present
+        if(fdt.find(fd) == fdt.end()) {
+            return -1;
+        }
+        stream = fdt[fd].get();
     }
-    auto stream = fdt[fd];
-    map_mutex.unlock();
-
     return stream->write(data, size);
 }
 
 int StreamManager::read(int fd, void* data, int maxSize) {
-    // Lock map_mutex to access the shared Stream map
-    map_mutex.lock();
-
-    // Check if a stream with these parameters is not present
-    if(fdt.find(fd) == fdt.end()) {
-        map_mutex.unlock();
-        return -1;
+    Endpoint* stream;
+    {
+        // Lock map_mutex to access the shared Stream map
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        // Check if a stream with these parameters is not present
+        if(fdt.find(fd) == fdt.end()) {
+            return -1;
+        }
+        stream = fdt[fd].get();
     }
-    auto stream = fdt[fd];
-    map_mutex.unlock();
-
     return stream->read(data, maxSize);
 }
 
 StreamInfo StreamManager::getInfo(int fd) {
-    // Lock map_mutex to access the shared Stream map
-    map_mutex.lock();
-
-    // Check if a stream with these parameters is not present
-    if(fdt.find(fd) == fdt.end()) {
-        map_mutex.unlock();
-        return StreamInfo();
+    Endpoint* endpoint;
+    {
+        // Lock map_mutex to access the shared Stream/Server map
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        // Check if a stream with these parameters is not present
+        if(fdt.find(fd) == fdt.end()) {
+            return StreamInfo();
+        }
+        endpoint = fdt[fd].get();
     }
-    auto stream = fdt[fd];
-    map_mutex.unlock();
-
-    return stream->getInfo();
+    return endpoint->getInfo();
 }
 
 void StreamManager::close(int fd) {
-    // Lock map_mutex to access the shared Stream/Server map
-    map_mutex.lock();
-
-    // Check if a stream with these parameters is not present
-    if(fdt.find(fd) == fdt.end()) {
-        map_mutex.unlock();
-        return;
+    Endpoint* endpoint;
+    {
+        // Lock map_mutex to access the shared Stream/Server map
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        // Check if a stream with these parameters is not present
+        if(fdt.find(fd) == fdt.end()) {
+            return;
+        }
+        endpoint = fdt[fd].get();
     }
-    auto endpoint = fdt[fd];
-    map_mutex.unlock();
-
     StreamId id = endpoint->getStreamId();
     bool deleted = endpoint->close(this);
-    if(id.isServer()) {
-        unsigned char port = id.dstPort;
-        if(deleted) {
+    if(deleted) {
+        // Lock map_mutex to access the shared Stream/Server map
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        if(id.isServer()) {
+            unsigned char port = id.dstPort;
             removeServer(port);
         }
-    }
-    else if(deleted) {
-        removeStream(id);
+        else {
+            removeStream(id);
+        }
     }
 }
 
 int StreamManager::listen(unsigned char port, StreamParameters params) {
     auto serverId = StreamId(myId, myId, 0, port);
-
-    // Lock map_mutex to access the shared Server map
-    map_mutex.lock();
-
-    // Check if a server with these parameters is already present
-    if(servers.find(port) != servers.end()) {
-        map_mutex.unlock();
-        return -1;
-    }
     StreamInfo serverInfo(serverId, params, StreamStatus::LISTEN_WAIT);
-    int fd = addServer(serverInfo);
-    map_mutex.unlock();
-
-    printServerStatus(serverId, serverInfo.getStatus());
+    int fd = -1;
+    Endpoint* server;
+    {
+        // Lock map_mutex to access the shared Server map
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        // Check if a server with these parameters is already present
+        if(servers.find(port) != servers.end()) {
+            return -1;
+        }
+        fd = addServer(serverInfo);
+        // Check if a server with these parameters is present
+        auto serverit = fdt.find(fd);
+        if(serverit == fdt.end()) {
+            return -1;
+        }
+        server = serverit->second.get();
+    }
     // Make the server wait for an info element confirming LISTEN status
-    int error = fdt[fd]->listen(this);
+    int error = server->listen(this);
     if(error != 0) {
         unsigned char port = serverId.dstPort;
         removeServer(port);
         return -1;
     }
+    printServerStatus(serverId, serverInfo.getStatus());
     return fd;
 }
 
 int StreamManager::accept(int serverfd) {
-    // Lock map_mutex to access the shared Server map
-    map_mutex.lock();
-
-    // Check if a server with these parameters is not present
-    auto serverit = fdt.find(serverfd);
-    if(serverit == fdt.end()) {
-        map_mutex.unlock();
-        return -1;
+    Endpoint* server;
+    int fd = -1;
+    Endpoint* stream;
+    {
+        // Lock map_mutex to access the shared Server map
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        // Check if a server with these parameters is not present
+        auto serverit = fdt.find(serverfd);
+        if(serverit == fdt.end()) {
+            return -1;
+        }
+        server = serverit->second.get();
     }
-    auto server = serverit->second;
-    map_mutex.unlock();
+    fd = server->accept();
+    {
+        // Lock map_mutex to access the shared Stream map
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
 
-    int fd = server->accept();
-    // If we got a valid fd from accept
-    if(fd > 0) { 
-        // Change accepted stream status to ESTABLISHED
-        fdt[fd]->acceptedStream();
-    } 
+        // Check if a stream with these parameters is present
+        auto streamit = fdt.find(fd);
+        if(streamit == fdt.end()) {
+            return -1;
+        }
+        stream = streamit->second.get();
+    }
+    stream->acceptedStream();
     return fd;
 }
 
 void StreamManager::periodicUpdate() {
     // Lock map_mutex to access the shared Stream/Server map
-    map_mutex.lock();
-
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+    std::unique_lock<std::mutex> lck(map_mutex);
+#endif
     // Iterate over all streams
     for(auto& stream: streams) {
         stream.second->periodicUpdate(this);
     }
-
     // Iterate over all servers
     for(auto& server: servers) {
         server.second->periodicUpdate(this);
     }
-
-    map_mutex.unlock();
 }
 
 void StreamManager::receivePacket(StreamId id, const Packet& data) {
-    // Lock map_mutex to access the shared Stream map
-    map_mutex.lock();
-
-    // Check if a stream with these parameters is not present
-    auto streamit = streams.find(id);
-    if(streamit == streams.end()) {
-        map_mutex.unlock();
-        return;
+    Stream* stream;
+    {
+        // Lock map_mutex to access the shared Stream map
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        // Check if a stream with these parameters is not present
+        auto streamit = streams.find(id);
+        if(streamit == streams.end()) {
+            return;
+        }
+        stream = streamit->second.get();
     }
-    auto stream = streamit->second;
-    map_mutex.unlock();
-
     stream->receivePacket(data);
 }
 
 void StreamManager::missPacket(StreamId id) {
+    Stream* stream;
+    {
         // Lock map_mutex to access the shared Stream map
-        map_mutex.lock();
-
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
         // Check if a stream with these parameters is not present
         auto streamit = streams.find(id);
         if(streamit == streams.end()) {
-            map_mutex.unlock();
             return;
         }
-        auto stream = streamit->second;
-        map_mutex.unlock();
-
-        stream->missPacket();
+        stream = streamit->second.get();
+    }
+    stream->missPacket();
 }
 
 bool StreamManager::sendPacket(StreamId id, Packet& data) {
-    // Lock map_mutex to access the shared Stream map
-    map_mutex.lock();
-
-    // Check if a stream with these parameters is not present
-    auto streamit = streams.find(id);
-    if(streamit == streams.end()) {
-        map_mutex.unlock();
-        return false;
+    Stream* stream;
+    {
+        // Lock map_mutex to access the shared Stream map
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        // Check if a stream with these parameters is not present
+        auto streamit = streams.find(id);
+        if(streamit == streams.end()) {
+            return false;
+        }
+        stream = streamit->second.get();
     }
-    auto stream = streamit->second;
-    map_mutex.unlock();
-
     return stream->sendPacket(data);
 }
 
 void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) {
-    // Lock map_mutex to access the shared Stream map
-    map_mutex.lock();
+    // Lock map_mutex to access the shared Stream/Server map
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+    std::unique_lock<std::mutex> lck(map_mutex);
+#endif
     // Create vector containing StreamId of all streams in map
     // We will remove from this vector the streams present in the schedule,
     // To get the remaining streams present in map but not in schedule.
@@ -341,12 +407,15 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
     for(auto& stream : streams) {
         stream.second->resetCounters();
     }
-    map_mutex.unlock();
 }
 
 void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
-    // Lock map_mutex to access the shared Stream map
-    map_mutex.lock();
+    // Lock map_mutex to access the shared Stream/Server map
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+    std::unique_lock<std::mutex> lck(map_mutex);
+#endif
     // Iterate over info elements
     for(auto& info : infos) {
         StreamId id = info.getStreamId();
@@ -383,47 +452,55 @@ void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
             }
         }
     }
-    map_mutex.unlock();
 }
 
 void StreamManager::dequeueSMEs(UpdatableQueue<StreamId,StreamManagementElement>& queue) {
-    // Lock sme_mutex to access the shared SME queue
-    sme_mutex.lock();
-
+    // Lock map_mutex to access the shared SME queue
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(sme_mutex);
+#else
+    std::unique_lock<std::mutex> lck(sme_mutex);
+#endif
     while(!smeQueue.empty()) {
         auto temp = smeQueue.dequeue();
         StreamId tempId = temp.getStreamId();
         queue.enqueue(tempId, std::move(temp));
     }
-
-    sme_mutex.unlock();
 }
 
 void StreamManager::enqueueSME(StreamManagementElement sme) {
     StreamId id = sme.getStreamId();
-
-    // Lock sme_mutex to access the shared SME queue
-    sme_mutex.lock();
-    smeQueue.enqueue(id, sme);
-    sme_mutex.unlock();
+    {
+        // Lock map_mutex to access the shared SME queue
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(sme_mutex);
+#else
+        std::unique_lock<std::mutex> lck(sme_mutex);
+#endif
+        smeQueue.enqueue(id, sme);
+    }
 }
 
 void StreamManager::closedServer(int fd) {
-    // Lock map_mutex to access the shared Stream map
-    map_mutex.lock();
-
-    // Check if a stream with these parameters is not present
-    if(fdt.find(fd) == fdt.end()) {
-        map_mutex.unlock();
-        return;
+    Endpoint* stream;
+    {
+        // Lock map_mutex to access the shared Stream map
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        // Check if a stream with these parameters is not present
+        if(fdt.find(fd) == fdt.end()) {
+            return;
+        }
+        stream = fdt[fd].get();
     }
-    auto stream = fdt[fd];
-    map_mutex.unlock();
-
     stream->closedServer(this);
 }
 
 int StreamManager::allocateClientPort() {
+    // Lock map_mutex to access the shared port vector
 #ifdef _MIOSIX
     miosix::Lock<miosix::FastMutex> lck(map_mutex);
 #else
@@ -473,11 +550,6 @@ int StreamManager::addServer(StreamInfo serverInfo) {
 }
 
 void StreamManager::removeStream(StreamId id) {
-#ifdef _MIOSIX
-    miosix::Lock<miosix::FastMutex> lck(map_mutex);
-#else
-    std::unique_lock<std::mutex> lck(map_mutex);
-#endif
     auto streamit = streams.find(id);
     if(streamit == streams.end())
         return;
@@ -490,19 +562,14 @@ void StreamManager::removeStream(StreamId id) {
 }
 
 void StreamManager::removeServer(unsigned char port) {
-#ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
-#else
-        std::unique_lock<std::mutex> lck(map_mutex);
-#endif
-        auto serverit = servers.find(port);
-        if(serverit == servers.end())
-            return;
+    auto serverit = servers.find(port);
+    if(serverit == servers.end())
+        return;
 
-        auto server = serverit->second;
-        int fd = server->getFd();
-        servers.erase(port); 
-        fdt.erase(fd);
+    auto server = serverit->second;
+    int fd = server->getFd();
+    servers.erase(port);
+    fdt.erase(fd);
 }
 
 void StreamManager::printStreamStatus(StreamId id, StreamStatus status) {
