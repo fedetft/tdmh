@@ -349,7 +349,7 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
     // Iterate over new schedule
     for(auto& element : schedule) {
         StreamId streamId = element.getStreamId();
-        // NOTE: We care only of streams of which we are source or destination 
+        // NOTE: Ignore streams of which we are not source or destination 
         if(streamId.src != myId && streamId.dst != myId)
             continue;
         auto streamit = streams.find(streamId);
@@ -419,6 +419,9 @@ void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
     // Iterate over info elements
     for(auto& info : infos) {
         StreamId id = info.getStreamId();
+        // NOTE: Ignore streams of which we are not source or destination 
+        if(id.src != myId && id.dst != myId)
+            continue;
         if(id.isServer()) {
             unsigned char port = id.dstPort;
             auto serverit = servers.find(port);
