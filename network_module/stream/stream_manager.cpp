@@ -335,6 +335,12 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
         if(streams[streamId]->removedStream())
             removeStream(streamId);
     }
+    // Reset redundancy counters to avoid errors
+    // NOTE: this measure works by assuming that when a new schedule begins
+    // all redundancy counters should be set to zero
+    for(auto& stream : streams) {
+        stream.second->resetCounters();
+    }
     map_mutex.unlock();
 }
 

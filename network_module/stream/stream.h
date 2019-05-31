@@ -210,6 +210,13 @@ public:
     // Called by StreamManager, in a periodic way to allow resending SME
     void periodicUpdate(StreamManager* mgr) override;
 
+    // Called by StreamManager after applying a new schedule
+    // Resets the redundancy counters to avoid errors
+    void resetCounters() {
+        txCount = 0;
+        rxCount = 0;
+    }
+
     // Called by StreamManager when the Timesync desynchronizes, used to
     // close the stream system-side in certain conditions
     // Returns true if the Stream class can be deleted
