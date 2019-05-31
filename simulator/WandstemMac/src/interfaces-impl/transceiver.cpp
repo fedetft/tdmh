@@ -46,23 +46,22 @@ Transceiver::Transceiver() : MiosixInterface() {
 }
 
 Transceiver& Transceiver::instance() {
-    // TODO: properly use mutex
     auto* curNode = MiosixStaticInterface::getNode();
     Transceiver* retval;
-    std::map<NodeBase*, Transceiver*>::iterator it = Transceiver::instances.find(curNode);
-    if (it == Transceiver::instances.end()) {
+    {
         std::lock_guard<std::mutex> myLock(Transceiver::instanceMutex);
-        it = Transceiver::instances.find(curNode);
+        auto it = Transceiver::instances.find(curNode);
         if (it == Transceiver::instances.end()) {
             retval = new Transceiver();
             Transceiver::instances[curNode] = retval;
         } else retval = it->second;
-    } else retval = it->second;
+    }
     return *retval;
 }
 
 void Transceiver::deinstance(NodeBase* ref) {
-    std::map<NodeBase*, Transceiver*>::iterator it = Transceiver::instances.find(ref);
+    std::lock_guard<std::mutex> myLock(Transceiver::instanceMutex);
+    auto it = Transceiver::instances.find(ref);
     if (it != Transceiver::instances.end()) {
         delete it->second;
         Transceiver::instances.erase(it);
