@@ -33,8 +33,6 @@
 namespace mxnet {
 
 int Stream::connect(StreamManager* mgr) {
-    // Send CONNECT SME
-    mgr->enqueueSME(StreamManagementElement(info, SMEType::CONNECT));
     // Lock mutex for concurrent access at StreamInfo
     {
 #ifdef _MIOSIX
@@ -42,13 +40,15 @@ int Stream::connect(StreamManager* mgr) {
 #else
         std::unique_lock<std::mutex> lck(status_mutex);
 #endif
+        // Send CONNECT SME
+        mgr->enqueueSME(StreamManagementElement(info, SMEType::CONNECT));
         // Wait to get out of CONNECTING status
         for(;;) {
-            if(getStatus() != StreamStatus::CONNECTING) break;
+            if(info.getStatus() != StreamStatus::CONNECTING) break;
             // Condition variable to wait for addedStream().
             connect_cv.wait(lck);
         }
-        auto status = getStatus();
+        auto status = info.getStatus();
         if(status == StreamStatus::CONNECT_FAILED)
             return -1;
         if(status == StreamStatus::ESTABLISHED)
@@ -94,7 +94,7 @@ int Stream::write(const void* data, int size) {
         }
     }
     // The stream was closed
-    if(getStatus() != StreamStatus::ESTABLISHED) { 
+    if(info.getStatus() != StreamStatus::ESTABLISHED) { 
         return -2;
     }
     // We did not send any data this round
@@ -142,7 +142,7 @@ int Stream::read(void* data, int maxSize) {
         }
     }
     // The stream was closed
-    if(getStatus() != StreamStatus::ESTABLISHED) { 
+    if(info.getStatus() != StreamStatus::ESTABLISHED) { 
         return -2;
     }
     // We did not receive any data this round
@@ -249,7 +249,7 @@ void Stream::addedStream(StreamParameters newParams) {
 #else
         std::unique_lock<std::mutex> lck(status_mutex);
 #endif
-        switch(getStatus()) {
+        switch(info.getStatus()) {
         case StreamStatus::CONNECTING:
             setStatus(StreamStatus::ESTABLISHED);
             break;
@@ -259,11 +259,11 @@ void Stream::addedStream(StreamParameters newParams) {
         default:
             break;
         }
-    }
-    // NOTE: Update stream parameters and cached redundancy,
-    // they may have changed after negotiation with server
-    info.setParams(newParams);
-    updateRedundancy();
+        // NOTE: Update stream parameters and cached redundancy,
+        // they may have changed after negotiation with server
+        info.setParams(newParams);
+        updateRedundancy();
+}
     // Wake up the connect() method
 #ifdef _MIOSIX
     connect_cv.signal();
@@ -280,7 +280,7 @@ void Stream::acceptedStream() {
 #else
         std::unique_lock<std::mutex> lck(status_mutex);
 #endif
-        switch(getStatus()) {
+        switch(info.getStatus()) {
         case StreamStatus::ACCEPT_WAIT:
             setStatus(StreamStatus::ESTABLISHED);
             break;
@@ -299,7 +299,7 @@ bool Stream::removedStream() {
 #else
         std::unique_lock<std::mutex> lck(status_mutex);
 #endif
-        switch(getStatus()) {
+        switch(info.getStatus()) {
         case StreamStatus::ACCEPT_WAIT:
             deletable = true;
             break;
@@ -329,7 +329,7 @@ void Stream::rejectedStream() {
 #else
         std::unique_lock<std::mutex> lck(status_mutex);
 #endif
-        switch(getStatus()) {
+        switch(info.getStatus()) {
         case StreamStatus::CONNECTING:
             setStatus(StreamStatus::CONNECT_FAILED);
             break;
@@ -352,7 +352,7 @@ void Stream::closedServer(StreamManager* mgr) {
 #else
     std::unique_lock<std::mutex> lck(status_mutex);
 #endif
-    switch(getStatus()) {
+    switch(info.getStatus()) {
     case StreamStatus::ACCEPT_WAIT:
         setStatus(StreamStatus::CLOSE_WAIT);
         // Send CLOSED SME
@@ -372,7 +372,7 @@ bool Stream::close(StreamManager* mgr) {
 #else
         std::unique_lock<std::mutex> lck(status_mutex);
 #endif
-        switch(getStatus()) {
+        switch(info.getStatus()) {
         case StreamStatus::ESTABLISHED:
             setStatus(StreamStatus::CLOSE_WAIT);
             // Send CLOSED SME
@@ -404,7 +404,7 @@ void Stream::periodicUpdate(StreamManager* mgr) {
 #else
     std::unique_lock<std::mutex> lck(status_mutex);
 #endif
-    switch(getStatus()) {
+    switch(info.getStatus()) {
     case StreamStatus::CONNECTING:
         if(smeTimeout-- <= 0) {
             smeTimeout = smeTimeoutMax;
@@ -440,7 +440,7 @@ bool Stream::desync() {
 #else
         std::unique_lock<std::mutex> lck(status_mutex);
 #endif
-        switch(getStatus()) {
+        switch(info.getStatus()) {
         case StreamStatus::CONNECTING:
             setStatus(StreamStatus::CONNECT_FAILED);
             break;
@@ -523,8 +523,6 @@ void Stream::wakeWriteRead() {
 }
 
 int Server::listen(StreamManager* mgr) {
-    // Send LISTEN SME
-    mgr->enqueueSME(StreamManagementElement(info, SMEType::LISTEN));
     // Lock mutex for concurrent access at StreamInfo
     {
 #ifdef _MIOSIX
@@ -532,13 +530,15 @@ int Server::listen(StreamManager* mgr) {
 #else
         std::unique_lock<std::mutex> lck(status_mutex);
 #endif
+        // Send LISTEN SME
+        mgr->enqueueSME(StreamManagementElement(info, SMEType::LISTEN));
         // Wait to get out of LISTEN_WAIT status
         for(;;) {
-            if(getStatus() != StreamStatus::LISTEN_WAIT) break;
+            if(info.getStatus() != StreamStatus::LISTEN_WAIT) break;
             // Condition variable to wait for acceptedServer().
             listen_cv.wait(lck);
         }
-        auto status = getStatus();
+        auto status = info.getStatus();
         if(status == StreamStatus::LISTEN_FAILED)
             return -1;
         if(status == StreamStatus::LISTEN)
@@ -556,7 +556,7 @@ int Server::accept() {
     std::unique_lock<std::mutex> lck(status_mutex);
 #endif
     // Return error if server not open
-    if(getStatus() != StreamStatus::LISTEN)
+    if(info.getStatus() != StreamStatus::LISTEN)
         return -1;
 
     // Wait for opened stream
@@ -565,7 +565,7 @@ int Server::accept() {
         listen_cv.wait(lck);
     }
     // Return error if server not open
-    if(getStatus() != StreamStatus::LISTEN)
+    if(info.getStatus() != StreamStatus::LISTEN)
         return -1;
     // Return first stream fd from pendingAccept
     auto it = pendingAccept.begin();
@@ -599,7 +599,7 @@ void Server::acceptedServer() {
 #else
         std::unique_lock<std::mutex> lck(status_mutex);
 #endif
-        switch(getStatus()) {
+        switch(info.getStatus()) {
         case StreamStatus::LISTEN_WAIT:
             setStatus(StreamStatus::LISTEN);
             break;
@@ -626,7 +626,7 @@ void Server::rejectedServer() {
 #else
         std::unique_lock<std::mutex> lck(status_mutex);
 #endif
-        switch(getStatus()) {
+        switch(info.getStatus()) {
         case StreamStatus::LISTEN_WAIT:
             setStatus(StreamStatus::LISTEN_FAILED);
             break;
@@ -651,7 +651,7 @@ bool Server::close(StreamManager* mgr) {
 #else
         std::unique_lock<std::mutex> lck(status_mutex);
 #endif
-        switch(getStatus()) {
+        switch(info.getStatus()) {
         case StreamStatus::LISTEN:
             setStatus(StreamStatus::CLOSE_WAIT);
             // Send CLOSED SME
@@ -693,7 +693,7 @@ void Server::periodicUpdate(StreamManager* mgr) {
 #else
         std::unique_lock<std::mutex> lck(status_mutex);
 #endif
-        switch(getStatus()) {
+        switch(info.getStatus()) {
         case StreamStatus::LISTEN_WAIT:
             if(smeTimeout-- <= 0) {
                 smeTimeout = smeTimeoutMax;
@@ -747,7 +747,7 @@ bool Server::desync() {
 #else
         std::unique_lock<std::mutex> lck(status_mutex);
 #endif
-        switch(getStatus()) {
+        switch(info.getStatus()) {
         case StreamStatus::LISTEN_WAIT:
             setStatus(StreamStatus::LISTEN_FAILED);
             break;

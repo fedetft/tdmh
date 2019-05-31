@@ -374,7 +374,7 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
             // If the corresponding server is present, create new stream in
             // ACCEPT_WAIT status and register it in corresponding server
             if(serverit != servers.end() &&
-               (serverit->second->getStatus() == StreamStatus::LISTEN)) {
+               (serverit->second->getInfo().getStatus() == StreamStatus::LISTEN)) {
                 StreamInfo streamInfo(streamId, params, StreamStatus::ACCEPT_WAIT);
                 int fd = addStream(streamInfo);
                 auto server = serverit->second;

@@ -114,12 +114,15 @@ public:
     StreamId getStreamId() {
         return info.getStreamId();
     }
-    // Used by derived class Stream and Server 
-    StreamStatus getStatus() {
-        return info.getStatus();
-    }
-    // Used by derived class Stream and Server
+    // Used by StreamManager
+    // NOTE: do not use in Stream or Server to avoid double mutex lock
     StreamInfo getInfo() {
+        // Lock mutex for concurrent access at StreamInfo
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(status_mutex);
+#else
+        std::unique_lock<std::mutex> lck(status_mutex);
+#endif
         return info;
     }
     // Used by StreamManager removeServer() and removeStream()
@@ -159,6 +162,13 @@ protected:
     /* Used to send SME every N periodic updates */
     int smeTimeout;
     int failTimeout;
+        /* Thread synchronization */
+#ifdef _MIOSIX
+        // Protects concurrent access at StreamInfo
+        miosix::FastMutex status_mutex;
+#else
+        std::mutex status_mutex;
+#endif
 };
 
 /**
@@ -247,8 +257,6 @@ public:
 
     /* Thread synchronization */
 #ifdef _MIOSIX
-    // Protects concurrent access at StreamInfo
-    miosix::FastMutex status_mutex;
     // Protects concurrent access at sendBuffer
     miosix::FastMutex tx_mutex;
     // Protects concurrent access at recvBuffer
@@ -257,7 +265,6 @@ public:
     miosix::ConditionVariable tx_cv;
     miosix::ConditionVariable rx_cv;
 #else
-    std::mutex status_mutex;
     std::mutex tx_mutex;
     std::mutex rx_mutex;
     std::condition_variable connect_cv;
@@ -315,10 +322,8 @@ public:
     std::set<int> pendingAccept;
     /* Thread synchronization */
 #ifdef _MIOSIX
-    miosix::FastMutex status_mutex;
     miosix::ConditionVariable listen_cv;
 #else
-    std::mutex status_mutex;
     std::condition_variable listen_cv;
 #endif
 
