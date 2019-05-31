@@ -169,6 +169,10 @@ void DynamicScheduleDownlinkPhase::replaceRunningSchedule() {
     header = nextHeader;
     schedule = nextSchedule;
     infos = nextInfos;
+    // Apply info elements to StreamManager
+    // NOTE: apply info element here because we received 3 times the schedule
+    // If we don't apply them, they can be lost or remain in the queue
+    streamMgr->applyInfoElements(infos);
 }
 
 void DynamicScheduleDownlinkPhase::printStatus() {
