@@ -60,16 +60,8 @@ struct ScheduleHeaderPkt {
 } __attribute__((packed));
 
 struct ScheduleElementPkt {
-    unsigned int src:8;
-    unsigned int dst:8;
-    unsigned int srcPort:4;
-    unsigned int dstPort:4;
     unsigned int tx:8;
     unsigned int rx:8;
-    unsigned int redundancy:3;
-    unsigned int period:4;
-    unsigned int payloadSize:7;
-    unsigned int direction:2;
     unsigned int offset:20;
 } __attribute__((packed));
 
@@ -120,87 +112,54 @@ private:
 class ScheduleElement : public SerializableMessage {
 public:
     ScheduleElement() {
+        std::memset(&id, 0, sizeof(StreamId));
+        std::memset(&params, 0, sizeof(StreamParameters));
         std::memset(&content, 0, sizeof(ScheduleElementPkt));
     }
 
     // Constructor for single-hop stream
     ScheduleElement(MasterStreamInfo stream, unsigned int off=0) {
-        content.src = stream.getSrc();
-        content.dst = stream.getDst();
-        content.srcPort = stream.getSrcPort();
-        content.dstPort = stream.getDstPort();
+        id = stream.getStreamId();
+        params = stream.getParams();
         // If a ScheduleElement is created from a stream, then tx=src, rx=dst
         // because it is a single-hop transmission
-        content.tx = stream.getSrc();
-        content.rx = stream.getDst();
+        content.tx = id.src;
+        content.rx = id.dst;
         auto params = stream.getParams();
-        content.redundancy = params.redundancy;
-        content.period = params.period;
-        content.payloadSize = params.payloadSize;
-        content.direction = params.direction;
         content.offset = off;
     };
 
     // Constructor for multi-hop stream
     ScheduleElement(MasterStreamInfo stream, unsigned char tx, unsigned char rx, unsigned int off=0) {
-        content.src = stream.getSrc();
-        content.dst = stream.getDst();
-        content.srcPort = stream.getSrcPort();
-        content.dstPort = stream.getDstPort();
+        id = stream.getStreamId();
+        params = stream.getParams();
         content.tx = tx;
         content.rx = rx;
-        auto params = stream.getParams();
-        content.redundancy = params.redundancy;
-        content.period = params.period;
-        content.payloadSize = params.payloadSize;
-        content.direction = params.direction;
         content.offset = off;
     };
 
     void serialize(Packet& pkt) const override;
     static ScheduleElement deserialize(Packet& pkt);
     std::size_t size() const override { return sizeof(ScheduleElementPkt); }
-    StreamId getStreamId() const {
-        return StreamId(content.src, content.dst, content.srcPort, content.dstPort);
-    }
+    StreamId getStreamId() const { return id; }
+    StreamParameters getParams() const { return params; }
     StreamInfo getStreamInfo() const {
-        StreamId id;
-        id.src = content.src;
-        id.dst = content.dst;
-        id.srcPort = content.srcPort;
-        id.dstPort = content.dstPort;
-        StreamParameters params;
-        params.redundancy = content.redundancy;
-        params.period = content.period;
-        params.payloadSize = content.payloadSize;
-        params.direction = content.direction;
         return StreamInfo(id, params, StreamStatus::ESTABLISHED);
     }
-    StreamParameters getParams() const {
-        return StreamParameters(content.redundancy,
-                                content.period,
-                                content.payloadSize,
-                                content.direction);
-    }
-    unsigned char getSrc() const { return content.src; }
-    unsigned char getDst() const { return content.dst; }
-    unsigned char getSrcPort() const { return content.srcPort; }
-    unsigned char getDstPort() const { return content.dstPort; }
+    unsigned char getSrc() const { return id.src; }
+    unsigned char getDst() const { return id.dst; }
+    unsigned char getSrcPort() const { return id.srcPort; }
+    unsigned char getDstPort() const { return id.dstPort; }
+    Period getPeriod() const { return params.getPeriod(); }
     unsigned char getTx() const { return content.tx; }
     unsigned char getRx() const { return content.rx; }
-    Period getPeriod() const { return static_cast<Period>(content.period); }
     unsigned int getOffset() const { return content.offset; }
     void setOffset(unsigned int off) { content.offset = off; }
-
-    /**
-     * \return an unique key for each stream
-     */
-    unsigned int getKey() const
-    {
-        return content.src | content.dst<<8 | content.srcPort<<16 | content.dstPort<<20;
-    }
-
+    // return an unique key for each stream
+    unsigned int getKey() const { return id.getKey(); }
 protected:
+    StreamId id;
+    StreamParameters params;
     ScheduleElementPkt content;
 };
 
@@ -210,37 +169,30 @@ public:
     // Constructor copying data from ScheduleElement
     // Used when parsing SchedulePacket that contains Info elements
     InfoElement(ScheduleElement s) {
-        content.src = s.getSrc();
-        content.dst = s.getDst();
-        content.srcPort = s.getSrcPort();
-        content.dstPort = s.getDstPort();
+        id = s.getStreamId();
+        // Info elements do not carry parameter information
+        std::memset(&params, 0, sizeof(StreamParameters));
         // This is an info element and is characterized by TX=RX=0
         content.tx = 0;
         content.rx = 0;
-        content.period = 0;
         // The message of the info element is saved in the offset field
         content.offset = s.getOffset();
     }
     // Constructor copying data from StreamId
-    InfoElement(StreamId id, InfoType type) {
-        content.src = id.src;
-        content.dst = id.dst;
-        content.srcPort = id.srcPort;
-        content.dstPort = id.dstPort;
+    InfoElement(StreamId streamId, InfoType type) {
+        id = streamId;
+        // Info elements do not carry parameter information
+        std::memset(&params, 0, sizeof(StreamParameters));
         // This is an info element and is characterized by TX=RX=0
         content.tx = 0;
         content.rx = 0;
-        content.period = 0;
         // The message of the info element is saved in the offset field
         content.offset = static_cast<unsigned int>(type);
     };
-
     void serialize(Packet& pkt) const override;
     static InfoElement deserialize(Packet& pkt);
     InfoType getType() const { return static_cast<InfoType>(content.offset); }
-
 };
-
 
 class SchedulePacket : public SerializableMessage {
 public:
