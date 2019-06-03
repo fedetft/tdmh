@@ -398,6 +398,7 @@ bool Stream::close(StreamManager* mgr) {
 }
 
 void Stream::periodicUpdate(StreamManager* mgr) {
+    bool changed = false;
     // Lock mutex for concurrent access at StreamInfo
 #ifdef _MIOSIX
     miosix::Lock<miosix::FastMutex> lck(status_mutex);
@@ -410,6 +411,15 @@ void Stream::periodicUpdate(StreamManager* mgr) {
             smeTimeout = smeTimeoutMax;
             // Send CONNECT SME
             mgr->enqueueSME(StreamManagementElement(info, SMEType::CONNECT));
+        }
+        if(failTimeout-- <= 0) {
+            smeTimeout = smeTimeoutMax;
+            failTimeout = failTimeoutMax;
+            // Give up opening stream and close it
+            setStatus(StreamStatus::CONNECT_FAILED);
+            // Send CLOSED SME
+            mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
+            changed = true;
         }
         break;
     case StreamStatus::REOPENED:
@@ -428,6 +438,14 @@ void Stream::periodicUpdate(StreamManager* mgr) {
         break;
     default:
         break;
+    }
+    if(changed) {
+        // Wake up the connect method
+#ifdef _MIOSIX
+        connect_cv.signal();
+#else
+        connect_cv.notify_one();
+#endif
     }
 }
 
