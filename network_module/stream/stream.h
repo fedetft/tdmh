@@ -152,8 +152,8 @@ protected:
     // TODO:Integrate these constants in NetworkConfiguration
     /* Constants defining the maximum value of the sme and fail timeout
      * In number of tiles */
-    const int smeTimeoutMax = 200;
-    const int failTimeoutMax = 1000;
+    const int smeTimeoutMax = 600;
+    const int failTimeoutMax = 1800;
 
     /* Copy of the file descriptor number, useful for deleting object from fdt */
     int fd;
