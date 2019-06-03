@@ -109,7 +109,7 @@ int Stream::read(void* data, int maxSize) {
 #else
     std::unique_lock<std::mutex> lck(rx_mutex);
 #endif
-    // Wait for rxWakeUp condition to be true
+    // Wait for next Period
     while(alreadyReceivedShared == true && info.getStatus() == StreamStatus::ESTABLISHED) { 
         rx_cv.wait(lck);
     }
@@ -139,62 +139,12 @@ void Stream::receivePacket(const Packet& data) {
     // NOTE: we use a duplicated rxPacket to acquire data before locking the mutex
     rxPacket = data;
     received = true;
-    // Stream Redundancy logic
-    if(++rxCount >= redundancyCount) {
-        // Reset received packet counter
-        rxCount = 0;
-        {
-            // Lock mutex for shared access with application thread
-#ifdef _MIOSIX
-            miosix::Lock<miosix::FastMutex> lck(rx_mutex);
-#else
-            std::unique_lock<std::mutex> lck(rx_mutex);
-#endif
-            // Copy received packet to variabled shared with application
-            rxPacketShared = rxPacket;
-            receivedShared = received;
-            alreadyReceivedShared = false;
-            rxPacket.clear();
-            received = false;
-            rxWakeUp = true;
-            // Wake up the read method
-#ifdef _MIOSIX
-            rx_cv.signal();
-#else
-            rx_cv.notify_one();
-#endif
-        }
-    }
+    updateRxPacket();
 }
 
 void Stream::missPacket() {
     // No data to receive
-    // Stream Redundancy logic
-    if(++rxCount >= redundancyCount) {
-        // Reset received packet counter
-        rxCount = 0;
-        {
-            // Lock mutex for shared access with application thread
-#ifdef _MIOSIX
-            miosix::Lock<miosix::FastMutex> lck(rx_mutex);
-#else
-            std::unique_lock<std::mutex> lck(rx_mutex);
-#endif
-            // Copy received packet to variabled shared with application
-            rxPacketShared = rxPacket;
-            receivedShared = received;
-            alreadyReceivedShared = false;
-            rxPacket.clear();
-            received = false;
-            rxWakeUp = true;
-            // Wake up the read method
-#ifdef _MIOSIX
-            rx_cv.signal();
-#else
-            rx_cv.notify_one();
-#endif
-        }
-    }
+    updateRxPacket();
 }
 
 bool Stream::sendPacket(Packet& data) {
@@ -521,13 +471,40 @@ void Stream::wakeWriteRead() {
 #else
         std::unique_lock<std::mutex> lck(rx_mutex);
 #endif
-        rxWakeUp = true;
         // Wake up the read method
 #ifdef _MIOSIX
         rx_cv.signal();
 #else
         rx_cv.notify_one();
 #endif
+    }
+}
+
+void Stream::updateRxPacket() {
+    // Stream Redundancy logic
+    if(++rxCount >= redundancyCount) {
+        // Reset received packet counter
+        rxCount = 0;
+        {
+            // Lock mutex for shared access with application thread
+#ifdef _MIOSIX
+            miosix::Lock<miosix::FastMutex> lck(rx_mutex);
+#else
+            std::unique_lock<std::mutex> lck(rx_mutex);
+#endif
+            // Copy received packet to variabled shared with application
+            rxPacketShared = rxPacket;
+            receivedShared = received;
+            alreadyReceivedShared = false;
+            rxPacket.clear();
+            received = false;
+            // Wake up the read method
+#ifdef _MIOSIX
+            rx_cv.signal();
+#else
+            rx_cv.notify_one();
+#endif
+        }
     }
 }
 

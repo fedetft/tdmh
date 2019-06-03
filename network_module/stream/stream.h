@@ -249,7 +249,6 @@ public:
     bool txPacketReady = false;
     /* Variables shared with the application thread */
     bool txWakeUp = false;
-    bool rxWakeUp = false;
     bool receivedShared = false;
     bool alreadyReceivedShared = false;
     bool nextTxPacketReady = false;
@@ -278,6 +277,9 @@ private:
     // Called by Stream itself, when the stream status changes and we need to wake up
     // the write and read methods
     void wakeWriteRead();
+    // Called by Stream::receivedPacket(), Strean::missedPacket(),
+    // Used to update internal variables every stream period
+    void updateRxPacket();
 };
 
 /**
