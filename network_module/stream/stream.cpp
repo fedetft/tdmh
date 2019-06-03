@@ -195,6 +195,11 @@ void Stream::missPacket() {
 #else
             std::unique_lock<std::mutex> lck(rx_mutex);
 #endif
+            // Copy received packet to variabled shared with application
+            rxPacketShared = rxPacket;
+            receivedShared = received;
+            rxPacket.clear();
+            received = false;
             rxWakeUp = true;
             // Wake up the read method
 #ifdef _MIOSIX
