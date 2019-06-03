@@ -109,46 +109,30 @@ int Stream::read(void* data, int maxSize) {
 #else
     std::unique_lock<std::mutex> lck(rx_mutex);
 #endif
-    if(receivedShared == true) {
-        auto size = std::min<int>(maxSize, rxPacketShared.size());
-        try {
-            rxPacketShared.get(data, size);
-            rxPacketShared.clear();
-            receivedShared = false;
-            return size;
-        }
-        // Received wrong size packet
-        catch(PacketUnderflowException& ){
-            return -1;
-        }
-    }
     // Wait for rxWakeUp condition to be true
-    while(rxWakeUp == false) {
+    while(alreadyReceivedShared == true && info.getStatus() == StreamStatus::ESTABLISHED) { 
         rx_cv.wait(lck);
-    }
-    // Reset rxWakeup variable
-    rxWakeUp = false;
-    if(receivedShared == true) {
-        auto size = std::min<int>(maxSize, rxPacketShared.size());
-        try {
-            rxPacketShared.get(data, size);
-            rxPacketShared.clear();
-            receivedShared = false;
-            return size;
-        }
-        // Received wrong size packet
-        catch(PacketUnderflowException& ){
-            return -1;
-        }
     }
     // The stream was closed
     if(info.getStatus() != StreamStatus::ESTABLISHED) { 
         return -2;
     }
-    // We did not receive any data this round
-    else {
-        return -1;
+    if(receivedShared == true) {
+        receivedShared = false;
+        alreadyReceivedShared = true;
+        auto size = std::min<int>(maxSize, rxPacketShared.size());
+        try {
+            rxPacketShared.get(data, size);
+            rxPacketShared.clear();
+            return size;
+        }
+        // Received wrong size packet
+        catch(PacketUnderflowException& ){
+            return -1;
+        }
     }
+    // We did not receive any data this round
+    return -1;
 }
 
 void Stream::receivePacket(const Packet& data) {
@@ -169,6 +153,7 @@ void Stream::receivePacket(const Packet& data) {
             // Copy received packet to variabled shared with application
             rxPacketShared = rxPacket;
             receivedShared = received;
+            alreadyReceivedShared = false;
             rxPacket.clear();
             received = false;
             rxWakeUp = true;
@@ -198,6 +183,7 @@ void Stream::missPacket() {
             // Copy received packet to variabled shared with application
             rxPacketShared = rxPacket;
             receivedShared = received;
+            alreadyReceivedShared = false;
             rxPacket.clear();
             received = false;
             rxWakeUp = true;

@@ -251,6 +251,7 @@ public:
     bool txWakeUp = false;
     bool rxWakeUp = false;
     bool receivedShared = false;
+    bool alreadyReceivedShared = false;
     bool nextTxPacketReady = false;
     Packet rxPacketShared;
     Packet nextTxPacket;
