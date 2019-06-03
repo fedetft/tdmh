@@ -34,7 +34,9 @@ protected:
     virtual void initialize();
     virtual void activity();
     void application();
-    void sendData(mxnet::MACContext* ctx, mxnet::Period period, mxnet::Redundancy redundancy);
+    void sendData(mxnet::MACContext* ctx, unsigned char dest, mxnet::Period period, mxnet::Redundancy redundancy);
+    void openServer(mxnet::MACContext* ctx, unsigned char port, mxnet::Period period, mxnet::Redundancy redundancy);
+    void streamThread(std::pair<int, mxnet::StreamManager*> arg);
 
     /* Pointer to tdmh class for opening streams */
     mxnet::MediumAccessController* tdmh = nullptr;

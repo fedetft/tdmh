@@ -34,6 +34,7 @@ public:
 protected:
     virtual void activity();
     void application();
+    void openServer(mxnet::MACContext* ctx, unsigned char port, mxnet::Period period, mxnet::Redundancy redundancy);
     void streamThread(std::pair<int, mxnet::StreamManager*> arg);
 
 

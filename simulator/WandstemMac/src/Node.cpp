@@ -106,25 +106,25 @@ void Node::application() {
     while(!ctx->isReady()) ;
     /* Open Stream from node 1 */
     if(address == 1) {
-        sendData(ctx, Period::P1, Redundancy::NONE);
+        //sendData(ctx, Period::P1, Redundancy::NONE);
+        openServer(ctx, 1, Period::P1, Redundancy::TRIPLE_SPATIAL);
     }
     /* Open Stream from node 2 */
     if(address == 2) {
-        sendData(ctx, Period::P1, Redundancy::NONE);
+        sendData(ctx, 1, Period::P1, Redundancy::NONE);
     }
     /* Open Stream from node 3 */
     if(address == 3) {
-        sendData(ctx, Period::P1, Redundancy::NONE);
+        sendData(ctx, 1, Period::P1, Redundancy::NONE);
     }
 }
 
-void Node::sendData(MACContext* ctx, Period period, Redundancy redundancy) {
+void Node::sendData(MACContext* ctx, unsigned char dest, Period period, Redundancy redundancy) {
     try{
         // NOTE: we can't use Stream API functions in simulator
         // so we have to get a pointer to StreamManager
         StreamManager* mgr = ctx->getStreamManager();
         auto params = StreamParameters(redundancy, period, 1, Direction::TX);
-        unsigned char dest = 0;
 
         /* Open a Stream to another node */
         int stream;
@@ -154,3 +154,69 @@ void Node::sendData(MACContext* ctx, Period period, Redundancy redundancy) {
             cerr<<"\nException thrown: "<<e.what()<<endl;
     }
 }
+
+void Node::openServer(MACContext* ctx, unsigned char port, Period period, Redundancy redundancy) {
+    try{
+        // NOTE: we can't use Stream API functions in simulator
+        // so we have to get a pointer to StreamManager
+        StreamManager* mgr = ctx->getStreamManager();
+        auto params = StreamParameters(redundancy,                 // Redundancy
+                                       period,                     // Period
+                                       1,                          // Payload size
+                                       Direction::TX);             // Direction
+        printf("[A] Opening server on port %d\n", port);
+        /* Open a Server to listen for incoming streams */
+        int server = mgr->listen(port,              // Destination port
+                                 params);           // Server parameters
+        if(server < 0) {
+            printf("[A] Server opening failed! error=%d\n", server);
+            return;
+        }
+        while(mgr->getInfo(server).getStatus() == StreamStatus::LISTEN) {
+            int stream = mgr->accept(server);
+            pair<int, StreamManager*> arg = make_pair(stream, mgr);
+            thread t1(&Node::streamThread, this, arg);
+            t1.detach();
+        }
+    } catch(exception& e) {
+        //Note: omnet++ seems to terminate coroutines with an exception
+        //of type cStackCleanupException. Squelch these
+        if(string(typeid(e).name()).find("cStackCleanupException")==string::npos)
+            cerr<<"\nException thrown: "<<e.what()<<endl;
+    }
+}
+
+void Node::streamThread(pair<int, StreamManager*> arg) {
+    try{
+        int stream = arg.first;
+        StreamManager* mgr = arg.second;
+        StreamId id = mgr->getInfo(stream).getStreamId();
+        printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
+        StreamStatus status;
+        // Wait for the stream to open
+        do {
+            status = mgr->getInfo(stream).getStatus();
+        }while(status != StreamStatus::ESTABLISHED);
+        // Receive data until the stream is closed
+        while(mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
+            Data data;
+            int len = mgr->read(stream, &data, sizeof(data));
+            if(len >= 0) {
+                if(len == sizeof(data))
+                    printf("[A] Received data from Stream (%d,%d): ID=%d Counter=%u\n",
+                            id.src, id.dst, data.id, data.counter);
+                else
+                    printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
+                            id.src, id.dst, len);
+            }
+            else if(len == -1) {
+                // No data received
+                printf("[E] No data received from Stream (%d,%d)\n", id.src, id.dst);
+            }
+        }
+        printf("[A] Stream (%d,%d) was closed\n", id.src, id.dst);
+    }catch(...){
+        printf("Exception thrown in streamThread\n");
+    }
+}
+

@@ -85,27 +85,37 @@ void RootNode::application() {
     MACContext* ctx = tdmh->getMACContext();
     while(!ctx->isReady()) {
     }
-    // NOTE: we can't use Stream API functions in simulator
-    // so we have to get a pointer to StreamManager
-    StreamManager* mgr = ctx->getStreamManager();
-    auto params = StreamParameters(Redundancy::TRIPLE_SPATIAL, // Redundancy
-                                   Period::P1,                 // Period          
-                                   1,                          // Payload size
-                                   Direction::TX);             // Direction
-    unsigned char port = 1;
-    printf("[A] Opening server on port %d\n", port);
-    /* Open a Server to listen for incoming streams */
-    int server = mgr->listen(port,              // Destination port
-                        params);           // Server parameters
-    if(server < 0) {                
-        printf("[A] Server opening failed! error=%d\n", server);
-        return;
-    }
-    while(mgr->getInfo(server).getStatus() == StreamStatus::LISTEN) {
-        int stream = mgr->accept(server);
-        pair<int, StreamManager*> arg = make_pair(stream, mgr);
-        thread t1(&RootNode::streamThread, this, arg);
-        t1.detach();
+    //openServer(ctx, 1, Period::P1, Redundancy::TRIPLE_SPATIAL);
+}
+
+void RootNode::openServer(MACContext* ctx, unsigned char port, Period period, Redundancy redundancy) {
+    try{
+        // NOTE: we can't use Stream API functions in simulator
+        // so we have to get a pointer to StreamManager
+        StreamManager* mgr = ctx->getStreamManager();
+        auto params = StreamParameters(redundancy,                 // Redundancy
+                                       period,                     // Period
+                                       1,                          // Payload size
+                                       Direction::TX);             // Direction
+        printf("[A] Opening server on port %d\n", port);
+        /* Open a Server to listen for incoming streams */
+        int server = mgr->listen(port,              // Destination port
+                                 params);           // Server parameters
+        if(server < 0) {
+            printf("[A] Server opening failed! error=%d\n", server);
+            return;
+        }
+        while(mgr->getInfo(server).getStatus() == StreamStatus::LISTEN) {
+            int stream = mgr->accept(server);
+            pair<int, StreamManager*> arg = make_pair(stream, mgr);
+            thread t1(&RootNode::streamThread, this, arg);
+            t1.detach();
+        }
+    } catch(exception& e) {
+        //Note: omnet++ seems to terminate coroutines with an exception
+        //of type cStackCleanupException. Squelch these
+        if(string(typeid(e).name()).find("cStackCleanupException")==string::npos)
+            cerr<<"\nException thrown: "<<e.what()<<endl;
     }
 }
 
