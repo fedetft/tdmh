@@ -272,6 +272,13 @@ unsigned long long getUniqueID() {
     return *reinterpret_cast<unsigned long long*>(0x0FE081F0);
 }
 
+void idle() {
+    // Remove this sleep loop when enabling stream code
+    for(;;) {            
+        Thread::sleep(5000);
+    }
+}
+
 int main()
 {
     //Thread::create(blinkThread,STACK_MIN,MAIN_PRIORITY);
@@ -313,7 +320,7 @@ int main()
                                   1,     // payload size
                                   Direction::TX);
     StreamParameters clientParams(Redundancy::NONE,
-                                  Period::P1,
+                                  Period::P20,
                                   1,     // payload size
                                   Direction::TX);
     unsigned char port = 1;
@@ -325,14 +332,18 @@ int main()
         openServer(port, serverParams);
         break;
     case 1:
+        idle();
         //openStream(0, port, clientParams);
         break;
     case 2:
+        idle();
         //openStream(0, port, clientParams);
         break;
     case 3:
         openStream(0, port, clientParams);
         break;
+    default:
+        idle();
     }
 
 
