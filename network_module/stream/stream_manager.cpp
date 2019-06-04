@@ -509,7 +509,7 @@ int StreamManager::allocateClientPort() {
 #else
     std::unique_lock<std::mutex> lck(map_mutex);
 #endif
-    for(int i = 0; i < maxPorts; i++) {
+    for(unsigned int i = 0; i < maxPorts; i++) {
         if(clientPorts[i] == false) {
             clientPorts[i] = true;
             return i;

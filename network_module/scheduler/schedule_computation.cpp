@@ -222,7 +222,7 @@ void ScheduleComputation::updateStreams(const std::list<ScheduleElement>& final_
        Do NOT ever change the status of the streams here in StreamManager,
        because doing so would mean applying the schedule before its activation time.
        The status in StreamManager must be changed ONLY in the ScheduleDistribution
-    /* Here we update the StreamCollection, not the snapshot */
+       Here we update the StreamCollection, not the snapshot */
     // NOTE: DO NOT LOCK THE MUTEX HERE, It is already locked
     // Mark successfully scheduled Streams as ESTABLISHED in stream_snapshot
     for(auto& sched: final_schedule) {

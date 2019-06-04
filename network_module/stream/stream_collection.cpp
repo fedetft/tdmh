@@ -35,7 +35,7 @@ namespace mxnet {
 void StreamCollection::receiveSMEs(UpdatableQueue<StreamId,
                                    StreamManagementElement>& smes) {
     auto numSME = smes.size();
-    for(int i=0; i < numSME; i++) {
+    for(unsigned int i=0; i < numSME; i++) {
         auto sme = smes.dequeue();
         StreamId id = sme.getStreamId();
 
