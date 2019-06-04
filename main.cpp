@@ -195,7 +195,7 @@ void streamThread(void *arg)
     printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
     while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
         Data data;
-        int len = read(stream, &data, sizeof(data));
+        int len = mxnet::read(stream, &data, sizeof(data));
         if(len > 0) {
             if(len == sizeof(data))
                 printf("[A] Received data from (%d,%d): ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
@@ -256,9 +256,13 @@ void openStream(unsigned char dest, unsigned char port, StreamParameters params)
             unsigned int counter = 0;
             while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
                 Data data(ctx->getNetworkId(), counter);
-                write(stream, &data, sizeof(data));
-                printf("[A] Sent ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
-                       data.id, data.time, data.minHeap, data.heap, data.counter);
+                int ret = mxnet::write(stream, &data, sizeof(data));
+                if(ret >= 0) {
+                    printf("[A] Sent ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
+                              data.id, data.time, data.minHeap, data.heap, data.counter);
+                }
+                else
+                    printf("[E] Error sending data, result=%d\n", ret);
                 counter++;
             }
             printf("[A] Stream was closed, reopening it \n");
@@ -320,7 +324,7 @@ int main()
                                   1,     // payload size
                                   Direction::TX);
     StreamParameters clientParams(Redundancy::NONE,
-                                  Period::P20,
+                                  Period::P1,
                                   1,     // payload size
                                   Direction::TX);
     unsigned char port = 1;
