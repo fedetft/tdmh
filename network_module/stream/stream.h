@@ -246,9 +246,12 @@ public:
     unsigned char txCount = 0;
     unsigned char rxCount = 0;
     bool received = false;
+    // NOTE: generally write() create a packet for the next period
+    // Exceptionally, in the first period, we can create the packet for the actual
+    // period, to be able to send data also on the first period.
+    bool firstTxPeriod = true;
     bool txPacketReady = false;
     /* Variables shared with the application thread */
-    bool txWakeUp = false;
     bool receivedShared = false;
     // NOTE: make sure that the first read waits for data to be present
     bool alreadyReceivedShared = true;

@@ -65,40 +65,21 @@ int Stream::write(const void* data, int size) {
 #else
     std::unique_lock<std::mutex> lck(tx_mutex);
 #endif
-    if(nextTxPacketReady == false) {
-        try {
-            nextTxPacket.put(data, size);
-            nextTxPacketReady = true;
-            return size;
-        }
-        // Calling write with size too big
-        catch(PacketOverflowException& ){
-            return -1;
-        }
-    }
-    // Wait for txWakeUp condition to be true
-    while(txWakeUp == false){
+    // If we were called twice in a period, wait for the end of the period
+    while(nextTxPacketReady == true && info.getStatus() == StreamStatus::ESTABLISHED) {
         tx_cv.wait(lck);
-    }
-    // Reset txWakeup variable
-    txWakeUp = false;
-    if(nextTxPacketReady == false) {
-        try {
-            nextTxPacket.put(data, size);
-            nextTxPacketReady = true;
-            return size;
-        }
-        // Calling write with size too big
-        catch(PacketOverflowException& ){
-            return -1;
-        }
     }
     // The stream was closed
     if(info.getStatus() != StreamStatus::ESTABLISHED) { 
         return -2;
     }
-    // We did not send any data this round
-    else {
+    try {
+        nextTxPacket.put(data, size);
+        nextTxPacketReady = true;
+        return size;
+    }
+    // Calling write with size too big
+    catch(PacketOverflowException& ){
         return -1;
     }
 }
@@ -109,7 +90,7 @@ int Stream::read(void* data, int maxSize) {
 #else
     std::unique_lock<std::mutex> lck(rx_mutex);
 #endif
-    // Wait for next Period
+    // If we were called twice in a period, wait for the end of the period
     while(alreadyReceivedShared == true && info.getStatus() == StreamStatus::ESTABLISHED) { 
         rx_cv.wait(lck);
     }
@@ -152,9 +133,11 @@ void Stream::missPacket() {
 
 bool Stream::sendPacket(Packet& data) {
     // Stream Redundancy logic
-    if(++txCount >= redundancyCount) {
+    if(++txCount >= redundancyCount || firstTxPeriod == true) {
+        if(firstTxPeriod == false)
+            txCount = 0;
+        firstTxPeriod = false;
         // Reset received packet counter
-        txCount = 0;
         {
             // Lock mutex for shared access with application thread
 #ifdef _MIOSIX
@@ -168,8 +151,6 @@ bool Stream::sendPacket(Packet& data) {
                 nextTxPacket.clear();
                 nextTxPacketReady = false;
             }
-            // Wake up the write method
-            txWakeUp = true;
 #ifdef _MIOSIX
             tx_cv.signal();
 #else
@@ -459,7 +440,6 @@ void Stream::wakeWriteRead() {
 #else
         std::unique_lock<std::mutex> lck(tx_mutex);
 #endif
-        txWakeUp = true;
         // Wake up the write method
 #ifdef _MIOSIX
         tx_cv.signal();
