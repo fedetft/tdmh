@@ -250,7 +250,8 @@ public:
     /* Variables shared with the application thread */
     bool txWakeUp = false;
     bool receivedShared = false;
-    bool alreadyReceivedShared = false;
+    // NOTE: make sure that the first read waits for data to be present
+    bool alreadyReceivedShared = true;
     bool nextTxPacketReady = false;
     Packet rxPacketShared;
     Packet nextTxPacket;

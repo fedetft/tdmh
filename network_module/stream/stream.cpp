@@ -117,9 +117,12 @@ int Stream::read(void* data, int maxSize) {
     if(info.getStatus() != StreamStatus::ESTABLISHED) { 
         return -2;
     }
+    // NOTE: read should block if called multiple times per period
+    // even if no packet was received
+    alreadyReceivedShared = true;
+
     if(receivedShared == true) {
         receivedShared = false;
-        alreadyReceivedShared = true;
         auto size = std::min<int>(maxSize, rxPacketShared.size());
         try {
             rxPacketShared.get(data, size);
