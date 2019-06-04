@@ -41,8 +41,6 @@ using namespace miosix;
 
 const int maxNodes = 8;
 const int maxHops = 6;
-const Period defaultPeriod = Period::P1;
-const Redundancy defaultRedundancy = Redundancy::NONE;
 
 FastMutex m;
 MediumAccessController *tdmh = nullptr;
@@ -55,23 +53,12 @@ public:
     const unsigned char id, hop;
 };
 
-/* Class containing Period and Redundancy of the Stream opened by the Dynamic nodes */
-class Par
-{
-public:
-    Par(Redundancy redundancy=defaultRedundancy, Period period=defaultPeriod) :
-        redundancy(redundancy), period(period) {}
-    Redundancy redundancy;
-    Period period;
-};
-
 class StreamThreadPar
 {
 public:
     StreamThreadPar(int stream) : stream(stream) {};
     int stream;
 };
-
 
 inline int maxForwardedTopologiesFromMaxNumNodes(int maxNumNodes)
 {
@@ -209,27 +196,28 @@ void streamThread(void *arg)
     while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
         Data data;
         int len = read(stream, &data, sizeof(data));
-        if(len != sizeof(data))
-            printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
+        if(len > 0) {
+            if(len == sizeof(data))
+                printf("[A] Received data from (%d,%d): ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
+                       id.src, id.dst, data.id, data.time, data.minHeap, data.heap, data.counter);
+            else
+                printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
+                       id.src, id.dst, len);
+        }
+        else if(len == -1) {
+            printf("[E] No data received from Stream (%d,%d): %d\n",
                    id.src, id.dst, len);
-        else
-            printf("[A] Received data from (%d,%d): ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
-                   id.src, id.dst, data.id, data.time, data.minHeap, data.heap, data.counter);
+        }
     }
     delete s;
 }
 
-void masterApplication() {
+void openServer(unsigned char port, StreamParameters params) {
     /* Wait for TDMH to become ready */
     MACContext* ctx = tdmh->getMACContext();
     while(!ctx->isReady()) {
         Thread::sleep(1000);
     }
-    auto params = StreamParameters(Redundancy::TRIPLE_SPATIAL, // Redundancy
-                                   Period::P1,                 // Period                  
-                                   1,                          // Payload size
-                                   Direction::TX);             // Direction
-    unsigned char port = 1;
     printf("[A] Opening server on port %d\n", port);
     /* Open a Server to listen for incoming streams */
     int server = listen(port,              // Destination port
@@ -244,7 +232,7 @@ void masterApplication() {
     }
 }
 
-void dynamicApplication(Par p) {
+void openStream(unsigned char dest, unsigned char port, StreamParameters params) {
     /* Wait for TDMH to become ready */
     MACContext* ctx = tdmh->getMACContext();
     while(!ctx->isReady()) {
@@ -255,12 +243,10 @@ void dynamicApplication(Par p) {
     /* Open Stream from node */
     while(true){
         try{
-            auto params = StreamParameters(p.redundancy, p.period, 1, Direction::TX);
-            unsigned char dest = 0;
             /* Open a Stream to another node */
             printf("[A] Opening stream to node %d\n", dest);
             int stream = connect(dest,          // Destination node
-                                 1,             // Destination port
+                                 port,             // Destination port
                                  params);       // Stream parameters
             if(stream < 0) {                
                 printf("[A] Stream opening failed! error=%d\n", stream);
@@ -282,61 +268,74 @@ void dynamicApplication(Par p) {
     }
 }
 
+unsigned long long getUniqueID() {
+    return *reinterpret_cast<unsigned long long*>(0x0FE081F0);
+}
+
 int main()
 {
-    Par p; // Stream parameters
-
-    /* Thread configurations for redundancy test with 4 nodes (forced hops) */
-    //auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1,1), Thread::JOINABLE);
-    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2,1), Thread::JOINABLE);
-    //p.redundancy=Redundancy::TRIPLE_SPATIAL; auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,2), Thread::JOINABLE);
-    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3,2), Thread::JOINABLE);
-
-    /* Thread configurations for redundancy test with 4 nodes (not forced hops) */
-    //auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1), Thread::JOINABLE);
-    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2), Thread::JOINABLE);
-    //p.redundancy=Redundancy::TRIPLE_SPATIAL; auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
-    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
-
-    /* Thread configurations for redundancy test with 9 nodes */
-    //auto t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-    auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1), Thread::JOINABLE);
-    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2), Thread::JOINABLE);
-    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
-    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(4), Thread::JOINABLE);
-    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(5), Thread::JOINABLE);
-    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(6), Thread::JOINABLE);
-    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(7), Thread::JOINABLE);
-    //auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(8), Thread::JOINABLE);
-
     //Thread::create(blinkThread,STACK_MIN,MAIN_PRIORITY);
+
+    unsigned long long nodeID = getUniqueID();
+    printf("### TDMH Test code ###\nNodeID=%llx\n", nodeID);
+    Thread* t1;
+    /* Start TDMH thread mapping node unique ID to network ID */
+    switch(nodeID) {
+    case 0x243537035155c338:
+        t1 = Thread::create(masterNode, 2048, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+        break;
+    case 0x243537005155c356:
+        t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(1), Thread::JOINABLE);
+        break;
+    case 0x243537005155c346:
+        t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(2), Thread::JOINABLE);
+        break;
+    case 0x243537025155c346:
+        t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
+        //p.redundancy=Redundancy::TRIPLE_SPATIAL; auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
+        break;
+    default:        
+        printf("ERROR: nodeID is not mapped to any node, halting!\n");
+    }
+
+    /* Wait for tdmh pointer to become valid */
     for(;;)
     {
         Lock<FastMutex> l(m);
         if(tdmh) break;
     }
     Thread::sleep(5000);
+
     MACContext* ctx = tdmh->getMACContext();
-    // Remove this sleep loop when enabling stream code
-    for(;;)
-    {            
-        Thread::sleep(5000);
-    }
-
-    /*
-    // Master node code
-    if(ctx->getNetworkId() == 0) {
+    unsigned char netID = ctx->getNetworkId();
+    StreamParameters serverParams(Redundancy::TRIPLE_SPATIAL,
+                                  Period::P1,
+                                  1,     // payload size
+                                  Direction::TX);
+    StreamParameters clientParams(Redundancy::NONE,
+                                  Period::P1,
+                                  1,     // payload size
+                                  Direction::TX);
+    unsigned char port = 1;
+    /* Perform actions depending on your network ID */
+    switch(netID) {
+    case 0:
+        // Master node code
         Thread::create(statThread, 2048, MAIN_PRIORITY);
-        masterApplication();
+        openServer(port, serverParams);
+        break;
+    case 1:
+        //openStream(0, port, clientParams);
+        break;
+    case 2:
+        //openStream(0, port, clientParams);
+        break;
+    case 3:
+        openStream(0, port, clientParams);
+        break;
     }
-    else
-        dynamicApplication(p);
-    */       
 
-//     t1->join();
-    
+
 /*    auto& timestamp=GPIOtimerCorr::instance();
     for(;;)
     {
