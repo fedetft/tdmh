@@ -115,4 +115,31 @@ RecvResult Packet::recv(MACContext& ctx, long long tExpected, function<bool (con
     return result;
 }
 
+void Packet::putPanHeader(unsigned short panId) {
+    unsigned char panHeader[] = {
+                                 0x46, //frame type 0b110 (reserved), intra pan
+                                 0x08, //no source addressing, short destination addressing
+                                 0xff, //seq no is reused as packet type (0xff=uplink), or glossy hop count
+                                 static_cast<unsigned char>(panId>>8),
+                                 static_cast<unsigned char>(panId & 0xff), //destination pan ID
+    };
+    put(&panHeader, sizeof(panHeader));
+}
+
+bool Packet::checkPanHeader(unsigned short panId) {
+    // Check panHeader
+    // (*this) is used to access operator[] of this class
+    if((*this)[0] == 0x46 &&
+       (*this)[1] == 0x08 &&
+       (*this)[2] == 0xff &&
+       (*this)[3] == static_cast<unsigned char>(panId >> 8) &&
+       (*this)[4] == static_cast<unsigned char>(panId & 0xff)) {
+        // Remove panHeader from packet
+        discard(panHeaderSize);
+        return true;
+    }else {
+        return false;
+    }
+}
+
 } /* namespace mxnet */

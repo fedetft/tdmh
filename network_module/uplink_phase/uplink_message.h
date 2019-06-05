@@ -38,8 +38,6 @@
 
 namespace mxnet {
 
-const int panHeaderSize = 5; //panHeader size is 5 bytes
-
 /* Header used in the first packet of the UplinkMessage */
 struct UplinkHeader {
     unsigned char hop;
@@ -114,17 +112,13 @@ public:
         packet.send(ctx, sendTime);
         // Prepare the next packet
         packet.clear();
-        putPanHeader();
+        packet.putPanHeader(panId);
     }
 
 private:
 
     void computePacketAllocation(const NetworkConfiguration& config,
                                  int availableTopologies, int availableSMEs);
-    /**
-     * Insert IEEE 802.15.4 header Packet
-     */
-    void putPanHeader();
 
     /* Constant values used in the methods */
     const unsigned short bitsetSize;
@@ -225,12 +219,6 @@ private:
     StreamManagementElement getSME() {
         return StreamManagementElement::deserialize(packet);
     }
-
-    /**
-     * Checks the IEEE 802.15.4 header of the current packet.
-     * @return true if current packet is an UplinkPacket, false otherwise
-     */
-    bool checkPanHeader();
 
     /**
      * Checks that the values in the first packet header are valid.

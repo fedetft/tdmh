@@ -38,6 +38,8 @@
 
 namespace mxnet {
 
+const int panHeaderSize = 5; //panHeader size is 5 bytes
+
 class PacketOverflowException : public std::range_error {
 public:
     PacketOverflowException(const std::string& err) : range_error(err) {}
@@ -135,6 +137,18 @@ public:
         return packet[index];
     }
 
+    /*
+     * This method Adds to the packet an IEEE 802.15.4 header, containing
+     * a given panId, this is useful to distinguish TDMH packets from
+     * generic ZigBee or other IEEE 802.15.4 packets
+     */
+    void putPanHeader(unsigned short panId);
+
+    /**
+     * Checks the IEEE 802.15.4 header of the current packet, removing it
+     * @return true if current packet is an UplinkPacket, false otherwise
+     */
+    bool checkPanHeader(unsigned short panId);
 
 private:
     std::array<unsigned char, MediumAccessController::maxPktSize> packet;

@@ -44,7 +44,7 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
     panId(config.getPanId())
 {
     computePacketAllocation(config, availableTopologies, availableSMEs);
-    putPanHeader();
+    packet.putPanHeader(panId);
     UplinkHeader header({hop, assignee, numTopologies, numSMEs});
     packet.put(&header, sizeof(UplinkHeader));
     auto neighbors = myTopology.getNeighbors();
@@ -139,17 +139,6 @@ void SendUplinkMessage::computePacketAllocation(const NetworkConfiguration& conf
     assert(totPackets <= maxPackets);
 }
 
-void SendUplinkMessage::putPanHeader() {
-    unsigned char panHeader[] = {
-        0x46, //frame type 0b110 (reserved), intra pan
-        0x08, //no source addressing, short destination addressing
-        0xff, //seq no is reused as packet type (0xff=uplink), or glossy hop count
-        static_cast<unsigned char>(panId>>8),
-        static_cast<unsigned char>(panId & 0xff), //destination pan ID
-    };
-    packet.put(&panHeader, sizeof(panHeader));
-}
-
 //
 // class ReceiveUplinkMessage
 //
@@ -197,25 +186,10 @@ void ReceiveUplinkMessage::deserializeTopologiesAndSMEs(UpdatableQueue<unsigned 
     }
 }
 
-bool ReceiveUplinkMessage::checkPanHeader() {
-    // Check panHeader
-    if(packet[0] == 0x46 &&
-       packet[1] == 0x08 &&
-       packet[2] == 0xff &&
-       packet[3] == static_cast<unsigned char>(panId >> 8) &&
-       packet[4] == static_cast<unsigned char>(panId & 0xff)) {
-        // Remove panHeader from packet
-        packet.discard(panHeaderSize);
-        return true;
-    }else {
-        return false;
-    }
-}
-
 bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) {
     const unsigned int headerSize = Packet::maxSize() - getFirstUplinkPacketCapacity(config);
     if(packet.size() < headerSize) return false;
-    if(checkPanHeader() == false) return false;
+    if(packet.checkPanHeader(panId) == false) return false;
     UplinkHeader tempHeader;
     packet.get(&tempHeader, sizeof(UplinkHeader));
     if(tempHeader.hop == 0 || tempHeader.hop > config.getMaxHops()) return false;
@@ -238,7 +212,7 @@ bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) 
 bool ReceiveUplinkMessage::checkOtherPacket(const NetworkConfiguration& config) {
     const unsigned int headerSize = Packet::maxSize() - getOtherUplinkPacketCapacity();
     if(packet.size() < headerSize) return false;
-    if(checkPanHeader() == false) return false;
+    if(packet.checkPanHeader(panId) == false) return false;
 
     if(checkTopologiesAndSMEs(config, headerSize, header) == false) return false;
 
