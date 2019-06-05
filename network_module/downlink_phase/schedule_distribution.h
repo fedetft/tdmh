@@ -70,6 +70,7 @@ public:
 
 protected:
     ScheduleDownlinkPhase(MACContext& ctx) : MACPhase(ctx),
+                                             panId(ctx.getNetworkConfig().getPanId()),
                                              streamMgr(ctx.getStreamManager()),
                                              dataPhase(ctx.getDataPhase()) {}
 
@@ -87,6 +88,10 @@ protected:
        if it is equal to the one in the schedule header,
        replace expanded schedule in the dataphase with the new one */
     void checkTimeSetSchedule(long long slotStart);
+
+    /* Constant value from NetworkConfiguration */
+    const unsigned short panId;
+
     // Schedule header with information on schedule distribution
     ScheduleHeader header;
     // Copy of last computed/received schedule
@@ -98,7 +103,7 @@ protected:
     unsigned long explicitScheduleID = 0;
     std::vector<ExplicitScheduleElement> explicitSchedule;
     bool distributing = false;
-protected:
+
     // Pointer to StreamManager, used to apply distributed schedule and info elements
     StreamManager* const streamMgr;
 private:

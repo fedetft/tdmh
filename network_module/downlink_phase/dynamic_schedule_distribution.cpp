@@ -42,7 +42,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     auto rcvResult = pkt.recv(ctx, arrivalTime);
     ctx.transceiverIdle(); //Save power waiting for rebroadcast time
     // No schedule received
-    if (rcvResult.error == miosix::RecvResult::TIMEOUT) {
+    if (rcvResult.error != RecvResult::ErrorCode::OK || pkt.checkPanHeader(panId) == false) {
         if(replaceCountdown != 5 && replaceCountdown != 0)
             replaceCountdown--;
     }

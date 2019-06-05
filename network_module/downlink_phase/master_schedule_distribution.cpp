@@ -45,7 +45,7 @@ MasterScheduleDownlinkPhase::MasterScheduleDownlinkPhase(MACContext& ctx,
     unsigned dataslotsDownlinktile = ctx.getDataSlotsInDownlinkTileCount();
     downlinkSlots = tileSize - dataslotsDownlinktile;
     unsigned pktSize = MediumAccessController::maxPktSize;
-    packetCapacity = (pktSize - sizeof(ScheduleHeaderPkt)) / sizeof(ScheduleElementPkt);
+    packetCapacity = (pktSize - (panHeaderSize + sizeof(ScheduleHeaderPkt))) / sizeof(ScheduleElementPkt);
 }
 
 void MasterScheduleDownlinkPhase::execute(long long slotStart) {
@@ -162,20 +162,24 @@ unsigned long MasterScheduleDownlinkPhase::getTilesToDistributeSchedule(unsigned
 }
 
 void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
-    Packet pkt;
-    // Add schedule distribution header
-    header.serialize(pkt);
-    // Add schedule elements to packet
+    SchedulePacket spkt;
+    // Add ScheduleHeader to SchedulePacket
+    spkt.setHeader(header);
+
+    // Add schedule elements to SchedulePacket
     unsigned int sched = 0;
     for(sched = 0; (sched < packetCapacity) && (position < schedule.size()); sched++) {
-        schedule[position].serialize(pkt);
+        spkt.putElement(schedule[position]);
         position++;
     }
-    // Add info elements to packet
+    // Add info elements to SchedulePacket
     unsigned char numInfo = packetCapacity - sched;
     auto infos = streamColl->dequeueInfo(numInfo);
     for(auto& info : infos)
-        info.serialize(pkt);
+        spkt.putInfoElement(info);
+
+    Packet pkt;
+    spkt.serialize(pkt, panId);
     // Send schedule downlink packet
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     pkt.send(ctx, slotStart);
@@ -191,17 +195,20 @@ void MasterScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
 }
 
 void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart) {
-    Packet pkt;
+    SchedulePacket spkt;
     // Build Info packet header
     ScheduleHeader infoHeader(0,0,header.getScheduleID());
-    // Add Info packet header
-    infoHeader.serialize(pkt);
-    // Add info elements to packet
+    spkt.setHeader(infoHeader);
+
+    // Add info elements to SchedulePacketacket
     unsigned int availableInfo = streamColl->getNumInfo();
     unsigned int numInfo = std::min(packetCapacity, availableInfo);
     std::vector<InfoElement> infos = streamColl->dequeueInfo(numInfo);
     for(auto& info : infos)
-        info.serialize(pkt);
+        spkt.putInfoElement(info);
+
+    Packet pkt;
+    spkt.serialize(pkt, panId);
     // Send schedule downlink packet
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     pkt.send(ctx, slotStart);

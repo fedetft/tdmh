@@ -126,16 +126,19 @@ public:
         content.tx = id.src;
         content.rx = id.dst;
         content.offset = off;
-    };
+    }
 
     // Constructor for multi-hop stream
-    ScheduleElement(MasterStreamInfo stream, unsigned char tx, unsigned char rx, unsigned int off=0) {
+    ScheduleElement(MasterStreamInfo stream,
+                    unsigned char tx,
+                    unsigned char rx,
+                    unsigned int off=0) {
         id = stream.getStreamId();
         params = stream.getParams();
         content.tx = tx;
         content.rx = rx;
         content.offset = off;
-    };
+    }
 
     void serialize(Packet& pkt) const override;
     static ScheduleElement deserialize(Packet& pkt);
@@ -192,9 +195,11 @@ public:
         // The message of the info element is saved in the offset field
         content.offset = static_cast<unsigned int>(type);
     };
-    void serialize(Packet& pkt) const override;
     static InfoElement deserialize(Packet& pkt);
     InfoType getType() const { return static_cast<InfoType>(content.offset); }
+    // NOTE: do not use outside ScheduleElement(Infoelement i),
+    // Info elements are not meant to carry offset information
+    unsigned int getOffset() const { return content.offset; }
 };
 
 class SchedulePacket : public SerializableMessage {
@@ -204,11 +209,20 @@ public:
     SchedulePacket(ScheduleHeader hdr, std::vector<ScheduleElement> elms) :
         header(hdr), elements(elms) {}
 
-    void serialize(Packet& pkt) const override;
+    void serialize(Packet& pkt, unsigned short panId) const;
     static SchedulePacket deserialize(Packet& pkt);
-    std::size_t size() const override { return header.size() + elements.size(); }
+    std::size_t size() const override {
+        return panHeaderSize +
+            header.size() +
+            elements.size();
+    }
     ScheduleHeader getHeader() const { return header; }
     std::vector<ScheduleElement> getElements() const { return elements; }
+    void setHeader(ScheduleHeader& newHeader) { header = newHeader; }
+    void putElement(ScheduleElement& el) { elements.push_back(el); }
+    void putInfoElement(InfoElement& el) { elements.push_back(static_cast<ScheduleElement>(el)); }
+
+
 private:
     ScheduleHeader header;
     std::vector<ScheduleElement> elements;
