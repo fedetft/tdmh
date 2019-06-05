@@ -41,8 +41,8 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     auto rcvResult = pkt.recv(ctx, arrivalTime);
     ctx.transceiverIdle(); //Save power waiting for rebroadcast time
-    // No schedule received
-    if (rcvResult.error == miosix::RecvResult::TIMEOUT) {
+    // No valid schedule packet received
+    if(rcvResult.error != RecvResult::ErrorCode::OK || pkt.checkPanHeader(panId) == false) {
         if(replaceCountdown != 5 && replaceCountdown != 0)
             replaceCountdown--;
     }
@@ -90,6 +90,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
 }
 
 ScheduleHeader DynamicScheduleDownlinkPhase::decodePacket(Packet& pkt) {
+    pkt.removePanHeader();
     SchedulePacket spkt = SchedulePacket::deserialize(pkt);
     ScheduleHeader newHeader = spkt.getHeader();
     std::vector<ScheduleElement> elements = spkt.getElements();

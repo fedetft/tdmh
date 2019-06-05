@@ -45,7 +45,7 @@ MasterScheduleDownlinkPhase::MasterScheduleDownlinkPhase(MACContext& ctx,
     unsigned dataslotsDownlinktile = ctx.getDataSlotsInDownlinkTileCount();
     downlinkSlots = tileSize - dataslotsDownlinktile;
     unsigned pktSize = MediumAccessController::maxPktSize;
-    packetCapacity = (pktSize - sizeof(ScheduleHeaderPkt)) / sizeof(ScheduleElementPkt);
+    packetCapacity = (pktSize - (panHeaderSize + sizeof(ScheduleHeaderPkt))) / sizeof(ScheduleElementPkt);
 }
 
 void MasterScheduleDownlinkPhase::execute(long long slotStart) {
@@ -163,6 +163,8 @@ unsigned long MasterScheduleDownlinkPhase::getTilesToDistributeSchedule(unsigned
 
 void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
     Packet pkt;
+    // Add IEEE 802.15.4 header
+    pkt.putPanHeader(panId);
     // Add schedule distribution header
     header.serialize(pkt);
     // Add schedule elements to packet
