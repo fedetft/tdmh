@@ -128,14 +128,12 @@ void Packet::putPanHeader(unsigned short panId) {
 
 bool Packet::checkPanHeader(unsigned short panId) {
     // Check panHeader
-    // (*this) is used to access operator[] of this class
+    // (*this) is used to access operator[] of this Packet class
     if((*this)[0] == 0x46 &&
        (*this)[1] == 0x08 &&
        (*this)[2] == 0xff &&
        (*this)[3] == static_cast<unsigned char>(panId >> 8) &&
        (*this)[4] == static_cast<unsigned char>(panId & 0xff)) {
-        // Remove panHeader from packet
-        discard(panHeaderSize);
         return true;
     }else {
         return false;

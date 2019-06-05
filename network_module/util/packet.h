@@ -137,7 +137,7 @@ public:
         return packet[index];
     }
 
-    /*
+    /**
      * This method Adds to the packet an IEEE 802.15.4 header, containing
      * a given panId, this is useful to distinguish TDMH packets from
      * generic ZigBee or other IEEE 802.15.4 packets
@@ -145,10 +145,18 @@ public:
     void putPanHeader(unsigned short panId);
 
     /**
-     * Checks the IEEE 802.15.4 header of the current packet, removing it
+     * Checks the IEEE 802.15.4 header of the current packet,
      * @return true if current packet is an UplinkPacket, false otherwise
      */
     bool checkPanHeader(unsigned short panId);
+
+    /**
+     * Removes the IEEE 802.15.4 header from the current packet,
+     */
+    void removePanHeader() {
+        // Remove panHeader from packet
+        discard(panHeaderSize);
+    }
 
 private:
     std::array<unsigned char, MediumAccessController::maxPktSize> packet;

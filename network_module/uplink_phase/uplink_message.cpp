@@ -190,6 +190,7 @@ bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) 
     const unsigned int headerSize = Packet::maxSize() - getFirstUplinkPacketCapacity(config);
     if(packet.size() < headerSize) return false;
     if(packet.checkPanHeader(panId) == false) return false;
+    packet.removePanHeader();
     UplinkHeader tempHeader;
     packet.get(&tempHeader, sizeof(UplinkHeader));
     if(tempHeader.hop == 0 || tempHeader.hop > config.getMaxHops()) return false;
@@ -213,9 +214,8 @@ bool ReceiveUplinkMessage::checkOtherPacket(const NetworkConfiguration& config) 
     const unsigned int headerSize = Packet::maxSize() - getOtherUplinkPacketCapacity();
     if(packet.size() < headerSize) return false;
     if(packet.checkPanHeader(panId) == false) return false;
-
+    packet.removePanHeader();
     if(checkTopologiesAndSMEs(config, headerSize, header) == false) return false;
-
     return true;
 }
 
