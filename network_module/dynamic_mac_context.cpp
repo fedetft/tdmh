@@ -33,7 +33,7 @@ namespace mxnet {
 DynamicMACContext::DynamicMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
     MACContext(mac, transceiver, config) {
     timesync = new DynamicTimesyncDownlink(*this);
-    streamMgr = new StreamManager(getNetworkId());
+    streamMgr = new StreamManager(config, getNetworkId());
     data = new DataPhase(*this, *streamMgr);
     scheduleDistribution = new DynamicScheduleDownlinkPhase(*this);
     uplink = new DynamicUplinkPhase(*this, streamMgr);

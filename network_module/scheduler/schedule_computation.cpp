@@ -43,7 +43,7 @@
 namespace mxnet {
 
 ScheduleComputation::ScheduleComputation(MACContext& mac_ctx) :
-    stream_mgr(0), // Initialize StreamManager with ID=0 (Master node)
+    stream_mgr(mac_ctx.getNetworkConfig(), 0), // Initialize StreamManager with ID=0 (Master node)
     schedule(0, superframe.size()), // Initialize Schedule with ID=0 and tile_size = superframe size
     mac_ctx(mac_ctx), netconfig(mac_ctx.getNetworkConfig()),
     superframe(netconfig.getControlSuperframeStructure()),

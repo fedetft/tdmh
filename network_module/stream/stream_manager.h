@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include "../network_configuration.h"
 // For StreamId
 #include "stream_management_element.h"
 #include "stream.h"
@@ -58,7 +59,7 @@ namespace mxnet {
 
 class StreamManager {
 public:
-    StreamManager(unsigned char myId) : myId(myId) {
+    StreamManager(const NetworkConfiguration& config, unsigned char myId) : config(config), myId(myId) {
         // Inizialize clientPorts to false (all ports unused)
         clientPorts.reserve(maxPorts);
         for (unsigned int i = 0; i < maxPorts; ++i) {
@@ -192,6 +193,8 @@ private:
     // Prints StreamId and status of a given Server 
     void printServerStatus(StreamId id, StreamStatus status);
 
+    /* Reference to NetworkConfiguration */
+    const NetworkConfiguration& config;
     /* NetworkId of this node */
     unsigned char myId;
     /* Counter used to assign progressive file-descriptors to Streams and Servers*/

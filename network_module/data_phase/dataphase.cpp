@@ -80,7 +80,7 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     auto rcvResult = pkt.recv(ctx, slotStart);
     ctx.transceiverIdle();
-    if(rcvResult.error == RecvResult::ErrorCode::OK) {
+    if(rcvResult.error == RecvResult::ErrorCode::OK && pkt.checkPanHeader(panId) == true) {
         stream.receivePacket(id, pkt);
         if(ENABLE_DATA_INFO_DBG)
             print_dbg("[D] (%d,%d) received packet @%lld\n", id.src, id.dst, slotStart);
@@ -93,14 +93,27 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
     }
 }
 void DataPhase::sendFromBuffer(long long slotStart) {
-    ctx.configureTransceiver(ctx.getTransceiverConfig());
-    buffer.send(ctx, slotStart);
-    ctx.transceiverIdle();
+    if(bufferValid) {
+        ctx.configureTransceiver(ctx.getTransceiverConfig());
+        buffer.send(ctx, slotStart);
+        ctx.transceiverIdle();
+        buffer.clear();
+    }
+    else
+        sleep(slotStart);
 }
 void DataPhase::receiveToBuffer(long long slotStart) {
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     auto rcvResult = buffer.recv(ctx, slotStart);
     ctx.transceiverIdle();
+    if(rcvResult.error == RecvResult::ErrorCode::OK && buffer.checkPanHeader(panId) == true) { 
+        bufferValid = true;
+    }
+    // Delete received packet if pan header doesn't match with our network 
+    else {
+        bufferValid = false;
+        buffer.clear();
+    }
 }
 void DataPhase::alignToNetworkTime(NetworkTime nt) {
     auto tileAndSlot = ctx.getCurrentTileAndSlot(nt);

@@ -41,7 +41,9 @@ namespace mxnet {
 
 class DataPhase : public MACPhase {
 public:
-    DataPhase(MACContext& ctx, StreamManager& str) : MACPhase(ctx), stream(str) {};
+    DataPhase(MACContext& ctx, StreamManager& str) : MACPhase(ctx),
+                                                     panId(ctx.getNetworkConfig().getPanId()),
+                                                     stream(str) {};
     
     virtual ~DataPhase() {}
 
@@ -127,6 +129,8 @@ private:
         if(scheduleSlots != 0)
             tileSlot = (tileSlot + n) % scheduleSlots;
     }
+    /* Constant value from NetworkConfiguration */
+    const unsigned short panId;
     // Reference to Stream class, to get packets from stream buffers
     StreamManager& stream;
     unsigned short tileSlot = 0;
@@ -137,6 +141,8 @@ private:
     unsigned long scheduleActivationTile = 0;
     std::vector<ExplicitScheduleElement> currentSchedule;
     Packet buffer;
+    // Boolean value used to remember if we received something to retransmit or not
+    bool bufferValid = false;
 };
 
 }

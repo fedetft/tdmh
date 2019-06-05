@@ -58,8 +58,9 @@ class Server;
 
     class Endpoint : public miosix::IntrusiveRefCounted {
 public:
-    Endpoint(int fd, StreamInfo info) : fd(fd), info(info), smeTimeout(smeTimeoutMax),
-                                failTimeout(failTimeoutMax) {};
+    Endpoint(const NetworkConfiguration& config,
+             int fd, StreamInfo info) : fd(fd), info(info), smeTimeout(smeTimeoutMax),
+                                        failTimeout(failTimeoutMax) {};
     virtual ~Endpoint() {};
 
     // Used by derived class Stream 
@@ -176,7 +177,9 @@ protected:
  */
 class Stream : public Endpoint {
 public:
-    Stream(int fd, StreamInfo info) : Endpoint(fd, info) {
+    Stream(const NetworkConfiguration& config,
+           int fd, StreamInfo info) : Endpoint(config, fd, info),
+                                      panId(config.getPanId()) {
         updateRedundancy();
     }
 
@@ -236,6 +239,8 @@ public:
     // Returns true if the Stream class can be deleted
     bool desync() override;
 
+    const unsigned short panId;
+
     Server* myServer;
     Packet txPacket;
     Packet rxPacket;
@@ -292,7 +297,8 @@ private:
  */
 class Server : public Endpoint {
 public:
-    Server(int fd, StreamInfo info) : Endpoint(fd, info) {};
+    Server(const NetworkConfiguration& config,
+           int fd, StreamInfo info) : Endpoint(config, fd, info) {};
 
     // Called by StreamManager after creation,
     // used to send LISTEN SME and wait for acceptedServer()

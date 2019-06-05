@@ -74,6 +74,7 @@ int Stream::write(const void* data, int size) {
         return -2;
     }
     try {
+        nextTxPacket.putPanHeader(panId);
         nextTxPacket.put(data, size);
         nextTxPacketReady = true;
         return size;
@@ -106,6 +107,7 @@ int Stream::read(void* data, int maxSize) {
         receivedShared = false;
         auto size = std::min<int>(maxSize, rxPacketShared.size());
         try {
+            rxPacketShared.removePanHeader();
             rxPacketShared.get(data, size);
             rxPacketShared.clear();
             return size;

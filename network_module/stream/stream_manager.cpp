@@ -529,9 +529,9 @@ void StreamManager::freeClientPort(unsigned char port) {
 int StreamManager::addStream(StreamInfo streamInfo) {
     int fd = fdcounter++;
 #ifdef _MIOSIX
-    miosix::intrusive_ref_ptr<Stream> stream(new Stream(fd, streamInfo));
+    miosix::intrusive_ref_ptr<Stream> stream(new Stream(config, fd, streamInfo));
 #else
-    std::shared_ptr<Stream> stream(new Stream(fd, streamInfo));
+    std::shared_ptr<Stream> stream(new Stream(config, fd, streamInfo));
 #endif
     StreamId streamId = streamInfo.getStreamId();
     streams[streamId] = stream;
@@ -542,9 +542,9 @@ int StreamManager::addStream(StreamInfo streamInfo) {
 int StreamManager::addServer(StreamInfo serverInfo) {
     int fd = fdcounter++;
 #ifdef _MIOSIX
-    miosix::intrusive_ref_ptr<Server> server(new Server(fd, serverInfo));
+    miosix::intrusive_ref_ptr<Server> server(new Server(config, fd, serverInfo));
 #else
-    std::shared_ptr<Server> server(new Server(fd, serverInfo));
+    std::shared_ptr<Server> server(new Server(config, fd, serverInfo));
 #endif
     unsigned char port = serverInfo.getStreamId().dstPort;
     servers[port] = server;
