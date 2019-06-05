@@ -222,7 +222,6 @@ public:
     void putElement(ScheduleElement& el) { elements.push_back(el); }
     void putInfoElement(InfoElement& el) { elements.push_back(static_cast<ScheduleElement>(el)); }
 
-
 private:
     ScheduleHeader header;
     std::vector<ScheduleElement> elements;
