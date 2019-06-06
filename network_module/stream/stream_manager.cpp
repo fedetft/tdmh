@@ -93,7 +93,7 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
         removeStream(streamId);
         return -1;
     }
-    printStreamStatus(streamId, streamInfo.getStatus());
+    printStreamStatus(streamId, stream->getInfo().getStatus());
     return fd;
 }
 
@@ -216,7 +216,7 @@ int StreamManager::listen(unsigned char port, StreamParameters params) {
         removeServer(port);
         return -1;
     }
-    printServerStatus(serverId, serverInfo.getStatus());
+    printServerStatus(serverId, server->getInfo().getStatus());
     return fd;
 }
 

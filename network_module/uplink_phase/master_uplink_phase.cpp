@@ -40,9 +40,8 @@ void MasterUplinkPhase::execute(long long slotStart)
     
     if(ENABLE_UPLINK_VERB_DBG)
         print_dbg("[U] N=%u T=%lld\n", currentNode, slotStart);
-    
+
     ReceiveUplinkMessage message(ctx.getNetworkConfig());
-    
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     if(message.recv(ctx, slotStart))
     {
@@ -68,12 +67,8 @@ void MasterUplinkPhase::execute(long long slotStart)
                 message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
             }
         }
-        // Enqueue SMEs from the Master node itself
-        streamMgr->dequeueSMEs(smeQueue);
         // Consume elements from the topology queue
         topology.handleForwardedTopologies(topologyQueue);
-        // Consume elements from the SME queue
-        scheduleComputation.receiveSMEs(smeQueue);
         
     } else {
         topology.missedMessage(currentNode);
@@ -82,6 +77,11 @@ void MasterUplinkPhase::execute(long long slotStart)
             print_dbg("  %d\n",currentNode);
     }
     ctx.transceiverIdle();
+
+    // Enqueue SMEs produced by the Master node itself
+    streamMgr->dequeueSMEs(smeQueue);
+    // Consume elements from the SME queue
+    scheduleComputation.receiveSMEs(smeQueue);
     
     if(ENABLE_TOPOLOGY_INFO_DBG && currentNode == 1)
     {
