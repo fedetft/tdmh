@@ -106,16 +106,15 @@ void Node::application() {
     while(!ctx->isReady()) ;
     /* Open Stream from node 1 */
     if(address == 1) {
-        //sendData(ctx, Period::P1, Redundancy::NONE);
-        openServer(ctx, 1, Period::P1, Redundancy::TRIPLE_SPATIAL);
+        sendData(ctx, 0, Period::P1, Redundancy::NONE);
     }
     /* Open Stream from node 2 */
     if(address == 2) {
-        sendData(ctx, 1, Period::P1, Redundancy::NONE);
+        sendData(ctx, 0, Period::P1, Redundancy::NONE);
     }
     /* Open Stream from node 3 */
     if(address == 3) {
-        sendData(ctx, 1, Period::P1, Redundancy::NONE);
+        sendData(ctx, 0, Period::P1, Redundancy::NONE);
     }
 }
 

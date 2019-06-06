@@ -85,7 +85,7 @@ void RootNode::application() {
     MACContext* ctx = tdmh->getMACContext();
     while(!ctx->isReady()) {
     }
-    //openServer(ctx, 1, Period::P1, Redundancy::TRIPLE_SPATIAL);
+    openServer(ctx, 1, Period::P1, Redundancy::TRIPLE_SPATIAL);
 }
 
 void RootNode::openServer(MACContext* ctx, unsigned char port, Period period, Redundancy redundancy) {
