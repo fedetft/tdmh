@@ -319,6 +319,11 @@ int main()
 
     MACContext* ctx = tdmh->getMACContext();
     unsigned char netID = ctx->getNetworkId();
+    // NOTE: the server parameters represent the maximum values accepted
+    // by the server, the actual stream parameters are negotiated with
+    // the value required by the client.
+    // You don't need to change the server parameters, but just the
+    // ones of the client
     StreamParameters serverParams(Redundancy::TRIPLE_SPATIAL,
                                   Period::P1,
                                   1,     // payload size
@@ -336,14 +341,18 @@ int main()
         openServer(port, serverParams);
         break;
     case 1:
-        idle();
-        //openStream(0, port, clientParams);
+        // NOTE: decopmment the idle() function when openStream is commented
+        //idle();
+        openStream(0, port, clientParams);
         break;
     case 2:
-        idle();
-        //openStream(0, port, clientParams);
+        // NOTE: decopmment the idle() function when openStream is commented
+        //idle();
+        openStream(0, port, clientParams);
         break;
     case 3:
+        // NOTE: decopmment the idle() function when openStream is commented
+        //idle();
         openStream(0, port, clientParams);
         break;
     default:
