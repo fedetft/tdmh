@@ -49,7 +49,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     // Schedule received
     else {
         // Rebroadcast the schedule packet
-        if(ctx.getHop() >= ctx.getNetworkConfig().getMaxHops()) return;
+        if(ctx.getHop() > ctx.getNetworkConfig().getMaxHops()) return;
         ctx.configureTransceiver(ctx.getTransceiverConfig());
         pkt.send(ctx, rcvResult.timestamp + rebroadcastInterval);
         ctx.transceiverIdle();
