@@ -39,7 +39,7 @@ using namespace std;
 using namespace mxnet;
 using namespace miosix;
 
-const int maxNodes = 8;
+const int maxNodes = 16;
 const int maxHops = 6;
 
 FastMutex m;
@@ -303,7 +303,21 @@ int main()
         break;
     case 0x243537025155c346:
         t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
-        //p.redundancy=Redundancy::TRIPLE_SPATIAL; auto t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
+        break;
+    case 0x243537035155c356:
+        t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(4), Thread::JOINABLE);
+        break;
+    case 0x243537035155bdca:
+        t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(5), Thread::JOINABLE);
+        break;
+    case 0x243537015155bdab:
+        t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(6), Thread::JOINABLE);
+        break;
+    case 0x243537015155c9bf:
+        t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(7), Thread::JOINABLE);
+        break;
+    case 0x2435370352C6aa9a:
+        t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(8), Thread::JOINABLE);
         break;
     default:        
         printf("ERROR: nodeID is not mapped to any node, halting!\n");
@@ -329,7 +343,7 @@ int main()
                                   1,     // payload size
                                   Direction::TX);
     StreamParameters clientParams(Redundancy::NONE,
-                                  Period::P1,
+                                  Period::P5,
                                   1,     // payload size
                                   Direction::TX);
     unsigned char port = 1;
@@ -351,6 +365,31 @@ int main()
         openStream(0, port, clientParams);
         break;
     case 3:
+        // NOTE: decopmment the idle() function when openStream is commented
+        //idle();
+        openStream(0, port, clientParams);
+        break;
+    case 4:
+        // NOTE: decopmment the idle() function when openStream is commented
+        //idle();
+        openStream(0, port, clientParams);
+        break;
+    case 5:
+        // NOTE: decopmment the idle() function when openStream is commented
+        //idle();
+        openStream(0, port, clientParams);
+        break;
+    case 6:
+        // NOTE: decopmment the idle() function when openStream is commented
+        //idle();
+        openStream(0, port, clientParams);
+        break;
+    case 7:
+        // NOTE: decopmment the idle() function when openStream is commented
+        //idle();
+        openStream(0, port, clientParams);
+        break;
+    case 8:
         // NOTE: decopmment the idle() function when openStream is commented
         //idle();
         openStream(0, port, clientParams);
