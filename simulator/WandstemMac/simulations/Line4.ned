@@ -24,8 +24,7 @@ network Line4
 {
     parameters:
         n*.nodes = 8;
-        // NOTE: A lower number of hops triggers a bug in the MAC Implementation
-        n*.hops = 6;
+        n*.hops = 3;
     submodules:
         n0: RootNode {
             address = 0;
