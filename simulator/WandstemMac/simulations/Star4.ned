@@ -23,7 +23,7 @@ import wandstemmac.RootNode;
 network Star4
 {
     parameters:
-        n*.nodes = 4;
+        n*.nodes = 8;
         n*.hops = 1;
     submodules:
         n0: RootNode {
