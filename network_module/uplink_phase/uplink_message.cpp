@@ -233,12 +233,12 @@ bool ReceiveUplinkMessage::checkTopologiesAndSMEs(const NetworkConfiguration& co
     if(remainingTopologies != 0) {
         for(;;) {
             // NOTE: Do the allocation also for the last packet
-            int packetTopologies = std::min<int>(remainingTopologies, remainingBytes / topologySize);
-            remainingTopologies -= packetTopologies;
-            remainingBytes -= packetTopologies * topologySize;
+            int topologies = std::min<int>(remainingTopologies, remainingBytes / topologySize);
+            remainingTopologies -= topologies;
+            remainingBytes -= topologies * topologySize;
             // Validate last received packet
             if(numPackets == receivedPackets + 1) {
-                topologiesInPacket = packetTopologies;
+                topologiesInPacket = topologies;
                 // Check that TopologyElements in packet are valid
                 for(unsigned int i = 0; i < topologiesInPacket; i++) {
                     // Calculate TopologyElement offset in packet
@@ -262,12 +262,12 @@ bool ReceiveUplinkMessage::checkTopologiesAndSMEs(const NetworkConfiguration& co
     if(remainingSMEs != 0) {
         for(;;) {
             // NOTE: Do the allocation also for the last packet
-            int packetSMEs = std::min<int>(remainingSMEs, remainingBytes / smeSize);
-            remainingSMEs -= packetSMEs;
-            remainingBytes -= packetSMEs * smeSize;
+            int smes = std::min<int>(remainingSMEs, remainingBytes / smeSize);
+            remainingSMEs -= smes;
+            remainingBytes -= smes * smeSize;
             // Validate last received packet
             if(numPackets == receivedPackets + 1) {
-                SMEsInPacket = packetSMEs;
+                SMEsInPacket = smes;
                 // Check that SMEs in packet are valid
                 for(int i = 0; i < SMEsInPacket; i++) {
                     // Calculate SME offset in packet
