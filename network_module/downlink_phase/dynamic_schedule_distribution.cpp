@@ -35,6 +35,7 @@ using namespace miosix;
 namespace mxnet {
 
 void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
+    auto myID = ctx.getNetworkId();
     Packet pkt;
     // Receive the schedule packet
     auto arrivalTime = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
@@ -48,11 +49,12 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     }
     // Schedule received
     else {
-        // Rebroadcast the schedule packet
-        if(ctx.getHop() > ctx.getNetworkConfig().getMaxHops()) return;
-        ctx.configureTransceiver(ctx.getTransceiverConfig());
-        pkt.send(ctx, rcvResult.timestamp + rebroadcastInterval);
-        ctx.transceiverIdle();
+        // Retransmit the schedule packet unless you belong to maximum hop
+        if(ctx.getHop() < ctx.getNetworkConfig().getMaxHops()) {
+            ctx.configureTransceiver(ctx.getTransceiverConfig());
+            pkt.send(ctx, rcvResult.timestamp + rebroadcastInterval);
+            ctx.transceiverIdle();
+        }
 
         // Parse the schedule packet
         ScheduleHeader newHeader = decodePacket(pkt);
@@ -69,7 +71,6 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
        (nextHeader.getScheduleID() != header.getScheduleID())) {
         replaceRunningSchedule();
         if(explicitScheduleID != header.getScheduleID()) {
-            auto myID = ctx.getNetworkId();
             if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
                 printSchedule(myID);
             std::vector<ExplicitScheduleElement> NewExplicitSchedule = expandSchedule(myID);
