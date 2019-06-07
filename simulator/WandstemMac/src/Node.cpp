@@ -116,6 +116,22 @@ void Node::application() {
     if(address == 3) {
         sendData(ctx, 0, Period::P1, Redundancy::NONE);
     }
+    /* Open Stream from node 4 */
+    if(address == 4) {
+        sendData(ctx, 0, Period::P1, Redundancy::NONE);
+    }
+    /* Open Stream from node 5 */
+    if(address == 5) {
+        sendData(ctx, 0, Period::P1, Redundancy::NONE);
+    }
+    /* Open Stream from node 6 */
+    if(address == 6) {
+        sendData(ctx, 0, Period::P1, Redundancy::NONE);
+    }
+    /* Open Stream from node 7 */
+    if(address == 7) {
+        sendData(ctx, 0, Period::P1, Redundancy::NONE);
+    }
 }
 
 void Node::sendData(MACContext* ctx, unsigned char dest, Period period, Redundancy redundancy) {
