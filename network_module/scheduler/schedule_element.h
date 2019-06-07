@@ -85,7 +85,8 @@ public:
 
     void serialize(Packet& pkt) const override;
     static ScheduleHeader deserialize(Packet& pkt);
-    std::size_t size() const override { return sizeof(ScheduleHeaderPkt); }
+    std::size_t size() const override { return maxSize(); }
+    static std::size_t maxSize() { return sizeof(ScheduleHeaderPkt); }
     unsigned int getTotalPacket() const { return header.totalPacket; }
     unsigned int getCurrentPacket() const { return header.currentPacket; }
     // NOTE: schedule with ScheduleID=0 are not sent in MasterScheduleDistribution
@@ -215,6 +216,10 @@ public:
         return panHeaderSize +
             header.size() +
             elements.size();
+    }
+    static unsigned int getPacketCapacity() {
+        return (MediumAccessController::maxPktSize - (panHeaderSize + ScheduleHeader::maxSize()))
+            / ScheduleElement::maxSize();
     }
     ScheduleHeader getHeader() const { return header; }
     std::vector<ScheduleElement> getElements() const { return elements; }

@@ -44,8 +44,7 @@ MasterScheduleDownlinkPhase::MasterScheduleDownlinkPhase(MACContext& ctx,
     unsigned tileSize = ctx.getSlotsInTileCount();
     unsigned dataslotsDownlinktile = ctx.getDataSlotsInDownlinkTileCount();
     downlinkSlots = tileSize - dataslotsDownlinktile;
-    unsigned pktSize = MediumAccessController::maxPktSize;
-    packetCapacity = (pktSize - (panHeaderSize + sizeof(ScheduleHeaderPkt))) / sizeof(ScheduleElementPkt);
+    packetCapacity = SchedulePacket::getPacketCapacity();
 }
 
 void MasterScheduleDownlinkPhase::execute(long long slotStart) {
