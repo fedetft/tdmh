@@ -23,7 +23,7 @@ network Kite
 {
     parameters:
         n*.nodes = 8;
-        n*.hops = 6;
+        n*.hops = 4;
     @display("bgb=517,501");
     submodules:
         n0: RootNode {
