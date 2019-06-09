@@ -389,8 +389,13 @@ std::pair<std::list<ScheduleElement>,
             last_offset++;
             // If we are in the last timeslot and have a conflict,
             // cannot reschedule on another timeslot
-            if(last_offset == max_offset)
+            if(last_offset == max_offset) {
                 stream_err = true;
+                // Print error if max_offset is used on a transmission != last transmission
+                if(transmission.getDst() != transmission.getRx())
+                if(SCHEDULER_SUMMARY_DBG || SCHEDULER_DETAILED_DBG)
+                    printf("[SC] ERROR: Cannot schedule stream %d,%d: no more free data slots\n", transmission.getSrc(), transmission.getDst());
+            }
         }
     }
     if(SCHEDULER_DETAILED_DBG)
