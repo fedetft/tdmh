@@ -178,7 +178,6 @@ void ReceiveUplinkMessage::deserializeTopologiesAndSMEs(UpdatableQueue<unsigned 
     }
 
     for(int i = 0; i < getNumPacketSMEs(); i++) {
-        //TODO: find the cause of packet::get: underflow!
         if(packet.size() < 9)
             return;
         auto sme = getSME();
