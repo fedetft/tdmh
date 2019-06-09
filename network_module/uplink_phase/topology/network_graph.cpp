@@ -44,7 +44,8 @@ bool NetworkGraph::hasNode(unsigned char a) {
 std::vector<std::pair<unsigned char, unsigned char>> NetworkGraph::getEdges() {
     std::vector<std::pair<unsigned char, unsigned char>> result;
     for(auto& el : graph) {
-        for (unsigned i = 0; i < maxNodes; i++) {
+        // Search (a,b) with b > a
+        for (unsigned i = el.first; i < maxNodes; i++) {
             if(el.second[i]) result.push_back(std::make_pair(el.first, i));
         }
     }
@@ -141,7 +142,8 @@ void NetworkGraph::clearBit(unsigned char a, unsigned char b) {
 std::vector<std::pair<unsigned char, unsigned char>> DelayedRemovalNetworkGraph::getEdges() {
     std::vector<std::pair<unsigned char, unsigned char>> result;
     for(auto& el : graph) {
-        for (unsigned i = 0; i < maxNodes; i++) {
+        // Search (a,b) with b > a
+        for (unsigned i = el.first; i < maxNodes; i++) {
             if(el.second[i] || el.second[i + maxNodes]) result.push_back(std::make_pair(el.first, i));
         }
     }

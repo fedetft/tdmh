@@ -61,6 +61,8 @@ public:
         return possiblyNotConnected_flag;
     }
 
+    // NOTE: The graph stores (a,b) and (b,a) for easier searching
+    // however getEdges() returns only (a,b) for shorter topology prints
     virtual std::vector<std::pair<unsigned char, unsigned char>> getEdges();
 
     virtual std::vector<unsigned char> getEdges(unsigned char a);
