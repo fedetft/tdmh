@@ -204,8 +204,8 @@ unsigned char DynamicTimesyncDownlink::missedPacket() {
         // sign is negative, the scheduler timer will no longer recognize the
         // wakeup it has set and won't wake up threads, effectively deadlocking.
         // The same issue has been observed in the nanosecond to tick conversion
-        // in timeconversion.cpp. However, in the tick/ns the issue is
-        // unavolidable and the code has been hardened to handle this case,
+        // in timeconversion.cpp. However, while in the tick/ns the issue is
+        // unavoidable and the code has been hardened to handle this case,
         // it has been decided that it's too computationally costly to do the
         // same in this case. For this reason, when we desynchronize, we reset
         // clockCorrection to zero and call updateVt(). This resets the
