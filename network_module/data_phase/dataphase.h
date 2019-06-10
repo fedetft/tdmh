@@ -43,6 +43,7 @@ class DataPhase : public MACPhase {
 public:
     DataPhase(MACContext& ctx, StreamManager& str) : MACPhase(ctx),
                                                      panId(ctx.getNetworkConfig().getPanId()),
+                                                     myId(ctx.getNetworkId()),
                                                      stream(str) {};
     
     virtual ~DataPhase() {}
@@ -131,6 +132,9 @@ private:
     }
     /* Constant value from NetworkConfiguration */
     const unsigned short panId;
+    /* NetworkId of this node */
+    unsigned char myId;
+
     // Reference to Stream class, to get packets from stream buffers
     StreamManager& stream;
     unsigned short tileSlot = 0;
