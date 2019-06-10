@@ -36,7 +36,10 @@ MACPhase::MACPhase(MACContext& ctx) : ctx(ctx)/*, timesync(ctx.getTimesync())*/ 
 void MACPhase::run(long long slotStart)
 {
     if(ctx.getTimesync()->macCanOperate()) execute(slotStart);
-    else advance(slotStart);
+    else {   
+        advance(slotStart);
+        ctx.sleepUntil(slotStart);
+    }
 }
 
 }
