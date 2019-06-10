@@ -15,6 +15,7 @@ file_path = sys.argv[1]
 regex = 'ID=(?P<id>\d+).+Counter=(?P<counter>\d+)'
 results = defaultdict(list)
 totpackets = dict()
+packetloss = dict()
 errors = dict()
 reliability = dict()
 
@@ -35,19 +36,22 @@ else:
 print("\n### Errors ###")
 for ID in results.keys():
     errors[ID] = 0
+    packetloss[ID] = 0
     oldvalue = results.get(ID)[0]
     for counter in results.get(ID)[1:]:
         if int(counter) - int(oldvalue) != 1:
             print("ID={}: {} {} are not sequential".format(ID,oldvalue,counter))
             errors[ID] += 1
+            if int(counter) != int(oldvalue):
+                packetloss[ID] += int(counter) - int(oldvalue) - 1
         oldvalue = counter
 
 # Calculate reliability percentage
 for ID in errors.keys():
     totpackets[ID] = len(results.get(ID))
-    reliability[ID] = (totpackets[ID] - errors[ID]) / totpackets[ID]
+    reliability[ID] = (totpackets[ID] - packetloss[ID]) / totpackets[ID]
 
 # Print results
 print("\n### Results ###")
 for ID in errors.keys():
-  print("ID={}: packets={}, errors={}, reliability={}".format(ID,totpackets[ID],errors[ID],reliability[ID]))
+  print("ID={}: packets={}, lost_packets={},  errors={}, reliability={}".format(ID,totpackets[ID],packetloss[ID],errors[ID],reliability[ID]))
