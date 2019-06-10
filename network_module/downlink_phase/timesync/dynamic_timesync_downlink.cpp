@@ -194,12 +194,30 @@ unsigned char DynamicTimesyncDownlink::missedPacket() {
         internalStatus = DESYNCHRONIZED;
         synchronizer->reset();
         desyncMAC();
+        // NOTE: when we desynchronize, we set the correction to zero.
+        // This is important, as we may spend an unbounded time desynchronized.
+        // Why is this a problem? The virtual clock has separate conversion
+        // factors for the forward and backward correction (see factor and
+        // inverseFactor in virtual_clock.h). As the time from the last
+        // correction passes, the round trip (between a corrected to
+        // an uncorrected time and back) conversion error grows, and if its
+        // sign is negative, the scheduler timer will no longer recognize the
+        // wakeup it has set and won't wake up threads, effectively deadlocking.
+        // The same issue has been observed in the nanosecond to tick conversion
+        // in timeconversion.cpp. However, in the tick/ns the issue is
+        // unavolidable and the code has been hardened to handle this case,
+        // it has been decided that it's too computationally costly to do the
+        // same in this case. For this reason, when we desynchronize, we reset
+        // clockCorrection to zero and call updateVt(). This resets the
+        // conversion coefficents to 1.0 both ways, which is perfectly
+        // symmetrical, making the round trip work even for unbounded desyncs.
+        clockCorrection = 0;
     } else {
         std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->lostPacket();
         clockCorrection = clockCorrectionReceiverWindow.first;
         receiverWindow = clockCorrectionReceiverWindow.second;
-        updateVt();
     }
+    updateVt();
     return missedPackets;
 }
 
