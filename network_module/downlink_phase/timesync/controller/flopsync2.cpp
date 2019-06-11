@@ -47,7 +47,7 @@ pair<int,int> Flopsync2::computeCorrection(int error)
             eo=e;
             uo=2*512*e;
             uoo=512*e;
-            return make_pair(2*e,static_cast<int>(wMax));
+            return make_pair(2*e*controllerScaleFactor,static_cast<int>(wMax));
         case 1:
             init=2;
             eo=0;
