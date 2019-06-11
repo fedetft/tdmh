@@ -42,7 +42,7 @@ for ID in results.keys():
         if int(counter) - int(oldvalue) != 1:
             print("ID={}: {} {} are not sequential".format(ID,oldvalue,counter))
             errors[ID] += 1
-            if int(counter) != int(oldvalue):
+            if int(counter) > int(oldvalue):
                 packetloss[ID] += int(counter) - int(oldvalue) - 1
         oldvalue = counter
 
