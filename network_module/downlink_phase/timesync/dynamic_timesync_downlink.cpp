@@ -113,11 +113,24 @@ void DynamicTimesyncDownlink::resyncTime() {
     greenLed::low();
     ++pkt[2];
     auto myHop = pkt[2];
+    
+    // NOTE: by the way the  virtual clock is currently implemented, a clock
+    // jump is observed whenever updateVt is called after a reset, due to the
+    // resetting of theoreticalFrameStart. This will have to be fixed in the
+    // virtual clock. Until this is done, however, put this clock jump in the
+    // most convenient place, which is before the first virtual clock use
+    // after a resync (which is the "correct(rcvResult.timestamp)" line).
+    // By doing so we do not interfere with the duration of the first sync
+    // period, which would mess up the deadbeat in FLOPSYNC2 (recoverable),
+    // but most importantly we do not get an unrecoverable clock error in
+    // NetworkTime::setLocalNodeToNetworkTimeOffset.
+    reset(rcvResult.timestamp);
+    updateVt();
+    
     measuredFrameStart = correct(rcvResult.timestamp);
     rebroadcast(pkt, measuredFrameStart);
     ctx.transceiverIdle();
 
-    reset(rcvResult.timestamp);
     ctx.setHop(pkt[2]);
     auto slotframeStart = getSlotframeStart();
 
