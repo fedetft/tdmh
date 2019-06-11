@@ -269,7 +269,7 @@ std::pair<std::list<ScheduleElement>,
         std::list<ScheduleElement> empty;
         return make_pair(empty, schedSize);
     }
-    Router router(*this, 1);
+    Router router(*this, mac_ctx.getNetworkConfig().getMaxHops(), 1);
     if(SCHEDULER_DETAILED_DBG)
         printf("[SC] ## Routing ##\n");
     // Run router to route multi-hop streams and get multiple paths
@@ -592,6 +592,10 @@ std::list<std::list<ScheduleElement>> Router::run(std::vector<MasterStreamInfo>&
         if(path.empty()) {
             if(SCHEDULER_DETAILED_DBG)
                 printf("[SC] No path found, stream not scheduled\n");
+            continue;
+        }else if((sol_size-1) > maxHops) {
+            if(SCHEDULER_DETAILED_DBG)
+                printf("[SC] Found path of hops=%d > maxHops=%d, stream not scheduled\n", sol_size - 1, maxHops);
             continue;
         }
         // Print routed path

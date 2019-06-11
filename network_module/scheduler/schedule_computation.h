@@ -240,8 +240,8 @@ private:
 
 class Router {
 public:
-    Router(ScheduleComputation& scheduler, int more_hops) : 
-        scheduler(scheduler), more_hops(more_hops) {};
+    Router(ScheduleComputation& scheduler, int maxHops, int more_hops) : 
+        scheduler(scheduler), maxHops(maxHops), more_hops(more_hops) {};
     virtual ~Router() {};
 
     std::list<std::list<ScheduleElement>> run(std::vector<MasterStreamInfo>& stream_list);
@@ -266,6 +266,7 @@ protected:
     // References to other classes
     ScheduleComputation& scheduler;
 
+    int maxHops = 0;
     // TODO: make more_hop configurable in network_configuration
     int more_hops;
 };
