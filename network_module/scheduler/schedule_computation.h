@@ -227,14 +227,14 @@ private:
 #ifdef _MIOSIX
     miosix::Mutex sched_mutex;
     miosix::ConditionVariable sched_cv;
-    miosix::Thread* scthread = NULL;
+    miosix::Thread* scthread = nullptr;
     static void threadLauncher(void *arg) {
         reinterpret_cast<ScheduleComputation*>(arg)->run();
     }
 #else
     std::mutex sched_mutex;
     std::condition_variable sched_cv;
-    std::thread* scthread = NULL;
+    std::thread* scthread = nullptr;
 #endif
 };
 

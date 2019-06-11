@@ -50,7 +50,7 @@ ScheduleComputation::ScheduleComputation(MACContext& mac_ctx) :
     network_graph(netconfig.getNeighborBitmaskSize()) {}
 
 void ScheduleComputation::startThread() {
-    if (scthread == NULL)
+    if (scthread == nullptr)
 #ifdef _MIOSIX
         // Thread launched using static function threadLauncher with the class instance as parameter.
         scthread = miosix::Thread::create(&ScheduleComputation::threadLauncher, 2048, miosix::PRIORITY_MAX-2, this, miosix::Thread::JOINABLE);
