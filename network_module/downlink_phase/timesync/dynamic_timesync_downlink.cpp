@@ -114,10 +114,10 @@ void DynamicTimesyncDownlink::resyncTime() {
     ++pkt[2];
     auto myHop = pkt[2];
     
-    // NOTE: by the way the  virtual clock is currently implemented, a clock
+    // NOTE: by the way the virtual clock is currently implemented, a clock
     // jump is observed whenever updateVt is called after a reset, due to the
     // resetting of theoreticalFrameStart. This will have to be fixed in the
-    // virtual clock. Until this is done, however, put this clock jump in the
+    // virtual clock. Until this is done, however, we put this clock jump in the
     // most convenient place, which is before the first virtual clock use
     // after a resync (which is the "correct(rcvResult.timestamp)" line).
     // By doing so we do not interfere with the duration of the first sync
