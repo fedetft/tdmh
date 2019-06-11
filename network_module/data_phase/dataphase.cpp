@@ -69,8 +69,10 @@ void DataPhase::sendFromStream(long long slotStart, StreamId id) {
         ctx.configureTransceiver(ctx.getTransceiverConfig());
         pkt.send(ctx, slotStart);
         ctx.transceiverIdle();
-        if(ENABLE_DATA_INFO_DBG)
-            print_dbg("[D] Node %d: Sent packet for stream (%d,%d) @%lld\n", myId, id.src, id.dst, slotStart);
+        if(ENABLE_DATA_INFO_DBG) {
+            auto nt = NetworkTime::fromLocalTime(slotStart);
+            print_dbg("[D] Node %d: Sent packet for stream (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
+        }
     }
     else
         sleep(slotStart);
@@ -82,14 +84,18 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
     ctx.transceiverIdle();
     if(rcvResult.error == RecvResult::ErrorCode::OK && pkt.checkPanHeader(panId) == true) {
         stream.receivePacket(id, pkt);
-        if(ENABLE_DATA_INFO_DBG)
-            print_dbg("[D] Node %d: Received packet for stream (%d,%d) @%lld\n", myId, id.src, id.dst, slotStart);
+        if(ENABLE_DATA_INFO_DBG) {
+            auto nt = NetworkTime::fromLocalTime(slotStart);
+            print_dbg("[D] Node %d: Received packet for stream (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
+        }
     }
     // Avoid overwriting valid data
     else {
         stream.missPacket(id);
-        if(ENABLE_DATA_ERROR_DBG)
-            print_dbg("[D] Node %d: Missed packet for stream (%d,%d) @%lld\n", myId, id.src, id.dst, slotStart);
+        if(ENABLE_DATA_ERROR_DBG) {
+            auto nt = NetworkTime::fromLocalTime(slotStart);
+            print_dbg("[D] Node %d: Missed packet for stream (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
+        }
     }
 }
 void DataPhase::sendFromBuffer(long long slotStart) {
