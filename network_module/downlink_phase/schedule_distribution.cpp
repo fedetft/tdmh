@@ -164,8 +164,9 @@ void ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
         distributing = false;
     }
     else{
-        print_dbg("[SD] Early schedule activation! current:%2lu activation:%2lu",
-                  currentTile, header.getActivationTile());
+        if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
+            print_dbg("[SD] Early schedule activation! current:%2lu activation:%2lu\n",
+                      currentTile, header.getActivationTile());
     }
 }
 
