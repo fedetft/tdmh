@@ -47,8 +47,11 @@ for ID in results.keys():
         oldvalue = counter
 
 # Calculate reliability percentage
+# Every time we read a line containing ID=n Counter=m a packet is received
+# If we count the lines, we get the number of packets received
+# To get the total number of packets, we must add the calculated number of lost packets
 for ID in errors.keys():
-    totpackets[ID] = len(results.get(ID))
+    totpackets[ID] = len(results.get(ID)) + packetloss[ID]
     reliability[ID] = (totpackets[ID] - packetloss[ID]) / totpackets[ID]
 
 # Print results
