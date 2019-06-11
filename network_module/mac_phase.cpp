@@ -28,6 +28,7 @@
 #include "mac_phase.h"
 #include "mac_context.h"
 #include "downlink_phase/timesync/timesync_downlink.h"
+#include <stdexcept>
 
 namespace mxnet {
 
@@ -35,10 +36,16 @@ MACPhase::MACPhase(MACContext& ctx) : ctx(ctx)/*, timesync(ctx.getTimesync())*/ 
 
 void MACPhase::run(long long slotStart)
 {
-    if(ctx.getTimesync()->macCanOperate()) execute(slotStart);
-    else {   
-        advance(slotStart);
-        ctx.sleepUntil(slotStart);
+    try {
+        if(ctx.getTimesync()->macCanOperate()) execute(slotStart);
+        else {   
+            advance(slotStart);
+            ctx.sleepUntil(slotStart);
+        }
+    } catch(std::exception& e) {
+        print_dbg("MACPhase::run exception thrown %s\n", e.what());
+    } catch(...) {        
+        print_dbg("MACPhase::run unknown exception thrown\n");
     }
 }
 
