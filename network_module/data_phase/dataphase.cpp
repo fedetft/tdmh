@@ -82,7 +82,9 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     auto rcvResult = pkt.recv(ctx, slotStart);
     ctx.transceiverIdle();
-    if(rcvResult.error == RecvResult::ErrorCode::OK && pkt.checkPanHeader(panId) == true) {
+    if(rcvResult.error == RecvResult::ErrorCode::OK &&
+       pkt.checkPanHeader(panId) == true &&
+       checkStreamId(pkt, id) == true) {
         stream.receivePacket(id, pkt);
         if(ENABLE_DATA_INFO_DBG) {
             auto nt = NetworkTime::fromLocalTime(slotStart);
@@ -129,6 +131,15 @@ void DataPhase::alignToNetworkTime(NetworkTime nt) {
     auto scheduleTile = currentTile - scheduleActivationTile;
     auto slotsInTile = ctx.getSlotsInTileCount();
     tileSlot = (scheduleTile * slotsInTile) + slotInCurrentTile;
+}
+bool DataPhase::checkStreamId(Packet pkt, StreamId streamId) {
+    if(pkt.size() < 8)
+        return false;
+    // Check streamId inside packet without extracting it
+    static_assert(sizeof(StreamId) == 3, "");
+    // Read streamId bytes inside the packet
+    StreamId packetId = StreamId::fromBytes(&pkt[5]);
+    return packetId == streamId;
 }
 }
 

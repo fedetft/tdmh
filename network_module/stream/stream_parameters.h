@@ -189,6 +189,9 @@ public:
     bool isStream() const {
         return !isServer();
     }
+    static StreamId fromBytes(unsigned char bytes[3]) {
+        return StreamId(bytes[0], bytes[1], bytes[2]&0xf, bytes[2]>>4);
+    }
 
     unsigned int src:8;
     unsigned int dst:8;

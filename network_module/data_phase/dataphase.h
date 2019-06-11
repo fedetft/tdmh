@@ -130,6 +130,8 @@ private:
         if(scheduleSlots != 0)
             tileSlot = (tileSlot + n) % scheduleSlots;
     }
+    // Check streamId inside packet without extracting it
+    bool checkStreamId(Packet pkt, StreamId streamId);
     /* Constant value from NetworkConfiguration */
     const unsigned short panId;
     /* NetworkId of this node */

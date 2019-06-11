@@ -74,7 +74,11 @@ int Stream::write(const void* data, int size) {
         return -2;
     }
     try {
+        StreamId id = info.getStreamId();
+        // Put panHeader to distinguish TDMH packets from other 802.15.4 packets
         nextTxPacket.putPanHeader(panId);
+        // Put streamId to distinguish TDMH packets of this streams
+        nextTxPacket.put(&id, sizeof(StreamId));
         nextTxPacket.put(data, size);
         nextTxPacketReady = true;
         return size;
@@ -107,7 +111,9 @@ int Stream::read(void* data, int maxSize) {
         receivedShared = false;
         auto size = std::min<int>(maxSize, rxPacketShared.size());
         try {
+            StreamId id;
             rxPacketShared.removePanHeader();
+            rxPacketShared.get(&id, sizeof(StreamId));
             rxPacketShared.get(data, size);
             rxPacketShared.clear();
             return size;
