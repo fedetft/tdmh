@@ -68,11 +68,11 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
         unsigned long long maxAdmittedRcvWindow,
         unsigned short maxRoundsUnavailableBecomesDead, short minNeighborRSSI,
         unsigned char maxMissedTimesyncs, bool channelSpatialReuse,
-        ControlSuperframeStructure controlSuperframe, TopologyMode topologyMode) :
+        ControlSuperframeStructure controlSuperframe) :
     maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)),
     numUplinkPerSuperframe(controlSuperframe.countUplinkSlots()), numDownlinkPerSuperframe(controlSuperframe.countDownlinkSlots()),
     staticNetworkId(networkId), staticHop(staticHop), maxNodes(maxNodes),
-    panId(panId), txPower(txPower), baseFrequency(baseFrequency), topologyMode(topologyMode),
+    panId(panId), txPower(txPower), baseFrequency(baseFrequency),
     clockSyncPeriod(clockSyncPeriod), tileDuration(tileDuration), maxAdmittedRcvWindow(maxAdmittedRcvWindow),
     maxMissedTimesyncs(maxMissedTimesyncs), guaranteedTopologies(guaranteedTopologies),
     numUplinkPackets(numUplinkPackets),

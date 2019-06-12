@@ -93,13 +93,8 @@ private:
 };
 
 
-
 class NetworkConfiguration {
 public:
-    enum TopologyMode {
-        NEIGHBOR_COLLECTION,
-        ROUTING_VECTOR
-    };
 
     NetworkConfiguration(unsigned char maxHops, unsigned short maxNodes, unsigned short networkId,
             unsigned char staticHop, unsigned short panId, short txPower,
@@ -109,8 +104,7 @@ public:
             unsigned short maxRoundsUnavailableBecomesDead,
             short minNeighborRSSI, unsigned char maxMissedTimesyncs,
             bool channelSpatialReuse,
-            ControlSuperframeStructure controlSuperframe=ControlSuperframeStructure(),
-            TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION);
+            ControlSuperframeStructure controlSuperframe=ControlSuperframeStructure());
 
     /**
      * @return the reference frequency for the protocol.
@@ -242,13 +236,6 @@ public:
     }
 
     /**
-     * @return the topology mode used in the network to perform topology collection.
-     */
-    TopologyMode getTopologyMode() const {
-        return topologyMode;
-    }
-
-    /**
      * @return the power, in dBm, at which the radio operates.
      */
     short getTxPower() const {
@@ -307,7 +294,6 @@ private:
     const unsigned short panId;
     const short txPower;
     const unsigned int baseFrequency;
-    const TopologyMode topologyMode;
     const unsigned long long clockSyncPeriod;
     const unsigned long long tileDuration;
     const unsigned long long maxAdmittedRcvWindow;
@@ -316,9 +302,9 @@ private:
     const unsigned char numUplinkPackets;
     const unsigned short maxRoundsUnavailableBecomesDead;
     const short minNeighborRSSI;
+    const bool channelSpatialReuse;
     const ControlSuperframeStructure controlSuperframe;
     const unsigned long long controlSuperframeDuration;
-    const bool channelSpatialReuse;
 
     unsigned numSuperframesPerClockSync;
 };
