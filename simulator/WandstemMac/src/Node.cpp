@@ -62,7 +62,8 @@ try {
             150000,        //maxAdmittedRcvWindow
             3,             //maxRoundsUnavailableBecomesDead
             -75,           //minNeighborRSSI
-            3              //maxMissedTimesyncs
+            3,              //maxMissedTimesyncs
+            true           //channelSpatialReuse
     );
     DynamicMediumAccessController controller(Transceiver::instance(), config);
     tdmh = &controller;
@@ -106,31 +107,35 @@ void Node::application() {
     while(!ctx->isReady()) ;
     /* Open Stream from node 1 */
     if(address == 1) {
-        sendData(ctx, 0, Period::P1, Redundancy::NONE);
+        sendData(ctx, 0, Period::P5, Redundancy::NONE);
     }
     /* Open Stream from node 2 */
     if(address == 2) {
-        sendData(ctx, 0, Period::P1, Redundancy::NONE);
+        sendData(ctx, 0, Period::P5, Redundancy::NONE);
     }
     /* Open Stream from node 3 */
     if(address == 3) {
-        sendData(ctx, 0, Period::P1, Redundancy::NONE);
+        sendData(ctx, 0, Period::P5, Redundancy::NONE);
     }
     /* Open Stream from node 4 */
     if(address == 4) {
-        sendData(ctx, 0, Period::P1, Redundancy::NONE);
+        sendData(ctx, 0, Period::P5, Redundancy::NONE);
     }
     /* Open Stream from node 5 */
     if(address == 5) {
-        sendData(ctx, 0, Period::P1, Redundancy::NONE);
+        sendData(ctx, 0, Period::P5, Redundancy::NONE);
     }
     /* Open Stream from node 6 */
     if(address == 6) {
-        sendData(ctx, 0, Period::P1, Redundancy::NONE);
+        sendData(ctx, 0, Period::P5, Redundancy::NONE);
     }
     /* Open Stream from node 7 */
     if(address == 7) {
-        sendData(ctx, 0, Period::P1, Redundancy::NONE);
+        sendData(ctx, 0, Period::P5, Redundancy::NONE);
+    }
+    /* Open Stream from node 8 */
+    if(address == 8) {
+        sendData(ctx, 0, Period::P5, Redundancy::NONE);
     }
 }
 

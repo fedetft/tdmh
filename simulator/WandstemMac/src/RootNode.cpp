@@ -54,7 +54,8 @@ void RootNode::activity()
             150000,        //maxAdmittedRcvWindow
             3,             //maxRoundsUnavailableBecomesDead
             -75,           //minNeighborRSSI
-            3              //maxMissedTimesyncs
+            3,              //maxMissedTimesyncs
+            true           //channelSpatialReuse
     );
     MasterMediumAccessController controller(Transceiver::instance(), config);
 

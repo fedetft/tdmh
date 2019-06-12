@@ -43,6 +43,7 @@
 namespace mxnet {
 
 ScheduleComputation::ScheduleComputation(MACContext& mac_ctx) :
+    channelSpatialReuse(mac_ctx.getNetworkConfig().getChannelSpatialReuse()),
     stream_mgr(mac_ctx.getNetworkConfig(), 0), // Initialize StreamManager with ID=0 (Master node)
     schedule(0, superframe.size()), // Initialize Schedule with ID=0 and tile_size = superframe size
     mac_ctx(mac_ctx), netconfig(mac_ctx.getNetworkConfig()),
@@ -414,18 +415,26 @@ bool ScheduleComputation::checkAllConflicts(std::list<ScheduleElement> other_str
                 if(SCHEDULER_DETAILED_DBG)
                     printf("[SC] %d->%d and %d-%d have timeslots in common\n", transmission.getTx(),
                            transmission.getRx(), elem.getTx(), elem.getRx());
-                /* Conflict checks */
-                // Unicity check: no activity for src or dst node in a given timeslot
-                if(checkUnicityConflict(transmission, elem)) {
+                // NOTE: if spatial reuse of channels is disabled, we consider
+                // two distinct transmissions on the same dataslot as a conflict
+                if(channelSpatialReuse == false) {
                     conflict |= true;
-                    if(SCHEDULER_DETAILED_DBG)
-                        printf("[SC] Unicity conflict!\n");
                 }
-                // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
-                if(checkInterferenceConflict(transmission, elem)) {
-                    conflict |= true;
-                    if(SCHEDULER_DETAILED_DBG)
-                        printf("[SC] Interference conflict!\n");
+                // otherwise we try to infer if the two transmissions will conflict or not
+                else {
+                    /* Conflict checks */
+                    // Unicity check: no activity for src or dst node in a given timeslot
+                    if(checkUnicityConflict(transmission, elem)) {
+                        conflict |= true;
+                        if(SCHEDULER_DETAILED_DBG)
+                            printf("[SC] Unicity conflict!\n");
+                    }
+                    // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
+                    if(checkInterferenceConflict(transmission, elem)) {
+                        conflict |= true;
+                        if(SCHEDULER_DETAILED_DBG)
+                            printf("[SC] Interference conflict!\n");
+                    }
                 }
                 if(conflict)
                     // Avoid checking other streams when a conflict is found

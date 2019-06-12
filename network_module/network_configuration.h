@@ -108,6 +108,7 @@ public:
             unsigned long long tileDuration, unsigned long long maxAdmittedRcvWindow,
             unsigned short maxRoundsUnavailableBecomesDead,
             short minNeighborRSSI, unsigned char maxMissedTimesyncs,
+            bool channelSpatialReuse,
             ControlSuperframeStructure controlSuperframe=ControlSuperframeStructure(),
             TopologyMode topologyMode=TopologyMode::NEIGHBOR_COLLECTION);
 
@@ -282,6 +283,13 @@ public:
         return numSuperframesPerClockSync;
     }
 
+    /**
+     * @return true if spatial reuse of channel is enabled
+     */
+    bool getChannelSpatialReuse() const {
+        return channelSpatialReuse;
+    }
+
 private:
     /**
      * Validates the times configured
@@ -310,6 +318,7 @@ private:
     const short minNeighborRSSI;
     const ControlSuperframeStructure controlSuperframe;
     const unsigned long long controlSuperframeDuration;
+    const bool channelSpatialReuse;
 
     unsigned numSuperframesPerClockSync;
 };

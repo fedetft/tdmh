@@ -200,6 +200,9 @@ private:
         return temp ? (a / temp * b) : 0;
     };
 
+    /* Cached configuration parameters from NetworkConfiguration */
+    bool channelSpatialReuse = false;
+
     /* Class containing Streams and Servers related to this node */
     StreamManager stream_mgr;
     /* Class containing a map of all the Streams and Servers in the network

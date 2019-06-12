@@ -67,7 +67,8 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
         unsigned char numUplinkPackets, unsigned long long tileDuration,
         unsigned long long maxAdmittedRcvWindow,
         unsigned short maxRoundsUnavailableBecomesDead, short minNeighborRSSI,
-        unsigned char maxMissedTimesyncs, ControlSuperframeStructure controlSuperframe, TopologyMode topologyMode) :
+        unsigned char maxMissedTimesyncs, bool channelSpatialReuse,
+        ControlSuperframeStructure controlSuperframe, TopologyMode topologyMode) :
     maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)),
     numUplinkPerSuperframe(controlSuperframe.countUplinkSlots()), numDownlinkPerSuperframe(controlSuperframe.countDownlinkSlots()),
     staticNetworkId(networkId), staticHop(staticHop), maxNodes(maxNodes),
@@ -76,7 +77,7 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
     maxMissedTimesyncs(maxMissedTimesyncs), guaranteedTopologies(guaranteedTopologies),
     numUplinkPackets(numUplinkPackets),
     maxRoundsUnavailableBecomesDead(maxRoundsUnavailableBecomesDead),
-    minNeighborRSSI(minNeighborRSSI),
+    minNeighborRSSI(minNeighborRSSI), channelSpatialReuse(channelSpatialReuse),
     controlSuperframe(controlSuperframe), controlSuperframeDuration(tileDuration * controlSuperframe.size()),
     numSuperframesPerClockSync(clockSyncPeriod / controlSuperframeDuration) {
     validate();
