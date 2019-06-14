@@ -52,6 +52,13 @@ pair<int,int> Flopsync2::computeCorrection(int error)
             init=2;
             eo=0;
             uo/=2;
+            // Fast convergence: after the first deadbeat step compute a large
+            // overbound of the standard deviation based on a single sample.
+            // In this way we do not consider the first (pre-deadbeat) error
+            // measure and we get fast connection to a TDMH network if the error
+            // after the deadbeat is low enough
+            dw=max(min(30*error,static_cast<int>(wMax)),static_cast<int>(wMin));
+            sum=squareSum=count=0;
     }
      
     //Flopsync controller, with alpha=3/8
