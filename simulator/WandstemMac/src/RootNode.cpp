@@ -55,7 +55,7 @@ void RootNode::activity()
             3,             //maxRoundsUnavailableBecomesDead
             -75,           //minNeighborRSSI
             3,              //maxMissedTimesyncs
-            true           //channelSpatialReuse
+            false           //channelSpatialReuse
     );
     MasterMediumAccessController controller(Transceiver::instance(), config);
 
@@ -133,7 +133,7 @@ void RootNode::streamThread(pair<int, StreamManager*> arg) {
             int len = mgr->read(stream, &data, sizeof(data));
             if(len >= 0) {
                 if(len == sizeof(data))
-                    printf("[A] Received data from Stream (%d,%d): ID=%d Counter=%u\n",
+                    printf("[A] Received data from (%d,%d): ID=%d Time=0 MinHeap=0 Heap=0 Counter=%u\n",
                             id.src, id.dst, data.id, data.counter);
                 else
                     printf("[E] Received wrong size data from Stream (%d,%d): %d\n",

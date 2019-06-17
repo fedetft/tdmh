@@ -63,7 +63,7 @@ try {
             3,             //maxRoundsUnavailableBecomesDead
             -75,           //minNeighborRSSI
             3,              //maxMissedTimesyncs
-            true           //channelSpatialReuse
+            false           //channelSpatialReuse
     );
     DynamicMediumAccessController controller(Transceiver::instance(), config);
     tdmh = &controller;
@@ -105,37 +105,39 @@ void Node::application() {
     /* Wait for TDMH to become ready */
     MACContext* ctx = tdmh->getMACContext();
     while(!ctx->isReady()) ;
+    Period p = Period::P1;
+    Redundancy r = Redundancy::TRIPLE_SPATIAL;
     /* Open Stream from node 1 */
     if(address == 1) {
-        sendData(ctx, 0, Period::P5, Redundancy::NONE);
+        //sendData(ctx, 0, p, r);
     }
     /* Open Stream from node 2 */
     if(address == 2) {
-        sendData(ctx, 0, Period::P5, Redundancy::NONE);
+        //sendData(ctx, 0, p, r);
     }
     /* Open Stream from node 3 */
     if(address == 3) {
-        sendData(ctx, 0, Period::P5, Redundancy::NONE);
+        sendData(ctx, 0, p, r);
     }
     /* Open Stream from node 4 */
     if(address == 4) {
-        sendData(ctx, 0, Period::P5, Redundancy::NONE);
+        //sendData(ctx, 0, p, r);
     }
     /* Open Stream from node 5 */
     if(address == 5) {
-        sendData(ctx, 0, Period::P5, Redundancy::NONE);
+        //sendData(ctx, 0, p, r);
     }
     /* Open Stream from node 6 */
     if(address == 6) {
-        sendData(ctx, 0, Period::P5, Redundancy::NONE);
+        //sendData(ctx, 0, p, r);
     }
     /* Open Stream from node 7 */
     if(address == 7) {
-        sendData(ctx, 0, Period::P5, Redundancy::NONE);
+        //sendData(ctx, 0, p, r);
     }
     /* Open Stream from node 8 */
     if(address == 8) {
-        sendData(ctx, 0, Period::P5, Redundancy::NONE);
+        //sendData(ctx, 0, p, r);
     }
 }
 
@@ -163,7 +165,7 @@ void Node::sendData(MACContext* ctx, unsigned char dest, Period period, Redundan
         while(mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
             Data data(ctx->getNetworkId(), counter);
             int len = mgr->write(stream, &data, sizeof(data));
-            printf("[A] Sent ID=%d Counter=%u, result=%d \n", data.id, data.counter, len);
+            //printf("[A] Sent ID=%d Counter=%u, result=%d \n", data.id, data.counter, len);
             counter++;
         }
         printf("[A] Stream was closed\n");
@@ -219,7 +221,7 @@ void Node::streamThread(pair<int, StreamManager*> arg) {
             int len = mgr->read(stream, &data, sizeof(data));
             if(len >= 0) {
                 if(len == sizeof(data))
-                    printf("[A] Received data from Stream (%d,%d): ID=%d Counter=%u\n",
+                    printf("[A] Received data from (%d,%d): ID=%d Time=0 MinHeap=0 Heap=0 Counter=%u\n",
                             id.src, id.dst, data.id, data.counter);
                 else
                     printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
