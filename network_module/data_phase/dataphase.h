@@ -92,32 +92,20 @@ public:
     void receiveToBuffer(long long slotStart);
     /* Called from ScheduleDownlinkPhase class on the first downlink slot
      * of the new schedule, to replace the currentSchedule,
-     * taking effect in the next dataphase
-     * NOTE: we call notifyStreams on the implicitSchedule to save time
-     * scanning implicit schedule, which is much smaller than explicit one */
-    void setSchedule(const std::vector<ExplicitScheduleElement>& newSchedule) {
-        currentSchedule = newSchedule;
-    }
-    /* Called from ScheduleDownlinkPhase class on the first downlink slot
-     * of the new schedule, to set the schedule lenght or DataSuperframeSize */
-    void setScheduleTiles(unsigned int newScheduleTiles) {
-        scheduleTiles = newScheduleTiles;
-        auto slotsInTile = ctx.getSlotsInTileCount();
-        scheduleSlots = scheduleTiles * slotsInTile;
-    }
-    /* Called from ScheduleDownlinkPhase class to set the new scheduleID */
-    void setScheduleID(unsigned long newID) {
-        scheduleID = newID;
+     * taking effect in the next dataphase */
+    void applySchedule(const std::vector<ExplicitScheduleElement>& newSchedule,
+                       unsigned long newId, unsigned int newScheduleTiles,
+                       unsigned long newActivationTile, unsigned int currentTile) {
+        setSchedule(newSchedule);
+        setScheduleID(newId);
+        setScheduleTiles(newScheduleTiles);
+        setScheduleActivationTile(newActivationTile);
+        print_dbg("[D] Schedule ID:%lu, StartTile:%lu activated at tile:%2u\n",
+                  newId, newActivationTile, currentTile);
     }
     /* Called from ScheduleDownlinkPhase class to check if the schedule is up to date */
     unsigned long getScheduleID() {
         return scheduleID;
-    }
-    /* Called from ScheduleDownlinkPhase class on the first downlink slot
-     * of the new schedule, to set the global time number when the scedule
-     * becomes active, useful to know the current dataslot after resync */
-    void setScheduleActivationTile(unsigned long newScheduleActivationTile) {
-        scheduleActivationTile = newScheduleActivationTile;
     }
     /**
      * Calculates slot number in current schedule (dataSlot) after resyncing
@@ -132,6 +120,28 @@ private:
     }
     // Check streamId inside packet without extracting it
     bool checkStreamId(Packet pkt, StreamId streamId);
+    /* Replaces running schedule with new one */
+    void setSchedule(const std::vector<ExplicitScheduleElement>& newSchedule) {
+        currentSchedule = newSchedule;
+    }
+    /* Sets the schedule lenght or DataSuperframeSize */
+    void setScheduleTiles(unsigned int newScheduleTiles) {
+        scheduleTiles = newScheduleTiles;
+        auto slotsInTile = ctx.getSlotsInTileCount();
+        scheduleSlots = scheduleTiles * slotsInTile;
+    }
+    /* Sets the new scheduleID */
+    void setScheduleID(unsigned long newID) {
+        scheduleID = newID;
+    }
+    /* Called from ScheduleDownlinkPhase class on the first downlink slot
+     * of the new schedule, to set the global time number when the scedule
+     * becomes active, useful to know the current dataslot after resync */
+    void setScheduleActivationTile(unsigned long newScheduleActivationTile) {
+        scheduleActivationTile = newScheduleActivationTile;
+    }
+
+
     /* Constant value from NetworkConfiguration */
     const unsigned short panId;
     /* NetworkId of this node */
