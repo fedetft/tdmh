@@ -27,6 +27,7 @@
 
 #include "dataphase.h"
 #include "../util/debug_settings.h"
+#include <unistd.h>
 
 using namespace std;
 using namespace miosix;
@@ -39,6 +40,11 @@ void DataPhase::execute(long long slotStart) {
         sleep(slotStart);
         return;
     }
+    // NOTE FIXME: this sleep is currently needed only in the simulator, to avoid
+    // the mac thread taking 100% of the CPU and delaying the application thread
+#ifndef _MIOSIX
+    usleep(1000);
+#endif
     // Schedule playback
     switch(currentSchedule[tileSlot].getAction()){
     case Action::SLEEP:
