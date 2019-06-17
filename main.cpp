@@ -96,7 +96,7 @@ void masterNode(void*)
             3,             //maxRoundsUnavailableBecomesDead
             -75,           //minNeighborRSSI
             3,             //maxMissedTimesyncs
-            true           //channelSpatialReuse
+            false          //channelSpatialReuse
         );
         printf("Starting TDMH with maxForwardedTopologies=%d\n", maxForwardedTopologiesFromMaxNumNodes(maxNodes));
         MasterMediumAccessController controller(Transceiver::instance(), config);
@@ -133,8 +133,8 @@ void dynamicNode(void* argv)
             150000,        //maxAdmittedRcvWindow
             3,             //maxRoundsUnavailableBecomesDead
             -75,           //minNeighborRSSI
-            3,              //maxMissedTimesyncs
-            true           //channelSpatialReuse
+            3,             //maxMissedTimesyncs
+            false          //channelSpatialReuse
         );
         printf("Starting TDMH with maxForwardedTopologies=%d\n", maxForwardedTopologiesFromMaxNumNodes(maxNodes));
         DynamicMediumAccessController controller(Transceiver::instance(), config);
@@ -211,6 +211,7 @@ void streamThread(void *arg)
                    id.src, id.dst, len);
         }
     }
+    printf("[A] Stream (%d,%d) closed\n", id.src, id.dst);
     delete s;
 }
 
@@ -232,6 +233,7 @@ void openServer(unsigned char port, StreamParameters params) {
         int stream = accept(server);
         Thread::create(streamThread, 2048, MAIN_PRIORITY, new StreamThreadPar(stream));
     }
+    printf("[A] Server on port %d closed\n", port);
 }
 
 void openStream(unsigned char dest, unsigned char port, StreamParameters params) {
@@ -267,7 +269,7 @@ void openStream(unsigned char dest, unsigned char port, StreamParameters params)
                     printf("[E] Error sending data, result=%d\n", ret);
                 counter++;
             }
-            printf("[A] Stream was closed, reopening it \n");
+            printf("[A] Stream (%d,%d) closed, reopening it \n", ctx->getNetworkId(), dest);
         } catch(exception& e) {
             cerr<<"\nException thrown: "<<e.what()<<endl;
         }
@@ -344,8 +346,8 @@ int main()
                                   Period::P1,
                                   1,     // payload size
                                   Direction::TX);
-    StreamParameters clientParams(Redundancy::NONE,
-                                  Period::P5,
+    StreamParameters clientParams(Redundancy::TRIPLE_SPATIAL,
+                                  Period::P10,
                                   1,     // payload size
                                   Direction::TX);
     unsigned char port = 1;
