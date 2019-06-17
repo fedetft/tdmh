@@ -5,7 +5,7 @@
 import os
 import sys
 import re
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 if len(sys.argv) < 2:
     print("Usage: {} master_log_path".format(sys.argv[0]))
@@ -54,7 +54,19 @@ for ID in errors.keys():
     totpackets[ID] = len(results.get(ID)) + packetloss[ID]
     reliability[ID] = (totpackets[ID] - packetloss[ID]) / totpackets[ID]
 
+# Create dictionary with sorted IDs
+od = OrderedDict(sorted(errors.items()))
+
+# Print results in latex table
+print("\n### Results in latex table ###")
+print("\\begin{tabular}{|c|c|c|c|}")
+print("        \\hline")
+print("        Node ID & Total packets & Lost packets & Reliability \\\\ \hline")
+for ID in od.keys():
+  print("        {} & {} & {} & {} \\\\ \\hline".format(ID,totpackets[ID],packetloss[ID],round(reliability[ID],2)))
+print("\\end{tabular}")
+
 # Print results
 print("\n### Results ###")
-for ID in errors.keys():
+for ID in od.keys():
   print("ID={}: packets={}, lost_packets={},  errors={}, reliability={}".format(ID,totpackets[ID],packetloss[ID],errors[ID],reliability[ID]))
