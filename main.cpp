@@ -76,6 +76,44 @@ inline int maxForwardedTopologiesFromMaxNumNodes(int maxNumNodes)
     return std::min<int>(packetCapacity * topologySMERatio, maxNumNodes - 2);
 }
 
+void printStatus(StreamStatus status) {
+    switch(status){
+    case StreamStatus::CONNECTING:
+        printf("CONNECTING");
+        break;
+    case StreamStatus::CONNECT_FAILED:
+        printf("CONNECT_FAILED");
+        break;
+    case StreamStatus::ACCEPT_WAIT:
+        printf("ACCEPT_WAIT");
+        break;
+    case StreamStatus::ESTABLISHED:
+        printf("ESTABLISHED");
+        break;
+    case StreamStatus::LISTEN_WAIT:
+        printf("LISTEN_WAIT");
+        break;
+    case StreamStatus::LISTEN_FAILED:
+        printf("LISTEN_FAILED");
+        break;
+    case StreamStatus::LISTEN:
+        printf("LISTEN");
+        break;
+    case StreamStatus::REMOTELY_CLOSED:
+        printf("REMOTELY_CLOSED");
+        break;
+    case StreamStatus::REOPENED:
+        printf("REOPENED");
+        break;
+    case StreamStatus::CLOSE_WAIT:
+        printf("CLOSE_WAIT");
+        break;
+    default:
+        printf("INVALID!");
+    }
+    printf("\n");
+}
+
 void masterNode(void*)
 {
     try {
@@ -211,7 +249,8 @@ void streamThread(void *arg)
                    id.src, id.dst, len);
         }
     }
-    printf("[A] Stream (%d,%d) closed\n", id.src, id.dst);
+    printf("[A] Stream (%d,%d) closed, status=", id.src, id.dst);
+    printStatus(getInfo(stream).getStatus());
     delete s;
 }
 
@@ -233,7 +272,8 @@ void openServer(unsigned char port, StreamParameters params) {
         int stream = accept(server);
         Thread::create(streamThread, 2048, MAIN_PRIORITY, new StreamThreadPar(stream));
     }
-    printf("[A] Server on port %d closed\n", port);
+    printf("[A]Server on port %d closed, status=", port);
+    printStatus(getInfo(server).getStatus());
 }
 
 void openStream(unsigned char dest, unsigned char port, StreamParameters params) {
@@ -269,7 +309,8 @@ void openStream(unsigned char dest, unsigned char port, StreamParameters params)
                     printf("[E] Error sending data, result=%d\n", ret);
                 counter++;
             }
-            printf("[A] Stream (%d,%d) closed, reopening it \n", ctx->getNetworkId(), dest);
+            printf("[A] Stream (%d,%d) closed, status=", ctx->getNetworkId(), dest);
+            printStatus(getInfo(stream).getStatus());
         } catch(exception& e) {
             cerr<<"\nException thrown: "<<e.what()<<endl;
         }
