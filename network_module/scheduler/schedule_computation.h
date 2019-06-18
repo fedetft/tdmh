@@ -98,15 +98,10 @@ public:
         uplink_phase = uplink;
     }
 
-    void setNetworkGraph(const GRAPH_TYPE& graph) {
-        network_graph = graph;
-        graph_changed = true;
-    }
-
 private: 
     void run();
 
-    void initialPrint(bool removed, bool wrote_back);
+    void initialPrint(bool removed, bool wrote_back, bool graph_changed);
 
     /**
      * @return a schedule class containing schedule, tile number and ID
@@ -119,7 +114,7 @@ private:
      */
     void scheduleAcceptedStreams(Schedule& currSchedule);
     /**
-     * Updates stream_snapshot with results of scheduling,
+     * Updates stream_collection with results of scheduling,
      * notifies REJECTED streams
      */
     void updateStreams(const std::list<ScheduleElement>& final_schedule);
@@ -224,8 +219,6 @@ private:
     const ControlSuperframeStructure superframe;
     // Class containing a snapshot of the network topology
     GRAPH_TYPE network_graph;
-    // Flag set to true if the network graph changed from the last schedule
-    bool graph_changed = false;
 
 #ifdef _MIOSIX
     miosix::Mutex sched_mutex;

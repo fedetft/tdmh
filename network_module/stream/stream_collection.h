@@ -53,16 +53,15 @@ public:
     ~StreamCollection() {};
 
     /**
-     * Operator = used by ScheduleComputation to take a snapshot of
-     * the StreamCollection.
-     * It is not necessary to copy over UpdatableQueues
+     * Used by ScheduleComputation to update the snapshot of the StreamCollection.
+     * NOTE: this is different from a copy constructor because it does not
+     * copy the infoQueue, which is not needed by the scheduler
      */
-    StreamCollection& operator=(StreamCollection& other) {
+    void update(const StreamCollection& other) {
         collection = other.collection;
         modified_flag = other.modified_flag;
         removed_flag = other.removed_flag;
         added_flag = other.added_flag;
-        return *this;
     }
 
     /**

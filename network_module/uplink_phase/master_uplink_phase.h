@@ -29,7 +29,6 @@
 #pragma once
 
 #include "uplink_phase.h"
-#include "../scheduler/schedule_computation.h"
 #include "topology/network_topology.h"
 
 namespace mxnet {
@@ -67,12 +66,12 @@ public:
         return topology.wasModified();
     }
 
-    void updateSchedulerNetworkGraph(ScheduleComputation& scheduler) {
-        topology.updateSchedulerNetworkGraph(scheduler);
+    bool updateSchedulerNetworkGraph(GRAPH_TYPE& otherGraph) {
+        return topology.updateSchedulerNetworkGraph(otherGraph);
     }
 
-    bool writeBackNetworkGraph(const GRAPH_TYPE& newgraph) {
-        return topology.writeBackNetworkGraph(newgraph);
+    bool writeBackNetworkGraph(const GRAPH_TYPE& newGraph) {
+        return topology.writeBackNetworkGraph(newGraph);
     }
     
 private:

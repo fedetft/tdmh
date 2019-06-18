@@ -30,7 +30,6 @@
 #include "../../util/runtime_bitset.h"
 #include "../uplink_message.h"
 #include "network_graph.h"
-#include "../../scheduler/schedule_computation.h"
 #ifdef _MIOSIX
 #include <miosix.h>
 #else
@@ -84,7 +83,7 @@ public:
      * If the graph has changed from the last check, update the graph snapshot
      * of the scheduler, and set corresponding graph_changed flag
      */
-    void updateSchedulerNetworkGraph(ScheduleComputation& scheduler) {
+    bool updateSchedulerNetworkGraph(GRAPH_TYPE& otherGraph) {
         // Mutex lock to access NetworkGraph (shared with ScheduleComputation).
 #ifdef _MIOSIX
         miosix::Lock<miosix::Mutex> lck(graph_mutex);
@@ -93,9 +92,11 @@ public:
 #endif
         // If graph has changed, copy graph snapshot and set graph_changed in ScheduleComputation
         if(modified_flag) {
-            scheduler.setNetworkGraph(graph);
+            otherGraph = graph;
             modified_flag = false;
+            return true;
         }
+        return false;
     }
 
     /**
@@ -110,7 +111,7 @@ public:
      * and try again to write back the results.
      * This function returns true if the write back was successful
      */
-    bool writeBackNetworkGraph(const GRAPH_TYPE& newgraph) {
+    bool writeBackNetworkGraph(const GRAPH_TYPE& newGraph) {
         // Mutex lock to access NetworkGraph (shared with ScheduleComputation).
 #ifdef _MIOSIX
         miosix::Lock<miosix::Mutex> lck(graph_mutex);
@@ -121,11 +122,10 @@ public:
         // copy back graph snapshot
         // NOTE: the snapshot contains possiblyNotConnected_flag set to false
         if(modified_flag == false) {
-            graph = newgraph;
+            graph = newGraph;
             return true;
         }
-        else
-            return false;
+        return false;
     }
 
 private:

@@ -86,13 +86,14 @@ void ScheduleComputation::run() {
                 sched_cv.wait(lck);
             }
             // Take snapshot of stream requests and network topology
-            stream_snapshot = stream_collection;
-            // Get new graph snapshot if graph changed
-            graph_changed = false;
-            uplink_phase->updateSchedulerNetworkGraph(*this);
+            stream_snapshot.update(stream_collection);
             // Clear modified bit to detect changes to streams
             stream_collection.clearFlags();
         }
+        
+        // Get new graph snapshot if graph changed
+        bool graph_changed = uplink_phase->updateSchedulerNetworkGraph(network_graph);
+        
         /* IMPORTANT!: From now on use only the snapshot classes
            `stream_snapshot` and `network_graph` */
         /* NOTE: check local graph copy for nodes unreachable from the master
@@ -104,7 +105,7 @@ void ScheduleComputation::run() {
             if(removed)
                 wrote_back = uplink_phase->writeBackNetworkGraph(network_graph);
         }
-        initialPrint(removed, wrote_back);
+        initialPrint(removed, wrote_back, graph_changed);
         // Used to check if the schedule has been changed in this iteration
         bool scheduleChanged = false;
         // Get new schedule ID
@@ -152,7 +153,7 @@ void ScheduleComputation::run() {
     }
 }
 
-void ScheduleComputation::initialPrint(bool removed, bool wrote_back) {
+void ScheduleComputation::initialPrint(bool removed, bool wrote_back, bool graph_changed) {
     if(SCHEDULER_DETAILED_DBG || SCHEDULER_SUMMARY_DBG) {
         printf("\n[SC] #### Starting schedule computation ####\n");
         printf("topology changed:%s, stream changed:%s\n",
