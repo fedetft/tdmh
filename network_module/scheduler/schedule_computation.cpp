@@ -278,6 +278,21 @@ void ScheduleComputation::receiveSMEs(UpdatableQueue<StreamId,
     stream_collection.receiveSMEs(smes);
 }
 
+void ScheduleComputation::getSchedule(std::vector<ScheduleElement>& sched,
+                                      unsigned long& id, unsigned int& tiles) {
+    // Mutex lock to access schedule (shared with ScheduleDownlink).
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+    std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
+    sched.clear();
+    sched.reserve(schedule.schedule.size());
+    std::copy(schedule.schedule.begin(),schedule.schedule.end(),std::back_inserter(sched));
+    id = schedule.id;
+    tiles = schedule.tiles;
+}
+
 std::pair<std::list<ScheduleElement>,
           unsigned int> ScheduleComputation::scheduleStreams(const std::list<std::list<ScheduleElement>>& routed_streams,
                                                              const std::list<ScheduleElement>& current_schedule,

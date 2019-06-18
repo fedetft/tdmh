@@ -89,15 +89,7 @@ public:
      * Used by the ScheduleDownlink class to get the latest schedule
      * @return a copy of the Schedule class containing schedule, size, id
      */
-    Schedule getSchedule() {
-        // Mutex lock to access schedule (shared with ScheduleDownlink).
-#ifdef _MIOSIX
-        miosix::Lock<miosix::Mutex> lck(sched_mutex);
-#else
-        std::unique_lock<std::mutex> lck(sched_mutex);
-#endif
-        return schedule;
-    }
+    void getSchedule(std::vector<ScheduleElement>& sched, unsigned long& id, unsigned int& tiles);
     /**
      * Used by the ScheduleDownlink class to know if a newer schedule is available
      * @return the latest scheduleID

@@ -108,10 +108,9 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
 }
 
 void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {
-    Schedule sched = schedule_comp.getSchedule();
-    schedule.clear();
-    schedule.reserve(sched.schedule.size());
-    std::copy(sched.schedule.begin(),sched.schedule.end(),std::back_inserter(schedule));
+    unsigned long id;
+    unsigned int tiles;
+    schedule_comp.getSchedule(schedule,id,tiles);
     auto currentTile = ctx.getCurrentTile(slotStart);
     auto activationTile = 0;
     unsigned numPackets = (schedule.size() / packetCapacity) + 1;
@@ -141,11 +140,11 @@ void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {
     }
     // Build a header for the new schedule
     ScheduleHeader newheader(
-                             numPackets,                         // totalPacket
-                             0,                                  // currentPacket
-                             sched.id,      // scheduleID
-                             activationTile,                     // activationTile
-                             sched.tiles);  // scheduleTiles
+                             numPackets,         // totalPacket
+                             0,                  // currentPacket
+                             id,                 // scheduleID
+                             activationTile,     // activationTile
+                             tiles);             // scheduleTiles
     header = newheader;
 }
 
