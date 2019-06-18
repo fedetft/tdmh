@@ -30,6 +30,7 @@
 
 #include "uplink_phase.h"
 #include "topology/network_topology.h"
+#include "../scheduler/schedule_computation.h"
 
 namespace mxnet {
 
