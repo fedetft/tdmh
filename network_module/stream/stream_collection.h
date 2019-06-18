@@ -134,17 +134,6 @@ public:
         return added_flag;
     };
 
-    void clear() {
-        collection.clear();
-        clearFlags();
-    }
-    void swap(StreamCollection& rhs) {
-        collection.swap(rhs.collection);
-        std::swap(modified_flag, rhs.modified_flag);
-        std::swap(removed_flag, rhs.removed_flag);
-        std::swap(added_flag, rhs.added_flag);
-    }
-
 private:
     /**
      * Reset all the flags to false 

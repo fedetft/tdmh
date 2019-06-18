@@ -47,10 +47,6 @@ public:
     void beginScheduling() {
       scheduleComputation.beginScheduling();
     };
-    /**
-     * @return the StreamCollection
-     */
-    StreamCollection* const getStreamCollection() const { return streamColl; }
 
 private:
     ScheduleComputation scheduleComputation;
