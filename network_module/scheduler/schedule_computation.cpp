@@ -87,8 +87,6 @@ void ScheduleComputation::run() {
             }
             // Take snapshot of stream requests and network topology
             stream_snapshot.update(stream_collection);
-            // Clear modified bit to detect changes to streams
-            stream_collection.clearFlags();
         }
         
         // Get new graph snapshot if graph changed

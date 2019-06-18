@@ -39,7 +39,8 @@ namespace mxnet {
 
 /**
  * The class StreamCollection represents the status of all the Streams and Servers
- * in the network. The status corresponds to after the next schedule will be applied
+ * in the network.
+ * If a schedule is being distributed, the status corresponds the next schedule.
  * It is used by ScheduleComputation
  */
 class StreamCollection {
@@ -53,15 +54,17 @@ public:
     ~StreamCollection() {};
 
     /**
-     * Used by ScheduleComputation to update the snapshot of the StreamCollection.
-     * NOTE: this is different from a copy constructor because it does not
-     * copy the infoQueue, which is not needed by the scheduler
+     * Updates a StreamCollection with the content of another stream collection.
+     * NOTE: this is different from a copy constructor for two reasons:
+     * - because it does not copy the infoQueue, which is not needed by the scheduler
+     * - because it clears the flags of the passed StreamCollection (not of this) to detect changes
      */
-    void update(const StreamCollection& other) {
+    void update(StreamCollection& other) {
         collection = other.collection;
         modified_flag = other.modified_flag;
         removed_flag = other.removed_flag;
         added_flag = other.added_flag;
+        other.clearFlags();
     }
 
     /**
@@ -130,14 +133,7 @@ public:
     bool wasAdded() const {
         return added_flag;
     };
-    /**
-     * Reset all the flags to false 
-     */
-    void clearFlags() {
-        modified_flag = false;
-        removed_flag = false;
-        added_flag = false;
-    }
+
     void clear() {
         collection.clear();
         clearFlags();
@@ -150,6 +146,14 @@ public:
     }
 
 private:
+    /**
+     * Reset all the flags to false 
+     */
+    void clearFlags() {
+        modified_flag = false;
+        removed_flag = false;
+        added_flag = false;
+    }
     /**
      * Called by receiveSMEs(), used to update the status of the Stream 
      */
