@@ -108,6 +108,9 @@ void printStatus(StreamStatus status) {
     case StreamStatus::CLOSE_WAIT:
         printf("CLOSE_WAIT");
         break;
+    case StreamStatus::UNINITIALIZED:
+        printf("UNINITIALIZED");
+        break;
     default:
         printf("INVALID!");
     }

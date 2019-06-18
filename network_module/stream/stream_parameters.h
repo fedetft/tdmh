@@ -119,7 +119,7 @@ enum class Direction
    e.g (parameters.redundancy), to compare two parameters without double conversion */
 class StreamParameters {
 public:
-    StreamParameters() {};
+    StreamParameters() : redundancy(0), period(0), payloadSize(0), direction(0) {}
     StreamParameters(Redundancy red, Period per,
                      unsigned short size, Direction dir) {
         redundancy=static_cast<unsigned int>(red);
@@ -149,7 +149,7 @@ public:
 
 class StreamId {
 public:
-    StreamId() {};
+    StreamId() : src(0),dst(0),srcPort(0),dstPort(0) {}
     StreamId(unsigned char src, unsigned char dst, unsigned char srcPort,
              unsigned char dstPort) : src(src), dst(dst), srcPort(srcPort),
                                       dstPort(dstPort) {}
@@ -212,6 +212,7 @@ enum class StreamStatus : uint8_t
      LISTEN_WAIT,     // Listen request sent by server
      LISTEN_FAILED,   // Listen request rejected by master
      LISTEN,          // Listen acknowledged by master
+     UNINITIALIZED
 };
 
 /* This class contains the stream statuses as seen by the master node */
@@ -229,7 +230,7 @@ enum class MasterStreamStatus : uint8_t
  */
 class StreamInfo {
 public:
-    StreamInfo() {}
+    StreamInfo() : status(StreamStatus::UNINITIALIZED) {}
     StreamInfo(StreamInfo info, StreamStatus st) : id(info.id),
                                                    parameters(info.parameters),
                                                    status(st) {}
