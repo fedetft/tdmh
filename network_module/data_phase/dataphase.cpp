@@ -42,6 +42,7 @@ void DataPhase::execute(long long slotStart) {
     }
     // NOTE FIXME: this sleep is currently needed only in the simulator, to avoid
     // the mac thread taking 100% of the CPU and delaying the application thread
+    // NOTE: This usleep makes the simulation a lot slower but avoids errors
 #ifndef _MIOSIX
     usleep(1000);
 #endif
