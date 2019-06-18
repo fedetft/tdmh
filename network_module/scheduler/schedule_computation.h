@@ -269,8 +269,8 @@ protected:
     // References to other classes
     ScheduleComputation& scheduler;
 
-    int maxHops = 0;
+    unsigned char maxHops = 0;
     // TODO: make more_hop configurable in network_configuration
-    int more_hops;
+    unsigned char more_hops = 0;
 };
 }
