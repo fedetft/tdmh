@@ -271,12 +271,19 @@ void openServer(unsigned char port, StreamParameters params) {
         printf("[A] Server opening failed! error=%d\n", server);
         return;
     }
-    while(getInfo(server).getStatus() == StreamStatus::LISTEN) {
-        int stream = accept(server);
-        Thread::create(streamThread, 2048, MAIN_PRIORITY, new StreamThreadPar(stream));
+    try {
+        while(getInfo(server).getStatus() == StreamStatus::LISTEN) {
+            int stream = accept(server);
+            Thread::create(streamThread, 2048, MAIN_PRIORITY, new StreamThreadPar(stream));
+        }
+    } catch(exception& e) {
+        printf("Unexpected exception while server accept: %s\n",e.what());
+    } catch(...) {
+        printf("Unexpected unknown exception while server accept\n");
     }
     printf("[A]Server on port %d closed, status=", port);
     printStatus(getInfo(server).getStatus());
+    mxnet::close(server);
 }
 
 void openStream(unsigned char dest, unsigned char port, StreamParameters params) {
@@ -400,7 +407,7 @@ int main()
     case 0:
         // Master node code
         Thread::create(statThread, 2048, MAIN_PRIORITY);
-        openServer(port, serverParams);
+        for(;;) openServer(port, serverParams);
         break;
     case 1:
         // NOTE: decopmment the idle() function when openStream is commented
