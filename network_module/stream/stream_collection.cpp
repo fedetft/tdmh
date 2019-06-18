@@ -117,24 +117,6 @@ std::vector<MasterStreamInfo> StreamCollection::getStreams() {
     return result;
 }
 
-bool isSchedulable(std::pair<StreamId,MasterStreamInfo> stream) {
-    MasterStreamStatus status = stream.second.getStatus();
-    return (status == MasterStreamStatus::ACCEPTED);
-}
-
-bool StreamCollection::hasSchedulableStreams() {
-    return std::count_if(collection.begin(), collection.end(), isSchedulable);
-}
-
-std::vector<MasterStreamInfo> StreamCollection::getStreamsWithStatus(MasterStreamStatus s) {
-    std::vector<MasterStreamInfo> result;
-    for (auto& stream: collection) {
-        if(stream.second.getStatus() == s)
-            result.push_back(stream.second);
-    }
-    return result;
-}
-
 void StreamCollection::enqueueInfo(StreamId id, InfoType type) {
     InfoElement info(id, type);
     // Add to sending queue
@@ -271,6 +253,22 @@ StreamParameters StreamCollection::negotiateParameters(StreamParameters& serverP
     // Create resulting StreamParameters struct
     StreamParameters newParams(redundancy, period, payloadSize, direction);
     return newParams;
+}
+
+std::vector<MasterStreamInfo> StreamSnapshot::getStreams() {
+    std::vector<MasterStreamInfo> result;
+    for(auto& stream : collection)
+        result.push_back(stream.second);
+    return result;
+}
+
+std::vector<MasterStreamInfo> StreamSnapshot::getStreamsWithStatus(MasterStreamStatus s) {
+    std::vector<MasterStreamInfo> result;
+    for (auto& stream: collection) {
+        if(stream.second.getStatus() == s)
+            result.push_back(stream.second);
+    }
+    return result;
 }
 
 } // namespace mxnet

@@ -44,29 +44,10 @@ namespace mxnet {
  * It is used by ScheduleComputation
  */
 class StreamCollection {
+    friend class StreamSnapshot;
 public:
     StreamCollection() {};
-    StreamCollection(std::map<StreamId, MasterStreamInfo> map, bool modified,
-                     bool removed, bool added) : collection(map),
-                                                 modified_flag(modified),
-                                                 removed_flag(removed),
-                                                 added_flag(added) {}
     ~StreamCollection() {};
-
-    /**
-     * Updates a StreamCollection with the content of another stream collection.
-     * NOTE: this is different from a copy constructor for two reasons:
-     * - because it does not copy the infoQueue, which is not needed by the scheduler
-     * - because it clears the flags of the passed StreamCollection (not of this) to detect changes
-     */
-    void update(StreamCollection& other) {
-        collection = other.collection;
-        modified_flag = other.modified_flag;
-        removed_flag = other.removed_flag;
-        added_flag = other.added_flag;
-        other.clearFlags();
-    }
-
     /**
      * Receives a vector of SME from the network
      */
@@ -77,32 +58,15 @@ public:
      */
     void receiveSchedule(const std::list<ScheduleElement>& schedule);
     /**
-     * @return the number of Streams saved
-     */
-    unsigned int getStreamNumber() {
-        return collection.size();
-    }
-    /**
      * @return the number of Info elements in queue
      */
     unsigned int getNumInfo() {
         return infoQueue.size();
     }
-
-    /**
-     * get the status of a given Stream
-     */
-    MasterStreamStatus getStreamStatus(StreamId id) {
-        return collection[id].getStatus();
-    }
     /**
      * @return vector containing all the streams
      */
     std::vector<MasterStreamInfo> getStreams();
-    /**
-     * @return a vector of MasterStreamInfo that matches the given status
-     */
-    std::vector<MasterStreamInfo> getStreamsWithStatus(MasterStreamStatus s);
     /**
      * put a new info element in the queue
      */
@@ -112,26 +76,10 @@ public:
      */
     std::vector<InfoElement> dequeueInfo(unsigned int num);
     /**
-     * @return true if there are streams not yet scheduled
-     */
-    bool hasSchedulableStreams();
-    /**
      * @return true if the stream list was modified since last time the flag was cleared 
      */
     bool wasModified() const {
         return modified_flag;
-    };
-    /**
-     * @return true if any stream was removed since last time the flag was cleared 
-     */
-    bool wasRemoved() const {
-        return removed_flag;
-    };
-    /**
-     * @return true if any stream was added since last time the flag was cleared 
-     */
-    bool wasAdded() const {
-        return added_flag;
     };
 
 private:
@@ -168,6 +116,72 @@ private:
     std::map<StreamId, MasterStreamInfo> collection;
     /* UpdatableQueue of Info elements to send to the network */
     UpdatableQueue<StreamId, InfoElement> infoQueue;
+    /* Flags that record the changes to the Streams */
+    bool modified_flag = false;
+    bool removed_flag = false;
+    bool added_flag = false;
+};
+
+/**
+ * The class StreamSnapshot represents a snapshot copy of the StreamCollection used
+ * by the scheduler.
+ * It has no concurrency control because it is accessed exclusively by the scheduler,
+ * and finally it takes care of preparing a list of changes to apply to the
+ * real StreamCollection.
+ */
+class StreamSnapshot {
+public:
+    StreamSnapshot() {};
+    ~StreamSnapshot() {};
+    /**
+     * Updates a StreamSnapshot with the content of a StreamCollection.
+     * NOTE: this is different from a copy constructor for two reasons:
+     * - because it does not copy the infoQueue, which is not needed by the scheduler
+     * - because it clears the flags of the passed StreamCollection to detect changes
+     */
+    void update(StreamCollection& other) {
+        collection = other.collection;
+        modified_flag = other.modified_flag;
+        removed_flag = other.removed_flag;
+        added_flag = other.added_flag;
+        other.clearFlags();
+    }
+    /**
+     * @return the number of Streams saved
+     */
+    unsigned int getStreamNumber() {
+        return collection.size();
+    }
+    /**
+     * @return vector containing all the streams
+     */
+    std::vector<MasterStreamInfo> getStreams();
+    /**
+     * @return a vector of MasterStreamInfo that matches the given status
+     */
+    std::vector<MasterStreamInfo> getStreamsWithStatus(MasterStreamStatus s);
+    /**
+     * @return true if the stream list was modified since last time the flag was cleared 
+     */
+    bool wasModified() const {
+        return modified_flag;
+    };
+    /**
+     * @return true if any stream was removed since last time the flag was cleared 
+     */
+    bool wasRemoved() const {
+        return removed_flag;
+    };
+    /**
+     * @return true if any stream was added since last time the flag was cleared 
+     */
+    bool wasAdded() const {
+        return added_flag;
+    };
+
+private:
+    /* Map containing information about all Streams and Server in the network */
+    std::map<StreamId, MasterStreamInfo> collection;
     /* Flags that record the changes to the Streams */
     bool modified_flag = false;
     bool removed_flag = false;

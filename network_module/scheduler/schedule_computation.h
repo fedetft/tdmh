@@ -191,7 +191,7 @@ private:
      * and a queue of InfoElements to send on the network */
     StreamCollection stream_collection;
     /* Snapshot of the StreamCollection used for schedule computation */
-    StreamCollection stream_snapshot;
+    StreamSnapshot stream_snapshot;
     // Class containing latest schedule, size in tiles and schedule ID
     Schedule schedule;
 
