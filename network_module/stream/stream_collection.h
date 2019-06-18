@@ -71,13 +71,9 @@ public:
     void receiveSMEs(UpdatableQueue<StreamId,
                      StreamManagementElement>& smes);
     /**
-     * The given stream has been scheduled
+     * Receives a schedule form the scheduler
      */
-    void streamEstablished(StreamId id);
-    /**
-     * The given stream has not been scheduled
-     */
-    void streamRejected(StreamId id);
+    void receiveSchedule(const std::list<ScheduleElement>& schedule);
     /**
      * @return the number of Streams saved
      */

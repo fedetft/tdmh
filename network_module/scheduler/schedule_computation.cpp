@@ -215,26 +215,13 @@ void ScheduleComputation::scheduleAcceptedStreams(Schedule& currSchedule) {
 }
 
 void ScheduleComputation::updateStreams(const std::list<ScheduleElement>& final_schedule) {
-    /* NOTE: Here we need to set the streams which were successfully scheduled
-       as ESTABLISHED in stream_collection.
-       We do so to be able to set later the streams that were not scheduled
-       (still ACCEPTED after scheduling) as REJECTED.
-
-       Do NOT ever change the status of the streams here in StreamManager,
+    /* NOTE: Here we need to change the stream status in stream_collection.
+       (note: we update the StreamCollection, not the snapshot)
+       Do NOT ever change here the status of the streams in StreamManager,
        because doing so would mean applying the schedule before its activation time.
-       The status in StreamManager must be changed ONLY in the ScheduleDistribution
-       Here we update the StreamCollection, not the snapshot */
+       The status in StreamManager must be changed ONLY in the ScheduleDistribution */
     // NOTE: DO NOT LOCK THE MUTEX HERE, It is already locked
-    // Mark successfully scheduled Streams as ESTABLISHED in stream_snapshot
-    for(auto& sched: final_schedule) {
-        stream_collection.streamEstablished(sched.getStreamId());
-    }
-    // Mark streams that are still ACCEPTED after scheduling as REJECTED
-    for(auto& stream: stream_snapshot.getStreams()) {
-        if(stream.getStatus() == MasterStreamStatus::ACCEPTED) {
-            stream_collection.streamRejected(stream.getStreamId());
-        }
-    }
+    stream_collection.receiveSchedule(final_schedule);
 }
 
 void ScheduleComputation::finalPrint() {

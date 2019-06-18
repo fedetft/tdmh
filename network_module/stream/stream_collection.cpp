@@ -42,7 +42,7 @@ void StreamCollection::receiveSMEs(UpdatableQueue<StreamId,
         auto it = collection.find(id);
         // If stream/server is present in collection
         if(it != collection.end()) {
-            auto stream = it->second;
+            auto& stream = it->second;
             // SME belongs to stream
             if(id.isStream())
                 updateStream(stream, sme);
@@ -62,32 +62,51 @@ void StreamCollection::receiveSMEs(UpdatableQueue<StreamId,
     }
 }
 
-void StreamCollection::streamEstablished(StreamId id) {
-    // Check that this is a stream
-    if(id.isServer())
-        return;
-    auto it = collection.find(id);
-    // If stream is present in collection
-    if(it != collection.end()) {
-        MasterStreamInfo& stream = it->second;
-        if(stream.getStatus() == MasterStreamStatus::ACCEPTED)
-            stream.setStatus(MasterStreamStatus::ESTABLISHED);
+void StreamCollection::receiveSchedule(const std::list<ScheduleElement>& schedule) {
+/* NOTE: we need to make 3 changes to the streams:
+   - Set streams that are ACCEPTED in collection and present in schedule as ESTABLISHED
+   - Set streams that are ACCEPTED in collection and missing from schedule as REJECTED
+   - Remove the streams that are ESTABLISHED in collection and missing from schedule */
+    // Create a copy of the collection keys,
+    // to get the streams not present in schedule
+    std::set<StreamId> streamsNotInSchedule;
+    for(auto& pair : collection) {
+        streamsNotInSchedule.insert(pair.first);
     }
-}
-
-void StreamCollection::streamRejected(StreamId id) {
-    // Check that this is a stream
-    if(id.isServer())
-        return;
-    auto it = collection.find(id);
-    // If stream is present in collection
-    if(it != collection.end()) {
-        MasterStreamInfo& stream = it->second;
-        if(stream.getStatus() == MasterStreamStatus::ACCEPTED) {
-            stream.setStatus(MasterStreamStatus::REJECTED);
-            // Enqueue STREAM_REJECT info element
-            enqueueInfo(id, InfoType::STREAM_REJECT);
+    // Cycle over schedule
+    for(auto& el : schedule) {
+        auto id = el.getStreamId();
+        // Search stream in collection
+        auto it = collection.find(id); 
+        // If stream is present in collection
+        if(it != collection.end()) {
+            auto& streamInfo = it->second;
+            if(streamInfo.getStatus() == MasterStreamStatus::ACCEPTED)
+                streamInfo.setStatus(MasterStreamStatus::ESTABLISHED);
+            // If stream is ESTABLISHED and present in schedule, no action needed
+            // Remove id from streamsNotInSchedule
+            streamsNotInSchedule.erase(id);
         }
+        // If stream is not present in collection, do nothing
+    }
+    // Cycle over streams not present in schedule
+    for(auto& id : streamsNotInSchedule) {
+        // Search stream in collection
+        auto it = collection.find(id); 
+        // If stream is present in collection
+        if(it != collection.end()) {
+            auto& streamInfo = it->second;
+            if(streamInfo.getStatus() == MasterStreamStatus::ACCEPTED) {
+                streamInfo.setStatus(MasterStreamStatus::REJECTED);
+                // Enqueue STREAM_REJECT info element
+                enqueueInfo(id, InfoType::STREAM_REJECT);
+            }
+            else if(streamInfo.getStatus() == MasterStreamStatus::ESTABLISHED) {
+                // Delete stream because it has been closed
+                collection.erase(id);
+            }
+        }
+        // If stream is not present in collection, do nothing
     }
 }
 
