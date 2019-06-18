@@ -145,7 +145,12 @@ void ScheduleComputation::run() {
             std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
             // Update stream_collection for printing result and notify REJECTED streams
-            updateStreams(newSchedule.schedule);
+            /* NOTE: Here we need to change the stream status in stream_collection.
+            (note: we update the StreamCollection, not the snapshot)
+            Do NOT ever change here the status of the streams in StreamManager,
+            because doing so would mean applying the schedule before its activation time.
+            The status in StreamManager must be changed ONLY in the ScheduleDistribution */
+            stream_collection.receiveSchedule(newSchedule.schedule);
             // Overwrite current schedule with new one
             schedule.swap(newSchedule);
         }
@@ -213,16 +218,6 @@ void ScheduleComputation::scheduleAcceptedStreams(Schedule& currSchedule) {
                               extraSchedulePair.first.end());
     // Update schedule size
     currSchedule.tiles = extraSchedulePair.second;
-}
-
-void ScheduleComputation::updateStreams(const std::list<ScheduleElement>& final_schedule) {
-    /* NOTE: Here we need to change the stream status in stream_collection.
-       (note: we update the StreamCollection, not the snapshot)
-       Do NOT ever change here the status of the streams in StreamManager,
-       because doing so would mean applying the schedule before its activation time.
-       The status in StreamManager must be changed ONLY in the ScheduleDistribution */
-    // NOTE: DO NOT LOCK THE MUTEX HERE, It is already locked
-    stream_collection.receiveSchedule(final_schedule);
 }
 
 void ScheduleComputation::finalPrint() {

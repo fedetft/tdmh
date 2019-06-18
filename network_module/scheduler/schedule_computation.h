@@ -73,7 +73,6 @@ public:
 
 class ScheduleComputation {
     friend class Router;
-    friend class MasterScheduleDownlinkPhase;
 public:
     ScheduleComputation(MACContext& mac_ctx);
 
@@ -85,6 +84,33 @@ public:
      * Receives a vector of SME from the network and register them in the StreamCollection
      */
     void receiveSMEs(UpdatableQueue<StreamId, StreamManagementElement>& smes);
+    
+    /**
+     * Used by the ScheduleDownlink class to get the latest schedule
+     * @return a copy of the Schedule class containing schedule, size, id
+     */
+    Schedule getSchedule() {
+        // Mutex lock to access schedule (shared with ScheduleDownlink).
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+        std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
+        return schedule;
+    }
+    /**
+     * Used by the ScheduleDownlink class to know if a newer schedule is available
+     * @return the latest scheduleID
+     */
+    unsigned long getScheduleID() {
+        // Mutex lock to access schedule (shared with ScheduleDownlink).
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+        std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
+        return schedule.id;
+    }
 
     StreamManager* getStreamManager() {
         return &stream_mgr;
@@ -113,11 +139,6 @@ private:
      * Schedule and route ACCEPTED streams
      */
     void scheduleAcceptedStreams(Schedule& currSchedule);
-    /**
-     * Updates stream_collection with results of scheduling,
-     * notifies REJECTED streams
-     */
-    void updateStreams(const std::list<ScheduleElement>& final_schedule);
 
     void finalPrint();
     /**
@@ -150,32 +171,6 @@ private:
     bool checkInterferenceConflict(const ScheduleElement& new_transmission, const ScheduleElement& old_transmission);
 
     void printSchedule(const Schedule& sched);
-    /**
-     * Used by the ScheduleDownlink class to get the latest schedule
-     * @return a Schedule class containing schedule, size, id
-     */
-    Schedule getSchedule() {
-        // Mutex lock to access schedule (shared with ScheduleDownlink).
-#ifdef _MIOSIX
-        miosix::Lock<miosix::Mutex> lck(sched_mutex);
-#else
-        std::unique_lock<std::mutex> lck(sched_mutex);
-#endif
-        return schedule;
-    }
-    /**
-     * Used by the ScheduleDownlink class to know if a newer schedule is available
-     * @return the latest scheduleID
-     */
-    unsigned long getScheduleID() {
-        // Mutex lock to access schedule (shared with ScheduleDownlink).
-#ifdef _MIOSIX
-        miosix::Lock<miosix::Mutex> lck(sched_mutex);
-#else
-        std::unique_lock<std::mutex> lck(sched_mutex);
-#endif
-        return schedule.id;
-    }
 
     void printStreams(const std::vector<MasterStreamInfo>& stream_list);
 
