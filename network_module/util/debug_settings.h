@@ -91,7 +91,7 @@ const bool ENABLE_SCHEDULE_DIST_MAS_INFO_DBG = false;
 const bool ENABLE_SCHEDULE_DIST_DYN_INFO_DBG = false;
 
 //prints the data phase debug info
-const bool ENABLE_DATA_INFO_DBG = false;
+const bool ENABLE_DATA_INFO_DBG = true;
 
 //prints the data phase errors
 const bool ENABLE_DATA_ERROR_DBG = true;
