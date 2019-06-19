@@ -42,6 +42,79 @@
 
 namespace mxnet {
 
+enum class StreamChange
+{
+    ESTABLISH,       // For ACCEPTED streams in snapshot, present in new schedule
+    REJECT,          // For ACCEPTED streams in snapshot, missing from new schedule
+    CLOSE,           // For ESTABLISHED streams in snapshot, missing from new schedule
+};
+
+/**
+ * The class StreamSnapshot represents a snapshot copy of the StreamCollection used
+ * by the scheduler.
+ * It has no concurrency control because it is accessed exclusively by the scheduler,
+ * and finally it takes care of preparing a list of changes to apply to the
+ * real StreamCollection.
+ */
+
+class StreamSnapshot {
+public:
+    StreamSnapshot() {};
+    StreamSnapshot(std::map<StreamId, MasterStreamInfo> collection, bool modified,
+                   bool removed, bool added) : collection(collection),
+                                               modified_flag(modified),
+                                               removed_flag(removed),
+                                               added_flag(added) {}
+    ~StreamSnapshot() {};
+    /**
+     * @return the number of Streams saved
+     */
+    unsigned int getStreamNumber() const {
+        return collection.size();
+    }
+    /**
+     * @return vector containing all the streams
+     */
+    std::vector<MasterStreamInfo> getStreams() const;
+    /**
+     * @return a vector of MasterStreamInfo that matches the given status
+     */
+    std::vector<MasterStreamInfo> getStreamsWithStatus(MasterStreamStatus s) const;
+    /**
+     * @return true if the stream list was modified since last time the flag was cleared 
+     */
+    bool wasModified() const {
+        return modified_flag;
+    }
+    /**
+     * @return true if any stream was removed since last time the flag was cleared 
+     */
+    bool wasRemoved() const {
+        return removed_flag;
+    }
+    /**
+     * @return true if any stream was added since last time the flag was cleared 
+     */
+    bool wasAdded() const {
+        return added_flag;
+    }
+    /**
+     * @return a map containing changes to apply on the StreamCollection,
+     * based on the comparison of schedule with StreamSnapshot.
+     * The map has streamId as key and StreamChange as value, which is an enum containing
+     * different changes to apply on streams, for example establish, reject or close.
+     */
+    std::map<StreamId, StreamChange> getStreamChanges(const std::list<ScheduleElement>& schedule) const;
+
+private:
+    /* Map containing information about all Streams and Server in the network */
+    std::map<StreamId, MasterStreamInfo> collection;
+    /* Flags that record the changes to the Streams */
+    bool modified_flag = false;
+    bool removed_flag = false;
+    bool added_flag = false;
+};
+
 /**
  * The class StreamCollection represents the status of all the Streams and Servers
  * in the network.
@@ -50,7 +123,6 @@ namespace mxnet {
  */
 
 class StreamCollection {
-    friend class StreamSnapshot;
 public:
     StreamCollection() {};
     ~StreamCollection() {};
@@ -60,9 +132,9 @@ public:
     void receiveSMEs(UpdatableQueue<StreamId,
                      StreamManagementElement>& smes);
     /**
-     * Receives a schedule form the scheduler
+     * Apply changes precomputed by StreamSnaphot::getStreamChanges()
      */
-    void receiveSchedule(const std::list<ScheduleElement>& schedule);
+    void applyChanges(const std::map<StreamId, StreamChange>& changes);
     /**
      * @return vector containing all the streams
      */
@@ -92,7 +164,18 @@ public:
         std::unique_lock<std::mutex> lck(coll_mutex);
 #endif
         return modified_flag;
-    };
+    }
+    /**
+     * Returns a StreamSnapshot containing a snapshot of a StreamCollection.
+     * NOTE: this is different from a copy constructor for two reasons:
+     * - because it does not copy the infoQueue, which is not needed by the scheduler
+     * - because it clears the flags of the passed StreamCollection to detect changes
+     */
+    StreamSnapshot getSnapshot() {
+        StreamSnapshot result(collection, modified_flag, removed_flag, added_flag);
+        clearFlags();
+        return result;
+    }
 
 private:
     /**
@@ -152,73 +235,6 @@ private:
     std::mutex coll_mutex;
 #endif
 
-};
-
-/**
- * The class StreamSnapshot represents a snapshot copy of the StreamCollection used
- * by the scheduler.
- * It has no concurrency control because it is accessed exclusively by the scheduler,
- * and finally it takes care of preparing a list of changes to apply to the
- * real StreamCollection.
- */
-
-class StreamSnapshot {
-public:
-    StreamSnapshot() {};
-    ~StreamSnapshot() {};
-    /**
-     * Updates a StreamSnapshot with the content of a StreamCollection.
-     * NOTE: this is different from a copy constructor for two reasons:
-     * - because it does not copy the infoQueue, which is not needed by the scheduler
-     * - because it clears the flags of the passed StreamCollection to detect changes
-     */
-    void update(StreamCollection& other) {
-        collection = other.collection;
-        modified_flag = other.modified_flag;
-        removed_flag = other.removed_flag;
-        added_flag = other.added_flag;
-        other.clearFlags();
-    }
-    /**
-     * @return the number of Streams saved
-     */
-    unsigned int getStreamNumber() {
-        return collection.size();
-    }
-    /**
-     * @return vector containing all the streams
-     */
-    std::vector<MasterStreamInfo> getStreams();
-    /**
-     * @return a vector of MasterStreamInfo that matches the given status
-     */
-    std::vector<MasterStreamInfo> getStreamsWithStatus(MasterStreamStatus s);
-    /**
-     * @return true if the stream list was modified since last time the flag was cleared 
-     */
-    bool wasModified() const {
-        return modified_flag;
-    };
-    /**
-     * @return true if any stream was removed since last time the flag was cleared 
-     */
-    bool wasRemoved() const {
-        return removed_flag;
-    };
-    /**
-     * @return true if any stream was added since last time the flag was cleared 
-     */
-    bool wasAdded() const {
-        return added_flag;
-    };
-
-private:
-    /* Map containing information about all Streams and Server in the network */
-    std::map<StreamId, MasterStreamInfo> collection;
-    /* Flags that record the changes to the Streams */
-    bool modified_flag = false;
-    bool removed_flag = false;
-    bool added_flag = false;
 };
 
 } // namespace mxnet

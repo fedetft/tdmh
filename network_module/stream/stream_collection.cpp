@@ -32,6 +32,75 @@
 
 namespace mxnet {
 
+std::vector<MasterStreamInfo> StreamSnapshot::getStreams() const {
+    std::vector<MasterStreamInfo> result;
+    for(auto& stream : collection)
+        result.push_back(stream.second);
+    return result;
+}
+
+std::vector<MasterStreamInfo> StreamSnapshot::getStreamsWithStatus(MasterStreamStatus s) const {
+    std::vector<MasterStreamInfo> result;
+    for (auto& stream: collection) {
+        if(stream.second.getStatus() == s)
+            result.push_back(stream.second);
+    }
+    return result;
+}
+
+std::map<StreamId, StreamChange> StreamSnapshot::getStreamChanges(const std::list<ScheduleElement>& schedule) const {
+/* NOTE: we need to compare the schedule with the streams in this StreamSnapshot
+   to precompute 3 types of changes to apply to the StreamCollection:
+   - ESTABLISH: For ACCEPTED streams in snapshot, present in new schedule 
+   - REJECT: For ACCEPTED streams in snapshot, missing from new schedule 
+   - CLOSE: For ESTABLISHED streams in snapshot, missing from new schedule */
+
+    std::map<StreamId, StreamChange> result;
+
+    // Create a copy of the collection keys,
+    // to get the streams not present in schedule
+    std::set<StreamId> streamsNotInSchedule;
+    for(auto& pair : collection) {
+        // Ignore servers, they are not affected by schedule
+        if(pair.first.isServer())
+            continue;
+        streamsNotInSchedule.insert(pair.first);
+    }
+    // Cycle over schedule
+    for(auto& el : schedule) {
+        auto id = el.getStreamId();
+        // Search stream in collection
+        auto it = collection.find(id); 
+        // If stream is present in collection
+        if(it != collection.end()) {
+            auto& streamInfo = it->second;
+            if(streamInfo.getStatus() == MasterStreamStatus::ACCEPTED)
+                result[id] = StreamChange::ESTABLISH;
+            // If stream is ESTABLISHED and present in schedule, no action needed
+            // Remove id from streamsNotInSchedule
+            streamsNotInSchedule.erase(id);
+        }
+        // If stream is not present in collection, do nothing
+    }
+    // Cycle over streams not present in schedule
+    for(auto& id : streamsNotInSchedule) {
+        // Search stream in collection
+        auto it = collection.find(id); 
+        // If stream is present in collection
+        if(it != collection.end()) {
+            auto& streamInfo = it->second;
+            if(streamInfo.getStatus() == MasterStreamStatus::ACCEPTED) {
+                result[id] = StreamChange::REJECT;
+            }
+            else if(streamInfo.getStatus() == MasterStreamStatus::ESTABLISHED) {
+                result[id] = StreamChange::CLOSE;
+            }
+        }
+        // If stream is not present in collection, do nothing
+    }
+    return result;
+}
+
 void StreamCollection::receiveSMEs(UpdatableQueue<StreamId,
                                    StreamManagementElement>& smes) {
 #ifdef _MIOSIX
@@ -67,56 +136,42 @@ void StreamCollection::receiveSMEs(UpdatableQueue<StreamId,
     }
 }
 
-void StreamCollection::receiveSchedule(const std::list<ScheduleElement>& schedule) {
-/* NOTE: we need to make 3 changes to the streams:
-   - Set streams that are ACCEPTED in collection and present in schedule as ESTABLISHED
-   - Set streams that are ACCEPTED in collection and missing from schedule as REJECTED
-   - Remove the streams that are ESTABLISHED in collection and missing from schedule */
+void StreamCollection::applyChanges(const std::map<StreamId, StreamChange>& changes) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(coll_mutex);
 #else
     std::unique_lock<std::mutex> lck(coll_mutex);
 #endif
-    // Create a copy of the collection keys,
-    // to get the streams not present in schedule
-    std::set<StreamId> streamsNotInSchedule;
-    for(auto& pair : collection) {
-        streamsNotInSchedule.insert(pair.first);
-    }
-    // Cycle over schedule
-    for(auto& el : schedule) {
-        auto id = el.getStreamId();
-        // Search stream in collection
-        auto it = collection.find(id); 
+    // Cycle over changes
+    for(auto& change : changes) {
+        StreamId id = change.first;
+        // Ignore servers, they are not affected by schedule
+        if(id.isServer())
+            continue;
+        auto it = collection.find(id);
         // If stream is present in collection
         if(it != collection.end()) {
-            auto& streamInfo = it->second;
-            if(streamInfo.getStatus() == MasterStreamStatus::ACCEPTED)
-                streamInfo.setStatus(MasterStreamStatus::ESTABLISHED);
-            // If stream is ESTABLISHED and present in schedule, no action needed
-            // Remove id from streamsNotInSchedule
-            streamsNotInSchedule.erase(id);
-        }
-        // If stream is not present in collection, do nothing
-    }
-    // Cycle over streams not present in schedule
-    for(auto& id : streamsNotInSchedule) {
-        // Search stream in collection
-        auto it = collection.find(id); 
-        // If stream is present in collection
-        if(it != collection.end()) {
-            auto& streamInfo = it->second;
-            if(streamInfo.getStatus() == MasterStreamStatus::ACCEPTED) {
-                streamInfo.setStatus(MasterStreamStatus::REJECTED);
-                // Enqueue STREAM_REJECT info element
-                enqueueInfo(id, InfoType::STREAM_REJECT);
-            }
-            else if(streamInfo.getStatus() == MasterStreamStatus::ESTABLISHED) {
-                // Delete stream because it has been closed
-                collection.erase(id);
+            auto& stream = it->second;
+            switch(change.second) {
+            case StreamChange::ESTABLISH:
+                if(stream.getStatus() == MasterStreamStatus::ACCEPTED)
+                    stream.setStatus(MasterStreamStatus::ESTABLISHED);
+                break;
+            case StreamChange::REJECT:
+                if(stream.getStatus() == MasterStreamStatus::ACCEPTED) {
+                    stream.setStatus(MasterStreamStatus::REJECTED);
+                    // Enqueue STREAM_REJECT info element
+                    enqueueInfo(id, InfoType::STREAM_REJECT);
+                }
+                break;
+            case StreamChange::CLOSE:
+                if(stream.getStatus() == MasterStreamStatus::ESTABLISHED)
+                    // Delete stream from collection
+                    collection.erase(id);
+                break;
             }
         }
-        // If stream is not present in collection, do nothing
+        // If stream is not present in collection do nothing
     }
 }
 
@@ -274,22 +329,6 @@ StreamParameters StreamCollection::negotiateParameters(StreamParameters& serverP
     // Create resulting StreamParameters struct
     StreamParameters newParams(redundancy, period, payloadSize, direction);
     return newParams;
-}
-
-std::vector<MasterStreamInfo> StreamSnapshot::getStreams() {
-    std::vector<MasterStreamInfo> result;
-    for(auto& stream : collection)
-        result.push_back(stream.second);
-    return result;
-}
-
-std::vector<MasterStreamInfo> StreamSnapshot::getStreamsWithStatus(MasterStreamStatus s) {
-    std::vector<MasterStreamInfo> result;
-    for (auto& stream: collection) {
-        if(stream.second.getStatus() == s)
-            result.push_back(stream.second);
-    }
-    return result;
 }
 
 } // namespace mxnet

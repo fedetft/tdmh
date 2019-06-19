@@ -85,8 +85,8 @@ void ScheduleComputation::run() {
                 // Condition variable to wait for beginScheduling().
                 sched_cv.wait(lck);
             }
-            // Take snapshot of stream requests and network topology
-            stream_snapshot.update(stream_collection);
+            // Take snapshot of stream requests
+            stream_snapshot = stream_collection.getSnapshot();
         }
         
         // Get new graph snapshot if graph changed
@@ -142,13 +142,14 @@ void ScheduleComputation::run() {
 #else
             std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-            // Update stream_collection for printing result and notify REJECTED streams
+            // Update stream_collection for printing results and notify REJECTED streams
             /* NOTE: Here we need to change the stream status in stream_collection.
-            (note: we update the StreamCollection, not the snapshot)
+            (note: we compute the changes using the snapshot and then update the StreamCollection)
             Do NOT ever change here the status of the streams in StreamManager,
             because doing so would mean applying the schedule before its activation time.
             The status in StreamManager must be changed ONLY in the ScheduleDistribution */
-            stream_collection.receiveSchedule(newSchedule.schedule);
+            auto changes = stream_snapshot.getStreamChanges(newSchedule.schedule);
+            stream_collection.applyChanges(changes);
             // Overwrite current schedule with new one
             schedule.swap(newSchedule);
         }
