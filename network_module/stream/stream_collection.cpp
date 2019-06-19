@@ -34,6 +34,11 @@ namespace mxnet {
 
 void StreamCollection::receiveSMEs(UpdatableQueue<StreamId,
                                    StreamManagementElement>& smes) {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(coll_mutex);
+#else
+    std::unique_lock<std::mutex> lck(coll_mutex);
+#endif
     auto numSME = smes.size();
     for(unsigned int i=0; i < numSME; i++) {
         auto sme = smes.dequeue();
@@ -67,6 +72,11 @@ void StreamCollection::receiveSchedule(const std::list<ScheduleElement>& schedul
    - Set streams that are ACCEPTED in collection and present in schedule as ESTABLISHED
    - Set streams that are ACCEPTED in collection and missing from schedule as REJECTED
    - Remove the streams that are ESTABLISHED in collection and missing from schedule */
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(coll_mutex);
+#else
+    std::unique_lock<std::mutex> lck(coll_mutex);
+#endif
     // Create a copy of the collection keys,
     // to get the streams not present in schedule
     std::set<StreamId> streamsNotInSchedule;
@@ -111,19 +121,24 @@ void StreamCollection::receiveSchedule(const std::list<ScheduleElement>& schedul
 }
 
 std::vector<MasterStreamInfo> StreamCollection::getStreams() {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(coll_mutex);
+#else
+    std::unique_lock<std::mutex> lck(coll_mutex);
+#endif
     std::vector<MasterStreamInfo> result;
     for(auto& stream : collection)
         result.push_back(stream.second);
     return result;
 }
 
-void StreamCollection::enqueueInfo(StreamId id, InfoType type) {
-    InfoElement info(id, type);
-    // Add to sending queue
-    infoQueue.enqueue(id, info);
-}
 
 std::vector<InfoElement> StreamCollection::dequeueInfo(unsigned int num) {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(coll_mutex);
+#else
+    std::unique_lock<std::mutex> lck(coll_mutex);
+#endif
     std::vector<InfoElement> result;
     unsigned int i=0;
     while(i<num && !infoQueue.empty()) {
@@ -131,6 +146,12 @@ std::vector<InfoElement> StreamCollection::dequeueInfo(unsigned int num) {
         i++;
     }
     return result;
+}
+
+void StreamCollection::enqueueInfo(StreamId id, InfoType type) {
+    InfoElement info(id, type);
+    // Add to sending queue
+    infoQueue.enqueue(id, info);
 }
 
 void StreamCollection::updateStream(MasterStreamInfo& stream, StreamManagementElement& sme) {

@@ -34,6 +34,11 @@
 // For ReceiveUplinkMessage
 #include "../uplink_phase/uplink_message.h"
 #include <map>
+#ifdef _MIOSIX
+#include <miosix.h>
+#else
+#include <mutex>
+#endif
 
 namespace mxnet {
 
@@ -43,6 +48,7 @@ namespace mxnet {
  * If a schedule is being distributed, the status corresponds the next schedule.
  * It is used by ScheduleComputation
  */
+
 class StreamCollection {
     friend class StreamSnapshot;
 public:
@@ -58,19 +64,20 @@ public:
      */
     void receiveSchedule(const std::list<ScheduleElement>& schedule);
     /**
-     * @return the number of Info elements in queue
-     */
-    unsigned int getNumInfo() {
-        return infoQueue.size();
-    }
-    /**
      * @return vector containing all the streams
      */
     std::vector<MasterStreamInfo> getStreams();
     /**
-     * put a new info element in the queue
+     * @return the number of Info elements in queue
      */
-    void enqueueInfo(StreamId id, InfoType type);
+    unsigned int getNumInfo() {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(coll_mutex);
+#else
+        std::unique_lock<std::mutex> lck(coll_mutex);
+#endif
+        return infoQueue.size();
+    }
     /**
      * pops a number of Info elements from the Queue
      */
@@ -78,13 +85,19 @@ public:
     /**
      * @return true if the stream list was modified since last time the flag was cleared 
      */
-    bool wasModified() const {
+    bool wasModified() {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(coll_mutex);
+#else
+        std::unique_lock<std::mutex> lck(coll_mutex);
+#endif
         return modified_flag;
     };
 
 private:
     /**
      * Reset all the flags to false 
+     * NOTE: called with mutex already locked
      */
     void clearFlags() {
         modified_flag = false;
@@ -92,23 +105,33 @@ private:
         added_flag = false;
     }
     /**
+     * put a new info element in the queue
+     * NOTE: called with mutex already locked
+     */
+    void enqueueInfo(StreamId id, InfoType type);
+    /**
      * Called by receiveSMEs(), used to update the status of the Stream 
+     * NOTE: called with mutex already locked
      */
     void updateStream(MasterStreamInfo& stream, StreamManagementElement& sme);
     /**
      * Called by receiveSMEs(), used to update the status of the Server
+     * NOTE: called with mutex already locked
      */
     void updateServer(MasterStreamInfo& server, StreamManagementElement& sme);
     /**
      * Called by receiveSMEs(), used to create a new Stream in collection 
+     * NOTE: called with mutex already locked
      */
     void createStream(StreamManagementElement& sme);
     /**
      * Called by receiveSMEs(), used to create a new Server in collection
+     * NOTE: called with mutex already locked
      */
     void createServer(StreamManagementElement& sme);
     /**
      * Called by receiveSMEs(), used to create a new Server in collection
+     * NOTE: called with mutex already locked
      */
     StreamParameters negotiateParameters(StreamParameters& serverParams, StreamParameters& clientParams);
 
@@ -120,6 +143,15 @@ private:
     bool modified_flag = false;
     bool removed_flag = false;
     bool added_flag = false;
+
+    /* Mutex to protect concurrect access at collection and infoQueue
+     * from the TDMH thread and the scheduler thread */
+#ifdef _MIOSIX
+    miosix::Mutex coll_mutex;
+#else
+    std::mutex coll_mutex;
+#endif
+
 };
 
 /**
@@ -129,6 +161,7 @@ private:
  * and finally it takes care of preparing a list of changes to apply to the
  * real StreamCollection.
  */
+
 class StreamSnapshot {
 public:
     StreamSnapshot() {};
