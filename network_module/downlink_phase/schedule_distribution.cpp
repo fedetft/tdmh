@@ -49,13 +49,13 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
         if(e.getSrc() == nodeID && e.getTx() == nodeID)
             action = Action::SENDSTREAM;
         // Receive to stream case
-        if(e.getDst() == nodeID && e.getRx() == nodeID)
+        else if(e.getDst() == nodeID && e.getRx() == nodeID)
             action = Action::RECVSTREAM;
         // Send from buffer case (send saved multi-hop packet)
-        if(e.getSrc() != nodeID && e.getTx() == nodeID)
+        else if(e.getSrc() != nodeID && e.getTx() == nodeID)
             action = Action::SENDBUFFER;
         // Receive to buffer case (receive and save multi-hop packet)
-        if(e.getDst() != nodeID && e.getRx() == nodeID)
+        else if(e.getDst() != nodeID && e.getRx() == nodeID)
             action = Action::RECVBUFFER;
         // Apply action if different than SLEEP (to avoid overwriting already scheduled slots)
         if(action != Action::SLEEP) {
