@@ -54,7 +54,7 @@ try {
             false,         //staticHop
             6,             //panId
             5,             //txPower
-            2460,          //baseFrequency
+            2450,          //baseFrequency
             10000000000,   //clockSyncPeriod
             maxForwardedTopologiesFromMaxNumNodes(nodes), //maxForwardedTopologies
             1,             //numUplinkPackets
@@ -105,15 +105,15 @@ void Node::application() {
     /* Wait for TDMH to become ready */
     MACContext* ctx = tdmh->getMACContext();
     while(!ctx->isReady()) ;
-    Period p = Period::P1;
+    Period p = Period::P10;
     Redundancy r = Redundancy::TRIPLE_SPATIAL;
     /* Open Stream from node 1 */
     if(address == 1) {
-        //sendData(ctx, 0, p, r);
+        sendData(ctx, 0, p, r);
     }
     /* Open Stream from node 2 */
     if(address == 2) {
-        //sendData(ctx, 0, p, r);
+        sendData(ctx, 0, p, r);
     }
     /* Open Stream from node 3 */
     if(address == 3) {
@@ -121,23 +121,23 @@ void Node::application() {
     }
     /* Open Stream from node 4 */
     if(address == 4) {
-        //sendData(ctx, 0, p, r);
+        sendData(ctx, 0, p, r);
     }
     /* Open Stream from node 5 */
     if(address == 5) {
-        //sendData(ctx, 0, p, r);
+        sendData(ctx, 0, p, r);
     }
     /* Open Stream from node 6 */
     if(address == 6) {
-        //sendData(ctx, 0, p, r);
+        sendData(ctx, 0, p, r);
     }
     /* Open Stream from node 7 */
     if(address == 7) {
-        //sendData(ctx, 0, p, r);
+        sendData(ctx, 0, p, r);
     }
     /* Open Stream from node 8 */
     if(address == 8) {
-        //sendData(ctx, 0, p, r);
+        sendData(ctx, 0, p, r);
     }
 }
 

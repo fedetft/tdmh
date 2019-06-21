@@ -46,7 +46,7 @@ void RootNode::activity()
             false,         //staticHop
             6,             //panId
             5,             //txPower
-            2460,          //baseFrequency
+            2450,          //baseFrequency
             10000000000,   //clockSyncPeriod
             maxForwardedTopologiesFromMaxNumNodes(nodes), //maxForwardedTopologies
             1,             //numUplinkPackets
