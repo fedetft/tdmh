@@ -33,8 +33,8 @@
  * \param boundary boundary to align to
  * \return the smallest multiple of boundary greater than or equal to value
  */
-inline template<typename T>
-T align(T value, T boundary)
+template<typename T>
+inline T align(T value, T boundary)
 {
     return (value+boundary-1)/boundary*boundary;
 }
