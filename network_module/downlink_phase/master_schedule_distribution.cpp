@@ -30,6 +30,7 @@
 #include "../tdmh.h"
 #include "../util/packet.h"
 #include "../util/debug_settings.h"
+#include "../util/align.h"
 #include "timesync/networktime.h"
 
 using namespace miosix;
@@ -111,30 +112,33 @@ void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {
     unsigned long id;
     unsigned int tiles;
     schedule_comp.getSchedule(schedule,id,tiles);
-    auto currentTile = ctx.getCurrentTile(slotStart);
-    auto activationTile = 0;
-    unsigned numPackets = (schedule.size() / packetCapacity) + 1;
-    auto tilesToDistributeSchedule = getTilesToDistributeSchedule(numPackets);
+    unsigned int currentTile = ctx.getCurrentTile(slotStart);
+    unsigned int activationTile = 0;
+    unsigned int numPackets = (schedule.size()+packetCapacity-1) / packetCapacity;
+    unsigned int tilesToDistributeSchedule = getTilesToDistributeSchedule(numPackets);
     // Get scheduleTiles of the previous schedule (still saved in header)
-    auto lastScheduleTiles = header.getScheduleTiles();
+    unsigned int lastScheduleTiles = header.getScheduleTiles();
     // If last schedule is empty, skip schedule alignment
     if(lastScheduleTiles == 0) {
-        auto superframeSize = ctx.getNetworkConfig().getControlSuperframeStructure().size();
-        auto align = currentTile % superframeSize;
-        if(align) currentTile += superframeSize - align;        
-        activationTile = currentTile + tilesToDistributeSchedule;
+        unsigned int superframeSize = ctx.getNetworkConfig().getControlSuperframeStructure().size();      
+        // NOTE: tilesToDistributeSchedule is aligned to superframeSize
+        activationTile = align(currentTile,superframeSize) + tilesToDistributeSchedule;
     }
     // Align new schedule to last schedule
     else {
         // Use activationTile of the previous schedule (still saved in header)
-        auto currentScheduleTile = (currentTile - header.getActivationTile()) %
-                                   lastScheduleTiles;
-        auto remainingScheduleTiles = lastScheduleTiles - currentScheduleTile;
+        unsigned int lastActivationTile = header.getActivationTile();
+        if(currentTile < lastActivationTile)
+            print_dbg("[SD] BUG! currentTile=%2lu < lastActivationTile=%2lu\n",
+                      currentTile, lastActivationTile);
+        unsigned int currentScheduleTile = (currentTile - lastActivationTile) %
+                                           lastScheduleTiles;
+        unsigned int remainingScheduleTiles = lastScheduleTiles - currentScheduleTile;
         activationTile = currentTile + remainingScheduleTiles;
         // Add multiples of lastScheduleTiles to allow schedule distribution
         if ((activationTile - currentTile) < tilesToDistributeSchedule) {
-            auto moreTiles = (tilesToDistributeSchedule - (activationTile - currentTile));
-            auto align = moreTiles % lastScheduleTiles;
+            unsigned int moreTiles = (tilesToDistributeSchedule - (activationTile - currentTile));
+            unsigned int align = moreTiles % lastScheduleTiles;
             activationTile += moreTiles + (align ? lastScheduleTiles-align : 0);
         }
     }
@@ -148,7 +152,7 @@ void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {
     header = newheader;
 }
 
-unsigned long MasterScheduleDownlinkPhase::getTilesToDistributeSchedule(unsigned int numPackets) {
+unsigned int MasterScheduleDownlinkPhase::getTilesToDistributeSchedule(unsigned int numPackets) {
     auto superframeSize = ctx.getNetworkConfig().getControlSuperframeStructure().size();
     auto downlinkInSuperframe = ctx.getNetworkConfig().getNumDownlinkSlotperSuperframe();
     // TODO: make number of repetitions configurable

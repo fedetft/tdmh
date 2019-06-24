@@ -77,13 +77,18 @@ void ScheduleComputation::run() {
 #else
             std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-            // Wait for conditions to start scheduling
+            // Wait for beginScheduling() to start scheduling
             for(;;)
             {
-                if(uplink_phase->wasModified()) break;
-                if(stream_collection.wasModified()) break;
+              /* NOTE: The scheduler has to wait for beginScheduling()
+                 to synchronize the scheduling with the schedule distribution.
+                 Otherwise we may produce more than one scheduling back-to-back
+                 and cause DoS problems with stream opening or bugs when calculating
+                 new schedule activation time in MasterScheduleDistribution::getCurrentSchedule() */
                 // Condition variable to wait for beginScheduling().
                 sched_cv.wait(lck);
+                if(uplink_phase->wasModified()) break;
+                if(stream_collection.wasModified()) break;
             }
             // Take snapshot of stream requests
             stream_snapshot = stream_collection.getSnapshot();

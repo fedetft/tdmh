@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Federico Amedeo Izzo                           *
+ *   Copyright (C)  2019 by Federico Terraneo                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,46 +27,14 @@
 
 #pragma once
 
-#include "schedule_distribution.h"
-#include "../scheduler/schedule_computation.h"
-#include "../stream/stream_collection.h"
-
-namespace mxnet {
-
-class MasterScheduleDownlinkPhase : public ScheduleDownlinkPhase {
-public:
-    MasterScheduleDownlinkPhase(MACContext& ctx, ScheduleComputation& sch,
-                                StreamCollection* scoll);
-    MasterScheduleDownlinkPhase() = delete;
-    MasterScheduleDownlinkPhase(const MasterScheduleDownlinkPhase& orig) = delete;
-    virtual ~MasterScheduleDownlinkPhase() {};
-    void execute(long long slotStart) override;
-    /**
-     * Master node do not need resync since it never loses synchronization
-     */
-    void resync() override {};
-
-    /**
-     * Master node do not need desync since it never loses synchronization
-     */
-    void desync() override {};
-    void getCurrentSchedule(long long slotStart);
-    void sendSchedulePkt(long long slotstart);
-    void sendInfoPkt(long long slotstart);
-    void printHeader(ScheduleHeader& header);
-
-private:
-    unsigned int getTilesToDistributeSchedule(unsigned int numPackets);
-    // Last schedule element sent
-    unsigned position = 0;
-    unsigned downlinkSlots = 0;
-    unsigned packetCapacity = 0;
-
-    // Reference to ScheduleComputation class to get current schedule
-    ScheduleComputation& schedule_comp;
-    // Pointer to StreamCollection, used to get info elements to distribute
-    StreamCollection* const streamColl;
-};
-
+/**
+ * \tparam T an integer type
+ * \param value, a positive value to align to boundary
+ * \param boundary boundary to align to
+ * \return the smallest multiple of boundary greater than or equal to value
+ */
+inline template<typename T>
+T align(T value, T boundary)
+{
+    return (value+boundary-1)/boundary*boundary;
 }
-
