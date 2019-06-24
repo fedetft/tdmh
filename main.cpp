@@ -371,10 +371,16 @@ int main()
     case 0x243537015155c9bf:
         t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(7), Thread::JOINABLE);
         break;
-    case 0x2435370352C6aa9a:
+    case 0x2435370352c6aa9a:
         t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(8), Thread::JOINABLE);
         break;
-    default:        
+    case 0x243537015155bdba:
+        t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(9), Thread::JOINABLE);
+        break;
+    case 0x243537025155bdba:
+        t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(10), Thread::JOINABLE);
+        break;
+    default:     
         printf("ERROR: nodeID is not mapped to any node, halting!\n");
     }
 
