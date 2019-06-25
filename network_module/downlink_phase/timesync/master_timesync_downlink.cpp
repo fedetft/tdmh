@@ -57,7 +57,7 @@ void MasterTimesyncDownlink::execute(long long slotStart)
     packet.send(ctx, slotframeTime);
     ctx.transceiverIdle();
     if (ENABLE_TIMESYNC_DL_INFO_DBG) {
-        auto nt = NetworkTime::now();
+        auto nt = NetworkTime::fromLocalTime(slotStart);
         print_dbg("[T] ST=%lld NT=%lld\n", slotframeTime, nt.get());
     }
     if (false)
