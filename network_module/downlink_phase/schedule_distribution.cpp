@@ -144,9 +144,9 @@ void ScheduleDownlinkPhase::printCompleteSchedule() {
     } 
 }
 
-void ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
+bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
     if(explicitScheduleID == dataPhase->getScheduleID())
-        return;
+        return false;
     auto currentTile = ctx.getCurrentTile(slotStart);
     if (currentTile >= header.getActivationTile()) {
         if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
@@ -161,14 +161,14 @@ void ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
         streamMgr->applySchedule(schedule);
         // Apply info elements to StreamManager
         streamMgr->applyInfoElements(infos);
-        // NOTE: Setting this flag to false enables Schedule Computation
-        distributing = false;
+        return true;
     }
     else{
         if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
             print_dbg("[SD] Too early to activate schedule! current:%2lu activation:%2lu\n",
                       currentTile, header.getActivationTile());
     }
+    return false;
 }
 
 }

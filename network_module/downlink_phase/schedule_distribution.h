@@ -60,11 +60,6 @@ public:
      */
     void advance(long long slotStart) override {} //TODO
 
-    /* Used to check if the MasterScheduleDistribution is still distributing the schedule*/
-    bool distributingSchedule() {
-        return distributing;
-    };
-
     static const int phaseStartupTime = 450000;
     static const int rebroadcastInterval = 5000000; //32us per-byte + 600us total delta
 
@@ -86,8 +81,9 @@ protected:
     /* The new schedule must be set in the first downlink tile after the old schedule is over.
        This function calculates the tilesPassedTotal time indicator,
        if it is equal to the one in the schedule header,
-       replace expanded schedule in the dataphase with the new one */
-    void checkTimeSetSchedule(long long slotStart);
+       replace expanded schedule in the dataphase with the new one
+       @return true if the schedule has been applied, false otherwise */
+    bool checkTimeSetSchedule(long long slotStart);
 
     /* Constant value from NetworkConfiguration */
     const unsigned short panId;
@@ -102,7 +98,6 @@ protected:
     // Current schedule lenght in tiles
     unsigned long explicitScheduleID = 0;
     std::vector<ExplicitScheduleElement> explicitSchedule;
-    bool distributing = false;
 
     // Pointer to StreamManager, used to apply distributed schedule and info elements
     StreamManager* const streamMgr;

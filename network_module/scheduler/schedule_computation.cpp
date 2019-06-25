@@ -80,15 +80,18 @@ void ScheduleComputation::run() {
             // Wait for beginScheduling() to start scheduling
             for(;;)
             {
-              /* NOTE: The scheduler has to wait for beginScheduling()
-                 to synchronize the scheduling with the schedule distribution.
-                 Otherwise we may produce more than one scheduling back-to-back
-                 and cause DoS problems with stream opening or bugs when calculating
-                 new schedule activation time in MasterScheduleDistribution::getCurrentSchedule() */
-                // Condition variable to wait for beginScheduling().
+              /* NOTE: A new schedule has to be computed if the topology or
+                 streams have changed, but once a new schedule has been computed,
+                 the scheduling has to wait until the previous schedule has been
+                 applied. Otherwise, the getCurrentSchedule fails to compute the
+                 next activation time and the new schedule may not be aligned to
+                 the previous one */
+                if(scheduleNotApplied==false) {
+                    // Can compute a new schedule if required
+                    if(uplink_phase->wasModified()) break;
+                    if(stream_collection.wasModified()) break;
+                }
                 sched_cv.wait(lck);
-                if(uplink_phase->wasModified()) break;
-                if(stream_collection.wasModified()) break;
             }
             // Take snapshot of stream requests
             stream_snapshot = stream_collection.getSnapshot();
@@ -157,6 +160,8 @@ void ScheduleComputation::run() {
             stream_collection.applyChanges(changes);
             // Overwrite current schedule with new one
             schedule.swap(newSchedule);
+            // Mark the presence of a new schedule, not still applied
+            scheduleNotApplied = true;
         }
         finalPrint();
     }

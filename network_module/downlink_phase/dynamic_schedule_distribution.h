@@ -46,7 +46,6 @@ public:
         schedule.clear();
         explicitScheduleID = 0;
         explicitSchedule.clear();
-        distributing = false;
         // Derived class status
         received.clear();
         replaceCountdown = 5;

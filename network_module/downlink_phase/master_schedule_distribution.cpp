@@ -51,7 +51,6 @@ MasterScheduleDownlinkPhase::MasterScheduleDownlinkPhase(MACContext& ctx,
 void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     // Check for new schedule
     if(schedule_comp.getScheduleID() != header.getScheduleID()) {
-        distributing = true;
         getCurrentSchedule(slotStart);
         printSchedule(0);
         if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) {
@@ -90,7 +89,9 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
                 printExplicitSchedule(myID, true, explicitSchedule);
             }
         }
-        checkTimeSetSchedule(slotStart);
+        // Try to apply schedule, if it has been applied, notify scheduler
+        if(checkTimeSetSchedule(slotStart) == true)
+            schedule_comp.scheduleApplied();
         // If InfoElements available, send a SchedulePkt with InfoElements only
         if(streamColl->getNumInfo() != 0)
             sendInfoPkt(slotStart);

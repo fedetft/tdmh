@@ -103,6 +103,19 @@ public:
 #endif
         return schedule.id;
     }
+    /**
+     * Used by the ScheduleDownlink class to notify the scheduler that the previous
+     * schedule has been applied and a new one can be computed.
+     */
+    void scheduleApplied(){      
+        // Mutex lock to access schedule (shared with ScheduleDownlink).
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+        std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
+        scheduleNotApplied = false;
+    }
 
     StreamManager* getStreamManager() {
         return &stream_mgr;
@@ -194,6 +207,9 @@ private:
     StreamSnapshot stream_snapshot;
     // Class containing latest schedule, size in tiles and schedule ID
     Schedule schedule;
+    // Used to disable scheduling until the previous schedule
+    // has been distributed and applied
+    bool scheduleNotApplied = false;
 
     /* References to other classes */
     // Needed to get number of dataslots
