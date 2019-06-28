@@ -135,9 +135,9 @@ void masterNode(void*)
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
             3,             //maxRoundsUnavailableBecomesDead
-            -75,           //minNeighborRSSI
+            -85,           //minNeighborRSSI
             3,             //maxMissedTimesyncs
-            false          //channelSpatialReuse
+            true           //channelSpatialReuse
         );
         printf("Starting TDMH with maxForwardedTopologies=%d\n", maxForwardedTopologiesFromMaxNumNodes(maxNodes));
         MasterMediumAccessController controller(Transceiver::instance(), config);
@@ -173,9 +173,9 @@ void dynamicNode(void* argv)
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
             3,             //maxRoundsUnavailableBecomesDead
-            -75,           //minNeighborRSSI
+            -85,           //minNeighborRSSI
             3,             //maxMissedTimesyncs
-            false          //channelSpatialReuse
+            true           //channelSpatialReuse
         );
         printf("Starting TDMH with maxForwardedTopologies=%d\n", maxForwardedTopologiesFromMaxNumNodes(maxNodes));
         DynamicMediumAccessController controller(Transceiver::instance(), config);
