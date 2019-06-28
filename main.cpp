@@ -252,8 +252,10 @@ void streamThread(void *arg)
                    id.src, id.dst, len);
         }
     }
-    printf("[A] Stream (%d,%d) closed, status=", id.src, id.dst);
+    printf("[A] Stream (%d,%d) has been closed, status=", id.src, id.dst);
     printStatus(getInfo(stream).getStatus());
+    // NOTE: Remember to call close() after the stream has been closed remotely
+    mxnet::close(stream);
     delete s;
 }
 
