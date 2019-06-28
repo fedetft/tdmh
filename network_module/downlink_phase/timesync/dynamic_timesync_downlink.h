@@ -64,16 +64,16 @@ public:
     virtual long long getSlotframeStart() const { return measuredFrameStart - (ctx.getHop() - 1) * rebroadcastInterval; }
 protected:
     void rebroadcast(const Packet& pkt, long long arrivalTs);
-    /* Similar to isSyncPacket but checks also rssi to be above the threshold */
-    bool isResyncPacket(const Packet& packet, miosix::RecvResult r) {
-        if(r.rssi < ctx.getNetworkConfig().getMinNeighborRSSI())
-            return false;
-        return isSyncPacket(packet, r, false);
-    }
+    
     bool isSyncPacket(const Packet& packet, miosix::RecvResult r, bool synchronized) {
         auto panId = networkConfig.getPanId();
+        // Since when resyncing we only have one chance to select our hop
+        // be less conservative than the rest of the MAC in the RSSI threshold.
+        // The value has been selected as three sigma of the CC2520 RSSI standard
+        // deviation in an experimental setup
+        const int rssidelta = 5;
         // Ignore low RSSI packets if not syncronyzed
-        if(synchronized == false && r.rssi<networkConfig.getMinNeighborRSSI())
+        if(synchronized == false && r.rssi<networkConfig.getMinNeighborRSSI()-rssidelta)
             return false;
         if((r.timestampValid && packet.size() == syncPacketSize
             && packet[0] == 0x46 && packet[1] == 0x08
