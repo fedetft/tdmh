@@ -69,6 +69,7 @@ public:
     static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
     /**
      * Reset the internal status of the DataPhase after resynchronization
+     * to avoid playback of an old schedule
      */
     void resync() override {
         tileSlot = 0;
@@ -95,28 +96,42 @@ public:
      * taking effect in the next dataphase */
     void applySchedule(const std::vector<ExplicitScheduleElement>& newSchedule,
                        unsigned long newId, unsigned int newScheduleTiles,
-                       unsigned long newActivationTile, unsigned int currentTile) {
+                       unsigned long newActivationTile, unsigned int currentTile,
+                       bool lateActivation) {
         setSchedule(newSchedule);
         setScheduleID(newId);
         setScheduleTiles(newScheduleTiles);
         setScheduleActivationTile(newActivationTile);
-        print_dbg("[D] Schedule ID:%lu, StartTile:%lu activated at tile:%2u\n",
-                  newId, newActivationTile, currentTile);
+        if(lateActivation == false) {
+            // The tileSlot for a schedule activated on time is 0
+            tileSlot = 0;
+            print_dbg("[D] Schedule ID:%lu, StartTile:%lu activated at tile:%2u\n",
+                      newId, newActivationTile, currentTile);
+        }
+        else {
+            // Calculate current tileslot for a late schedule
+            // NOTE: tileSlot MUST be at the beginning of a tile
+            // (0 + scheduleTile * slotsInTile), with scheduleTile < scheduleSize
+            unsigned int scheduleTile = currentTile - scheduleActivationTile;
+            unsigned int slotsInTile = ctx.getSlotsInTileCount();
+            tileSlot = 0;
+            incrementSlot(scheduleTile * slotsInTile);
+            print_dbg("[D] Schedule ID:%lu, StartTile:%lu activated late at tile:%2u\n",
+                      newId, newActivationTile, currentTile);
+        }
     }
     /* Called from ScheduleDownlinkPhase class to check if the schedule is up to date */
     unsigned long getScheduleID() {
         return scheduleID;
     }
-    /**
-     * Calculates slot number in current schedule (dataSlot) after resyncing
-     */
-    void alignToNetworkTime(NetworkTime nt);
 
 private:
     void incrementSlot(unsigned int n = 1) {
         // Make sure that tileSlot is always in range {0;scheduleSlots}
         if(scheduleSlots != 0)
             tileSlot = (tileSlot + n) % scheduleSlots;
+        else
+            tileSlot = 0;
     }
     // Check streamId inside packet without extracting it
     bool checkStreamId(Packet pkt, StreamId streamId);

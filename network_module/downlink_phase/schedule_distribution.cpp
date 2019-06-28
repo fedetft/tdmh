@@ -147,14 +147,15 @@ void ScheduleDownlinkPhase::printCompleteSchedule() {
 bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
     if(explicitScheduleID == dataPhase->getScheduleID())
         return false;
-    auto currentTile = ctx.getCurrentTile(slotStart);
+    unsigned int currentTile = ctx.getCurrentTile(slotStart);
     if (currentTile >= header.getActivationTile()) {
         if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
             print_dbg("[SD] Activating schedule n.%2lu at tile n.%u\n", explicitScheduleID, currentTile);
         // Apply schedule to DataPhase
         dataPhase->applySchedule(explicitSchedule, explicitScheduleID,
                                  header.getScheduleTiles(),
-                                 header.getActivationTile(), currentTile);
+                                 header.getActivationTile(), currentTile,
+                                 currentTile > header.getActivationTile());
         // Apply schedule to StreamManager
         /* NOTE: we call applySchedule on the implicitSchedule to save time,
          * because implicit schedule is much smaller than explicit one */

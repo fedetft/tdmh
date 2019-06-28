@@ -142,7 +142,6 @@ void DynamicTimesyncDownlink::resyncTime() {
                                                  networkConfig.getClockSyncPeriod() - slotframeStart);
     auto ntNow = NetworkTime::fromLocalTime(slotframeStart);
     ctx.getUplink()->alignToNetworkTime(ntNow);
-    ctx.getDataPhase()->alignToNetworkTime(ntNow);
 
     if (ENABLE_TIMESYNC_DL_INFO_DBG)      
         print_dbg("[T] hop=%d NT=%lld ats=%lld w=%d rssi=%d\n",

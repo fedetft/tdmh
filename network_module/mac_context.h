@@ -246,11 +246,11 @@ public:
     std::pair<unsigned int, unsigned int> getCurrentTileAndSlot(NetworkTime nt) const {
         //NOTE: Given that there may be some clock
         //synchronization error, we add half a slot length to make it more robust
-        auto time = nt.get() + dataSlotDuration/2;
-        auto tileDuration = networkConfig.getTileDuration();
-        auto currentTile = time / tileDuration;
-        auto timeInCurrentTile = time % tileDuration;
-        auto slotInCurrentTile = timeInCurrentTile / dataSlotDuration;
+        unsigned long long time = nt.get() + dataSlotDuration/2;
+        unsigned long long tileDuration = networkConfig.getTileDuration();
+        unsigned int currentTile = time / tileDuration;
+        unsigned long long timeInCurrentTile = time % tileDuration;
+        unsigned int slotInCurrentTile = timeInCurrentTile / dataSlotDuration;
         return std::make_pair(currentTile, slotInCurrentTile);
     }
 

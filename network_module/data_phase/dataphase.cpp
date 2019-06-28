@@ -130,15 +130,6 @@ void DataPhase::receiveToBuffer(long long slotStart) {
         buffer.clear();
     }
 }
-void DataPhase::alignToNetworkTime(NetworkTime nt) {
-    auto tileAndSlot = ctx.getCurrentTileAndSlot(nt);
-    auto currentTile = tileAndSlot.first;
-    auto slotInCurrentTile = tileAndSlot.second;
-    // current tile in current Schedule (DataSuperFrame)
-    auto scheduleTile = currentTile - scheduleActivationTile;
-    auto slotsInTile = ctx.getSlotsInTileCount();
-    tileSlot = (scheduleTile * slotsInTile) + slotInCurrentTile;
-}
 bool DataPhase::checkStreamId(Packet pkt, StreamId streamId) {
     if(pkt.size() < 8)
         return false;
@@ -149,4 +140,3 @@ bool DataPhase::checkStreamId(Packet pkt, StreamId streamId) {
     return packetId == streamId;
 }
 }
-
