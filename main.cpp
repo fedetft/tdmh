@@ -382,6 +382,18 @@ int main()
     case 0x243537025155bdba:
         t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(10), Thread::JOINABLE);
         break;
+    case 0x243537025155bdca:
+        t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(11), Thread::JOINABLE);
+        break;
+    case 0x243537005155bdba:
+        t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(12), Thread::JOINABLE);
+        break;
+    case 0x243537035155bdba:
+        t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(13), Thread::JOINABLE);
+        break;
+    case 0x243537005155bdab:
+        t1 = Thread::create(dynamicNode, 2048, PRIORITY_MAX-1, new Arg(14), Thread::JOINABLE);
+        break;
     default:     
         printf("ERROR: nodeID is not mapped to any node, halting!\n");
     }
@@ -453,6 +465,36 @@ int main()
         openStream(0, port, clientParams);
         break;
     case 8:
+        // NOTE: decopmment the idle() function when openStream is commented
+        //idle();
+        openStream(0, port, clientParams);
+        break;
+    case 9:
+        // NOTE: decopmment the idle() function when openStream is commented
+        //idle();
+        openStream(0, port, clientParams);
+        break;
+    case 10:
+        // NOTE: decopmment the idle() function when openStream is commented
+        //idle();
+        openStream(0, port, clientParams);
+        break;
+    case 11:
+        // NOTE: decopmment the idle() function when openStream is commented
+        //idle();
+        openStream(0, port, clientParams);
+        break;
+    case 12:
+        // NOTE: decopmment the idle() function when openStream is commented
+        //idle();
+        openStream(0, port, clientParams);
+        break;
+    case 13:
+        // NOTE: decopmment the idle() function when openStream is commented
+        //idle();
+        openStream(0, port, clientParams);
+        break;
+    case 14:
         // NOTE: decopmment the idle() function when openStream is commented
         //idle();
         openStream(0, port, clientParams);
