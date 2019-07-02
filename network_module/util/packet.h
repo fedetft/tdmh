@@ -138,6 +138,15 @@ public:
     }
 
     /**
+     * This operator compares byte by byte the two Packets
+     */
+    bool operator==(const Packet& rhs);
+
+    bool operator!=(const Packet& rhs) {
+        return !(*this == rhs);
+    }
+
+    /**
      * This method Adds to the packet an IEEE 802.15.4 header, containing
      * a given panId, this is useful to distinguish TDMH packets from
      * generic ZigBee or other IEEE 802.15.4 packets

@@ -38,6 +38,11 @@
 #include <mutex>
 #include <condition_variable>
 #include <memory>
+
+// Enable this to check that second and third redundant packet received
+// are equal to the first one
+#define PEDANTIC_REDUNDANCY_CHECK
+
 // Implement IntrusiveRefCounted using shared_ptr
 namespace miosix {
 class IntrusiveRefCounted {};
@@ -80,9 +85,9 @@ public:
     }
     // TODO: The base class implementation of these functions should throw an error?
     // Used by derived class Stream 
-    virtual void receivePacket(const Packet& data) {}
+    virtual bool receivePacket(const Packet& data) { return false; }
     // Used by derived class Stream
-    virtual void missPacket() {}
+    virtual bool missPacket() { return false; }
     // Used by derived class Stream 
     virtual bool sendPacket(Packet& data) { return false; }
     // Used by derived class Stream 
@@ -194,10 +199,12 @@ public:
     int read(void* data, int maxSize) override;
 
     // Called by StreamManager, to put data to recvBuffer
-    void receivePacket(const Packet& data) override;
+    // Return true at the end of each period
+    bool receivePacket(const Packet& data) override;
 
     // Called by StreamManager, when we missed an inbound packet
-    void missPacket() override;
+    // Return true if we have data to send
+    bool missPacket() override;
 
     // Called by StreamManager, to get data from sendBuffer
     // Return true if we have data to send
@@ -251,10 +258,6 @@ public:
     unsigned char txCount = 0;
     unsigned char rxCount = 0;
     bool received = false;
-    // NOTE: generally write() create a packet for the next period
-    // Exceptionally, in the first period, we can create the packet for the actual
-    // period, to be able to send data also on the first period.
-    bool firstTxPeriod = true;
     bool txPacketReady = false;
     /* Variables shared with the application thread */
     bool receivedShared = false;
@@ -286,9 +289,14 @@ private:
     // Called by Stream itself, when the stream status changes and we need to wake up
     // the write and read methods
     void wakeWriteRead();
-    // Called by Stream::receivedPacket(), Strean::missedPacket(),
+    // Called by Stream::receivedPacket(), Stream::missedPacket(),
     // Used to update internal variables every stream period
-    void updateRxPacket();
+    // Return true at the end of each period
+    bool updateRxPacket();
+    // Called by Stream::sendPacket() on the first period, and
+    // at the end of every period.
+    // Used to update txPacket, the packet being sent
+    void updateTxPacket();
 };
 
 /**

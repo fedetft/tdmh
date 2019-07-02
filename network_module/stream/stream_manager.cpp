@@ -275,7 +275,7 @@ void StreamManager::periodicUpdate() {
     }
 }
 
-void StreamManager::receivePacket(StreamId id, const Packet& data) {
+bool StreamManager::receivePacket(StreamId id, const Packet& data) {
     Stream* stream;
     {
         // Lock map_mutex to access the shared Stream map
@@ -287,14 +287,14 @@ void StreamManager::receivePacket(StreamId id, const Packet& data) {
         // Check if a stream with these parameters is not present
         auto streamit = streams.find(id);
         if(streamit == streams.end()) {
-            return;
+            return false;
         }
         stream = streamit->second.get();
     }
-    stream->receivePacket(data);
+    return stream->receivePacket(data);
 }
 
-void StreamManager::missPacket(StreamId id) {
+bool StreamManager::missPacket(StreamId id) {
     Stream* stream;
     {
         // Lock map_mutex to access the shared Stream map
@@ -306,11 +306,11 @@ void StreamManager::missPacket(StreamId id) {
         // Check if a stream with these parameters is not present
         auto streamit = streams.find(id);
         if(streamit == streams.end()) {
-            return;
+            return false;
         }
         stream = streamit->second.get();
     }
-    stream->missPacket();
+    return stream->missPacket();
 }
 
 bool StreamManager::sendPacket(StreamId id, Packet& data) {

@@ -121,10 +121,10 @@ public:
     void periodicUpdate();
 
     // Used by the DataPhase class to put received data in the right buffer
-    void receivePacket(StreamId id, const Packet& data);
+    bool receivePacket(StreamId id, const Packet& data);
 
     // Used by the DataPhase class when an incoming packet is missed
-    void missPacket(StreamId id);
+    bool missPacket(StreamId id);
 
     // Used by the DataPhase class to get data to sent from the right buffer
     // Return true if we have data to send

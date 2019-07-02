@@ -89,10 +89,11 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     auto rcvResult = pkt.recv(ctx, slotStart);
     ctx.transceiverIdle();
+    bool periodEnd = false;
     if(rcvResult.error == RecvResult::ErrorCode::OK &&
        pkt.checkPanHeader(panId) == true &&
        checkStreamId(pkt, id) == true) {
-        stream.receivePacket(id, pkt);
+        periodEnd = stream.receivePacket(id, pkt);
         if(ENABLE_DATA_INFO_DBG) {
             auto nt = NetworkTime::fromLocalTime(slotStart);
             print_dbg("[D] Node %d: Received packet for stream (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
@@ -100,11 +101,15 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
     }
     // Avoid overwriting valid data
     else {
-        stream.missPacket(id);
+        periodEnd = stream.missPacket(id);
         if(ENABLE_DATA_ERROR_DBG) {
             auto nt = NetworkTime::fromLocalTime(slotStart);
             print_dbg("[D] Node %d: Missed packet for stream (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
         }
+    }
+    if(ENABLE_DATA_INFO_DBG || ENABLE_DATA_ERROR_DBG) {
+        if(periodEnd)
+            print_dbg("[D] Node %d: (%d,%d) --- \n", myId, id.src, id.dst);
     }
 }
 void DataPhase::sendFromBuffer(long long slotStart) {

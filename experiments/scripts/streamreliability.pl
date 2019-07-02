@@ -31,6 +31,9 @@ while(<>)
             
             if($ctr >= $octr) {
                 $osentctr += $ctr - $octr;
+            if($ctr > $octr+1) {
+                print "Note @ line $line: node ID=$id CTR went from $octr to $ctr, missed print\n";
+            }
             } else {
                 print "Note @ line $line: node ID=$id CTR went from $octr to $ctr, closed stream?\n";
                 $oclosed++;

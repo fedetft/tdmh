@@ -75,6 +75,7 @@ int Stream::write(const void* data, int size) {
     }
     try {
         StreamId id = info.getStreamId();
+        nextTxPacket.clear();
         // Put panHeader to distinguish TDMH packets from other 802.15.4 packets
         nextTxPacket.putPanHeader(panId);
         // Put streamId to distinguish TDMH packets of this streams
@@ -127,55 +128,36 @@ int Stream::read(void* data, int maxSize) {
     return -1;
 }
 
-void Stream::receivePacket(const Packet& data) {
+bool Stream::receivePacket(const Packet& data) {
+#ifdef PEDANTIC_REDUNDANCY_CHECK
+    if(received && rxCount > 0) {
+        if(rxPacket != data)
+            print_dbg("[E] Redundant Packet mismatch\n");
+    }
+#endif
     // NOTE: we use a duplicated rxPacket to acquire data before locking the mutex
     rxPacket = data;
     received = true;
-    updateRxPacket();
+    return updateRxPacket();
 }
 
-void Stream::missPacket() {
+bool Stream::missPacket() {
     // No data to receive
-    updateRxPacket();
+    return updateRxPacket();
 }
 
 bool Stream::sendPacket(Packet& data) {
     // Stream Redundancy logic
-    if(++txCount >= redundancyCount || firstTxPeriod == true) {
-        if(firstTxPeriod == false)
-            txCount = 0;
-        firstTxPeriod = false;
-        // Reset received packet counter
-        {
-            // Lock mutex for shared access with application thread
-#ifdef _MIOSIX
-            miosix::Lock<miosix::FastMutex> lck(tx_mutex);
-#else
-            std::unique_lock<std::mutex> lck(tx_mutex);
-#endif
-            // Packet for next period is ready
-            if(nextTxPacketReady == true) {
-                txPacket = nextTxPacket;
-                txPacketReady = true;
-                nextTxPacket.clear();
-                nextTxPacketReady = false;
-            }
-            // Packet for next period is NOT ready
-            else
-                txPacketReady = false;
-#ifdef _MIOSIX
-            tx_cv.signal();
-#else
-            tx_cv.notify_one();
-#endif
-        }
-    }
-    if(txPacketReady) {
+    // NOTE: We update the packet before sending it
+    // for the first time of the current period.
+    if(txCount == 0)
+        updateTxPacket();
+    if(++txCount >= redundancyCount)
+        txCount = 0;
+    // Copy the txPacket to the DataPhase
+    if(txPacketReady)
         data = txPacket;
-        return true;
-    }
-    else
-        return false;
+    return txPacketReady;
 }
 
 void Stream::addedStream(StreamParameters newParams) {
@@ -475,7 +457,7 @@ void Stream::wakeWriteRead() {
     }
 }
 
-void Stream::updateRxPacket() {
+bool Stream::updateRxPacket() {
     // Stream Redundancy logic
     if(++rxCount >= redundancyCount) {
         // Reset received packet counter
@@ -500,7 +482,32 @@ void Stream::updateRxPacket() {
             rx_cv.notify_one();
 #endif
         }
+        return true;
     }
+    return false;
+}
+
+void Stream::updateTxPacket() {
+    // Lock mutex for shared access with application thread
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(tx_mutex);
+#else
+    std::unique_lock<std::mutex> lck(tx_mutex);
+#endif
+    // Packet for next period is ready
+    if(nextTxPacketReady == true) {
+        txPacket = nextTxPacket;
+        txPacketReady = true;
+        nextTxPacketReady = false;
+#ifdef _MIOSIX
+        tx_cv.signal();
+#else
+        tx_cv.notify_one();
+#endif
+    }
+    // Packet for next period is NOT ready
+    else
+        txPacketReady = false;
 }
 
 int Server::listen(StreamManager* mgr) {

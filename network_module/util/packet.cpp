@@ -115,6 +115,14 @@ RecvResult Packet::recv(MACContext& ctx, long long tExpected, function<bool (con
     return result;
 }
 
+bool Packet::operator==(const Packet& rhs) {
+    for(int i=0; i<dataSize; i++) {
+        if(packet[i] != rhs.packet[i])
+            return false;
+    }
+    return true;
+}
+
 void Packet::putPanHeader(unsigned short panId) {
     unsigned char panHeader[] = {
                                  0x46, //frame type 0b110 (reserved), intra pan
