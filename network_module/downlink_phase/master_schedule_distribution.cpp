@@ -116,7 +116,7 @@ void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {
     unsigned int currentTile = ctx.getCurrentTile(slotStart);
     unsigned int activationTile = 0;
     unsigned int numPackets = (schedule.size()+packetCapacity-1) / packetCapacity;
-    unsigned int tilesToDistributeSchedule = getTilesToDistributeSchedule(numPackets);
+    unsigned int tilesToDistributeSchedule = getTilesToDistributeSchedule(numPackets, currentTile);
     // Get scheduleTiles of the previous schedule (still saved in header)
     unsigned int lastScheduleTiles = header.getScheduleTiles();
     // If last schedule is empty, skip schedule alignment
@@ -153,15 +153,26 @@ void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {
     header = newheader;
 }
 
-unsigned int MasterScheduleDownlinkPhase::getTilesToDistributeSchedule(unsigned int numPackets) {
-    auto superframeSize = ctx.getNetworkConfig().getControlSuperframeStructure().size();
-    auto downlinkInSuperframe = ctx.getNetworkConfig().getNumDownlinkSlotperSuperframe();
+unsigned int MasterScheduleDownlinkPhase::getTilesToDistributeSchedule(unsigned int numPackets,
+                                                                       unsigned int currentTile) {
+    unsigned int superframeSize = ctx.getNetworkConfig().getControlSuperframeStructure().size();
+    unsigned int downlinkInSuperframe = ctx.getNetworkConfig().getNumDownlinkSlotperSuperframe();
     // TODO: make number of repetitions configurable
-    auto numRepetition = 3;
-    auto downlinkNeeded = numPackets * numRepetition;
-    auto result = downlinkNeeded / downlinkInSuperframe;
-    if(downlinkNeeded % downlinkInSuperframe) result++;
-    return result * superframeSize;
+    unsigned int numRepetition = 3;
+    unsigned int downlinkNeeded = numPackets * numRepetition;
+    unsigned int superframeNeeded = downlinkNeeded / downlinkInSuperframe;
+    if(downlinkNeeded % downlinkInSuperframe) superframeNeeded++;
+    unsigned int tiles = superframeNeeded * superframeSize;
+    unsigned int endTimesyncCount = ctx.getNumTimesyncs(currentTile + tiles);
+    unsigned int beginTimesyncCount = ctx.getNumTimesyncs(currentTile);
+    unsigned int numTimesync = endTimesyncCount - beginTimesyncCount;
+    unsigned int result = tiles + (numTimesync + downlinkInSuperframe - 1) /
+        downlinkInSuperframe * superframeSize;
+    // FIXME: incomplete algorithm
+    if ((ctx.getNumTimesyncs(currentTile + result) - beginTimesyncCount) > numTimesync) {
+        result += superframeSize;
+    }
+    return result;
 }
 
 void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {

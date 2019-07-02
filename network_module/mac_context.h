@@ -254,6 +254,14 @@ public:
         return std::make_pair(currentTile, slotInCurrentTile);
     }
 
+    /**
+     * @return the number of timesyncs occured before tileCounter
+     */
+    unsigned int getNumTimesyncs(unsigned int tileCounter) const {
+        int tilesPerTimesync = controlSuperframe.size() * networkConfig.getNumSuperframesPerClockSync();
+        return (tileCounter + tilesPerTimesync - 1) / tilesPerTimesync;
+    }
+
     void run();
 
     void stop();

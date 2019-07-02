@@ -56,7 +56,7 @@ public:
     void printHeader(ScheduleHeader& header);
 
 private:
-    unsigned int getTilesToDistributeSchedule(unsigned int numPackets);
+    unsigned int getTilesToDistributeSchedule(unsigned int numPackets, unsigned int currentTile);
     // Last schedule element sent
     unsigned position = 0;
     unsigned downlinkSlots = 0;
