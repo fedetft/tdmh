@@ -129,7 +129,7 @@ int Stream::read(void* data, int maxSize) {
 }
 
 bool Stream::receivePacket(const Packet& data) {
-#ifdef PEDANTIC_REDUNDANCY_CHECK
+#ifdef REDUNDANCY_DEBUG_CHECK
     if(received && rxCount > 0) {
         if(rxPacket != data)
             print_dbg("[E] Redundant Packet mismatch\n");

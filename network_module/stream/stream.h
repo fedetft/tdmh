@@ -41,7 +41,8 @@
 
 // Enable this to check that second and third redundant packet received
 // are equal to the first one
-#define PEDANTIC_REDUNDANCY_CHECK
+// NOTE: This is a heavy debug check, disable if not necessary
+#define REDUNDANCY_DEBUG_CHECK
 
 // Implement IntrusiveRefCounted using shared_ptr
 namespace miosix {
