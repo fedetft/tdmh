@@ -153,12 +153,16 @@ bool Stream::sendPacket(Packet& data) {
 #else
             std::unique_lock<std::mutex> lck(tx_mutex);
 #endif
+            // Packet for next period is ready
             if(nextTxPacketReady == true) {
                 txPacket = nextTxPacket;
                 txPacketReady = true;
                 nextTxPacket.clear();
                 nextTxPacketReady = false;
             }
+            // Packet for next period is NOT ready
+            else
+                txPacketReady = false;
 #ifdef _MIOSIX
             tx_cv.signal();
 #else
