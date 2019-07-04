@@ -114,65 +114,142 @@ void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {
     unsigned int tiles;
     schedule_comp.getSchedule(schedule,id,tiles);
     unsigned int currentTile = ctx.getCurrentTile(slotStart);
-    unsigned int activationTile = 0;
     unsigned int numPackets = (schedule.size()+packetCapacity-1) / packetCapacity;
-    unsigned int tilesToDistributeSchedule = getTilesToDistributeSchedule(numPackets, currentTile);
+    
+    // Get the earliest tile when we can activate the schedule, not considering
+    // that it must be aligned to the end of the previous schedule, if there is one
+    unsigned int activationTile = getActivationTile(currentTile, numPackets);
+    
     // Get scheduleTiles of the previous schedule (still saved in header)
     unsigned int lastScheduleTiles = header.getScheduleTiles();
-    // If last schedule is empty, skip schedule alignment
-    if(lastScheduleTiles == 0) {
-        unsigned int superframeSize = ctx.getNetworkConfig().getControlSuperframeStructure().size();      
-        // NOTE: tilesToDistributeSchedule is aligned to superframeSize
-        activationTile = align(currentTile,superframeSize) + tilesToDistributeSchedule;
-    }
-    // Align new schedule to last schedule
-    else {
+    if(lastScheduleTiles > 0)
+    {
         // Use activationTile of the previous schedule (still saved in header)
         unsigned int lastActivationTile = header.getActivationTile();
         if(currentTile < lastActivationTile)
             print_dbg("[SD] BUG! currentTile=%2lu < lastActivationTile=%2lu\n",
                       currentTile, lastActivationTile);
-        unsigned int currentScheduleTile = (currentTile - lastActivationTile) %
-                                           lastScheduleTiles;
-        unsigned int remainingScheduleTiles = lastScheduleTiles - currentScheduleTile;
-        activationTile = currentTile + remainingScheduleTiles;
-        // Add multiples of lastScheduleTiles to allow schedule distribution
-        if ((activationTile - currentTile) < tilesToDistributeSchedule) {
-            unsigned int moreTiles = (tilesToDistributeSchedule - (activationTile - currentTile));
-            unsigned int align = moreTiles % lastScheduleTiles;
-            activationTile += moreTiles + (align ? lastScheduleTiles-align : 0);
-        }
+        
+        // The first beginning of a schedule that is at or after activationTile
+        unsigned int alignedActivationTile = lastActivationTile;
+        alignedActivationTile += (activationTile + lastScheduleTiles - 1 - lastActivationTile)
+                                 / lastScheduleTiles * lastScheduleTiles;
+        
+        // But wait, there's more corner cases! The aligned activation tile
+        // must not be a timesync, if it is, we have to postpone activation
+        // by a full (old) schedule
+        unsigned int isActivationTileATimesync = ctx.getNumTimesyncs(alignedActivationTile + 1)
+                                               - ctx.getNumTimesyncs(alignedActivationTile);
+        
+        if(isActivationTileATimesync) alignedActivationTile += lastScheduleTiles;
+        
+        unsigned int bugTwoConsecutiveTimesyncs = ctx.getNumTimesyncs(alignedActivationTile + 1)
+                                                - ctx.getNumTimesyncs(alignedActivationTile);
+        if(bugTwoConsecutiveTimesyncs)
+            print_dbg("[SD] BUG! two consecutive timesyncs (aat=%u, lst=%u lat=%u)\n",
+                      alignedActivationTile, lastScheduleTiles, lastActivationTile);
+
+        activationTile = alignedActivationTile;
     }
-    // Build a header for the new schedule
-    ScheduleHeader newheader(
-                             numPackets,         // totalPacket
-                             0,                  // currentPacket
-                             id,                 // scheduleID
-                             activationTile,     // activationTile
-                             tiles);             // scheduleTiles
-    header = newheader;
+    
+    // Build a header for the new schedule                    
+    header = ScheduleHeader(
+        numPackets,         // totalPacket
+        0,                  // currentPacket
+        id,                 // scheduleID
+        activationTile,     // activationTile
+        tiles);             // scheduleTiles
 }
 
-unsigned int MasterScheduleDownlinkPhase::getTilesToDistributeSchedule(unsigned int numPackets,
-                                                                       unsigned int currentTile) {
-    unsigned int superframeSize = ctx.getNetworkConfig().getControlSuperframeStructure().size();
-    unsigned int downlinkInSuperframe = ctx.getNetworkConfig().getNumDownlinkSlotperSuperframe();
-    // TODO: make number of repetitions configurable
-    unsigned int numRepetition = 3;
-    unsigned int downlinkNeeded = numPackets * numRepetition;
-    unsigned int superframeNeeded = downlinkNeeded / downlinkInSuperframe;
-    if(downlinkNeeded % downlinkInSuperframe) superframeNeeded++;
-    unsigned int tiles = superframeNeeded * superframeSize;
-    unsigned int endTimesyncCount = ctx.getNumTimesyncs(currentTile + tiles);
-    unsigned int beginTimesyncCount = ctx.getNumTimesyncs(currentTile);
-    unsigned int numTimesync = endTimesyncCount - beginTimesyncCount;
-    unsigned int result = tiles + (numTimesync + downlinkInSuperframe - 1) /
-        downlinkInSuperframe * superframeSize;
-    // FIXME: incomplete algorithm
-    if ((ctx.getNumTimesyncs(currentTile + result) - beginTimesyncCount) > numTimesync) {
-        result += superframeSize;
+unsigned int MasterScheduleDownlinkPhase::getActivationTile(unsigned int currentTile,
+                                                            unsigned int numPackets)
+{
+    // This function assumes that in the current tile no packet will be sent,
+    // then 3*numPackets need to be sent, one per free downlink (i.e a downlink
+    // not occupied by a timesync), and the activation tile needs to be the
+    // first free downlink after the last packet has been sent.
+    // NOTE: the activtion tile also needs to be aligned to a control superframe
+    // as the schedule has "holes" for the downlink and uplink, which are of
+    // different number of slots.
+    unsigned int numDownlinks = 3 * numPackets;
+    
+    // The first tile that we consider is currentTile + 1 because in
+    // currentTile no packet is sent
+    const unsigned int firstTile = currentTile + 1;
+    
+    auto cs = ctx.getNetworkConfig().getControlSuperframeStructure();
+    const unsigned int csSize = cs.size();
+    const unsigned int csDownlinks = cs.countDownlinkSlots();
+    
+    // First, since a control superframe can have multiple downlinks, we need
+    // to align to the beginning of a control superframe
+    unsigned int activationTile = firstTile;
+    unsigned int phase = firstTile % csSize;
+    if(phase != 0)
+    {
+        while(phase < csSize)
+        {
+            if(cs.isControlDownlink(phase) && numDownlinks>0) numDownlinks--;
+            phase++;
+            activationTile++;
+        }
+    } // else we're already aligned
+    
+    // Now we compute a tentative activationTile without considering
+    // that some downlinks may be unavailable due to clocksyncs, and
+    // at the end we consider timesyncs. As adding more control superframes
+    // to account for clocksyncs may encompass even more clocksyncs, we need
+    // to iterate until no more timesyncs occur in the newly added superframes
+    unsigned int begin = firstTile;
+    for(int i = 0;;i++)
+    {
+        assert(i < 10);
+        
+        const unsigned int numControlSuperframes = numDownlinks / csDownlinks;
+        
+        activationTile += numControlSuperframes * csSize;
+        numDownlinks   -= numControlSuperframes * csDownlinks;
+        
+        // If numDownlinks is not divisible by csDownlinks, we add a full
+        // control superframe (remember that activation tile must be aligned?)
+        // but we also note the free downlinks that may remain
+        unsigned int remaining = 0;
+        if(numDownlinks > 0)
+        {
+            activationTile += csSize;
+            assert(csDownlinks >= numDownlinks);
+            remaining = csDownlinks - numDownlinks;
+        }
+
+        unsigned int numTimesyncs = ctx.getNumTimesyncs(activationTile)
+                                  - ctx.getNumTimesyncs(begin);
+                                  
+        unsigned int isActivationTileATimesync = ctx.getNumTimesyncs(activationTile + 1)
+                                               - ctx.getNumTimesyncs(activationTile);
+        
+        // Three possible cases to handle
+        if(numTimesyncs > remaining)
+        {
+            // We need more downlinks to send packets, set numDownlinks and redo
+            // because adding more control superframes to account for clocksyncs
+            // may encompass even more clocksyncs
+            numDownlinks = numTimesyncs - remaining;
+            begin = activationTile;
+        } else if(isActivationTileATimesync == 1) {
+            // Here we have our last corner case. The activation tile must not
+            // be a timesync. Even if there are remaining downlinks free, we
+            // must advance to the next control superframe or we would activate
+            // the schedule late. Note that if this control superframe starts
+            // with a timesync, the next one will not, so no need to iterate
+            activationTile += csSize;
+            break;
+        } else {
+            // Nothing to do 
+            break;
+        }
     }
-    return result;
+    
+    return activationTile;
 }
 
 void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
