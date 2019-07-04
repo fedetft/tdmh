@@ -49,10 +49,10 @@ MasterScheduleDownlinkPhase::MasterScheduleDownlinkPhase(MACContext& ctx,
 }
 
 void MasterScheduleDownlinkPhase::execute(long long slotStart) {
-    // Check for new schedule
+    // If a new schedule is available
     if(schedule_comp.getScheduleID() != header.getScheduleID()) {
         getCurrentSchedule(slotStart);
-        printSchedule(0);
+        distributing = true;
         if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) {
             // Print schedule packet report
             print_dbg("[SD] Schedule Packet structure:\n");
@@ -66,47 +66,39 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
         if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)        
             printCompleteSchedule();
 #endif
+        // If we updated the schedule, wait for the next Downlink before
+        // sending the first packet
+        return;
     }
-    // ScheduleID = 0 means the first schedule is not ready
-    if(header.getScheduleID() == 0) {
+    if(distributing == false) {
         // If InfoElements available, send a SchedulePkt with InfoElements only
         if(streamColl->getNumInfo() != 0)
             sendInfoPkt(slotStart);
         return;
-    }
-    if(header.getRepetition() >= 3){
-        // Stop after sending third schedule repetition
-        // Then calculate the explicit schedule
-        if(explicitScheduleID != header.getScheduleID()) {
-            // Apply newest schedule by expanding it            
-            auto myID = ctx.getNetworkId();
-            auto newExplicitSchedule = expandSchedule(myID);
-            explicitSchedule = std::move(newExplicitSchedule);
-            explicitScheduleID = header.getScheduleID();
-            if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) {
-                print_dbg("[SD] Calculated explicit schedule n.%2lu, tiles:%d, slots:%d\n",
-                          explicitScheduleID, header.getScheduleTiles(), explicitSchedule.size());
-                printExplicitSchedule(myID, true, explicitSchedule);
+    } else {
+        // If we are still sending the schedule
+        if(header.getRepetition() < 3) {
+            if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)
+                printHeader(header);
+            // NOTE: schedulePkt includes also info elements
+            sendSchedulePkt(slotStart);
+            header.incrementPacketCounter();
+            if(header.getCurrentPacket() >= header.getTotalPacket()) {
+                /* Reset schedule element index */
+                position = 0;
+                header.resetPacketCounter();
+                header.incrementRepetition();
             }
         }
-        // Try to apply schedule, if it has been applied, notify scheduler
-        if(checkTimeSetSchedule(slotStart) == true)
-            schedule_comp.scheduleApplied();
-        // If InfoElements available, send a SchedulePkt with InfoElements only
-        if(streamColl->getNumInfo() != 0)
-            sendInfoPkt(slotStart);
-        return;
+        // If we already sent the schedule three times
+        else {
+            // Try to apply schedule, if applied, notify the scheduler
+            if(checkTimeSetSchedule(slotStart) == true) {
+                schedule_comp.scheduleApplied();
+                distributing = false;
+            }
+        }
     }
-    if(header.getCurrentPacket() >= header.getTotalPacket()) {
-        /* Reset schedule element index */
-        position = 0;
-        header.resetPacketCounter();
-        header.incrementRepetition();
-    }
-    if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)
-        printHeader(header);
-    sendSchedulePkt(slotStart);
-    header.incrementPacketCounter();
 }
 
 void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {

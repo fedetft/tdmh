@@ -145,6 +145,18 @@ void ScheduleDownlinkPhase::printCompleteSchedule() {
 }
 
 bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
+    // Calculate the explicit schedule to activate
+    if(explicitScheduleID != header.getScheduleID()) {
+        auto myID = ctx.getNetworkId();
+        explicitSchedule = expandSchedule(myID);
+        explicitScheduleID = header.getScheduleID();
+        if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) {
+            print_dbg("[SD] Calculated explicit schedule n.%2lu, tiles:%d, slots:%d\n",
+                      explicitScheduleID, header.getScheduleTiles(), explicitSchedule.size());
+            printExplicitSchedule(myID, true, explicitSchedule);
+        }
+    }
+
     if(explicitScheduleID == dataPhase->getScheduleID())
         return false;
     unsigned int currentTile = ctx.getCurrentTile(slotStart);

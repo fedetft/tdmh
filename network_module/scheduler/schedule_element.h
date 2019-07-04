@@ -73,7 +73,7 @@ public:
 
     ScheduleHeader(unsigned int totalPacket, unsigned int currentPacket,
                    unsigned long scheduleID=0, unsigned long activationTile=0,
-                   unsigned int scheduleTiles=0, unsigned char repetition=1)
+                   unsigned int scheduleTiles=0, unsigned char repetition=0)
     {
         header.totalPacket = totalPacket;
         header.currentPacket = currentPacket;
@@ -98,12 +98,12 @@ public:
     void incrementRepetition() {
         // Prevent overflow (2 bit number)
         if(header.repetition == 3)
-            header.repetition = 1;
+            header.repetition = 0;
         else
             header.repetition++;
     }
     void resetPacketCounter() { header.currentPacket = 0; }
-    void resetRepetition() { header.repetition = 1; }
+    void resetRepetition() { header.repetition = 0; }
     void setActivationTile(unsigned long tilenum) { header.activationTile = tilenum; }
 
 private:

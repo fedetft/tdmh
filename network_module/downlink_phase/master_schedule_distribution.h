@@ -61,6 +61,7 @@ private:
     unsigned position = 0;
     unsigned downlinkSlots = 0;
     unsigned packetCapacity = 0;
+    bool distributing = false;
 
     // Reference to ScheduleComputation class to get current schedule
     ScheduleComputation& schedule_comp;

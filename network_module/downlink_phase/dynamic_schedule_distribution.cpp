@@ -154,7 +154,7 @@ void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
 
 void DynamicScheduleDownlinkPhase::calculateCountdown(ScheduleHeader& newHeader) {
     // Becomes 1 with 3rd repetition (0 = replace schedule)
-    replaceCountdown = 4 - newHeader.getRepetition();
+    replaceCountdown = 3 - newHeader.getRepetition();
 }
 
 bool DynamicScheduleDownlinkPhase::isScheduleComplete() {
