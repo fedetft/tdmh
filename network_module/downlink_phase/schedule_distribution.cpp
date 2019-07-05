@@ -145,7 +145,11 @@ void ScheduleDownlinkPhase::printCompleteSchedule() {
 }
 
 bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
-    // Calculate the explicit schedule to activate
+    // NOTE: The schedule can be explicited as soon as possible or toghether
+    // with schedule activation, we decided to do it as soon as possible
+    // because no info element can be sent during the slots in which we check
+    // for activation.
+    // Calculating the explicit schedule is possible and equivalent to what we do now
     if(explicitScheduleID != header.getScheduleID()) {
         auto myID = ctx.getNetworkId();
         explicitSchedule = expandSchedule(myID);
@@ -156,9 +160,9 @@ bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
             printExplicitSchedule(myID, true, explicitSchedule);
         }
     }
-
+    // Schedule has been already activated, return true to resume the scheduler
     if(explicitScheduleID == dataPhase->getScheduleID())
-        return false;
+        return true;
     unsigned int currentTile = ctx.getCurrentTile(slotStart);
     if (currentTile >= header.getActivationTile()) {
         if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)

@@ -106,7 +106,8 @@ void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {
     unsigned int tiles;
     schedule_comp.getSchedule(schedule,id,tiles);
     unsigned int currentTile = ctx.getCurrentTile(slotStart);
-    unsigned int numPackets = (schedule.size()+packetCapacity-1) / packetCapacity;
+    //NOTE: An empty schedule still requires 1 packet to send the scheduleHeader
+    unsigned int numPackets = std::max<unsigned int>(1,(schedule.size()+packetCapacity-1) / packetCapacity);
     
     // Get the earliest tile when we can activate the schedule, not considering
     // that it must be aligned to the end of the previous schedule, if there is one
