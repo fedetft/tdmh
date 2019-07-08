@@ -32,6 +32,7 @@
 #include "../downlink_phase/schedule_distribution.h"
 #include "../downlink_phase/timesync/networktime.h"
 #include "../stream/stream_manager.h"
+#include "../util/align.h"
 
 namespace mxnet {
 /**
@@ -62,11 +63,9 @@ public:
         incrementSlot(slots);
     }
     static unsigned long long getDuration() {
-        return packetArrivalAndProcessingTime + transmissionInterval;
+        long long processingTime=1500000; //TODO: benchmark
+        return align(MACContext::radioTime(MediumAccessController::maxDataPktSize)+processingTime,1000000LL);
     }
-    static const int transmissionInterval = 1000000; //1ms
-    static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
-    static const int packetTime = 4256000;//physical time for transmitting/receiving the packet: 4256us
     /**
      * Reset the internal status of the DataPhase after resynchronization
      * to avoid playback of an old schedule

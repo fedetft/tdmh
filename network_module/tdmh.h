@@ -79,15 +79,19 @@ public:
     void runAsync();
     void stop();
     //5 byte (4 preamble, 1 SFD) * 32us/byte
-    static const unsigned int packetPreambleTime = 160000;
+    static const unsigned int packetPreambleTime = 160000; //TODO move to timesync
     //350us and forced receiverWindow=1 fails, keeping this at minimum
     //This is dependent on the optimization level, i usually use level -O2
-    static const unsigned int maxPropagationDelay = 100;
-    static const unsigned int receivingNodeWakeupAdvance = 450000;
+    static const unsigned int maxPropagationDelay = 100; //TODO ?
+    static const unsigned int receivingNodeWakeupAdvance = 450000; //TODO fine tune and move to timesync
     //Minimum ~550us, 200us of slack added
-    static const unsigned int sendingNodeWakeupAdvance = 500000; //500 us TODO fine tune, it was guessed, used to be 750
+    static const unsigned int sendingNodeWakeupAdvance = 500000; //TODO fine tune and move to timesync
     static const unsigned char maxPktSize = 125;
-    static const unsigned char maxPktSizeNoCRC = 127;
+    // NOTE: control code fills Packet classes up to its max size without other
+    // checks, and the max size of Packet is maxPktSize, so setting
+    // maxControlPktSize to anything but maxPktSize requires a refactoring
+    static const unsigned char maxControlPktSize = maxPktSize;
+    static const unsigned char maxDataPktSize = 125;
 
     MACContext* const getMACContext() const { return ctx; }
 

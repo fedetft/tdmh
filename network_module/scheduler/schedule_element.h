@@ -218,7 +218,7 @@ public:
             elements.size();
     }
     static unsigned int getPacketCapacity() {
-        return (MediumAccessController::maxPktSize - (panHeaderSize + ScheduleHeader::maxSize()))
+        return (MediumAccessController::maxControlPktSize - (panHeaderSize + ScheduleHeader::maxSize()))
             / ScheduleElement::maxSize();
     }
     ScheduleHeader getHeader() const { return header; }

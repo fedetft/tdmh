@@ -156,6 +156,17 @@ public:
      */
     inline void transceiverIdle() { transceiver.idle(); }
 
+    /**
+     * Returns the number of us needed to transmit a packet of packetBytes
+     */
+    static long long radioTime(int payloadBytes)
+    {
+        const long long radioStartup = 192000; //Time for the PLL to start
+        const long long byteTime = 32000;      //The radio takes 32us to transmit each byte (250Kbit/s)
+        const unsigned int overheadBytes = 8;  //4 byte preamble, sfd, length, 2 byte crc
+        return radioStartup + (payloadBytes + overheadBytes) * byteTime;
+    }
+
     inline void sleepUntil(long long wakeup) const
     {
         if(sleepDeep) pm.deepSleepUntil(wakeup);
