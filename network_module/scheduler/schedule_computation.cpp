@@ -458,9 +458,7 @@ bool ScheduleComputation::checkAllConflicts(std::list<ScheduleElement> other_str
 bool ScheduleComputation::checkDataSlot(unsigned offset, unsigned tile_size,
                                         unsigned downlink_size,
                                         unsigned uplink_size) {
-    /* NOTE: offsets are 0-based, so we need to add 1 when comparing to downlink_size (1-based)
-       we don't need to add 1 to the tile number since tile numbers are 0-based
-       NOTE: superframe.isControlDownlink/Uplink() accepts a number from 0 to (tileSize-1)
+    /* NOTE: superframe.isControlDownlink/Uplink() accepts a number from 0 to (tileSize-1)
        so we need to convert the tile number to the position in the superframe
        we can do so by using the remainder operation */
 
@@ -468,9 +466,9 @@ bool ScheduleComputation::checkDataSlot(unsigned offset, unsigned tile_size,
     unsigned tile = offset / tile_size;
     unsigned tilePos = tile % superframe.size();
     // Calculate position in current tile
-    unsigned slot = (offset % tile_size) + 1;
-    if((superframe.isControlDownlink(tilePos) && (slot <= downlink_size)) ||
-       (superframe.isControlUplink(tilePos) && (slot <= uplink_size)))
+    unsigned slot = offset % tile_size;
+    if((superframe.isControlDownlink(tilePos) && (slot < downlink_size)) ||
+       (superframe.isControlUplink(tilePos) && (slot < uplink_size)))
         return false;
     return true;
 }

@@ -31,6 +31,7 @@
 #include "uplink_phase/uplink_phase.h"
 #include "data_phase/dataphase.h"
 #include "interfaces-impl/transceiver.h"
+#include "util/align.h"
 #include <type_traits>
 #include <stdexcept>
 
@@ -61,14 +62,11 @@ void MACContext::calculateDurations() {
     dataSlotDuration = DataPhase::getDuration();
     uplinkSlotDuration = UplinkPhase::getDuration(networkConfig.getNumUplinkPackets());
     /* Align the Uplink slot duration is a multiple of the Data slot duration */
-    if (uplinkSlotDuration % dataSlotDuration != 0)
-        uplinkSlotDuration = (uplinkSlotDuration / dataSlotDuration + 1) * dataSlotDuration;
-    auto downlinkMaxDuration = std::max(ScheduleDownlinkPhase::getDuration(networkConfig.getMaxHops()), TimesyncDownlink::getDuration(networkConfig.getMaxHops()));
+    uplinkSlotDuration = align(uplinkSlotDuration, dataSlotDuration);
+    auto scheduleDownlinkDuration = ScheduleDownlinkPhase::getDuration(networkConfig.getMaxHops());
+    auto timesyncDownlinkDuration = TimesyncDownlink::getDuration(networkConfig.getMaxHops());
     /* Align the Downlink slot duration is a multiple of the Data slot duration */
-    if (downlinkMaxDuration % dataSlotDuration == 0)
-        downlinkSlotDuration = downlinkMaxDuration;
-    else
-        downlinkSlotDuration = (downlinkMaxDuration / dataSlotDuration + 1) * dataSlotDuration;
+    downlinkSlotDuration = align(std::max(scheduleDownlinkDuration, timesyncDownlinkDuration), dataSlotDuration);
 
     auto tileDuration = networkConfig.getTileDuration();
     /* Tile size in number of data slots, needed for the scheduler */
