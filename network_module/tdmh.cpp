@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C)  2017 by Terraneo Federico, Polidori Paolo              *
+ *   Copyright (C) 2017-2019 by Terraneo Federico, Polidori Paolo,         *
+ *   Federico Amedeo Izzo                                                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *

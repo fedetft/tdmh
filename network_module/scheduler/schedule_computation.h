@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C)  2018 by Federico Amedeo Izzo                           *
+ *   Copyright (C) 2018-2019 by Federico Amedeo Izzo                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -26,7 +26,6 @@
  ***************************************************************************/
 
 #pragma once
-
 
 #include "../stream/stream_manager.h"
 #include "../stream/stream_collection.h"
