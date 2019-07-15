@@ -30,6 +30,10 @@
 #define MASTERNODE true
 
 namespace mxnet {
+
+//less understandable but short messages, useful when bandwidth is at limit
+const bool COMPRESSED_DBG = true;
+    
 //prints info if receiving a packet
 const bool ENABLE_PKT_INFO_DBG = false;
 

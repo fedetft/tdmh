@@ -242,15 +242,27 @@ void streamThread(void *arg)
         int len = mxnet::read(stream, &data, sizeof(data));
         if(len > 0) {
             if(len == sizeof(data))
-                printf("[A] Received data from (%d,%d): ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
+            {
+                if(COMPRESSED_DBG==false)
+                    printf("[A] Received data from (%d,%d): ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
                        id.src, id.dst, data.id, data.time, data.minHeap, data.heap, data.counter);
-            else
-                printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
+                else
+                    printf("[A] R (%d,%d) ID=%d T=%lld MH=%u C=%u\n",
+                       id.src, id.dst, data.id, data.time, data.minHeap, data.counter);
+            } else {
+                if(COMPRESSED_DBG==false)
+                    printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
                        id.src, id.dst, len);
+                else
+                    printf("[E] W (%d,%d) %d\n", id.src, id.dst, len);
+            }
         }
         else if(len == -1) {
-            printf("[E] No data received from Stream (%d,%d): %d\n",
+            if(COMPRESSED_DBG==false)
+                printf("[E] No data received from Stream (%d,%d): %d\n",
                    id.src, id.dst, len);
+            else
+                printf("[E] M (%d,%d)\n", id.src, id.dst);
         }
     }
     printf("[A] Stream (%d,%d) has been closed, status=", id.src, id.dst);

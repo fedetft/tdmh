@@ -78,7 +78,10 @@ void DataPhase::sendFromStream(long long slotStart, StreamId id) {
         ctx.transceiverIdle();
         if(ENABLE_DATA_INFO_DBG) {
             auto nt = NetworkTime::fromLocalTime(slotStart);
-            print_dbg("[D] Node %d: Sent packet for stream (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
+            if(COMPRESSED_DBG==false)
+                print_dbg("[D] Node %d: Sent packet for stream (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
+            else
+                print_dbg("[D] s (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
         }
     }
     else
@@ -96,7 +99,10 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
         periodEnd = stream.receivePacket(id, pkt);
         if(ENABLE_DATA_INFO_DBG) {
             auto nt = NetworkTime::fromLocalTime(slotStart);
-            print_dbg("[D] Node %d: Received packet for stream (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
+            if(COMPRESSED_DBG==false)
+                print_dbg("[D] Node %d: Received packet for stream (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
+            else
+                print_dbg("[D] r (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
         }
     }
     // Avoid overwriting valid data
@@ -104,12 +110,20 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
         periodEnd = stream.missPacket(id);
         if(ENABLE_DATA_ERROR_DBG) {
             auto nt = NetworkTime::fromLocalTime(slotStart);
-            print_dbg("[D] Node %d: Missed packet for stream (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
+            if(COMPRESSED_DBG==false)
+                print_dbg("[D] Node %d: Missed packet for stream (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
+            else
+                print_dbg("[D] m (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
         }
     }
     if(ENABLE_DATA_INFO_DBG || ENABLE_DATA_ERROR_DBG) {
         if(periodEnd)
-            print_dbg("[D] Node %d: (%d,%d) --- \n", myId, id.src, id.dst);
+        {
+            if(COMPRESSED_DBG==false)
+                print_dbg("[D] Node %d: (%d,%d) --- \n", myId, id.src, id.dst);
+            else
+                print_dbg("[D] - (%d,%d)\n", myId, id.src, id.dst);
+        }
     }
 }
 void DataPhase::sendFromBuffer(long long slotStart) {
