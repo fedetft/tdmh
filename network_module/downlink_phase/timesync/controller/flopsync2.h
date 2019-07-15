@@ -66,7 +66,7 @@ public:
     /**
      * \return the synchronization error e(k)
      */
-    int getSyncError() const { return eo; }
+    int getSyncError() const { return eo*controllerScaleFactor; }
     
     /**
      * \return the clock correction u(k)
