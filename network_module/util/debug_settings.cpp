@@ -49,7 +49,7 @@ namespace mxnet {
  * Threaded logger configuration parameters
  */
 const unsigned int maxMessageSize=128;  ///< Max size of individual debug message
-const unsigned int maxQueueSize=60*128; ///< Max size of queued logging data
+const unsigned int maxQueueSize=80*128; ///< Max size of queued logging data
 
 class DebugPrinter
 {
