@@ -157,7 +157,9 @@ public:
     inline void transceiverIdle() { transceiver.idle(); }
 
     /**
-     * Returns the number of us needed to transmit a packet of packetBytes
+     * \param payloadBytes number of bytes of payload
+     * \return the time in nanoseconds needed to transmit a packet with the
+     * given number of payload bytes, assuming CRC is enabled
      */
     static long long radioTime(int payloadBytes)
     {
