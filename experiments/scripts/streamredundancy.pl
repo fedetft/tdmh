@@ -9,7 +9,8 @@ my %streams;
 while(<STDIN>)
 {
     $line++;
-    if(/\[D\] Node 0: Received packet for stream \((\d+),(\d+)\)/) {
+    if(/\[D\] Node 0: Received packet for stream \((\d+),(\d+)\)/ ||
+       /\[D\] r \((\d+),(\d+)\)/) {
         my $src=$1, my $dst=$2;
 
         my $key="$src-$dst";
@@ -36,7 +37,8 @@ while(<STDIN>)
                 ];
         }
 
-    } elsif(/\[D\] Node 0: Missed packet for stream \((\d+),(\d+)\)/) {
+    } elsif(/\[D\] Node 0: Missed packet for stream \((\d+),(\d+)\)/ ||
+            /\[D\] m \((\d+),(\d+)\)/) {
         my $src=$1, my $dst=$2;
 
         my $key="$src-$dst";
@@ -60,7 +62,8 @@ while(<STDIN>)
                 ];
         }
 
-    } elsif(/\[D\] Node 0: \((\d+),(\d+)\) ---/) {
+    } elsif(/\[D\] Node 0: \((\d+),(\d+)\) ---/ ||
+            /\[D\] - \((\d+),(\d+)\)/) {
         my $src=$1, my $dst=$2;
 
         my $key="$src-$dst";

@@ -11,11 +11,13 @@ print "stream [$streamsrc-$streamdst]\n";
 
 while(<STDIN>)
 {
-    if(/\[A\] Received data from \((\d+),(\d+)\)/) {
+    if(/\[A\] Received data from \((\d+),(\d+)\)/ ||
+       /\[A\] R \((\d+),(\d+)\)/) {
         my $src=$1, my $dst=$2;
         print "1" if $src==$streamsrc && $dst==$streamdst;
 
-    } elsif(/\[E\] No data received from Stream \((\d+),(\d+)\)/) {
+    } elsif(/\[E\] No data received from Stream \((\d+),(\d+)\)/ ||
+            /\[E\] M \((\d+),(\d+)\)/) {
         my $src=$1, my $dst=$2;
         print "0" if $src==$streamsrc && $dst==$streamdst;
     }

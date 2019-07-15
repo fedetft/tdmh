@@ -10,8 +10,9 @@ my %streams;
 while(<>)
 {
     $line++;
-    if(/\[A\] Received data from \((\d+),(\d+)\): ID=(\d+) Time=(\d+) MinHeap=(\d+) Heap=(\d+) Counter=(\d+)/) {
-        my $src=$1, my $dst=$2, my $id=$3, my $t=$4, my $mheap=$5, my $ctr=$7;
+    if(/\[A\] Received data from \((\d+),(\d+)\): ID=(\d+) Time=(\d+) MinHeap=(\d+) Heap=\d+ Counter=(\d+)/ ||
+       /\[A\] R \((\d+),(\d+)\) ID=(\d+) T=(\d+) MH=(\d+) C=(\d+)/) {
+        my $src=$1, my $dst=$2, my $id=$3, my $t=$4, my $mheap=$5, my $ctr=$6;
 
         my $error=0;
         if($src != $id) { print "Error @ line $line: SRC=$src != ID=$id\n"; $error++; } 
@@ -72,7 +73,8 @@ while(<>)
                 ];
         }
 
-    } elsif(/\[E\] No data received from Stream \((\d+),(\d+)\)/) {
+    } elsif(/\[E\] No data received from Stream \((\d+),(\d+)\)/ ||
+            /\[E\] M \((\d+),(\d+)\)/) {
 
         my $src=$1, my $dst=$2;
 
@@ -112,10 +114,6 @@ while(<>)
                     1       # Packets explicitly not received
                 ];
         }
-
-    } elsif(/\[D\] Node 0: Received packet for stream (\d,0) NT=\d/) {
-
-    } elsif(/\[D\] Node 0: Missed packet for stream (\d,0) NT=\d/) {
 
     }
 }
