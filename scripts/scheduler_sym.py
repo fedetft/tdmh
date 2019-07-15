@@ -193,17 +193,6 @@ def scheduler(topology, req_streams, data_slots):
         err_block = False;
         num_streams_in_block = 0;
         for stream in stream_block:
-            # If a stream in a block cannot be scheduled, 
-            # undo the whole block,
-            # then break block cycle
-            if err_block:
-                if sch_debug:
-                    print('Block scheduling failed, removing streams of block ' + repr(stream_block))
-                for i in range(num_streams_in_block):
-                    schedule.pop();
-                    schedule.pop();
-                break;
-
             for timeslot in range(last_ts, data_slots):
                 if sch_debug:
                     print('Checking stream ' + repr(stream) + ' on timeslot ' + repr(timeslot))
@@ -251,7 +240,17 @@ def scheduler(topology, req_streams, data_slots):
             # Last-timeslot + conflict = unschedulable stream
             if timeslot == data_slots - 1:
                 err_block = True;
-    
+            # If a stream in a block cannot be scheduled, 
+            # undo the whole block,
+            # then break block cycle
+            if err_block:
+                if sch_debug:
+                    print('Block scheduling failed, removing streams of block ' + repr(stream_block))
+                for i in range(num_streams_in_block):
+                    schedule.pop();
+                    schedule.pop();
+                break;
+
     if sch_raw_print:
         ### Print Raw Schedule
         print('\nResulting schedule')
