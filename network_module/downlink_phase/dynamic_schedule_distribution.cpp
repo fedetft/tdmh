@@ -153,8 +153,8 @@ void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
 }
 
 void DynamicScheduleDownlinkPhase::calculateCountdown(ScheduleHeader& newHeader) {
-    // Becomes 1 with 3rd repetition (0 = replace schedule)
-    replaceCountdown = 3 - newHeader.getRepetition();
+    // Becomes 1 with last repetition (0 = replace schedule)
+    replaceCountdown = scheduleRepetitions - newHeader.getRepetition();
 }
 
 bool DynamicScheduleDownlinkPhase::isScheduleComplete() {
@@ -171,7 +171,8 @@ void DynamicScheduleDownlinkPhase::replaceRunningSchedule() {
     schedule = nextSchedule;
     infos = nextInfos;
     // Apply info elements to StreamManager
-    // NOTE: apply info element here because we received 3 times the schedule
+    // NOTE: apply info element here because we received N times the schedule packet
+    // with N = scheduleRepetitions
     // If we don't apply them, they can be lost or remain in the queue
     streamMgr->applyInfoElements(infos);
 }

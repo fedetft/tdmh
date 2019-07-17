@@ -77,7 +77,7 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
         return;
     } else {
         // If we are still sending the schedule
-        if(header.getRepetition() < 3) {
+        if(header.getRepetition() < scheduleRepetitions) {
             if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)
                 printHeader(header);
             // NOTE: schedulePkt includes also info elements
@@ -158,13 +158,14 @@ unsigned int MasterScheduleDownlinkPhase::getActivationTile(unsigned int current
                                                             unsigned int numPackets)
 {
     // This function assumes that in the current tile no packet will be sent,
-    // then 3*numPackets need to be sent, one per free downlink (i.e a downlink
-    // not occupied by a timesync), and the activation tile needs to be the
-    // first free downlink after the last packet has been sent.
+    // then scheduleRepetitions*numPackets need to be sent,
+    // one per free downlink (i.e a downlink not occupied by a timesync),
+    // and the activation tile needs to be the first free downlink after the
+    // last packet has been sent.
     // NOTE: the activtion tile also needs to be aligned to a control superframe
     // as the schedule has "holes" for the downlink and uplink, which are of
     // different number of slots.
-    unsigned int numDownlinks = 3 * numPackets;
+    unsigned int numDownlinks = scheduleRepetitions * numPackets;
     
     // The first tile that we consider is currentTile + 1 because in
     // currentTile no packet is sent

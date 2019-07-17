@@ -56,7 +56,7 @@ struct ScheduleHeaderPkt {
     unsigned int scheduleID:32;
     unsigned int activationTile:32;
     unsigned int scheduleTiles:16;
-    unsigned int repetition:2;
+    unsigned int repetition:8;
 } __attribute__((packed));
 
 struct ScheduleElementPkt {
@@ -96,10 +96,6 @@ public:
     unsigned char getRepetition() const { return header.repetition; }
     void incrementPacketCounter() { header.currentPacket++; }
     void incrementRepetition() {
-        // Prevent overflow (2 bit number)
-        if(header.repetition == 3)
-            header.repetition = 0;
-        else
             header.repetition++;
     }
     void resetPacketCounter() { header.currentPacket = 0; }
