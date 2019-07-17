@@ -61,7 +61,7 @@ public:
 
     static const int phaseStartupTime = 450000;
     static const int rebroadcastInterval = 5000000; //32us per-byte + 600us total delta
-    static const int scheduleRepetitions = 3;
+    static const int scheduleRepetitions = 4;
 
 protected:
     ScheduleDownlinkPhase(MACContext& ctx) : MACPhase(ctx),
