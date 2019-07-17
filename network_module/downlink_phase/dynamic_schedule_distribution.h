@@ -33,7 +33,8 @@ namespace mxnet {
 
 class DynamicScheduleDownlinkPhase : public ScheduleDownlinkPhase {
 public:
-    DynamicScheduleDownlinkPhase(MACContext& ctx) : ScheduleDownlinkPhase(ctx) {};
+    DynamicScheduleDownlinkPhase(MACContext& ctx) : ScheduleDownlinkPhase(ctx),
+                                                    myId(ctx.getNetworkId()) {};
     DynamicScheduleDownlinkPhase() = delete;
     DynamicScheduleDownlinkPhase(const DynamicScheduleDownlinkPhase& orig) = delete;
     void execute(long long slotStart) override;
@@ -44,13 +45,11 @@ public:
         // Base class status
         header = ScheduleHeader();
         schedule.clear();
+        infos.clear();
         explicitScheduleID = 0;
         explicitSchedule.clear();
         // Derived class status
         received.clear();
-        replaceCountdown = 5;
-        nextHeader = ScheduleHeader();
-        nextSchedule.clear();
     };
     /**
      * This method is called after desynchronization
@@ -58,25 +57,22 @@ public:
     void desync() override {};
 
     virtual ~DynamicScheduleDownlinkPhase() {};
-    ScheduleHeader decodePacket(Packet& pkt);
+    void extractInfoElements(SchedulePacket& spkt);
     void printHeader(ScheduleHeader& header);
-    void calculateCountdown(ScheduleHeader& newHeader);
     bool isScheduleComplete();
-    void replaceRunningSchedule();
     void printStatus();
 
 private:
+    /* NetworkId of this node */
+    unsigned char myId;
+
     // Vector of bool with size = total packets of a schedule
     // To check if all the schedule packets are received
     std::vector<bool> received;
-    // Countdown for replacing current schedule
-    // Initial value = 5, Replaced if = 0
-    unsigned int replaceCountdown = 5;
-    // Next schedule being received
-    ScheduleHeader nextHeader;
-    std::vector<ScheduleElement> nextSchedule;
-    // Next vector of info elements being received
-    std::vector<InfoElement> nextInfos;
+    /* NOTE: we don't need to save here a copy of the current schedule
+       being distributed, as we need only the copy in the base class.
+       This is because the master can produce a new schedule only after
+       the previous one has been activated */
 };
 
 }

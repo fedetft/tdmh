@@ -219,6 +219,10 @@ public:
     }
     ScheduleHeader getHeader() const { return header; }
     std::vector<ScheduleElement> getElements() const { return elements; }
+    void popElements(int n) {
+        for(int i = 0; i < n; i++)
+            elements.pop_back();
+    }
     void setHeader(ScheduleHeader& newHeader) { header = newHeader; }
     void putElement(ScheduleElement& el) { elements.push_back(el); }
     void putInfoElement(InfoElement& el) { elements.push_back(static_cast<ScheduleElement>(el)); }

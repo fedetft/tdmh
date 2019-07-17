@@ -35,111 +35,86 @@ using namespace miosix;
 namespace mxnet {
 
 void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
-    auto myID = ctx.getNetworkId();
     Packet pkt;
     // Receive the schedule packet
     auto arrivalTime = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     auto rcvResult = pkt.recv(ctx, arrivalTime);
     ctx.transceiverIdle(); //Save power waiting for rebroadcast time
-    // No schedule received
-    if (rcvResult.error != RecvResult::ErrorCode::OK || pkt.checkPanHeader(panId) == false) {
-        if(replaceCountdown != 5 && replaceCountdown != 0)
-            replaceCountdown--;
-    }
-    // Schedule received
-    else {
+    // Received a valid schedule packet
+    if (rcvResult.error == RecvResult::ErrorCode::OK && pkt.checkPanHeader(panId) == true) {
         // Retransmit the schedule packet unless you belong to maximum hop
         if(ctx.getHop() < ctx.getNetworkConfig().getMaxHops()) {
             ctx.configureTransceiver(ctx.getTransceiverConfig());
             pkt.send(ctx, rcvResult.timestamp + rebroadcastInterval);
             ctx.transceiverIdle();
         }
-
         // Parse the schedule packet
-        ScheduleHeader newHeader = decodePacket(pkt);
-
+        SchedulePacket spkt = SchedulePacket::deserialize(pkt);
+        ScheduleHeader newHeader = spkt.getHeader();
         if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
             printHeader(newHeader);
-        // If we received a complete schedule, calculate activation time
-        if(isScheduleComplete())
-            calculateCountdown(newHeader);
-    }
-    // Check replaceCountdown
-    if(isScheduleComplete() &&
-       (replaceCountdown == 0) &&
-       (nextHeader.getScheduleID() != header.getScheduleID())) {
-        replaceRunningSchedule();
-        if(explicitScheduleID != header.getScheduleID()) {
-            if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
-                printSchedule(myID);
-            std::vector<ExplicitScheduleElement> NewExplicitSchedule = expandSchedule(myID);
-            explicitSchedule = std::move(NewExplicitSchedule);
-            explicitScheduleID = header.getScheduleID();
-            if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG) {
-                print_dbg("[SD] Explicit schedule:\n");
-                printExplicitSchedule(myID, true, explicitSchedule);                
+        // Received Info Packet (no ScheduleElements)
+        if(newHeader.getTotalPacket() == 0){
+            std::vector<ScheduleElement> elements = spkt.getElements();
+            infos = std::vector<InfoElement>(elements.begin(), elements.end());
+        }
+        // Received Schedule + Info packet
+        else {
+            // Extract and delete info elements from packet
+            extractInfoElements(spkt);
+            // We received a new schedule, replace currently received
+            if((newHeader.getScheduleID() != header.getScheduleID())) {
+                if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
+                    print_dbg("[SD] Node:%d New schedule received!\n", myId);
+                // Resize the received bool vector to the size of the new schedule
+                received.clear();
+                received.resize(newHeader.getTotalPacket(), false);
+                // Set current packet as received
+                received.at(newHeader.getCurrentPacket()) = true;
+                // Replace old schedule header and elements
+                header = newHeader;
+                schedule = spkt.getElements();
+            }
+            // We are receiving another part of the same schedule, we accept it if:
+            // - schedule ID is equal to the saved one (else block)
+            // - packet has not been already received (avoid duplicates)
+            else if(!received.at(newHeader.getCurrentPacket())) {
+                if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
+                    print_dbg("[SD] Node:%d Piece %d of schedule received!\n", myId, newHeader.getCurrentPacket());
+                // Set current packet as received
+                received.at(newHeader.getCurrentPacket()) = true;
+                // Replace old schedule header
+                header = newHeader;
+                // Add elements from received packet to new schedule
+                std::vector<ScheduleElement> elements = spkt.getElements();
+                schedule.insert(schedule.end(), elements.begin(), elements.end());
             }
         }
+        // If we received info elements, apply them
+        if(!infos.empty()) {            
+            streamMgr->applyInfoElements(infos);
+            infos.clear();
+        }
     }
-    if(isScheduleComplete() && (nextHeader.getScheduleID() == header.getScheduleID())) {
-        // The check on schedule activation must be done only after receiving the
-        // first schedule (copied from nextSchedule in replaceRunningSchedule())
+    // If we received a complete schedule, check application tile
+    if(isScheduleComplete()) {
         checkTimeSetSchedule(slotStart);
     }
     //printStatus();
 }
 
-ScheduleHeader DynamicScheduleDownlinkPhase::decodePacket(Packet& pkt) {
-    SchedulePacket spkt = SchedulePacket::deserialize(pkt);
-    ScheduleHeader newHeader = spkt.getHeader();
+void DynamicScheduleDownlinkPhase::extractInfoElements(SchedulePacket& spkt) {
     std::vector<ScheduleElement> elements = spkt.getElements();
-    unsigned int numPackets = newHeader.getTotalPacket();
-    // Received Info Packet
-    if(numPackets == 0){
-        nextInfos = std::vector<InfoElement>(elements.begin(), elements.end());
+    // Check for Info Elements and separate them from Schedule Elements
+    auto firstInfo = std::find_if(elements.begin(), elements.end(),
+                                  [](ScheduleElement s){
+                                      return (s.getTx()==0 && s.getRx()==0);
+                                  });
+    if(firstInfo != elements.end()) {
+        infos = std::vector<InfoElement>(firstInfo, elements.end());
+        spkt.popElements(infos.size());
     }
-    // Received Schedule + Info packet
-    else {
-        auto myID = ctx.getNetworkId();
-        // Check for Info Elements and separate them from Schedule Elements
-        auto firstInfo = std::find_if(elements.begin(), elements.end(), [](ScheduleElement s){
-                         return (s.getTx()==0 && s.getRx()==0); });
-        if(firstInfo != elements.end()) {
-            nextInfos = std::vector<InfoElement>(firstInfo, elements.end());
-            elements.erase(firstInfo, elements.end());
-        }
-        // We received a new schedule, replace currently received
-        if((newHeader.getScheduleID() != nextHeader.getScheduleID())) {
-            if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
-                print_dbg("[SD] Node:%d New schedule received!\n", myID);
-            nextHeader = newHeader;
-            nextSchedule = elements;
-            // Resize the received bool vector to the size of the new schedule
-            received.clear();
-            received.resize(newHeader.getTotalPacket(), false);
-            // Set current packet as received
-            received.at(newHeader.getCurrentPacket()) = true;
-            // Reset the schedule replacement countdown;
-            replaceCountdown = 5;
-        }
-        // We are receiving another part of the same schedule, we accept it if:
-        // - repetition number is higher or equal than the saved one
-        // - packet has not been already received (avoid duplicates)
-        else if((newHeader.getScheduleID() == nextHeader.getScheduleID()) &&
-                (newHeader.getRepetition() >= nextHeader.getRepetition()) &&
-                (!received.at(newHeader.getCurrentPacket()))) {
-            if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
-                print_dbg("[SD] Node:%d Piece %d of schedule received!\n", myID, newHeader.getCurrentPacket());
-            // Set current packet as received
-            received.at(newHeader.getCurrentPacket()) = true;
-            nextHeader = newHeader;
-            // Add elements from received packet to new schedule
-            nextSchedule.insert(nextSchedule.begin(), elements.begin(), elements.end());
-        }
-        // If we receive an header with ID less of what we have, discard it
-    }
-    return newHeader;
 }
 
 void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
@@ -152,11 +127,6 @@ void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
               header.getRepetition());
 }
 
-void DynamicScheduleDownlinkPhase::calculateCountdown(ScheduleHeader& newHeader) {
-    // Becomes 1 with last repetition (0 = replace schedule)
-    replaceCountdown = scheduleRepetitions - newHeader.getRepetition();
-}
-
 bool DynamicScheduleDownlinkPhase::isScheduleComplete() {
     // If no packet was received, the schedule is not complete
     if(received.size() == 0)
@@ -166,25 +136,12 @@ bool DynamicScheduleDownlinkPhase::isScheduleComplete() {
     return complete;
 }
 
-void DynamicScheduleDownlinkPhase::replaceRunningSchedule() {
-    header = nextHeader;
-    schedule = nextSchedule;
-    infos = nextInfos;
-    // Apply info elements to StreamManager
-    // NOTE: apply info element here because we received N times the schedule packet
-    // with N = scheduleRepetitions
-    // If we don't apply them, they can be lost or remain in the queue
-    streamMgr->applyInfoElements(infos);
-}
-
 void DynamicScheduleDownlinkPhase::printStatus() {
-    print_dbg("[SD] node:%d, countdown:%d, received:%d[",
-           ctx.getNetworkId(),
-           replaceCountdown,
+    print_dbg("[SD] node:%d, received:%d[",
+           myId,
            received.size());
     for (unsigned int i=0; i < received.size(); i++) print_dbg("%d", static_cast<bool>(received[i]));
     print_dbg("]\n");
 }
 
 }
-
