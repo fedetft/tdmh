@@ -11,10 +11,14 @@ print "stream [$streamsrc-$streamdst]\n";
 
 my $enable=0;
 my $found=0;
+my $prev=-1;
+my $changes=0;
+my $schedules=0;
 while(<STDIN>)
 {
     if(/\[SC\] Begin Topology/) {
         $enable=1;
+        $schedules++;
 
     } elsif(/\[(\d+) - (\d+)\]/) {
         my $src=$1, my $dst=$2;
@@ -22,9 +26,13 @@ while(<STDIN>)
 
     } elsif(/\[SC\] End Topology/) {
         if($found) { print "1"; } else { print "0"; }
+        if($prev!=$found) {
+            $prev=$found;
+            $changes++;
+        }
         $enable=0;
         $found=0;
     }
 }
 
-print "\n";
+print "\n\nNumber of schedules $schedules\nTotal topology changes $changes\n";
