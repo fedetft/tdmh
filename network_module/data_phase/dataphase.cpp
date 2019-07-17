@@ -81,7 +81,7 @@ void DataPhase::sendFromStream(long long slotStart, StreamId id) {
             if(COMPRESSED_DBG==false)
                 print_dbg("[D] Node %d: Sent packet for stream (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
             else
-                print_dbg("[D] s (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
+                print_dbg("[D] s (%d,%d) NT=%lld\n", id.src, id.dst, nt.get());
         }
     }
     else
@@ -102,7 +102,7 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
             if(COMPRESSED_DBG==false)
                 print_dbg("[D] Node %d: Received packet for stream (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
             else
-                print_dbg("[D] r (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
+                print_dbg("[D] r (%d,%d) NT=%lld\n", id.src, id.dst, nt.get());
         }
     }
     // Avoid overwriting valid data
@@ -113,7 +113,7 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
             if(COMPRESSED_DBG==false)
                 print_dbg("[D] Node %d: Missed packet for stream (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
             else
-                print_dbg("[D] m (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
+                print_dbg("[D] m (%d,%d) NT=%lld\n", id.src, id.dst, nt.get());
         }
     }
     if(ENABLE_DATA_INFO_DBG || ENABLE_DATA_ERROR_DBG) {
@@ -122,7 +122,7 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
             if(COMPRESSED_DBG==false)
                 print_dbg("[D] Node %d: (%d,%d) --- \n", myId, id.src, id.dst);
             else
-                print_dbg("[D] - (%d,%d)\n", myId, id.src, id.dst);
+                print_dbg("[D] - (%d,%d)\n", id.src, id.dst);
         }
     }
 }
