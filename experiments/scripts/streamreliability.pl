@@ -118,7 +118,9 @@ while(<>)
     }
 }
 
-while(my($key, $val) = each %streams) {
+foreach(sort keys %streams) {
+    my $key=$_;
+    my $val=$streams{$_};
     my ($ctr, $t, $mheap, $reboot, $closed, $sentctr, $sentlog, $recvd, $failed) = @{$val};
     my $rcvdfailed=$recvd+$failed;
     unless($sentctr == $sentlog && $sentlog == $rcvdfailed) {
@@ -127,7 +129,9 @@ while(my($key, $val) = each %streams) {
 }
 
 print "\n\nStream stats:\n";
-while(my($key, $val) = each %streams) {
+foreach(sort keys %streams) {
+    my $key=$_;
+    my $val=$streams{$_};
     my ($ctr, $t, $mheap, $reboot, $closed, $sentctr, $sentlog, $recvd, $failed) = @{$val};
     my $sent=max($sentctr,$sentlog);
     my $reliability=100*$recvd/$sent;

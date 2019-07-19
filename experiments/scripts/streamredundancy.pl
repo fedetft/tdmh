@@ -95,7 +95,9 @@ while(<STDIN>)
 }
 
 print "\n\nStream stats:\n";
-while(my($key, $val) = each %streams) {
+foreach(sort keys %streams) {
+    my $key=$_;
+    my $val=$streams{$_};
     my ($sp, $rs, $rd, $rt, $pha, $f, $s, $t) = @{$val};
     my $rels=100*$rs/$sp;
     my $reld=100*$rd/$sp;
