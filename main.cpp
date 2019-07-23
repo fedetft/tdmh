@@ -37,7 +37,7 @@
 #include "interfaces-impl/gpio_timer_corr.h"
 
 // For tests with a 50ms tile and 2ms slots
-// #define SMALL_DATA
+#define SMALL_DATA
 
 using namespace std;
 using namespace mxnet;
@@ -136,7 +136,7 @@ void masterNode(void*)
             10000000000,   //clockSyncPeriod
             maxForwardedTopologiesFromMaxNumNodes(maxNodes), //maxForwardedTopologies
             1,             //numUplinkPackets
-            100000000,     //tileDuration
+            50000000,      //tileDuration
             150000,        //maxAdmittedRcvWindow
             3,             //maxRoundsUnavailableBecomesDead
             -75,           //minNeighborRSSI
@@ -174,7 +174,7 @@ void dynamicNode(void* argv)
             10000000000,   //clockSyncPeriod
             maxForwardedTopologiesFromMaxNumNodes(maxNodes), //maxForwardedTopologies
             1,             //numUplinkPackets
-            100000000,     //tileDuration
+            50000000,      //tileDuration
             150000,        //maxAdmittedRcvWindow
             3,             //maxRoundsUnavailableBecomesDead
             -75,           //minNeighborRSSI

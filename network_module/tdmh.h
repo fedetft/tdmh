@@ -90,7 +90,7 @@ public:
     // checks, and the max size of Packet is maxPktSize, so setting
     // maxControlPktSize to anything but maxPktSize requires a refactoring
     static const unsigned char maxControlPktSize = maxPktSize;
-    static const unsigned char maxDataPktSize = 125;
+    static const unsigned char maxDataPktSize = 20;
 
     MACContext* const getMACContext() const { return ctx; }
 

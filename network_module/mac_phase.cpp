@@ -40,7 +40,7 @@ void MACPhase::run(long long slotStart)
         if(ctx.getTimesync()->macCanOperate()) execute(slotStart);
         else {   
             advance(slotStart);
-            ctx.sleepUntil(slotStart);
+            //ctx.sleepUntil(slotStart);
         }
     } catch(std::exception& e) {
         print_dbg("MACPhase::run exception thrown %s\n", e.what());

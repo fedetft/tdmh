@@ -63,7 +63,7 @@ public:
         incrementSlot(slots);
     }
     static unsigned long long getDuration() {
-        long long processingTime=1500000; //TODO: benchmark
+        auto processingTime=900000; //TODO: benchmark
         return align(MACContext::radioTime(MediumAccessController::maxDataPktSize)+processingTime,1000000LL);
     }
     /**
