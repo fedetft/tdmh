@@ -36,6 +36,9 @@
 #include "network_module/downlink_phase/timesync/networktime.h"
 #include "interfaces-impl/gpio_timer_corr.h"
 
+// For tests with a 50ms tile and 2ms slots
+// #define SMALL_DATA
+
 using namespace std;
 using namespace mxnet;
 using namespace miosix;
@@ -216,19 +219,49 @@ void statThread(void *)
     }
 }
 
+#ifndef SMALL_DATA
+
 struct Data
 {
     Data() {}
-    Data(int id, unsigned int counter) : id(id), time(miosix::getTime()),
-                   minHeap(miosix::MemoryProfiling::getAbsoluteFreeHeap()),
-                   heap(miosix::MemoryProfiling::getCurrentFreeHeap()),
-                   counter(counter){}
+    Data(int id, unsigned int counter) : id(id), time(getTime()),
+                   minHeap(MemoryProfiling::getAbsoluteFreeHeap()),
+                   heap(MemoryProfiling::getCurrentFreeHeap()),
+                   counter(counter) {}
+                   
+    unsigned char getId()      const { return id; }
+    long long     getTime()    const { return time; }
+    int           getMinHeap() const { return minHeap; }
+    int           getHeap()    const { return heap; }
+    unsigned int  getCounter() const { return counter; }
+    
     unsigned char id;
     long long time;
-    unsigned int minHeap;
-    unsigned int heap;
+    int minHeap;
+    int heap;
     unsigned int counter;
 }__attribute__((packed));
+
+#else //SMALL_DATA
+
+struct Data
+{
+    Data() {}
+    Data(int id, unsigned int counter): id(id),
+        minHeap(MemoryProfiling::getAbsoluteFreeHeap()), counter(counter) {}
+    
+    unsigned char getId()      const { return id; }
+    long long     getTime()    const { return -1; }
+    int           getMinHeap() const { return minHeap; }
+    int           getHeap()    const { return -1; }
+    unsigned int  getCounter() const { return counter; }
+    
+    unsigned char id;
+    int minHeap;
+    unsigned int counter;
+}__attribute__((packed));
+
+#endif //SMALL_DATA
 
 void streamThread(void *arg)
 {
@@ -245,10 +278,10 @@ void streamThread(void *arg)
             {
                 if(COMPRESSED_DBG==false)
                     printf("[A] Received data from (%d,%d): ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
-                       id.src, id.dst, data.id, data.time, data.minHeap, data.heap, data.counter);
+                       id.src, id.dst, data.getId(), data.getTime(), data.getMinHeap(), data.getHeap(), data.getCounter());
                 else
                     printf("[A] R (%d,%d) ID=%d T=%lld MH=%u C=%u\n",
-                       id.src, id.dst, data.id, data.time, data.minHeap, data.counter);
+                       id.src, id.dst, data.getId(), data.getTime(), data.getMinHeap(), data.getCounter());
             } else {
                 if(COMPRESSED_DBG==false)
                     printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
@@ -328,7 +361,7 @@ void openStream(unsigned char dest, unsigned char port, StreamParameters params)
                 int ret = mxnet::write(stream, &data, sizeof(data));
                 if(ret >= 0) {
                     printf("[A] Sent ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
-                              data.id, data.time, data.minHeap, data.heap, data.counter);
+                              data.getId(), data.getTime(), data.getMinHeap(), data.getHeap(), data.getCounter());
                 }
                 else
                     printf("[E] Error sending data, result=%d\n", ret);
