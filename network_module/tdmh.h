@@ -84,7 +84,6 @@ public:
     //This is dependent on the optimization level, i usually use level -O2
     static const unsigned int maxPropagationDelay = 100; //TODO ?
     static const unsigned int receivingNodeWakeupAdvance = 450000; //TODO fine tune and move to timesync
-    //Minimum ~550us, 200us of slack added
     static const unsigned int sendingNodeWakeupAdvance = 500000; //TODO fine tune and move to timesync
     static const unsigned char maxPktSize = 125;
     // NOTE: control code fills Packet classes up to its max size without other

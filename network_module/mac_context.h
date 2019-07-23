@@ -163,6 +163,7 @@ public:
      */
     static long long radioTime(int payloadBytes)
     {
+//      FIXME: replace radioStartup including receiving/sendingNodeWakeupAdvance and receiver window
         const long long radioStartup = 192000; //Time for the PLL to start
         const long long byteTime = 32000;      //The radio takes 32us to transmit each byte (250Kbit/s)
         const unsigned int overheadBytes = 8;  //4 byte preamble, sfd, length, 2 byte crc
