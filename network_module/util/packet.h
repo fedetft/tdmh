@@ -79,6 +79,11 @@ public:
      * When reading a packet, ignore "size" bytes
      */
     void discard(unsigned int size);
+    
+    /**
+     * \return true if there are no bytes for Packet::get()
+     */
+    bool empty() const { return dataSize == dataStart; }
 
     /** 
      * \return how many bytes are stored in the packet and are available

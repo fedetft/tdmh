@@ -36,6 +36,7 @@ namespace mxnet {
 std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsigned char nodeID) {
     // New explicitSchedule to return
     std::vector<ExplicitScheduleElement> result;
+    std::map<unsigned int,std::shared_ptr<Packet>> buffers;
     // Resize new explicitSchedule and fill with default value (sleep)
     auto slotsInTile = ctx.getSlotsInTileCount();
     auto scheduleSlots = header.getScheduleTiles() * slotsInTile;
@@ -45,6 +46,7 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
         // Period is normally expressed in tiles, get period in slots
         auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
         Action action = Action::SLEEP;
+        std::shared_ptr<Packet> buffer;
         // Send from stream case
         if(e.getSrc() == nodeID && e.getTx() == nodeID)
             action = Action::SENDSTREAM;
@@ -52,18 +54,40 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
         else if(e.getDst() == nodeID && e.getRx() == nodeID)
             action = Action::RECVSTREAM;
         // Send from buffer case (send saved multi-hop packet)
-        else if(e.getSrc() != nodeID && e.getTx() == nodeID)
+        else if(e.getSrc() != nodeID && e.getTx() == nodeID) {
             action = Action::SENDBUFFER;
+            auto it=buffers.find(e.getStreamId().getKey());
+            if(it!=buffers.end())
+            {
+                buffer=it->second;
+            } else {
+                //Should never happen, how can we transmit from a buffer we haven't received from?
+                print_dbg("Error: ScheduleDownlinkPhase::expandSchedule missing buffer\n");
+            }
         // Receive to buffer case (receive and save multi-hop packet)
-        else if(e.getDst() != nodeID && e.getRx() == nodeID)
+        } else if(e.getDst() != nodeID && e.getRx() == nodeID) {
             action = Action::RECVBUFFER;
+            auto key=e.getStreamId().getKey();
+            auto it=buffers.find(key);
+            if(it!=buffers.end())
+            {
+                //May happen because of redundancy, in this case we'll happily share the buffer
+                buffer=it->second;
+            } else {
+                buffer=std::shared_ptr<Packet>(new Packet);
+                buffers[key]=buffer;
+            }
+        }
+        
         // Apply action if different than SLEEP (to avoid overwriting already scheduled slots)
         if(action != Action::SLEEP) {
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
-                result[slot] = ExplicitScheduleElement(action, e.getStreamInfo()); 
+                result[slot] = ExplicitScheduleElement(action, e.getStreamInfo());
+                if(buffer) result[slot].setBuffer(buffer);
             }
         }
     }
+    print_dbg("[D] expandSchedule: allocated %d buffers\n",buffers.size());
     return result;
 }
 

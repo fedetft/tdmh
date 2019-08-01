@@ -58,10 +58,10 @@ void DataPhase::execute(long long slotStart) {
         receiveToStream(slotStart, currentSchedule[tileSlot].getStreamId());
         break;
     case Action::SENDBUFFER:
-        sendFromBuffer(slotStart);
+        sendFromBuffer(slotStart, currentSchedule[tileSlot].getBuffer());
         break;
     case Action::RECVBUFFER:
-        receiveToBuffer(slotStart);
+        receiveToBuffer(slotStart, currentSchedule[tileSlot].getBuffer());
         break;
     }
     incrementSlot();
@@ -126,27 +126,33 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
         }
     }
 }
-void DataPhase::sendFromBuffer(long long slotStart) {
-    if(bufferValid) {
+void DataPhase::sendFromBuffer(long long slotStart, std::shared_ptr<Packet> buffer) {
+    if(!buffer)
+    {
+        print_dbg("Error: DataPhase::sendFromBuffer no buffer\n");
+        return;
+    }
+    if(buffer->empty()==false) {
         ctx.configureTransceiver(ctx.getTransceiverConfig());
-        buffer.send(ctx, slotStart);
+        buffer->send(ctx, slotStart);
         ctx.transceiverIdle();
-        buffer.clear();
+        buffer->clear();
     }
     else
         sleep(slotStart);
 }
-void DataPhase::receiveToBuffer(long long slotStart) {
-    ctx.configureTransceiver(ctx.getTransceiverConfig());
-    auto rcvResult = buffer.recv(ctx, slotStart);
-    ctx.transceiverIdle();
-    if(rcvResult.error == RecvResult::ErrorCode::OK && buffer.checkPanHeader(panId) == true) { 
-        bufferValid = true;
+void DataPhase::receiveToBuffer(long long slotStart, std::shared_ptr<Packet> buffer) {
+    if(!buffer)
+    {
+        print_dbg("Error: DataPhase::receiveToBuffer no buffer\n");
+        return;
     }
-    // Delete received packet if pan header doesn't match with our network 
-    else {
-        bufferValid = false;
-        buffer.clear();
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    auto rcvResult = buffer->recv(ctx, slotStart);
+    ctx.transceiverIdle();
+    if(rcvResult.error != RecvResult::ErrorCode::OK || buffer->checkPanHeader(panId) == false) {
+        // Delete received packet if pan header doesn't match with our network
+        buffer->clear();
     }
 }
 bool DataPhase::checkStreamId(Packet pkt, StreamId streamId) {

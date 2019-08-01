@@ -77,7 +77,6 @@ public:
         scheduleSlots = 0;
         scheduleActivationTile = 0;
         currentSchedule.clear();
-        buffer = Packet();
     };
     /**
      * Called after desynchronization
@@ -88,8 +87,8 @@ public:
     void sleep(long long slotStart);
     void sendFromStream(long long slotStart, StreamId id);
     void receiveToStream(long long slotStart, StreamId id);
-    void sendFromBuffer(long long slotStart);
-    void receiveToBuffer(long long slotStart);
+    void sendFromBuffer(long long slotStart, std::shared_ptr<Packet> buffer);
+    void receiveToBuffer(long long slotStart, std::shared_ptr<Packet> buffer);
     /* Called from ScheduleDownlinkPhase class on the first downlink slot
      * of the new schedule, to replace the currentSchedule,
      * taking effect in the next dataphase */
@@ -170,9 +169,6 @@ private:
     // FIXME: if the MAC remains alive for more than 13 years, this overflows
     unsigned long scheduleActivationTile = 0;
     std::vector<ExplicitScheduleElement> currentSchedule;
-    Packet buffer;
-    // Boolean value used to remember if we received something to retransmit or not
-    bool bufferValid = false;
 };
 
 }

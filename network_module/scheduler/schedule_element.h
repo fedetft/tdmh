@@ -30,6 +30,7 @@
 #include "../stream/stream_management_element.h"
 #include <cstring>
 #include <iostream>
+#include <memory>
 
 namespace mxnet {
 
@@ -240,13 +241,17 @@ public:
     }
     ExplicitScheduleElement(Action action, StreamInfo stream) :
         action(action), stream(stream) {}
-
+    
     Action getAction() const { return action; }
     StreamId getStreamId() const { return stream.getStreamId(); }
     StreamInfo getStreamInfo() const { return stream; }
+    
+    void setBuffer(std::shared_ptr<Packet> buffer) { this->buffer=buffer; }
+    std::shared_ptr<Packet> getBuffer() { return buffer; }
 private:
     Action action;
     StreamInfo stream;
+    std::shared_ptr<Packet> buffer;
 };
 
 
