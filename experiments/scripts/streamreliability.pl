@@ -66,7 +66,7 @@ while(<>)
                     $mheap, # Minimum heap
                     0,      # Reboot count
                     0,      # Closed stream count
-                    $ctr+1, # Packets sent measured using ctr
+                    $ctr,   # Packets sent measured using ctr
                     1,      # Packets sent measured by lines in the log
                     1,      # Packets explicitly received
                     0       # Packets explicitly not received

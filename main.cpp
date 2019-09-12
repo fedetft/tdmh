@@ -355,7 +355,7 @@ void openStream(unsigned char dest, unsigned char port, StreamParameters params)
                 continue;
             }
             printf("[A] Stream opened \n");
-            unsigned int counter = 0;
+            unsigned int counter = 1;
             while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
                 Data data(ctx->getNetworkId(), counter);
                 int ret = mxnet::write(stream, &data, sizeof(data));
