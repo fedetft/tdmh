@@ -354,11 +354,15 @@ void openStream(unsigned char dest, unsigned char port, StreamParameters params)
                 printf("[A] Stream opening failed! error=%d\n", stream);
                 continue;
             }
-            printf("[A] Stream opened \n");
             unsigned int counter = 1;
+            bool first=true;
             while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
                 Data data(ctx->getNetworkId(), counter);
                 int ret = mxnet::write(stream, &data, sizeof(data));
+                if(first) {
+                    first=false;
+                    printf("[A] Stream opened \n");
+                }
                 if(ret >= 0) {
                     printf("[A] Sent ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
                               data.getId(), data.getTime(), data.getMinHeap(), data.getHeap(), data.getCounter());

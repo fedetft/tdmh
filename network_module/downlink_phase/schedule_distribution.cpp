@@ -202,6 +202,16 @@ bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
         streamMgr->applySchedule(schedule);
         // Apply info elements to StreamManager
         streamMgr->applyInfoElements(infos);
+        //NOTE: after we apply the schedule, we need to leave the time for connect() to return
+        //in applications, and for them to call write(), otherwise the first transmission
+        //fails due to no packet being available. If checkTimeSetSchedule returns immediately,
+        //the code im MacContext will start executing the first slot of the data phase so early
+        //that the stream in the first slot following the downlink phase does not have enough
+        //time to do so.
+        //Thus, we wait till a little before the end of the downlink slot.
+        const int downlinkEndAdvance = std::max(MediumAccessController::receivingNodeWakeupAdvance,
+                                                MediumAccessController::sendingNodeWakeupAdvance);
+        ctx.sleepUntil(slotStart + ctx.getDownlinkSlotDuration() - downlinkEndAdvance);
         return true;
     }
     else{
