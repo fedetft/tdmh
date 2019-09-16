@@ -58,7 +58,7 @@ while(<>)
         } else {
             # First time we've seen this stream
             print "Stream [$key] first seen @ line $line\n";
-            print "Note @ line $line: stream [$key] starts with CTR=$ctr and not 0\n" if $ctr!=0;
+            print "Note @ line $line: stream [$key] starts with CTR=$ctr and not 1\n" if $ctr!=1;
             $streams{$key} =
                 [
                     $ctr,   # Last ctr value
