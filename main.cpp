@@ -224,7 +224,7 @@ void statThread(void *)
 struct Data
 {
     Data() {}
-    Data(int id, unsigned int counter) : id(id), time(getTime()),
+    Data(int id, unsigned int counter) : id(id), time(miosix::getTime()),
                    minHeap(MemoryProfiling::getAbsoluteFreeHeap()),
                    heap(MemoryProfiling::getCurrentFreeHeap()),
                    counter(counter) {}
