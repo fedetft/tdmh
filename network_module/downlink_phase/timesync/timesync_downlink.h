@@ -45,7 +45,7 @@ public:
     TimesyncDownlink(const TimesyncDownlink& orig) = delete;
     virtual ~TimesyncDownlink() {};
     static unsigned long long getDuration(unsigned short hops) {
-        return phaseStartupTime + hops * rebroadcastInterval + RoundtripSubphase::getDuration();
+        return phaseStartupTime + hops * rebroadcastInterval; // + RoundtripSubphase::getDuration();
     }
     static const int phaseStartupTime = 450000;
     static const unsigned int syncPacketSize = 11;
