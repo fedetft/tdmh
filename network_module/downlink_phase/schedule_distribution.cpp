@@ -28,6 +28,7 @@
 #include "schedule_distribution.h"
 #include "timesync/networktime.h"
 #include "../data_phase/dataphase.h"
+#include "../tdmh.h"
 
 using namespace miosix;
 
@@ -209,8 +210,9 @@ bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
         //that the stream in the first slot following the downlink phase does not have enough
         //time to do so.
         //Thus, we wait till a little before the end of the downlink slot.
-        const int downlinkEndAdvance = std::max(MediumAccessController::receivingNodeWakeupAdvance,
-                                                MediumAccessController::sendingNodeWakeupAdvance);
+        auto rwa=MediumAccessController::receivingNodeWakeupAdvance;
+        auto swa=MediumAccessController::sendingNodeWakeupAdvance;
+        const int downlinkEndAdvance = std::max(rwa,swa);
         ctx.sleepUntil(slotStart + ctx.getDownlinkSlotDuration() - downlinkEndAdvance);
         return true;
     }
