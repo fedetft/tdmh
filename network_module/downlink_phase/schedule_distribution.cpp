@@ -210,6 +210,11 @@ bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
         //that the stream in the first slot following the downlink phase does not have enough
         //time to do so.
         //Thus, we wait till a little before the end of the downlink slot.
+        //NOTE: although in the downlink slot where the schedule needs to be
+        //activated no packet should be sent, we still wait to see if a packet
+        //is received. This leaves around 3ms to apply the schedule, if this
+        //turns out to be not enough, it's possible to recover some time by
+        //not litening to the radio in that downlink
         auto rwa=MediumAccessController::receivingNodeWakeupAdvance;
         auto swa=MediumAccessController::sendingNodeWakeupAdvance;
         const int downlinkEndAdvance = std::max(rwa,swa);
