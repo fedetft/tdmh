@@ -125,8 +125,7 @@ void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {
         
         // The first beginning of a schedule that is at or after activationTile
         unsigned int alignedActivationTile = lastActivationTile;
-        alignedActivationTile += (activationTile + lastScheduleTiles - 1 - lastActivationTile)
-                                 / lastScheduleTiles * lastScheduleTiles;
+        alignedActivationTile += align(activationTile - lastActivationTile, lastScheduleTiles);
         
         // But wait, there's more corner cases! The aligned activation tile
         // must not be a timesync, if it is, we have to postpone activation
