@@ -38,9 +38,10 @@ using namespace miosix;
 namespace mxnet {
 
 MasterScheduleDownlinkPhase::MasterScheduleDownlinkPhase(MACContext& ctx,
-                                                         ScheduleComputation& sch,
-                                                         StreamCollection* scoll) :
-    ScheduleDownlinkPhase(ctx), schedule_comp(sch), streamColl(scoll) {
+                                                         ScheduleComputation& sch) :
+    ScheduleDownlinkPhase(ctx), schedule_comp(sch),
+    streamColl(sch.getStreamCollection())
+{
     // Get number of downlink slots
     unsigned tileSize = ctx.getSlotsInTileCount();
     unsigned dataslotsDownlinktile = ctx.getDataSlotsInDownlinkTileCount();
@@ -285,9 +286,7 @@ void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart) {
     spkt.setHeader(infoHeader);
 
     // Add info elements to SchedulePacketacket
-    unsigned int availableInfo = streamColl->getNumInfo();
-    unsigned int numInfo = std::min(packetCapacity, availableInfo);
-    std::vector<InfoElement> infos = streamColl->dequeueInfo(numInfo);
+    auto infos = streamColl->dequeueInfo(packetCapacity);
     for(auto& info : infos)
         spkt.putInfoElement(info);
 

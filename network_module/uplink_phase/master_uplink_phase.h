@@ -43,7 +43,7 @@ public:
     MasterUplinkPhase(MACContext& ctx, StreamManager* const streamMgr,
                       ScheduleComputation& scheduleComputation) :
         UplinkPhase(ctx, streamMgr),
-        scheduleComputation(scheduleComputation),
+        streamColl(scheduleComputation.getStreamCollection()),
         topology(ctx.getNetworkConfig()) {
         scheduleComputation.setUplinkPhase(this);
     }
@@ -76,7 +76,7 @@ public:
     }
     
 private:
-    ScheduleComputation& scheduleComputation;
+    StreamCollection* const streamColl;
     NetworkTopology topology;    
 };
 

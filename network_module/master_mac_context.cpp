@@ -35,10 +35,9 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
     scheduleComputation(*this) {
     timesync = new MasterTimesyncDownlink(*this);
     streamMgr = scheduleComputation.getStreamManager();
-    streamColl = scheduleComputation.getStreamCollection();
     uplink = new MasterUplinkPhase(*this, streamMgr, scheduleComputation);
     data = new DataPhase(*this, *streamMgr);
-    scheduleDistribution = new MasterScheduleDownlinkPhase(*this, scheduleComputation, streamColl);
+    scheduleDistribution = new MasterScheduleDownlinkPhase(*this, scheduleComputation);
 };
 
 } /* namespace mxnet */

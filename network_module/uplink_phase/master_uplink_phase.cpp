@@ -81,7 +81,7 @@ void MasterUplinkPhase::execute(long long slotStart)
     // Enqueue SMEs produced by the Master node itself
     streamMgr->dequeueSMEs(smeQueue);
     // Consume elements from the SME queue
-    scheduleComputation.receiveSMEs(smeQueue);
+    streamColl->receiveSMEs(smeQueue);
     
     if(ENABLE_TOPOLOGY_INFO_DBG && currentNode == 1)
     {

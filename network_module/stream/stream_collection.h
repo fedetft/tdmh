@@ -172,6 +172,11 @@ public:
      * - because it clears the flags of the passed StreamCollection to detect changes
      */
     StreamSnapshot getSnapshot() {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(coll_mutex);
+#else
+        std::unique_lock<std::mutex> lck(coll_mutex);
+#endif
         StreamSnapshot result(collection, modified_flag, removed_flag, added_flag);
         clearFlags();
         return result;

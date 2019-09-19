@@ -78,11 +78,6 @@ public:
     void startThread();
     
     void beginScheduling();
-
-    /**
-     * Receives a vector of SME from the network and register them in the StreamCollection
-     */
-    void receiveSMEs(UpdatableQueue<StreamId, StreamManagementElement>& smes);
     
     /**
      * Used by the ScheduleDownlink class to get the latest schedule
