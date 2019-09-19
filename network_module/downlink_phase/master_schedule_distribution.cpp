@@ -269,6 +269,8 @@ void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     pkt.send(ctx, slotStart);
     ctx.transceiverIdle();
+    // NOTE: Apply vector of Info elements to local StreamManager
+    streamMgr->applyInfoElements(infos);
 }
 
 void MasterScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
