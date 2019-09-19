@@ -70,44 +70,40 @@ void ScheduleComputation::beginScheduling() {
 
 void ScheduleComputation::run() {
     for(;;) {
-        // Mutex lock to access stream list.
         bool forceResend=false;
+        for(;;)
         {
 #ifdef _MIOSIX
             miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
             std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-            // Wait for beginScheduling() to start scheduling
-            for(;;)
-            {
-              /* NOTE: A new schedule has to be computed if the topology or
-                 streams have changed, but once a new schedule has been computed,
-                 the scheduling has to wait until the previous schedule has been
-                 applied. Otherwise, the getCurrentSchedule fails to compute the
-                 next activation time and the new schedule may not be aligned to
-                 the previous one */
-                if(scheduleNotApplied==false) {
-                    // Can compute a new schedule if required
-                    if(uplink_phase->wasModified()) break;
-                    auto op = stream_collection.getOperation();
-                    if(op.resend && !op.reschedule)
-                    {
-                        //If we get here we are asked to ONLY resend and not
-                        //to also reschedule
-                        schedule.id++;
-                        // Mark the presence of a new schedule, not still applied
-                        scheduleNotApplied = true;
-                    } else {
-                        if(op.resend) forceResend = true;
-                        if(op.reschedule) break;
-                    }
+            /* NOTE: A new schedule has to be computed if the topology or
+                streams have changed, but once a new schedule has been computed,
+                the scheduling has to wait until the previous schedule has been
+                applied. Otherwise, the getCurrentSchedule fails to compute the
+                next activation time and the new schedule may not be aligned to
+                the previous one */
+            if(scheduleNotApplied==false) {
+                // Can compute a new schedule if required
+                if(uplink_phase->wasModified()) break;
+                auto op = stream_collection.getOperation();
+                if(op.resend && !op.reschedule)
+                {
+                    //If we get here we are asked to ONLY resend and not
+                    //to also reschedule
+                    schedule.id++;
+                    // Mark the presence of a new schedule, not still applied
+                    scheduleNotApplied = true;
+                } else {
+                    if(op.resend) forceResend = true;
+                    if(op.reschedule) break;
                 }
-                sched_cv.wait(lck);
             }
-            // Take snapshot of stream requests
-            stream_snapshot = stream_collection.getSnapshot();
+            sched_cv.wait(lck); // Wait for beginScheduling() to start scheduling
         }
+        // Take snapshot of stream requests
+        stream_snapshot = stream_collection.getSnapshot();
         
         // Get new graph snapshot if graph changed
         bool graph_changed = uplink_phase->updateSchedulerNetworkGraph(network_graph);
@@ -245,15 +241,7 @@ void ScheduleComputation::scheduleAcceptedStreams(Schedule& currSchedule) {
 
 void ScheduleComputation::finalPrint() {
     /* Get updated stream status from StreamCollection */
-    std::vector<MasterStreamInfo> streams;
-    {
-#ifdef _MIOSIX
-        miosix::Lock<miosix::Mutex> lck(sched_mutex);
-#else
-        std::unique_lock<std::mutex> lck(sched_mutex);
-#endif
-        streams = stream_collection.getStreams();
-    }
+    std::vector<MasterStreamInfo> streams = stream_collection.getStreams();
     /* Print the schedule and updated stream status */
     if(SCHEDULER_SUMMARY_DBG) {
         printf("[SC] ## Results ##\n");
