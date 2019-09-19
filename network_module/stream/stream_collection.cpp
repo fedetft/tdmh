@@ -237,6 +237,9 @@ void StreamCollection::updateStream(MasterStreamInfo& stream, StreamManagementEl
                     break;
                 case SMEType::CONNECT:
                     resend_flag = true;
+                    if(SCHEDULER_SUMMARY_DBG)
+                        print_dbg("[SC] schedule resend due to CONNECT while ESTABLISHED (%d,%d,%d,%d)\n",
+                                  id.src,id.dst,id.srcPort,id.dstPort);
                     break;
                 default:
                     break;
@@ -276,6 +279,9 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
         print_dbg("[SC] BUG! LISTEN sme for non-server stream (%d,%d)\n",id.src,id.srcPort);
     } else if(type == SMEType::CLOSED) {
         resend_flag = true;
+        if(SCHEDULER_SUMMARY_DBG)
+            print_dbg("[SC] schedule resend due to CLOSED while NOEXIST (%d,%d,%d,%d)\n",
+                        id.src,id.dst,id.srcPort,id.dstPort);
     } else if(type == SMEType::CONNECT) {
         // Check for corresponding Server
         auto serverId = id.getServerId();
