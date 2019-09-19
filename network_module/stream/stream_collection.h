@@ -126,6 +126,14 @@ class StreamCollection {
 public:
     StreamCollection() {};
     ~StreamCollection() {};
+    
+    struct SchedulerOperation
+    {
+        SchedulerOperation(bool reschedule, bool resend)
+            : reschedule(reschedule), resend(resend) {}
+        bool reschedule, resend;
+    };
+    
     /**
      * Receives a vector of SME from the network
      */
@@ -157,13 +165,15 @@ public:
     /**
      * @return true if the stream list was modified since last time the flag was cleared 
      */
-    bool wasModified() {
+    SchedulerOperation getOperation() {
 #ifdef _MIOSIX
         miosix::Lock<miosix::Mutex> lck(coll_mutex);
 #else
         std::unique_lock<std::mutex> lck(coll_mutex);
 #endif
-        return modified_flag;
+        bool tmp_resend = resend_flag;
+        resend_flag = false;
+        return SchedulerOperation(modified_flag, tmp_resend);
     }
     /**
      * Returns a StreamSnapshot containing a snapshot of a StreamCollection.
@@ -191,6 +201,7 @@ private:
         modified_flag = false;
         removed_flag = false;
         added_flag = false;
+        resend_flag = false;
     }
     /**
      * put a new info element in the queue
@@ -231,6 +242,7 @@ private:
     bool modified_flag = false;
     bool removed_flag = false;
     bool added_flag = false;
+    bool resend_flag = false;
 
     /* Mutex to protect concurrect access at collection and infoQueue
      * from the TDMH thread and the scheduler thread */

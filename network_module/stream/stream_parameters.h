@@ -217,12 +217,11 @@ enum class StreamStatus : uint8_t
 
 /* This class contains the stream statuses as seen by the master node */
 enum class MasterStreamStatus : uint8_t
-    {
+{
      ACCEPTED,        // Stream received by master and related server present
      ESTABLISHED,     // Stream received and scheduled by master
-     REJECTED,        // Stream received by master and related server absent
      LISTEN,          // Listen received by master
-    };
+};
 
 
 /**

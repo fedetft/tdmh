@@ -153,22 +153,20 @@ void StreamCollection::applyChanges(const std::map<StreamId, StreamChange>& chan
         if(it != collection.end()) {
             auto& stream = it->second;
             switch(change.second) {
-            case StreamChange::ESTABLISH:
-                if(stream.getStatus() == MasterStreamStatus::ACCEPTED)
-                    stream.setStatus(MasterStreamStatus::ESTABLISHED);
-                break;
-            case StreamChange::REJECT:
-                if(stream.getStatus() == MasterStreamStatus::ACCEPTED) {
-                    stream.setStatus(MasterStreamStatus::REJECTED);
-                    // Enqueue STREAM_REJECT info element
-                    enqueueInfo(id, InfoType::STREAM_REJECT);
-                }
-                break;
-            case StreamChange::CLOSE:
-                if(stream.getStatus() == MasterStreamStatus::ESTABLISHED)
-                    // Delete stream from collection
-                    collection.erase(id);
-                break;
+                case StreamChange::ESTABLISH:
+                    if(stream.getStatus() == MasterStreamStatus::ACCEPTED)
+                        stream.setStatus(MasterStreamStatus::ESTABLISHED);
+                    break;
+                case StreamChange::REJECT:
+                    if(stream.getStatus() == MasterStreamStatus::ACCEPTED) {
+                        collection.erase(id);
+                        enqueueInfo(id, InfoType::STREAM_REJECT);
+                    }
+                    break;
+                case StreamChange::CLOSE:
+                    if(stream.getStatus() == MasterStreamStatus::ESTABLISHED)
+                        collection.erase(id);
+                    break;
             }
         }
         // If stream is not present in collection do nothing
@@ -212,17 +210,41 @@ void StreamCollection::enqueueInfo(StreamId id, InfoType type) {
 void StreamCollection::updateStream(MasterStreamInfo& stream, StreamManagementElement& sme) {
     StreamId id = sme.getStreamId();
     SMEType type = sme.getType();
-    auto status = stream.getStatus();
-    if(status == MasterStreamStatus::ESTABLISHED && type == SMEType::CLOSED) {
-        // Delete stream because it has been closed
-        collection.erase(id);
-        // Set flags
-        removed_flag = true;
-        modified_flag = true;
+    if(type == SMEType::LISTEN)
+    {
+        print_dbg("[SC] BUG! LISTEN sme for non-server stream (%d,%d)\n",id.src,id.srcPort);
+        return;
     }
-    if(status == MasterStreamStatus::REJECTED) {
-        // Try to open a new stream because the one we have is REJECTED
-        createStream(sme);
+    auto status = stream.getStatus();
+    switch(status)
+    {
+        case MasterStreamStatus::ACCEPTED:
+            if(type == SMEType::CLOSED)
+            {
+                collection.erase(id);
+                removed_flag = true;
+                modified_flag = true;
+            }
+            //No action if SMEType::CONNECT
+            break;
+        case MasterStreamStatus::ESTABLISHED:
+            switch(type)
+            {
+                case SMEType::CLOSED:
+                    collection.erase(id);
+                    removed_flag = true;
+                    modified_flag = true;
+                    break;
+                case SMEType::CONNECT:
+                    resend_flag = true;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case MasterStreamStatus::LISTEN:
+            print_dbg("[SC] BUG! LISTEN state for non-server stream (%d,%d)\n",id.src,id.srcPort);
+            break;
     }
 }
 
@@ -233,7 +255,7 @@ void StreamCollection::updateServer(MasterStreamInfo& server, StreamManagementEl
     if(status == MasterStreamStatus::LISTEN) {
         if(type == SMEType::CLOSED) {
             if(SCHEDULER_SUMMARY_DBG)
-                printf("[SC] Server (%d,%d,%d,%d) Closed\n", id.src,id.dst,id.srcPort,id.dstPort);
+                print_dbg("[SC] Server (%d,%d,%d,%d) Closed\n", id.src,id.dst,id.srcPort,id.dstPort);
             // Delete server because it has been closed by remote node
             collection.erase(id);
             // Enqueue SERVER_CLOSED info element
@@ -249,28 +271,30 @@ void StreamCollection::updateServer(MasterStreamInfo& server, StreamManagementEl
 void StreamCollection::createStream(StreamManagementElement& sme) {
     StreamId id = sme.getStreamId();
     SMEType type = sme.getType();
-    auto clientParams = sme.getParams();
-    if(type == SMEType::CONNECT) {
+    if(type == SMEType::LISTEN)
+    {
+        print_dbg("[SC] BUG! LISTEN sme for non-server stream (%d,%d)\n",id.src,id.srcPort);
+    } else if(type == SMEType::CLOSED) {
+        resend_flag = true;
+    } else if(type == SMEType::CONNECT) {
         // Check for corresponding Server
         auto serverId = id.getServerId();
         // Server present (can only be in LISTEN status)
         auto serverit = collection.find(serverId);
         if(serverit != collection.end()) {
+            auto clientParams = sme.getParams();
             auto server = serverit->second;
             auto serverParams = server.getParams();
             // If the direction of client and server don't match, reject stream
             if(serverParams.direction != clientParams.direction) {
                 if(SCHEDULER_SUMMARY_DBG)
-                    printf("[SC] Stream (%d,%d,%d,%d) Rejected: parameters don't match\n", id.src,id.dst,id.srcPort,id.dstPort);
-                // Create REJECTED stream
-                collection[id] = MasterStreamInfo(id, clientParams, MasterStreamStatus::REJECTED);
-                // Enqueue STREAM_REJECT info element
+                    print_dbg("[SC] Stream (%d,%d,%d,%d) Rejected: parameters don't match\n", id.src,id.dst,id.srcPort,id.dstPort);
+                
                 enqueueInfo(id, InfoType::STREAM_REJECT);
-            }
-            // Otherwise create new stream
-            else {
+            } else {
+                // Otherwise create new stream
                 if(SCHEDULER_SUMMARY_DBG)
-                    printf("[SC] Stream (%d,%d,%d,%d) Accepted\n", id.src,id.dst,id.srcPort,id.dstPort);
+                    print_dbg("[SC] Stream (%d,%d,%d,%d) Accepted\n", id.src,id.dst,id.srcPort,id.dstPort);
                 // Negotiate parameters between client and servers
                 StreamParameters newParams = negotiateParameters(serverParams, clientParams);
                 // Create ACCEPTED stream with new parameters
@@ -279,14 +303,11 @@ void StreamCollection::createStream(StreamManagementElement& sme) {
                 added_flag = true;
                 modified_flag = true;
             } 
-        }
-        // Server absent
-        else {
+        } else {
+            // Server absent
             if(SCHEDULER_SUMMARY_DBG)
-                printf("[SC] Stream (%d,%d,%d,%d) Rejected: server missing\n", id.src,id.dst,id.srcPort,id.dstPort);
-            // Create REJECTED stream
-            collection[id] = MasterStreamInfo(id, clientParams, MasterStreamStatus::REJECTED);
-            // Enqueue STREAM_REJECT info element
+                print_dbg("[SC] Stream (%d,%d,%d,%d) Rejected: server missing\n", id.src,id.dst,id.srcPort,id.dstPort);
+            
             enqueueInfo(id, InfoType::STREAM_REJECT);
         }
     }
@@ -298,7 +319,7 @@ void StreamCollection::createServer(StreamManagementElement& sme) {
     StreamParameters params = sme.getParams();
     if(type == SMEType::LISTEN) {
         if(SCHEDULER_SUMMARY_DBG)
-            printf("[SC] Server (%d,%d,%d,%d) Accepted\n", id.src,id.dst,id.srcPort,id.dstPort);
+            print_dbg("[SC] Server (%d,%d,%d,%d) Accepted\n", id.src,id.dst,id.srcPort,id.dstPort);
         // Create server
         collection[id] = MasterStreamInfo(id, params, MasterStreamStatus::LISTEN);
         // Enqueue SERVER_OPENED info element

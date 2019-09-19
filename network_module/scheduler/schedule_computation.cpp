@@ -71,6 +71,7 @@ void ScheduleComputation::beginScheduling() {
 void ScheduleComputation::run() {
     for(;;) {
         // Mutex lock to access stream list.
+        bool forceResend=false;
         {
 #ifdef _MIOSIX
             miosix::Lock<miosix::Mutex> lck(sched_mutex);
@@ -89,7 +90,18 @@ void ScheduleComputation::run() {
                 if(scheduleNotApplied==false) {
                     // Can compute a new schedule if required
                     if(uplink_phase->wasModified()) break;
-                    if(stream_collection.wasModified()) break;
+                    auto op = stream_collection.getOperation();
+                    if(op.resend && !op.reschedule)
+                    {
+                        //If we get here we are asked to ONLY resend and not
+                        //to also reschedule
+                        schedule.id++;
+                        // Mark the presence of a new schedule, not still applied
+                        scheduleNotApplied = true;
+                    } else {
+                        if(op.resend) forceResend = true;
+                        if(op.reschedule) break;
+                    }
                 }
                 sched_cv.wait(lck);
             }
@@ -114,20 +126,13 @@ void ScheduleComputation::run() {
         initialPrint(removed, wrote_back, graph_changed);
         // Used to check if the schedule has been changed in this iteration
         bool scheduleChanged = false;
-        // Get new schedule ID
-        unsigned long newID;
-        // Handle schedule ID overflow
-        if(schedule.id == std::numeric_limits<unsigned long>::max())
-            newID = 1;
-        else
-            newID = (schedule.id + 1);
 
         /* NOTE: Here we prioritize established streams over new ones */
         /* If topology changed or a stream was removed:
            clear current schedule and reschedule established streams */
         Schedule newSchedule;
         if(graph_changed || stream_snapshot.wasRemoved()) {
-            newSchedule = scheduleEstablishedStreams(newID);
+            newSchedule = scheduleEstablishedStreams(schedule.id + 1);
             scheduleChanged = true;
         }
         // Otherwise continue scheduling from the last schedule
@@ -135,7 +140,7 @@ void ScheduleComputation::run() {
         // is written in a mutex protected block and read by other threads in a
         // mutex protected block.
         else{
-            newSchedule = Schedule(schedule.schedule, newID, schedule.tiles);
+            newSchedule = Schedule(schedule.schedule, schedule.id + 1, schedule.tiles);
         }
         /* If there are new accepted streams:
            route + schedule them and add them to existing schedule */
@@ -160,6 +165,15 @@ void ScheduleComputation::run() {
             stream_collection.applyChanges(changes);
             // Overwrite current schedule with new one
             schedule.swap(newSchedule);
+            // Mark the presence of a new schedule, not still applied
+            scheduleNotApplied = true;
+        } else if(forceResend) {
+#ifdef _MIOSIX
+            miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+            std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
+            schedule.id++;
             // Mark the presence of a new schedule, not still applied
             scheduleNotApplied = true;
         }
@@ -539,9 +553,6 @@ void ScheduleComputation::printStreams(const std::vector<MasterStreamInfo>& stre
             break;
         case MasterStreamStatus::ESTABLISHED:
             printf("EST");
-            break;
-        case MasterStreamStatus::REJECTED:
-            printf("REJ");
             break;
         case MasterStreamStatus::LISTEN:
             printf("LIS");
