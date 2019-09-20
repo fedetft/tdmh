@@ -34,16 +34,12 @@
 
 namespace mxnet {
 
-enum class SMEType
+enum class SMEType : unsigned char
 {
     CONNECT =0,      // Signals that the dynamic node want to open a new stream
     LISTEN =1,       // Signals that the dynamic node want to open a new server
     CLOSED =2        // Signals that the dynamic node has closed the stream or server
 };
-
-struct SMETypeStruct {
-    unsigned int type:4;
-} __attribute__((packed));
 
 /**
  *  StreamManagementElement is the message that is sent on the network
@@ -54,13 +50,7 @@ public:
     StreamManagementElement() {}
 
     StreamManagementElement(StreamInfo info, SMEType t)
-    {
-        id=info.getStreamId();
-        parameters=info.getParams();
-        type.type=static_cast<unsigned int>(t);
-    }
-
-    virtual ~StreamManagementElement() {};
+        : id(info.getStreamId()), parameters(info.getParams()), type(t) {}
 
     void serialize(Packet& pkt) const override;
     static StreamManagementElement deserialize(Packet& pkt);
@@ -73,12 +63,12 @@ public:
     Redundancy getRedundancy() const { return static_cast<Redundancy>(parameters.redundancy); }
     Period getPeriod() const { return static_cast<Period>(parameters.period); }
     unsigned short getPayloadSize() const { return parameters.payloadSize; }
-    SMEType getType() const { return static_cast<SMEType>(type.type); }
+    SMEType getType() const { return type; }
 
     bool operator ==(const StreamManagementElement& other) const {
         return (id == other.getStreamId() && 
-               (memcmp(&parameters,&other.parameters,sizeof(StreamParameters))==0) &&
-               (memcmp(&type,&other.type,sizeof(SMEType))==0));
+               memcmp(&parameters,&other.parameters,sizeof(StreamParameters))==0 &&
+               type == other.type);
     }
     bool operator !=(const StreamManagementElement& other) const {
         return !(*this == other);
@@ -102,7 +92,7 @@ public:
 protected:
     StreamId id;
     StreamParameters parameters;
-    SMETypeStruct type;
+    SMEType type;
 };
 
 
