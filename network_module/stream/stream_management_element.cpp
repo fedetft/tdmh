@@ -46,13 +46,12 @@ StreamManagementElement StreamManagementElement::deserialize(Packet& pkt) {
 
 bool StreamManagementElement::validateInPacket(Packet& packet, unsigned int offset, unsigned short maxNodes)
 {
-    StreamId id;
-    StreamParameters parameters;
-    SMEType type;
+    if(packet.size()-offset<maxSize()) return false; //Not enough bytes in packet
     
-    memcpy(&id,        &packet[offset],sizeof(id));         offset+=sizeof(id);
-    memcpy(&parameters,&packet[offset],sizeof(parameters)); offset+=sizeof(parameters);
-    memcpy(&type,      &packet[offset],sizeof(type));
+    auto id =         StreamId::fromBytes(&packet[offset]);         offset+=sizeof(id);
+    auto parameters = StreamParameters::fromBytes(&packet[offset]); offset+=sizeof(parameters);
+    SMEType type =    static_cast<SMEType>(packet[offset]);
+    static_assert(sizeof(SMEType)==1,"");
     
     bool result = true;
     if(id.src>=maxNodes) result = false;

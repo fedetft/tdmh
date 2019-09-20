@@ -140,6 +140,12 @@ public:
     Period getPeriod() const { return static_cast<Period>(period); }
     unsigned short getPayloadSize() const { return payloadSize; }
     Direction getDirection() const { return static_cast<Direction>(direction); }
+    
+    static StreamParameters fromBytes(unsigned char *bytes) {
+        StreamParameters result;
+        memcpy(&result,bytes,sizeof(result));
+        return result;
+    }
 
     unsigned int redundancy:3;
     unsigned int period:4;
@@ -190,6 +196,7 @@ public:
         return !isServer();
     }
     static StreamId fromBytes(unsigned char bytes[3]) {
+        static_assert(sizeof(StreamId)==3,"");
         return StreamId(bytes[0], bytes[1], bytes[2]&0xf, bytes[2]>>4);
     }
 
