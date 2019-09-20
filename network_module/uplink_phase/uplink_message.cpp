@@ -178,8 +178,6 @@ void ReceiveUplinkMessage::deserializeTopologiesAndSMEs(UpdatableQueue<unsigned 
     }
 
     for(int i = 0; i < getNumPacketSMEs(); i++) {
-        if(packet.size() < 9)
-            return;
         auto sme = getSME();
         smes.enqueue(sme.getStreamId(),sme);
     }
