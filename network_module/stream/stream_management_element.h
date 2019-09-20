@@ -60,25 +60,6 @@ public:
         type.type=static_cast<unsigned int>(t);
     }
 
-    //TODO: remove this constructor, you should never craft a SME
-    // by setting all the fields
-    StreamManagementElement(unsigned char src, unsigned char dst,
-                            unsigned char srcPort, unsigned char dstPort,
-                            Period period, unsigned char payloadSize,
-                            Direction direction, Redundancy redundancy,
-                            SMEType st)
-    {
-        id.src=src;
-        id.dst=dst;
-        id.srcPort=srcPort;
-        id.dstPort=dstPort;
-        parameters.redundancy=static_cast<unsigned int>(redundancy);
-        parameters.period=static_cast<unsigned int>(period);
-        parameters.payloadSize=payloadSize;
-        parameters.direction=static_cast<unsigned int>(direction);
-        type.type=static_cast<unsigned int>(st);
-    }
-
     virtual ~StreamManagementElement() {};
 
     void serialize(Packet& pkt) const override;
