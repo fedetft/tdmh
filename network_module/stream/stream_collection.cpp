@@ -111,8 +111,16 @@ void StreamCollection::receiveSMEs(UpdatableQueue<StreamId,
     auto numSME = smes.size();
     for(unsigned int i=0; i < numSME; i++) {
         auto sme = smes.dequeue();
+        if(sme.getType() == SMEType::RESEND_SCHEDULE)
+        {
+            resend_flag = true;
+            if(SCHEDULER_SUMMARY_DBG)
+                print_dbg("[SC] schedule resend due to RESEND_SCHEDULE sme from (%d)\n",
+                            sme.getSrc());
+            continue;
+        }
+        
         StreamId id = sme.getStreamId();
-
         auto it = collection.find(id);
         // If stream/server is present in collection
         if(it != collection.end()) {
