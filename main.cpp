@@ -297,6 +297,9 @@ void streamThread(void *arg)
             else
                 printf("[E] M (%d,%d)\n", id.src, id.dst);
         }
+        else {
+            printf("[E] Unexpected! read returned %d\n", len);
+        }
     }
     printf("[A] Stream (%d,%d) has been closed, status=", id.src, id.dst);
     printStatus(getInfo(stream).getStatus());
