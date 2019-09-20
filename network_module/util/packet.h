@@ -131,15 +131,15 @@ public:
      * Note, it cannot be used to write value or a Segmentation Fault will happen
      */
     unsigned char operator[](int index) const {
-        if(index > dataSize)
+        if(index > dataStart + dataSize)
             throw std::range_error("Packet::operator[] const: Overflow!");
-        return packet[index];
+        return packet[dataStart + index];
     }
 
     unsigned char& operator[](int index) {
-        if(index > dataSize)
+        if(index > dataStart + dataSize)
             throw std::range_error("Packet::operator[] const: Overflow!");
-        return packet[index];
+        return packet[dataStart + index];
     }
 
     /**
