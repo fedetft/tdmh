@@ -273,7 +273,7 @@ bool ReceiveUplinkMessage::checkTopologiesAndSMEs(const NetworkConfiguration& co
                     unsigned int offset = (topologySize * topologiesInPacket) + (smeSize * i);
                     // Check that there is enough data in the packet
                     if(offset + smeSize > packet.size()) return false;
-                    if(StreamManagementElement::validateInPacket(packet, offset + headerSize) == false)
+                    if(StreamManagementElement::validateInPacket(packet, offset + headerSize, maxNodes) == false)
                         return false;
                 }
             }

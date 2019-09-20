@@ -36,9 +36,10 @@ namespace mxnet {
 
 enum class SMEType : unsigned char
 {
-    CONNECT =0,      // Signals that the dynamic node want to open a new stream
-    LISTEN =1,       // Signals that the dynamic node want to open a new server
-    CLOSED =2        // Signals that the dynamic node has closed the stream or server
+    CONNECT =0,          // Request to open a new stream
+    LISTEN =1,           // Request to open a new server
+    CLOSED =2,           // Request to close the stream or server
+    RESEND_SCHEDULE = 3  // Request to resend the schedule
 };
 
 /**
@@ -51,6 +52,14 @@ public:
 
     StreamManagementElement(StreamInfo info, SMEType t)
         : id(info.getStreamId()), parameters(info.getParams()), type(t) {}
+    
+    static StreamManagementElement makeResendSME(unsigned char nodeId)
+    {
+        StreamManagementElement result;
+        result.type = SMEType::RESEND_SCHEDULE;
+        result.id = StreamId(nodeId,nodeId,0,0);
+        return result;
+    }
 
     void serialize(Packet& pkt) const override;
     static StreamManagementElement deserialize(Packet& pkt);
@@ -86,8 +95,7 @@ public:
 
     std::size_t size() const override { return maxSize(); }
 
-    //TODO: implement method
-    static bool validateInPacket(Packet& packet, unsigned int offset) { return true; }
+    static bool validateInPacket(Packet& packet, unsigned int offset, unsigned short maxNodes);
 
 protected:
     StreamId id;

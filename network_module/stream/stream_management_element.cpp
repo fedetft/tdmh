@@ -44,4 +44,36 @@ StreamManagementElement StreamManagementElement::deserialize(Packet& pkt) {
     return result;
 }
 
+bool StreamManagementElement::validateInPacket(Packet& packet, unsigned int offset, unsigned short maxNodes)
+{
+    StreamId id;
+    StreamParameters parameters;
+    SMEType type;
+    
+    memcpy(&id,        &packet[offset],sizeof(id));         offset+=sizeof(id);
+    memcpy(&parameters,&packet[offset],sizeof(parameters)); offset+=sizeof(parameters);
+    memcpy(&type,      &packet[offset],sizeof(type));
+    
+    bool result = true;
+    if(id.src>=maxNodes) result = false;
+    if(id.dst>=maxNodes) result = false;
+    switch(type)
+    {
+        case SMEType::LISTEN:
+            if(!id.isServer()) result = false;
+            break;
+        case SMEType::CONNECT:
+            break;
+        case SMEType::CLOSED:
+            break;
+        case SMEType::RESEND_SCHEDULE:
+            if(id.src==0) result = false; //Master node can't ask resend
+            if(id.src!=id.dst) result = false; //Wrong resend packet
+            if(id.srcPort!=0 || id.dstPort!=0) result = false;
+        default:
+            result = false;
+    }
+    return result;
+}
+
 } /* namespace mxnet */
