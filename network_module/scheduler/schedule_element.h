@@ -110,8 +110,6 @@ private:
 class ScheduleElement : public SerializableMessage {
 public:
     ScheduleElement() {
-        std::memset(&id, 0, sizeof(StreamId));
-        std::memset(&params, 0, sizeof(StreamParameters));
         std::memset(&content, 0, sizeof(ScheduleElementPkt));
     }
 
@@ -174,8 +172,7 @@ public:
     // Used when parsing SchedulePacket that contains Info elements
     InfoElement(ScheduleElement s) {
         id = s.getStreamId();
-        // Info elements do not carry parameter information
-        std::memset(&params, 0, sizeof(StreamParameters));
+        // Info elements do not carry parameter information, not copying params
         // This is an info element and is characterized by TX=RX=0
         content.tx = 0;
         content.rx = 0;
@@ -185,8 +182,6 @@ public:
     // Constructor copying data from StreamId
     InfoElement(StreamId streamId, InfoType type) {
         id = streamId;
-        // Info elements do not carry parameter information
-        std::memset(&params, 0, sizeof(StreamParameters));
         // This is an info element and is characterized by TX=RX=0
         content.tx = 0;
         content.rx = 0;
@@ -194,9 +189,6 @@ public:
         content.offset = static_cast<unsigned int>(type);
     };
     InfoType getType() const { return static_cast<InfoType>(content.offset); }
-    // NOTE: do not use outside ScheduleElement(Infoelement i),
-    // Info elements are not meant to carry offset information
-    unsigned int getOffset() const { return content.offset; }
 };
 
 class SchedulePacket : public SerializableMessage {
