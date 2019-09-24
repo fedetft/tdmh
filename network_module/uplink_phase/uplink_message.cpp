@@ -198,7 +198,7 @@ bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) 
 
     // Check topologies and SME only if uplink packet has any of them
     if(tempHeader.numTopology != 0 || tempHeader.numSME != 0)
-        if(checkTopologiesAndSMEs(config, headerSize, tempHeader) == false)
+        if(checkTopologiesAndSMEs(config, tempHeader) == false)
             return false;
 
     // Write temporary values to class fields
@@ -212,12 +212,12 @@ bool ReceiveUplinkMessage::checkOtherPacket(const NetworkConfiguration& config) 
     if(packet.size() < headerSize) return false;
     if(packet.checkPanHeader(panId) == false) return false;
     packet.removePanHeader();
-    if(checkTopologiesAndSMEs(config, headerSize, header) == false) return false;
+    if(checkTopologiesAndSMEs(config, header) == false) return false;
     return true;
 }
 
 bool ReceiveUplinkMessage::checkTopologiesAndSMEs(const NetworkConfiguration& config,
-                                                  int headerSize, UplinkHeader tempHeader) {
+                                                  UplinkHeader tempHeader) {
     /* Validate numTopologies and numSME in UplinkHeader
        by trying to extract from an example packet the same number of topologies and SME */
     const int maxPackets = config.getNumUplinkPackets();

@@ -237,7 +237,7 @@ private:
      * @return true if the content of the received packet is valid, false otherwise
      */
     bool checkTopologiesAndSMEs(const NetworkConfiguration& config,
-                                int headerSize, UplinkHeader tempHeader);
+                                UplinkHeader tempHeader);
 
     /* Constant values used in the methods */
     const unsigned short bitsetSize;
