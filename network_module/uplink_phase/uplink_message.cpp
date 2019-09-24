@@ -172,13 +172,13 @@ void ReceiveUplinkMessage::deserializeTopologiesAndSMEs(UpdatableQueue<unsigned 
                                                         UpdatableQueue<StreamId,
                                                         StreamManagementElement>& smes) {
     for(int i = 0; i < getNumPacketTopologies(); i++) {
-        auto topology = getForwardedTopology();
+        auto topology = TopologyElement::deserialize(packet, maxNodes);
         unsigned char id = topology.getId();
         topologies.enqueue(id, std::move(topology));
     }
 
     for(int i = 0; i < getNumPacketSMEs(); i++) {
-        auto sme = getSME();
+        auto sme = StreamManagementElement::deserialize(packet);
         smes.enqueue(sme.getStreamId(),sme);
     }
 }

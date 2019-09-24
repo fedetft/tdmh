@@ -206,19 +206,6 @@ public:
     RuntimeBitset getSenderTopology() const { return topology; }
 
 private:
-    /**
-     * @return the next TopologyElement, extracting it from the packet
-     */
-    TopologyElement getForwardedTopology() {
-        return TopologyElement::deserialize(packet, maxNodes);
-    }
-
-    /**
-     * @return the next StreamManagementElement, extracting it from the packet
-     */
-    StreamManagementElement getSME() {
-        return StreamManagementElement::deserialize(packet);
-    }
 
     /**
      * Checks that the values in the first packet header are valid.
