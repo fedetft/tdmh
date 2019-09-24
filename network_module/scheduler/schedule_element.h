@@ -193,7 +193,6 @@ public:
         // The message of the info element is saved in the offset field
         content.offset = static_cast<unsigned int>(type);
     };
-    static InfoElement deserialize(Packet& pkt);
     InfoType getType() const { return static_cast<InfoType>(content.offset); }
     // NOTE: do not use outside ScheduleElement(Infoelement i),
     // Info elements are not meant to carry offset information

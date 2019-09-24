@@ -54,14 +54,6 @@ ScheduleElement ScheduleElement::deserialize(Packet& pkt) {
     return result;
 }
 
-InfoElement InfoElement::deserialize(Packet& pkt) {
-    InfoElement result;
-    pkt.get(&result.id, sizeof(StreamId));
-    pkt.get(&result.params, sizeof(StreamParameters));
-    pkt.get(&result.content, sizeof(ScheduleElementPkt));
-    return result;
-}
-
 void SchedulePacket::serialize(Packet& pkt, unsigned short panId) const {
     pkt.putPanHeader(panId);
     header.serialize(pkt);
