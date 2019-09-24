@@ -85,7 +85,7 @@ public:
     }
 
     void serialize(Packet& pkt) const override;
-    static ScheduleHeader deserialize(Packet& pkt);
+    void deserialize(Packet& pkt) override;
     std::size_t size() const override { return maxSize(); }
     static std::size_t maxSize() { return sizeof(ScheduleHeaderPkt); }
     unsigned int getTotalPacket() const { return header.totalPacket; }
@@ -137,7 +137,7 @@ public:
     }
 
     void serialize(Packet& pkt) const override;
-    static ScheduleElement deserialize(Packet& pkt);
+    void deserialize(Packet& pkt) override;
     std::size_t size() const override { return maxSize(); }
     static std::size_t maxSize() {
         return (sizeof(StreamId) +
@@ -196,7 +196,8 @@ public:
     SchedulePacket(unsigned short panId) : panId(panId) {}
 
     void serialize(Packet& pkt) const override;
-    static SchedulePacket deserialize(Packet& pkt, unsigned short panId);
+    void deserialize(Packet& pkt) override;
+    
     std::size_t size() const override {
         return panHeaderSize +
             header.size() +
@@ -217,9 +218,6 @@ public:
     void putInfoElement(InfoElement& el) { elements.push_back(static_cast<ScheduleElement>(el)); }
 
 private:
-    SchedulePacket(unsigned short panId, ScheduleHeader hdr, std::vector<ScheduleElement> elms) :
-        panId(panId), header(hdr), elements(elms) {}
-    
     unsigned short panId;
     ScheduleHeader header;
     std::vector<ScheduleElement> elements;

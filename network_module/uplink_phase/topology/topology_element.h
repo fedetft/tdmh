@@ -57,7 +57,7 @@ public:
     }
     void serialize(Packet& pkt) const override;
 
-    static TopologyElement deserialize(Packet& pkt, unsigned short maxNodes);
+    void deserialize(Packet& pkt) override;
 
     static bool validateInPacket(Packet& packet, unsigned int offset,
                                  unsigned short maxNodes);

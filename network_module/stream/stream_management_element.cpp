@@ -36,12 +36,10 @@ void StreamManagementElement::serialize(Packet& pkt) const {
     pkt.put(&type, sizeof(SMEType));
 }
 
-StreamManagementElement StreamManagementElement::deserialize(Packet& pkt) {
-    StreamManagementElement result;
-    pkt.get(&result.id, sizeof(StreamId));
-    pkt.get(&result.parameters, sizeof(StreamParameters));
-    pkt.get(&result.type, sizeof(SMEType));
-    return result;
+void StreamManagementElement::deserialize(Packet& pkt) {
+    pkt.get(&id, sizeof(StreamId));
+    pkt.get(&parameters, sizeof(StreamParameters));
+    pkt.get(&type, sizeof(SMEType));
 }
 
 bool StreamManagementElement::validateInPacket(Packet& packet, unsigned int offset, unsigned short maxNodes)

@@ -50,7 +50,8 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
             ctx.transceiverIdle();
         }
         // Parse the schedule packet
-        SchedulePacket spkt = SchedulePacket::deserialize(pkt, panId);
+        SchedulePacket spkt(panId);
+        spkt.deserialize(pkt);
         ScheduleHeader newHeader = spkt.getHeader();
         if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
             printHeader(newHeader);

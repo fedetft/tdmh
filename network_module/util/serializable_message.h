@@ -35,13 +35,8 @@
 namespace mxnet {
 
 /**
- * This class is not meant to be used polymorphically. Do not upcast to this class.
- * 
  * Represents a serializable data structure, providing an interface with the basic methods for doing so.
- * The serialization output is a byte-aligned vector of bytes.
- * The complementary part for deserialization would need the addition of the following method:
- *
- * static MyMessage deserialize(Packet& pkt);
+ * The serialization output is a Packet
  */
 class SerializableMessage {
 public:
@@ -51,7 +46,7 @@ public:
      */
     virtual void serialize(Packet& pkt) const = 0;
 
-    //static SerializableMessage deserialize(Packet& pkt);
+    virtual void deserialize(Packet& pkt) = 0;
 
     /**
      * Gets the size of the serializable data structure

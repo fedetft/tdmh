@@ -62,7 +62,7 @@ public:
     }
 
     void serialize(Packet& pkt) const override;
-    static StreamManagementElement deserialize(Packet& pkt);
+    void deserialize(Packet& pkt) override;
     StreamId getStreamId() const { return id; }
     StreamParameters getParams() const { return parameters; }
     unsigned char getSrc() const { return id.src; }

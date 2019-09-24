@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "topology_element.h"
+#include <cassert>
 
 namespace mxnet {
 
@@ -38,12 +39,10 @@ void TopologyElement::serialize(Packet& pkt) const {
     pkt.put(neighbors.data(), neighbors.size());
 }
 
-TopologyElement TopologyElement::deserialize(Packet& pkt, unsigned short maxNodes) {
-    unsigned short bitsetSize = ((maxNodes + 7) / 8);
-    TopologyElement result(maxNodes);
-    pkt.get(&result.id, sizeof(unsigned char));
-    pkt.get(result.neighbors.data(), bitsetSize);
-    return result;
+void TopologyElement::deserialize(Packet& pkt) {
+    assert(neighbors.size()>0);
+    pkt.get(&id, sizeof(unsigned char));
+    pkt.get(neighbors.data(), neighbors.size());
 }
 
 

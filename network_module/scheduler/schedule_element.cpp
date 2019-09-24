@@ -33,10 +33,8 @@ void ScheduleHeader::serialize(Packet& pkt) const {
     pkt.put(&header, sizeof(ScheduleHeaderPkt));
 }
 
-ScheduleHeader ScheduleHeader::deserialize(Packet& pkt) {
-    ScheduleHeader result;
-    pkt.get(&result.header, sizeof(ScheduleHeaderPkt));
-    return result;
+void ScheduleHeader::deserialize(Packet& pkt) {
+    pkt.get(&header, sizeof(ScheduleHeaderPkt));
 }
 
 
@@ -46,12 +44,10 @@ void ScheduleElement::serialize(Packet& pkt) const {
     pkt.put(&content, sizeof(ScheduleElementPkt));
 }
 
-ScheduleElement ScheduleElement::deserialize(Packet& pkt) {
-    ScheduleElement result;
-    pkt.get(&result.id, sizeof(StreamId));
-    pkt.get(&result.params, sizeof(StreamParameters));
-    pkt.get(&result.content, sizeof(ScheduleElementPkt));
-    return result;
+void ScheduleElement::deserialize(Packet& pkt) {
+    pkt.get(&id, sizeof(StreamId));
+    pkt.get(&params, sizeof(StreamParameters));
+    pkt.get(&content, sizeof(ScheduleElementPkt));
 }
 
 void SchedulePacket::serialize(Packet& pkt) const {
@@ -61,18 +57,17 @@ void SchedulePacket::serialize(Packet& pkt) const {
         e.serialize(pkt);
 }
 
-SchedulePacket SchedulePacket::deserialize(Packet& pkt, unsigned short panId) {
+void SchedulePacket::deserialize(Packet& pkt) {
     pkt.removePanHeader();
-    ScheduleHeader header = ScheduleHeader::deserialize(pkt);
+    header.deserialize(pkt);
     auto count = pkt.size() / ScheduleElement::maxSize();
-    std::vector<ScheduleElement> elements;
     elements.clear();
     elements.reserve(count);
     for(unsigned int i=0; i < count; i++) {
-        elements.push_back(ScheduleElement::deserialize(pkt));
+        ScheduleElement elem;
+        elem.deserialize(pkt);
+        elements.push_back(elem);
     }
-    SchedulePacket result(panId, header, elements);
-    return result;
 }
 
 } /* namespace mxnet */
