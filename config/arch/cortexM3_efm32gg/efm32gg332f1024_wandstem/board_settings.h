@@ -80,7 +80,7 @@ const unsigned int AUX_TIMER_MAX=0xffff; ///<\internal Aux timer is 16 bits
 
 // /// Serial port
 const unsigned int defaultSerial=0;
-const unsigned int defaultSerialSpeed=115200;
+const unsigned int defaultSerialSpeed=230400;
 
 /**
  * \}
