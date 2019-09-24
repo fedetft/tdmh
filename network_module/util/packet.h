@@ -105,7 +105,7 @@ public:
     void print() const {
         /* Check that immediately after receive, dataStart is equal to 0 */
         assert (dataStart == 0);
-        print_dbg("Packet Dump, size:%d\n", dataSize);
+        iprintf("Packet Dump, size:%d\n", dataSize);
         miosix::memDump(packet.data(), dataSize);
     }
 
