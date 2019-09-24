@@ -578,7 +578,7 @@ void StreamManager::removeServer(unsigned char port) {
 void StreamManager::printStreamStatus(StreamId id, StreamStatus status) {
     if(!ENABLE_STREAM_MGR_INFO_DBG)
         return;
-    print_dbg("[SM] Stream (%d,%d,%d,%d): ", id.src,id.dst,
+    printf("[SM] Stream (%d,%d,%d,%d): ", id.src,id.dst,
               id.srcPort,
               id.dstPort);
     switch(status){
@@ -612,7 +612,7 @@ void StreamManager::printStreamStatus(StreamId id, StreamStatus status) {
 void StreamManager::printServerStatus(StreamId id, StreamStatus status) {
     if(!ENABLE_STREAM_MGR_INFO_DBG)
         return;
-    print_dbg("[SM] Server (%d,%d): ", id.dst,id.dstPort);
+    printf("[SM] Server (%d,%d): ", id.dst,id.dstPort);
     switch(status){
     case StreamStatus::LISTEN_WAIT:
         printf("LISTEN_WAIT");
