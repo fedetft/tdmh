@@ -39,10 +39,9 @@ namespace mxnet {
  * 
  * Represents a serializable data structure, providing an interface with the basic methods for doing so.
  * The serialization output is a byte-aligned vector of bytes.
- * The complementary part for deserialization would need the addition of the following methods:
+ * The complementary part for deserialization would need the addition of the following method:
  *
- * static MyMessage deserialize(std::vector<unsigned char>& pkt);
- * static MyMessage deserialize(unsigned char* pkt);
+ * static MyMessage deserialize(Packet& pkt);
  */
 class SerializableMessage {
 public:
@@ -52,14 +51,16 @@ public:
      */
     virtual void serialize(Packet& pkt) const {}
 
-    //static SerializableMessage deserialize(std::vector<unsigned char>& pkt);
-    //static SerializableMessage deserialize(unsigned char* pkt);
+    //static SerializableMessage deserialize(Packet& pkt);
 
     /**
      * Gets the size of the serializable data structure
      * @return the size of the `serialize()` return value.
      */
     virtual std::size_t size() const = 0;
+    
+    virtual ~SerializableMessage() {}
+    
 protected:
     SerializableMessage() {}
     //Explicit copy constructor in base class causes slicing attempts to produce compiler errors
