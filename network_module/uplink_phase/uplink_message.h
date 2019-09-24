@@ -121,7 +121,6 @@ private:
                                  int availableTopologies, int availableSMEs);
 
     /* Constant values used in the methods */
-    const unsigned short bitsetSize;
     const unsigned int topologySize;
     const unsigned int smeSize;
     const unsigned short panId;

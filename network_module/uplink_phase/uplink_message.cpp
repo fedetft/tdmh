@@ -38,8 +38,7 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
                                      unsigned char hop, unsigned char assignee,
                                      const TopologyElement& myTopology,
                                      int availableTopologies, int availableSMEs) :
-    bitsetSize(config.getNeighborBitmaskSize()),
-    topologySize(TopologyElement::maxSize(bitsetSize)),
+    topologySize(TopologyElement::maxSize(config.getNeighborBitmaskSize())),
     smeSize(StreamManagementElement::maxSize()),
     panId(config.getPanId())
 {
