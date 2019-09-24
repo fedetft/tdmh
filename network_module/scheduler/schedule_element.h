@@ -193,13 +193,10 @@ public:
 
 class SchedulePacket : public SerializableMessage {
 public:
-    SchedulePacket() {}
+    SchedulePacket(unsigned short panId) : panId(panId) {}
 
-    SchedulePacket(ScheduleHeader hdr, std::vector<ScheduleElement> elms) :
-        header(hdr), elements(elms) {}
-
-    void serialize(Packet& pkt, unsigned short panId) const;
-    static SchedulePacket deserialize(Packet& pkt);
+    void serialize(Packet& pkt) const override;
+    static SchedulePacket deserialize(Packet& pkt, unsigned short panId);
     std::size_t size() const override {
         return panHeaderSize +
             header.size() +
@@ -220,6 +217,10 @@ public:
     void putInfoElement(InfoElement& el) { elements.push_back(static_cast<ScheduleElement>(el)); }
 
 private:
+    SchedulePacket(unsigned short panId, ScheduleHeader hdr, std::vector<ScheduleElement> elms) :
+        panId(panId), header(hdr), elements(elms) {}
+    
+    unsigned short panId;
     ScheduleHeader header;
     std::vector<ScheduleElement> elements;
 };

@@ -54,14 +54,14 @@ ScheduleElement ScheduleElement::deserialize(Packet& pkt) {
     return result;
 }
 
-void SchedulePacket::serialize(Packet& pkt, unsigned short panId) const {
+void SchedulePacket::serialize(Packet& pkt) const {
     pkt.putPanHeader(panId);
     header.serialize(pkt);
     for(auto e : elements)
         e.serialize(pkt);
 }
 
-SchedulePacket SchedulePacket::deserialize(Packet& pkt) {
+SchedulePacket SchedulePacket::deserialize(Packet& pkt, unsigned short panId) {
     pkt.removePanHeader();
     ScheduleHeader header = ScheduleHeader::deserialize(pkt);
     auto count = pkt.size() / ScheduleElement::maxSize();
@@ -71,7 +71,7 @@ SchedulePacket SchedulePacket::deserialize(Packet& pkt) {
     for(unsigned int i=0; i < count; i++) {
         elements.push_back(ScheduleElement::deserialize(pkt));
     }
-    SchedulePacket result(header, elements);
+    SchedulePacket result(panId, header, elements);
     return result;
 }
 

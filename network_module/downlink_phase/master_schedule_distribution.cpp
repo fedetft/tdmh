@@ -247,7 +247,7 @@ unsigned int MasterScheduleDownlinkPhase::getActivationTile(unsigned int current
 }
 
 void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
-    SchedulePacket spkt;
+    SchedulePacket spkt(panId);
     // Add ScheduleHeader to SchedulePacket
     spkt.setHeader(header);
 
@@ -264,7 +264,7 @@ void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
         spkt.putInfoElement(info);
 
     Packet pkt;
-    spkt.serialize(pkt, panId);
+    spkt.serialize(pkt);
     // Send schedule downlink packet
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     pkt.send(ctx, slotStart);
@@ -282,7 +282,7 @@ void MasterScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
 }
 
 void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart) {
-    SchedulePacket spkt;
+    SchedulePacket spkt(panId);
     // Build Info packet header
     ScheduleHeader infoHeader(0,0,header.getScheduleID());
     spkt.setHeader(infoHeader);
@@ -293,7 +293,7 @@ void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart) {
         spkt.putInfoElement(info);
 
     Packet pkt;
-    spkt.serialize(pkt, panId);
+    spkt.serialize(pkt);
     // Send schedule downlink packet
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     pkt.send(ctx, slotStart);

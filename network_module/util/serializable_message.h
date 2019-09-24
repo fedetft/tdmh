@@ -49,7 +49,7 @@ public:
      * Serializes the structure into the provided Packet object.
      * @param pkt the object in which the data will be serialized.
      */
-    virtual void serialize(Packet& pkt) const {}
+    virtual void serialize(Packet& pkt) const = 0;
 
     //static SerializableMessage deserialize(Packet& pkt);
 
