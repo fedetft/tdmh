@@ -54,7 +54,7 @@ public:
     /**
      * This method is called after desynchronization
      */
-    void desync() override {};
+    void desync() override {}
 
     virtual ~DynamicScheduleDownlinkPhase() {};
     void extractInfoElements(SchedulePacket& spkt);

@@ -75,7 +75,7 @@ public:
      * Update the internal status of the StreamManager after restoring
      * the Timesync synchronization
      */
-    void resync() {};
+    void resync() {}
 
     /**
      * Update the internal status of the StreamManager after losing

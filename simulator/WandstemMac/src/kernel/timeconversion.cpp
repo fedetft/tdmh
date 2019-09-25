@@ -26,16 +26,13 @@
  ***************************************************************************/
 
 #include "timeconversion.h"
+#include <cassert>
 
 namespace miosix {
 
-TimeConversion::TimeConversion(unsigned int freq) : MiosixInterface(), freq(freq) {
-    // TODO Auto-generated constructor stub
+TimeConversion::TimeConversion(unsigned int freq) {
+    assert(freq == EFM32_HFXO_FREQ);
 
-}
-
-TimeConversion::~TimeConversion() {
-    // TODO Auto-generated destructor stub
 }
 
 long long TimeConversion::ns2tick(long long time) {

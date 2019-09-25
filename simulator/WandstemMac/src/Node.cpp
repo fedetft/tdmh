@@ -214,7 +214,6 @@ void Node::streamThread(pair<int, StreamManager*> arg) {
         StreamManager* mgr = arg.second;
         StreamId id = mgr->getInfo(stream).getStreamId();
         printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
-        StreamStatus status;
         // Receive data until the stream is closed
         while(mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
             Data data;

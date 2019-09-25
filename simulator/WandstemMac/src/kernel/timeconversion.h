@@ -38,11 +38,8 @@ class TimeConversion : MiosixInterface {
 public:
     TimeConversion()=delete;
     TimeConversion(unsigned int freq);
-    virtual ~TimeConversion();
     long long ns2tick(long long time);
     long long tick2ns(long long ns);
-private:
-    long long freq;
 };
 
 } /* namespace miosix */

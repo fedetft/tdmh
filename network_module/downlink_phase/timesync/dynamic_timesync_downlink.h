@@ -61,7 +61,7 @@ public:
     inline void execute(long long slotStart) override;
     std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
     //    long long getDelayToMaster() const override { return askingRTP.getDelayToMaster(); }
-    virtual long long getSlotframeStart() const { return measuredFrameStart - (ctx.getHop() - 1) * rebroadcastInterval; }
+    virtual long long getSlotframeStart() const override { return measuredFrameStart - (ctx.getHop() - 1) * rebroadcastInterval; }
 protected:
     void rebroadcast(const Packet& pkt, long long arrivalTs);
     
@@ -153,14 +153,14 @@ protected:
      * MacPhase but is useless since the timesync is the one caling the resync
      * and desync methods, not the other way around.
      */
-    void resync() override {};
+    void resync() override {}
 
     /**
      * This function needs to be implemented because we are inheriting from
      * MacPhase but is useless since the timesync is the one caling the resync
      * and desync methods, not the other way around.
      */
-    void desync() override {};
+    void desync() override {}
 
 
     //AskingRoundtripPhase askingRTP;

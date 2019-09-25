@@ -45,15 +45,15 @@ public:
     /**
      * Master node do not need resync since it never loses synchronization
      */
-    void resync() override {};
+    void resync() override {}
 
     /**
      * Master node do not need desync since it never loses synchronization
      */
-    void desync() override {};
+    void desync() override {}
     std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
     //long long getDelayToMaster() const override { return 0; }
-    virtual long long getSlotframeStart() const { return slotframeTime; }
+    virtual long long getSlotframeStart() const override { return slotframeTime; }
     
     void macStartHook() override;
 

@@ -69,7 +69,7 @@ public:
     /**
      * Called after losing the Timesync synchronization
      */
-    void desync() {};
+    void desync() override {}
 
     /**
      * Starts expecting a message from the node to which the slot is assigned

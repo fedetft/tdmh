@@ -81,7 +81,7 @@ public:
     /**
      * Called after desynchronization
      */
-    void desync() override {};
+    void desync() override {}
 
     /* Five possible actions, as described by the explicit schedule */
     void sleep(long long slotStart);

@@ -48,7 +48,7 @@ public:
 
     MACPhase(const MACPhase& orig) = delete;
 
-    virtual ~MACPhase() {};
+    virtual ~MACPhase() {}
 
     /**
      * Calls execute() or advance() depending on the clock synchronization state
