@@ -112,7 +112,6 @@ void DynamicTimesyncDownlink::resyncTime() {
 
     greenLed::low();
     ++pkt[2];
-    auto myHop = pkt[2];
     
     // NOTE: by the way the virtual clock is currently implemented, a clock
     // jump is observed whenever updateVt is called after a reset, due to the
