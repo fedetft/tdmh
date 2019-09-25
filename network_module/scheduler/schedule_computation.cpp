@@ -45,10 +45,13 @@ namespace mxnet {
 ScheduleComputation::ScheduleComputation(MACContext& mac_ctx) :
     channelSpatialReuse(mac_ctx.getNetworkConfig().getChannelSpatialReuse()),
     stream_mgr(mac_ctx.getNetworkConfig(), 0), // Initialize StreamManager with ID=0 (Master node)
-    schedule(0, superframe.size()), // Initialize Schedule with ID=0 and tile_size = superframe size
+    schedule(0, netconfig.getControlSuperframeStructure().size()), // Initialize Schedule with ID=0 and tile_size = superframe size
     mac_ctx(mac_ctx), netconfig(mac_ctx.getNetworkConfig()),
     superframe(netconfig.getControlSuperframeStructure()),
-    network_graph(netconfig.getNeighborBitmaskSize()) {}
+    network_graph(netconfig.getNeighborBitmaskSize())
+{
+
+}
 
 void ScheduleComputation::startThread() {
     if (scthread == nullptr)
