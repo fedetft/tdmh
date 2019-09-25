@@ -34,12 +34,18 @@ void StreamManagementElement::serialize(Packet& pkt) const {
     pkt.put(&id, sizeof(StreamId));
     pkt.put(&parameters, sizeof(StreamParameters));
     pkt.put(&type, sizeof(SMEType));
+#ifdef WITH_SME_SEQNO
+    pkt.put(&seqNo, sizeof(seqNo));
+#endif //WITH_SME_SEQNO
 }
 
 void StreamManagementElement::deserialize(Packet& pkt) {
     pkt.get(&id, sizeof(StreamId));
     pkt.get(&parameters, sizeof(StreamParameters));
     pkt.get(&type, sizeof(SMEType));
+#ifdef WITH_SME_SEQNO
+    pkt.get(&seqNo, sizeof(seqNo));
+#endif //WITH_SME_SEQNO
 }
 
 bool StreamManagementElement::validateInPacket(Packet& packet, unsigned int offset, unsigned short maxNodes)
@@ -72,5 +78,9 @@ bool StreamManagementElement::validateInPacket(Packet& packet, unsigned int offs
     }
     return result;
 }
+
+#ifdef WITH_SME_SEQNO
+int StreamManagementElement::seqCounter = 0;
+#endif //WITH_SME_SEQNO
 
 } /* namespace mxnet */

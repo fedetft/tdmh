@@ -111,6 +111,13 @@ void StreamCollection::receiveSMEs(UpdatableQueue<StreamId,
     auto numSME = smes.size();
     for(unsigned int i=0; i < numSME; i++) {
         auto sme = smes.dequeue();
+        
+#ifdef WITH_SME_SEQNO
+        print_dbg("[SC] SME from (%d,%d,%d,%d) %s seq=%d\n",
+                  sme.getSrc(),sme.getDst(),sme.getSrcPort(),sme.getDstPort(),
+                  smeTypeToString(sme.getType()),sme.getSeqNo());
+#endif //WITH_SME_SEQNO
+        
         if(sme.getType() == SMEType::RESEND_SCHEDULE)
         {
             resend_flag = true;

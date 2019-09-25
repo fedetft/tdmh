@@ -31,6 +31,17 @@
 #include "stream_parameters.h"
 #include <string.h>
 #include <vector>
+#ifdef _MIOSIX
+#include <interfaces/atomic_ops.h>
+#else //_MIOSIX
+#include <bits/atomic_word.h>
+#include <bits/atomic_lockfree_defines.h>
+#endif //_MIOSIX
+
+/**
+ * Enable adding a sequence number to each SME to detect SME losses in the uplink
+ */
+//#define WITH_SME_SEQNO
 
 namespace mxnet {
 
@@ -42,6 +53,18 @@ enum class SMEType : unsigned char
     RESEND_SCHEDULE = 3  // Request to resend the schedule
 };
 
+inline const char *smeTypeToString(SMEType s)
+{
+    switch(s)
+    {
+        case SMEType::CONNECT:         return "CONNECT";
+        case SMEType::LISTEN:          return "LISTEN";
+        case SMEType::CLOSED:          return "CLOSED";
+        case SMEType::RESEND_SCHEDULE: return "RESEND_SCHEDULE";
+        default:                       return "UNKNOWN";
+    }
+}
+
 /**
  *  StreamManagementElement is the message that is sent on the network
  *  to manage the streams
@@ -51,13 +74,28 @@ public:
     StreamManagementElement() {}
 
     StreamManagementElement(StreamInfo info, SMEType t)
-        : id(info.getStreamId()), parameters(info.getParams()), type(t) {}
+        : id(info.getStreamId()), parameters(info.getParams()), type(t)
+#ifdef WITH_SME_SEQNO
+#ifdef _MIOSIX
+        , seqNo(miosix::atomicAddExchange(&seqCounter,1))
+#else //_MIOSIX
+        , seqNo(__atomic_add_fetch(&seqCounter,1,__ATOMIC_ACQ_REL))
+#endif //_MIOSIX
+#endif //WITH_SME_SEQNO
+    {}
     
     static StreamManagementElement makeResendSME(unsigned char nodeId)
     {
         StreamManagementElement result;
         result.type = SMEType::RESEND_SCHEDULE;
         result.id = StreamId(nodeId,nodeId,0,0);
+#ifdef WITH_SME_SEQNO
+#ifdef _MIOSIX
+        result.seqNo = miosix::atomicAddExchange(&seqCounter,1);
+#else //_MIOSIX
+        result.seqNo = __atomic_add_fetch(&seqCounter,1,__ATOMIC_ACQ_REL);
+#endif //_MIOSIX
+#endif //WITH_SME_SEQNO
         return result;
     }
 
@@ -88,19 +126,31 @@ public:
     unsigned int getKey() const { return id.getKey(); }
 
     static unsigned short maxSize() {
-        return sizeof(StreamId) +
-               sizeof(StreamParameters) +
-               sizeof(SMEType);
+        return sizeof(StreamId)
+             + sizeof(StreamParameters)
+             + sizeof(SMEType)
+#ifdef WITH_SME_SEQNO
+             + sizeof(seqNo)
+#endif //WITH_SME_SEQNO
+             ;
     }
 
     std::size_t size() const override { return maxSize(); }
 
     static bool validateInPacket(Packet& packet, unsigned int offset, unsigned short maxNodes);
+    
+#ifdef WITH_SME_SEQNO
+    unsigned short getSeqNo() const { return seqNo; }
+#endif //WITH_SME_SEQNO
 
 protected:
     StreamId id;
     StreamParameters parameters;
     SMEType type;
+#ifdef WITH_SME_SEQNO
+    unsigned short seqNo;
+    static int seqCounter;
+#endif //WITH_SME_SEQNO
 };
 
 
