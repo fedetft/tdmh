@@ -46,6 +46,7 @@ void Node::initialize()
 
 void Node::activity()
 try {
+    print_dbg("Dynamic node %d\n", address);
     using namespace miosix;
     const NetworkConfiguration config(
             hops,            //maxHops
@@ -107,38 +108,7 @@ void Node::application() {
     while(!ctx->isReady()) ;
     Period p = Period::P10;
     Redundancy r = Redundancy::TRIPLE_SPATIAL;
-    /* Open Stream from node 1 */
-    if(address == 1) {
-        sendData(ctx, 0, p, r);
-    }
-    /* Open Stream from node 2 */
-    if(address == 2) {
-        sendData(ctx, 0, p, r);
-    }
-    /* Open Stream from node 3 */
-    if(address == 3) {
-        sendData(ctx, 0, p, r);
-    }
-    /* Open Stream from node 4 */
-    if(address == 4) {
-        sendData(ctx, 0, p, r);
-    }
-    /* Open Stream from node 5 */
-    if(address == 5) {
-        sendData(ctx, 0, p, r);
-    }
-    /* Open Stream from node 6 */
-    if(address == 6) {
-        sendData(ctx, 0, p, r);
-    }
-    /* Open Stream from node 7 */
-    if(address == 7) {
-        sendData(ctx, 0, p, r);
-    }
-    /* Open Stream from node 8 */
-    if(address == 8) {
-        sendData(ctx, 0, p, r);
-    }
+    sendData(ctx, 0, p, r);
 }
 
 void Node::sendData(MACContext* ctx, unsigned char dest, Period period, Redundancy redundancy) {
