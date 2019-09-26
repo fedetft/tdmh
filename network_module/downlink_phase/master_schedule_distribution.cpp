@@ -64,6 +64,13 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
         // sending the first packet
         return;
     }
+    //FIXME: if we have finished distributing the schedule but we are waiting
+    //for it to be applied, this code doesn't send info packets. This is both
+    //good and bad. Good because we shall leave one downlink slot without
+    //transmitting anything to give time to every node to exlicit the schedule,
+    //but bad because we may spend a lot of time (up to a timesync period or
+    //the length of the past schedule, whichever is greater, without the
+    //possibility to send info elements).
     if(distributing == false) {
         // If InfoElements available, send a SchedulePkt with InfoElements only
         if(streamColl->getNumInfo() != 0)
