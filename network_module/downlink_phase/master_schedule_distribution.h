@@ -38,7 +38,7 @@ public:
     MasterScheduleDownlinkPhase(MACContext& ctx, ScheduleComputation& sch);
     MasterScheduleDownlinkPhase() = delete;
     MasterScheduleDownlinkPhase(const MasterScheduleDownlinkPhase& orig) = delete;
-    virtual ~MasterScheduleDownlinkPhase() {};
+
     void execute(long long slotStart) override;
     /**
      * Master node do not need resync since it never loses synchronization
@@ -49,17 +49,18 @@ public:
      * Master node do not need desync since it never loses synchronization
      */
     void desync() override {}
+    
+private:
     void getCurrentSchedule(long long slotStart);
     void sendSchedulePkt(long long slotstart);
     void sendInfoPkt(long long slotstart);
     void printHeader(ScheduleHeader& header);
 
-private:
     unsigned int getActivationTile(unsigned int currentTile, unsigned int numPackets);
+    
     // Last schedule element sent
     unsigned position = 0;
-    unsigned downlinkSlots = 0;
-    unsigned packetCapacity = 0;
+    const unsigned packetCapacity = SchedulePacket::getPacketCapacity();
     bool distributing = false;
 
     // Reference to ScheduleComputation class to get current schedule

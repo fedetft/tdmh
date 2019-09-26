@@ -40,14 +40,7 @@ namespace mxnet {
 MasterScheduleDownlinkPhase::MasterScheduleDownlinkPhase(MACContext& ctx,
                                                          ScheduleComputation& sch) :
     ScheduleDownlinkPhase(ctx), schedule_comp(sch),
-    streamColl(sch.getStreamCollection())
-{
-    // Get number of downlink slots
-    unsigned tileSize = ctx.getSlotsInTileCount();
-    unsigned dataslotsDownlinktile = ctx.getDataSlotsInDownlinkTileCount();
-    downlinkSlots = tileSize - dataslotsDownlinktile;
-    packetCapacity = SchedulePacket::getPacketCapacity();
-}
+    streamColl(sch.getStreamCollection()) {}
 
 void MasterScheduleDownlinkPhase::execute(long long slotStart) {
     // If a new schedule is available
