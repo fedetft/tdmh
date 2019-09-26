@@ -42,7 +42,7 @@ void DynamicUplinkPhase::execute(long long slotStart)
     auto currentNode = getAndUpdateCurrentNode();
     
     if (ENABLE_UPLINK_DYN_VERB_DBG)
-         print_dbg("[U] N=%u T=%lld\n", currentNode, slotStart);
+         print_dbg("[U] N=%u NT=%lld\n", currentNode, NetworkTime::fromLocalTime(slotStart).get());
     
     if (currentNode == myId) sendMyUplink(slotStart);
     else receiveUplink(slotStart, currentNode);
@@ -61,7 +61,7 @@ void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char curren
                                     message.getRssi(), senderTopology);
         
         if(ENABLE_UPLINK_DYN_INFO_DBG)
-            print_dbg("[U]<-N=%u @%llu %hddBm\n",currentNode,message.getTimestamp(),message.getRssi());
+            print_dbg("[U]<-N=%u @%llu %hddBm\n",currentNode,NetworkTime::fromLocalTime(slotStart).get(),message.getRssi());
         if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
             print_dbg("<-%d %ddBm\n",currentNode,message.getRssi());
     
@@ -101,7 +101,7 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
                                   myNeighborTable.getMyTopologyElement(),
                                   0, 0);
         if(ENABLE_UPLINK_DYN_INFO_DBG)
-            print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), slotStart);
+            print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), NetworkTime::fromLocalTime(slotStart).get());
 
         ctx.configureTransceiver(ctx.getTransceiverConfig());
         message.send(ctx,slotStart);
@@ -119,7 +119,7 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
                                   myNeighborTable.getMyTopologyElement(),
                                   topologyQueue.size(), smeQueue.size());
         if(ENABLE_UPLINK_DYN_INFO_DBG)
-            print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), slotStart);
+            print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), NetworkTime::fromLocalTime(slotStart).get());
 
         ctx.configureTransceiver(ctx.getTransceiverConfig());
         for(int i = 0; i < message.getNumPackets(); i++)
