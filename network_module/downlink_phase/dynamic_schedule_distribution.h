@@ -56,13 +56,12 @@ public:
      */
     void desync() override {}
 
-    virtual ~DynamicScheduleDownlinkPhase() {};
+private:
     void extractInfoElements(SchedulePacket& spkt);
     void printHeader(ScheduleHeader& header);
     bool isScheduleComplete();
     void printStatus();
 
-private:
     /* NetworkId of this node */
     unsigned char myId;
 
