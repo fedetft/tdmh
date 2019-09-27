@@ -34,6 +34,7 @@
 #include "interfaces-impl/transceiver.h"
 #include "network_configuration.h"
 #include "stream/stream_parameters.h"
+#include "util/stackrange.h"
 
 namespace mxnet {
 
@@ -101,6 +102,7 @@ protected:
     miosix::Thread* thread;
 private:
     static void runLauncher(void* obj) {
+        printStackRange("MAC (async)");
         reinterpret_cast<MediumAccessController*>(obj)->run();
     }
 #else

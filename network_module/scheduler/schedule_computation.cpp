@@ -30,6 +30,7 @@
 #include "../stream/stream_management_element.h"
 #include "../mac_context.h"
 #include "../uplink_phase/master_uplink_phase.h"
+#include "../util/stackrange.h"
 #include <list>
 #include <unordered_set>
 #include <utility>
@@ -72,6 +73,7 @@ void ScheduleComputation::beginScheduling() {
 }
 
 void ScheduleComputation::run() {
+    printStackRange("scheduler");
     for(;;) {
         bool forceResend=false;
         for(;;)

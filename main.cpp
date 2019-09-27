@@ -34,6 +34,7 @@
 #include "network_module/dynamic_tdmh.h"
 #include "network_module/master_tdmh.h"
 #include "network_module/downlink_phase/timesync/networktime.h"
+#include "network_module/util/stackrange.h"
 #include "interfaces-impl/gpio_timer_corr.h"
 
 // For tests with a 50ms tile and 2ms slots
@@ -123,6 +124,7 @@ void printStatus(StreamStatus status) {
 
 void masterNode(void*)
 {
+    printStackRange("MAC (master)");
     try {
         printf("Master node\n");
         const NetworkConfiguration config(
@@ -158,6 +160,7 @@ void masterNode(void*)
 
 void dynamicNode(void* argv)
 {
+    printStackRange("MAC (dynamic)");
     try {
         auto arg = reinterpret_cast<Arg*>(argv);
         printf("Dynamic node %d",arg->id);
@@ -197,19 +200,9 @@ void dynamicNode(void* argv)
     }
 }
 
-void blinkThread(void *)
-{
-    for(;;)
-    {
-        redLed::high();
-        Thread::sleep(10);
-        redLed::low();
-        Thread::sleep(990);
-   }
-}
-
 void statThread(void *)
 {
+    printStackRange("stat");
     for(;;)
     {
         printf("[H] Time=%lld MinHeap=%u Heap=%u\n", miosix::getTime(),
@@ -265,6 +258,7 @@ struct Data
 
 void streamThread(void *arg)
 {
+    printStackRange("stream");
     auto *s = reinterpret_cast<StreamThreadPar*>(arg);
     int stream = s->stream;
     StreamInfo info = getInfo(stream);
@@ -397,7 +391,7 @@ void idle() {
 
 int main()
 {
-    //Thread::create(blinkThread,STACK_MIN,MAIN_PRIORITY);
+    printStackRange("main");
 
     unsigned long long nodeID = getUniqueID();
     printf("### TDMH Test code ###\nNodeID=%llx\n", nodeID);

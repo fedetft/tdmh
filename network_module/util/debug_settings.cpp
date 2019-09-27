@@ -35,6 +35,7 @@
 #ifdef _MIOSIX
 #include <miosix.h>
 #include <unistd.h>
+#include "stackrange.h"
 #endif
 
 using namespace std;
@@ -93,6 +94,7 @@ void DebugPrinter::enqueue(const string& s)
 
 void DebugPrinter::run()
 {
+    printStackRange("DebugPrinter");
     for(;;)
     {
         string s;
@@ -103,7 +105,7 @@ void DebugPrinter::run()
             messages.pop();
             size -= s.size();
         }
-	write(STDOUT_FILENO,s.c_str(),s.size());
+        write(STDOUT_FILENO,s.c_str(),s.size());
     }
 }
 
