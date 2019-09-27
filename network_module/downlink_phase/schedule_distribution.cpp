@@ -201,8 +201,6 @@ bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
         /* NOTE: we call applySchedule on the implicitSchedule to save time,
          * because implicit schedule is much smaller than explicit one */
         streamMgr->applySchedule(schedule);
-        // Apply info elements to StreamManager
-        streamMgr->applyInfoElements(infos);
         //NOTE: after we apply the schedule, we need to leave the time for connect() to return
         //in applications, and for them to call write(), otherwise the first transmission
         //fails due to no packet being available. If checkTimeSetSchedule returns immediately,

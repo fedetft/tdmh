@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "dynamic_schedule_distribution.h"
+#include "../data_phase/dataphase.h"
 #include "../tdmh.h"
 #include "../util/packet.h"
 #include "../util/debug_settings.h"
@@ -43,6 +44,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     ctx.transceiverIdle(); //Save power waiting for rebroadcast time
     // Received a valid schedule packet
     if (rcvResult.error == RecvResult::ErrorCode::OK && pkt.checkPanHeader(panId) == true) {
+        std::vector<InfoElement> infos;
         // Retransmit the schedule packet unless you belong to maximum hop
         if(ctx.getHop() < ctx.getNetworkConfig().getMaxHops()) {
             ctx.configureTransceiver(ctx.getTransceiverConfig());
@@ -63,7 +65,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
         // Received Schedule + Info packet
         else {
             // Extract and delete info elements from packet
-            extractInfoElements(spkt);
+            infos = extractInfoElements(spkt);
             // We received a new schedule, replace currently received
             if((newHeader.getScheduleID() != header.getScheduleID())) {
                 if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
@@ -101,12 +103,19 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     // If we received a complete schedule, check application tile
     if(isScheduleComplete()) {
         checkTimeSetSchedule(slotStart);
+    } else {
+        unsigned int currentTile = ctx.getCurrentTile(slotStart);
+        if(header.getScheduleID() != dataPhase->getScheduleID() &&
+           currentTile >= header.getActivationTile())
+            handleIncompleteSchedule();
+        else incompleteScheduleCounter = 0;
     }
     //printStatus();
 }
 
-void DynamicScheduleDownlinkPhase::extractInfoElements(SchedulePacket& spkt) {
+std::vector<InfoElement> DynamicScheduleDownlinkPhase::extractInfoElements(SchedulePacket& spkt) {
     std::vector<ScheduleElement> elements = spkt.getElements();
+    std::vector<InfoElement> infos;
     // Check for Info Elements and separate them from Schedule Elements
     auto firstInfo = std::find_if(elements.begin(), elements.end(),
                                   [](ScheduleElement s){
@@ -116,6 +125,7 @@ void DynamicScheduleDownlinkPhase::extractInfoElements(SchedulePacket& spkt) {
         infos = std::vector<InfoElement>(firstInfo, elements.end());
         spkt.popElements(infos.size());
     }
+    return infos;
 }
 
 void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
@@ -143,6 +153,24 @@ void DynamicScheduleDownlinkPhase::printStatus() {
            received.size());
     for (unsigned int i=0; i < received.size(); i++) print_dbg("%d", static_cast<bool>(received[i]));
     print_dbg("]\n");
+}
+
+void DynamicScheduleDownlinkPhase::handleIncompleteSchedule()
+{
+    print_dbg("[SD] incomplete schedule!\n");
+    schedule.clear();
+    explicitScheduleID = 0;
+    explicitSchedule.clear();
+    // Derived class status
+    received.clear();
+        
+    if(incompleteScheduleCounter == 0)
+    {
+        ctx.getStreamManager()->enqueueSME(StreamManagementElement::makeResendSME(myId));
+    }
+    int timeout = ctx.getNetworkConfig().getMaxNodes()*2; //Trying a reasonable timeout
+    if(++incompleteScheduleCounter>=timeout)
+        incompleteScheduleCounter = 0;
 }
 
 }

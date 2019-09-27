@@ -92,8 +92,6 @@ protected:
     ScheduleHeader header;
     // Copy of last computed/received schedule
     std::vector<ScheduleElement> schedule;
-    // Copy of last computed/received info elements
-    std::vector<InfoElement> infos;
 
     // Current schedule lenght in tiles
     unsigned long explicitScheduleID = 0;
@@ -101,7 +99,7 @@ protected:
 
     // Pointer to StreamManager, used to apply distributed schedule and info elements
     StreamManager* const streamMgr;
-private:
+
     // Pointer to DataPhase, used to apply distributed schedule
     DataPhase* const dataPhase;
 };

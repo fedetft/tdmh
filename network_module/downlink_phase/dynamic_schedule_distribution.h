@@ -45,7 +45,6 @@ public:
         // Base class status
         header = ScheduleHeader();
         schedule.clear();
-        infos.clear();
         explicitScheduleID = 0;
         explicitSchedule.clear();
         // Derived class status
@@ -57,10 +56,11 @@ public:
     void desync() override {}
 
 private:
-    void extractInfoElements(SchedulePacket& spkt);
+    std::vector<InfoElement> extractInfoElements(SchedulePacket& spkt);
     void printHeader(ScheduleHeader& header);
     bool isScheduleComplete();
     void printStatus();
+    void handleIncompleteSchedule();
 
     /* NetworkId of this node */
     unsigned char myId;
@@ -72,6 +72,8 @@ private:
        being distributed, as we need only the copy in the base class.
        This is because the master can produce a new schedule only after
        the previous one has been activated */
+    
+    int incompleteScheduleCounter = 0;
 };
 
 }
