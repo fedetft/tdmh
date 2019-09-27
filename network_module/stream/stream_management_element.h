@@ -88,7 +88,9 @@ public:
     {
         StreamManagementElement result;
         result.type = SMEType::RESEND_SCHEDULE;
-        result.id = StreamId(nodeId,nodeId,0,0);
+        //(id,id,0,port) is used by LISTEN, so use (id,id,1,0) for RESEND.
+        //These have to be unique as the stream id is key in the updatable queues
+        result.id = StreamId(nodeId,nodeId,1,0);
 #ifdef WITH_SME_SEQNO
 #ifdef _MIOSIX
         result.seqNo = miosix::atomicAddExchange(&seqCounter,1);
