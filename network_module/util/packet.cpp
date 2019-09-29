@@ -58,10 +58,6 @@ void Packet::discard(unsigned int discardSize) {
 void Packet::send(MACContext& ctx, long long sendTime) const {
     auto wuTime = ctx.getTimesync()->getSenderWakeup(sendTime);
     auto now = getTime();
-    if (now >= sendTime) {
-        print_dbg("Packet::send: too late\n");
-        return;
-    }
     if (now < wuTime)
         ctx.sleepUntil(wuTime);
 #ifdef _MIOSIX
