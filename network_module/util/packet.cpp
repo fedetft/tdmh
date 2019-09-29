@@ -76,13 +76,11 @@ RecvResult Packet::recv(MACContext& ctx, long long tExpected, function<bool (con
         auto wakeUpTimeout = ctx.getTimesync()->getWakeupAndTimeout(tExpected);
         timeout = wakeUpTimeout.second;
         auto now = getTime();
-        if (now + ctx.getTimesync()->getReceiverWindow() >= tExpected) {
+        if(now > wakeUpTimeout.first) {
             print_dbg("Packet::recv: too late\n");
-            // Returning RecvResult object with default values
-            return result;
+            return result; // Returning RecvResult object with default values
         }
-        if (now < wakeUpTimeout.first)
-            ctx.sleepUntil(wakeUpTimeout.first);
+        ctx.sleepUntil(wakeUpTimeout.first);
     }
     for(;;) {
 #ifdef _MIOSIX
