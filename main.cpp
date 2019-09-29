@@ -142,7 +142,7 @@ void masterNode(void*)
             150000,        //maxAdmittedRcvWindow
             3,             //maxRoundsUnavailableBecomesDead
             -75,           //minNeighborRSSI
-            3,             //maxMissedTimesyncs
+            4,             //maxMissedTimesyncs
             false          //channelSpatialReuse
         );
         printf("Starting TDMH with maxForwardedTopologies=%d\n", maxForwardedTopologiesFromMaxNumNodes(maxNodes));
@@ -181,7 +181,7 @@ void dynamicNode(void* argv)
             150000,        //maxAdmittedRcvWindow
             3,             //maxRoundsUnavailableBecomesDead
             -75,           //minNeighborRSSI
-            3,             //maxMissedTimesyncs
+            4,             //maxMissedTimesyncs
             false          //channelSpatialReuse
         );
         printf("Starting TDMH with maxForwardedTopologies=%d\n", maxForwardedTopologiesFromMaxNumNodes(maxNodes));

@@ -69,7 +69,7 @@ public:
      * @return the deepsleep deadline and receiving timeout, calculated wrt the receiving
      * window managed by the controller
      */
-    virtual std::pair<long long, long long> getWakeupAndTimeout(long long tExpected)=0;
+    virtual std::pair<long long, long long> getWakeupAndTimeout(long long tExpected);
 
     /**
      * @return the synchronization error
@@ -99,7 +99,7 @@ public:
     unsigned int getTimesyncPacketCounter() const { return packetCounter; }
 
     bool macCanOperate() {
-        return internalStatus == IN_SYNC && receiverWindow <= networkConfig.getMaxAdmittedRcvWindow();
+        return internalStatus == IN_SYNC && llabs(error) < networkConfig.getMaxAdmittedRcvWindow()/2;
     }
     
     virtual void macStartHook() {}

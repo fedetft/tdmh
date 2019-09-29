@@ -50,7 +50,6 @@ public:
      * Master node do not need desync since it never loses synchronization
      */
     void desync() override {}
-    std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
 
     virtual long long getSlotframeStart() const override { return slotframeTime; }
     

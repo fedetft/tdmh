@@ -34,6 +34,16 @@ using namespace miosix;
 
 namespace mxnet {
 
+std::pair<long long, long long> TimesyncDownlink::getWakeupAndTimeout(long long tExpected) {
+    return std::make_pair(
+        tExpected - (MediumAccessController::receivingNodeWakeupAdvance +
+                     networkConfig.getMaxAdmittedRcvWindow()),
+        tExpected + networkConfig.getMaxAdmittedRcvWindow() +
+                    MediumAccessController::packetPreambleTime +
+                    MediumAccessController::maxPropagationDelay
+    );
+}
+
 void TimesyncDownlink::advance(long long slotStart)
 {
     throw std::logic_error("TimesyncDownlink can't advance");

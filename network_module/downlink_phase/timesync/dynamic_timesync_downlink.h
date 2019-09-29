@@ -57,7 +57,6 @@ public:
         delete synchronizer;
     }
     inline void execute(long long slotStart) override;
-    std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
     
     virtual long long getSlotframeStart() const override { return measuredFrameStart - (ctx.getHop() - 1) * rebroadcastInterval; }
 protected:

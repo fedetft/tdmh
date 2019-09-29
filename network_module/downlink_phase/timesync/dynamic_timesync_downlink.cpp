@@ -90,14 +90,6 @@ void DynamicTimesyncDownlink::periodicSync() {
     greenLed::low();
 }
 
-std::pair<long long, long long> DynamicTimesyncDownlink::getWakeupAndTimeout(long long tExpected) {
-    return std::make_pair(
-            tExpected - (MediumAccessController::receivingNodeWakeupAdvance + receiverWindow),
-            tExpected + receiverWindow + MediumAccessController::packetPreambleTime +
-            MediumAccessController::maxPropagationDelay
-            );
-}
-
 void DynamicTimesyncDownlink::resyncTime() {
     //Even the Theoretic is started at this time, so the absolute time is dependent of the board
     if (ENABLE_TIMESYNC_DL_INFO_DBG)
