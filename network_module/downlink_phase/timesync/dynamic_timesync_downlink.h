@@ -30,7 +30,6 @@
 #include "timesync_downlink.h"
 #include "controller/flopsync2.h"
 #include "controller/synchronizer.h"
-#include "roundtrip/asking_roundtrip.h"
 #include "interfaces-impl/virtual_clock.h"
 #include "kernel/timeconversion.h"
 #include "../../util/packet.h"
@@ -42,7 +41,6 @@ public:
     DynamicTimesyncDownlink() = delete;
     explicit DynamicTimesyncDownlink(MACContext& ctx) :
             TimesyncDownlink(ctx, DESYNCHRONIZED, std::numeric_limits<unsigned>::max()),
-            //askingRTP(ctx),
             tc(new miosix::TimeConversion(EFM32_HFXO_FREQ)),
             vt(miosix::VirtualClock::instance()),
             synchronizer(new Flopsync2()),
@@ -57,10 +55,10 @@ public:
     virtual ~DynamicTimesyncDownlink() {
         delete tc;
         delete synchronizer;
-    };
+    }
     inline void execute(long long slotStart) override;
     std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
-    //    long long getDelayToMaster() const override { return askingRTP.getDelayToMaster(); }
+    
     virtual long long getSlotframeStart() const override { return measuredFrameStart - (ctx.getHop() - 1) * rebroadcastInterval; }
 protected:
     void rebroadcast(const Packet& pkt, long long arrivalTs);
@@ -162,8 +160,6 @@ protected:
      */
     void desync() override {}
 
-
-    //AskingRoundtripPhase askingRTP;
     miosix::TimeConversion* const tc;
     miosix::VirtualClock& vt;
     Synchronizer* const synchronizer;

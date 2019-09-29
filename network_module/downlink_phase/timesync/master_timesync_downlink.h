@@ -30,7 +30,6 @@
 #include <utility>
 #include <array>
 #include "timesync_downlink.h"
-#include "../../uplink_phase/uplink_phase.h"
 #include "../../util/packet.h"
 
 namespace mxnet {
@@ -40,7 +39,7 @@ public:
     
     MasterTimesyncDownlink() = delete;
     MasterTimesyncDownlink(const MasterTimesyncDownlink& orig) = delete;
-    virtual ~MasterTimesyncDownlink() {};
+
     void execute(long long slotStart) override;
     /**
      * Master node do not need resync since it never loses synchronization
@@ -52,7 +51,7 @@ public:
      */
     void desync() override {}
     std::pair<long long, long long> getWakeupAndTimeout(long long tExpected) override;
-    //long long getDelayToMaster() const override { return 0; }
+
     virtual long long getSlotframeStart() const override { return slotframeTime; }
     
     void macStartHook() override;

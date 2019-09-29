@@ -28,7 +28,6 @@
 #pragma once
 
 #include "../../mac_phase.h"
-#include "roundtrip/listening_roundtrip.h"
 #include "../../mac_context.h"
 #include "interfaces-impl/transceiver.h"
 #include "interfaces-impl/power_manager.h"
@@ -43,9 +42,9 @@ public:
     };
     TimesyncDownlink() = delete;
     TimesyncDownlink(const TimesyncDownlink& orig) = delete;
-    virtual ~TimesyncDownlink() {};
+
     static unsigned long long getDuration(unsigned short hops) {
-        return phaseStartupTime + hops * rebroadcastInterval; // + RoundtripSubphase::getDuration();
+        return phaseStartupTime + hops * rebroadcastInterval;
     }
     static const int phaseStartupTime = 450000;
     static const unsigned int syncPacketSize = 11;
@@ -54,7 +53,7 @@ public:
     /**
      * @return the status of the synchronization state machine
      */
-    MacroStatus getSyncStatus() { return internalStatus; };
+    MacroStatus getSyncStatus() { return internalStatus; }
 
     /**
      * Calculates the deepsleep deadline for speculatively sleep before sending.
@@ -111,14 +110,12 @@ protected:
     TimesyncDownlink(MACContext& ctx, MacroStatus initStatus, unsigned receivingWindow) :
             MACPhase(ctx),
             networkConfig(ctx.getNetworkConfig()),
-            //listeningRTP(ctx),
             internalStatus(initStatus),
             receiverWindow(receivingWindow), error(0) {}
     
     TimesyncDownlink(MACContext& ctx, MacroStatus initStatus) :
             MACPhase(ctx),
             networkConfig(ctx.getNetworkConfig()),
-            //listeningRTP(ctx),
             internalStatus(initStatus),
             receiverWindow(networkConfig.getMaxAdmittedRcvWindow()), error(0) {}
 
@@ -127,7 +124,6 @@ protected:
     unsigned char missedPacket();
 
     const NetworkConfiguration& networkConfig;
-    //ListeningRoundtripPhase listeningRTP;
     MacroStatus internalStatus;
     unsigned receiverWindow;
     long long error;

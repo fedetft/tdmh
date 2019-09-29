@@ -60,9 +60,6 @@ void MasterTimesyncDownlink::execute(long long slotStart)
         auto nt = NetworkTime::fromLocalTime(slotStart);
         print_dbg("[T] ST=%lld NT=%lld\n", slotframeTime, nt.get());
     }
-    if (false)
-        //listeningRTP.execute(slotframeTime + RoundtripSubphase::senderDelay);
-    ctx.transceiverIdle();
 }
 
 std::pair<long long, long long> MasterTimesyncDownlink::getWakeupAndTimeout(long long tExpected) {
