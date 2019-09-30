@@ -215,7 +215,7 @@ bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
         //not litening to the radio in that downlink
         auto rwa=MediumAccessController::receivingNodeWakeupAdvance + ctx.getNetworkConfig().getMaxAdmittedRcvWindow();
         auto swa=MediumAccessController::sendingNodeWakeupAdvance;
-        const int downlinkEndAdvance = std::max(rwa,swa);
+        const int downlinkEndAdvance = MediumAccessController::downlinkToDataphaseSlack + std::max(rwa,swa);
         ctx.sleepUntil(slotStart + ctx.getDownlinkSlotDuration() - downlinkEndAdvance);
         return true;
     }
