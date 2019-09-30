@@ -37,6 +37,7 @@ namespace mxnet {
 class TimesyncDownlink : public MACPhase {
 public:
     enum MacroStatus {
+        SYNCING,
         IN_SYNC,
         DESYNCHRONIZED
     };

@@ -73,6 +73,7 @@ void DynamicTimesyncDownlink::periodicSync() {
         missedPackets = 0;
         clockCorrection = clockCorrectionReceiverWindow.first;
         receiverWindow = clockCorrectionReceiverWindow.second;
+        internalStatus = IN_SYNC;
         updateVt();
         if (ENABLE_TIMESYNC_DL_INFO_DBG) {            
             auto nt = NetworkTime::fromLocalTime(getSlotframeStart());
@@ -166,7 +167,7 @@ void DynamicTimesyncDownlink::reset(long long hookPktTime) {
     clockCorrection = 0;
     missedPackets = 0;
     error = 0;
-    internalStatus = IN_SYNC;
+    internalStatus = SYNCING;
 }
 
 void DynamicTimesyncDownlink::next() {
