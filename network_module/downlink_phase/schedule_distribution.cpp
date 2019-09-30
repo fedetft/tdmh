@@ -213,7 +213,7 @@ bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
         //is received. This leaves around 3ms to apply the schedule, if this
         //turns out to be not enough, it's possible to recover some time by
         //not litening to the radio in that downlink
-        auto rwa=MediumAccessController::receivingNodeWakeupAdvance;
+        auto rwa=MediumAccessController::receivingNodeWakeupAdvance + ctx.getNetworkConfig().getMaxAdmittedRcvWindow();
         auto swa=MediumAccessController::sendingNodeWakeupAdvance;
         const int downlinkEndAdvance = std::max(rwa,swa);
         ctx.sleepUntil(slotStart + ctx.getDownlinkSlotDuration() - downlinkEndAdvance);
