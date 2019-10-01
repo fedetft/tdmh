@@ -60,6 +60,12 @@ void MasterTimesyncDownlink::execute(long long slotStart)
         auto nt = NetworkTime::fromLocalTime(slotStart);
         print_dbg("[T] ST=%lld NT=%lld\n", slotframeTime, nt.get());
     }
+    
+#ifdef _MIOSIX
+    unsigned int stackSize = MemoryProfiling::getStackSize();
+    unsigned int absFreeStack = MemoryProfiling::getAbsoluteFreeStack();
+    print_dbg("[H] MAC stack %d/%d\n",stackSize-absFreeStack,stackSize);
+#endif
 }
 
 void MasterTimesyncDownlink::macStartHook()

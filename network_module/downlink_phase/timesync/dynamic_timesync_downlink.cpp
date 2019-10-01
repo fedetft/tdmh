@@ -151,6 +151,12 @@ inline void DynamicTimesyncDownlink::execute(long long slotStart)
     } else {
         periodicSync();
     }
+    
+#ifdef _MIOSIX
+    unsigned int stackSize = MemoryProfiling::getStackSize();
+    unsigned int absFreeStack = MemoryProfiling::getAbsoluteFreeStack();
+    print_dbg("[H] MAC stack %d/%d\n",stackSize-absFreeStack,stackSize);
+#endif
 }
 
 void DynamicTimesyncDownlink::rebroadcast(const Packet& pkt, long long arrivalTs){
