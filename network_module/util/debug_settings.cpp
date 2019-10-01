@@ -64,7 +64,7 @@ private:
     DebugPrinter(const DebugPrinter&) = delete;
     DebugPrinter& operator=(const DebugPrinter&) = delete;
     
-    DebugPrinter() : thread(Thread::create(threadLauncher,1024,MAIN_PRIORITY,this)) {}
+    DebugPrinter() : thread(Thread::create(threadLauncher,2048,MAIN_PRIORITY,this)) {}
     
     void run();
     
