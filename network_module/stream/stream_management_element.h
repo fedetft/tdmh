@@ -145,7 +145,7 @@ public:
     unsigned short getSeqNo() const { return seqNo; }
 #endif //WITH_SME_SEQNO
 
-protected:
+private:
     StreamId id;
     StreamParameters parameters;
     SMEType type;
