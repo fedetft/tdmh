@@ -35,6 +35,6 @@ inline void printStackRange(const char *threadName)
     printf("Thread %s stack %p-%p\n",
            threadName,
            miosix::Thread::getStackBottom(),
-           miosix::Thread::getStackBottom()+miosix::Thread::getStackSize());
+           miosix::Thread::getStackBottom()+miosix::Thread::getStackSize()/sizeof(unsigned));
 #endif
 }
