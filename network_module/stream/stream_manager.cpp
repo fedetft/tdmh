@@ -33,7 +33,7 @@
 namespace mxnet {
 
 void StreamManager::desync() {
-    std::vector<StreamId> deleteList;
+    std::list<StreamId> deleteList;
     {
         // Lock map_mutex to access the shared Stream/Server map
 #ifdef _MIOSIX
@@ -53,9 +53,16 @@ void StreamManager::desync() {
             removeStream(streamId);
         }
     }
-    // Clear SME queue, otherwise we could be sending old SMEs
-    // after resync()
-    smeQueue.clear();
+    {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(sme_mutex);
+#else
+        std::unique_lock<std::mutex> lck(sme_mutex);
+#endif
+        // Clear SME queue, otherwise we could be sending old SMEs
+        // after resync()
+        smeQueue.clear();
+    }
 }
 
 int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParameters params) {
