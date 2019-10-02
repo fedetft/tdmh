@@ -66,13 +66,9 @@ void StreamManager::desync() {
 }
 
 int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParameters params) {
-    int srcPort = allocateClientPort();
-    if(srcPort == -1)
-        return -1;
-    auto streamId = StreamId(myId, dst, srcPort, dstPort);
-    StreamInfo streamInfo(streamId, params, StreamStatus::CONNECTING);
     int fd = -1;
     Endpoint* stream;
+    StreamId streamId;
     {
         // Lock map_mutex to access the shared Stream map
 #ifdef _MIOSIX
@@ -80,6 +76,12 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
 #else
         std::unique_lock<std::mutex> lck(map_mutex);
 #endif
+        int srcPort = allocateClientPort();
+        if(srcPort == -1)
+            return -1;
+        streamId = StreamId(myId, dst, srcPort, dstPort);
+        StreamInfo streamInfo(streamId, params, StreamStatus::CONNECTING);
+    
         // Check if a stream with these parameters is already present
         if(streams.find(streamId) != streams.end()) {
             freeClientPort(srcPort);
@@ -510,12 +512,6 @@ void StreamManager::closedServer(int fd) {
 }
 
 int StreamManager::allocateClientPort() {
-    // Lock map_mutex to access the shared port vector
-#ifdef _MIOSIX
-    miosix::Lock<miosix::FastMutex> lck(map_mutex);
-#else
-    std::unique_lock<std::mutex> lck(map_mutex);
-#endif
     for(unsigned int i = 0; i < maxPorts; i++) {
         if(clientPorts[i] == false) {
             clientPorts[i] = true;
