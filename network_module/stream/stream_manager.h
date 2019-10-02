@@ -149,6 +149,16 @@ public:
     // Used by Server, to closed pending streams after server close
     void closedServer(int fd);
 private:
+    
+#ifdef _MIOSIX
+    using REF_PTR = miosix::intrusive_ref_ptr<Endpoint>;
+    using REF_PTR_STREAM = miosix::intrusive_ref_ptr<Stream>;
+    using REF_PTR_SERVER = miosix::intrusive_ref_ptr<Server>;
+#else
+    using REF_PTR = std::shared_ptr<Endpoint>;
+    using REF_PTR_STREAM = std::shared_ptr<Stream>;
+    using REF_PTR_SERVER = std::shared_ptr<Server>;
+#endif
 
     /**
      * The following methods are called by StreamManager itself,
@@ -167,14 +177,14 @@ private:
     // to the map streams and fdt
     // returning the fd
     // NOTE: to be called with the mutex locked
-    int addStream(StreamInfo streamInfo);
+    std::pair<int,REF_PTR> addStream(StreamInfo streamInfo);
 
     // Performs the operations needed to add a new Server to the maps
     // It allocates a new fd number, it creates a new server and adds it
     // to the map servers and fdt
     // returning the fd
     // NOTE: to be called with the mutex locked
-    int addServer(StreamInfo serverInfo);
+    std::pair<int,REF_PTR> addServer(StreamInfo serverInfo);
 
     // Closes and removes a given Stream from the maps
     // deleting the actual Stream object
@@ -200,21 +210,13 @@ private:
     /* Counter used to assign progressive file-descriptors to Streams and Servers*/
     int fdcounter = 1;
 
-#ifdef _MIOSIX
     /* Map containing pointers to Stream and Server classes, indexed by file-descriptors */
-    std::map<int, miosix::intrusive_ref_ptr<Endpoint>> fdt;
+    std::map<int, REF_PTR> fdt;
     /* Map containing pointers to Stream classes, indexed by StreamId */
-    std::map<StreamId, miosix::intrusive_ref_ptr<Stream>> streams;
+    std::map<StreamId, REF_PTR_STREAM> streams;
     /* Map containing pointers to Server classes, indexed by port */
-    std::map<unsigned char, miosix::intrusive_ref_ptr<Server>> servers;
-#else    /* Map containing pointers to Stream and Server classes, indexed by file-descriptors */
-    std::map<int, std::shared_ptr<Endpoint>> fdt;
-    /* Map containing pointers to Stream classes, indexed by StreamId */
-    std::map<StreamId, std::shared_ptr<Stream>> streams;
-    /* Map containing pointers to Server classes, indexed by port */
-    std::map<unsigned char, std::shared_ptr<Server>> servers;
+    std::map<unsigned char, REF_PTR_SERVER> servers;
 
-#endif
     const unsigned int maxPorts = 16;
     /* Vector containing the current availability of source ports
      * 0= port free, 1= port used */
