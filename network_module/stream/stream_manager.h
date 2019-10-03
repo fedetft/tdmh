@@ -149,16 +149,6 @@ public:
     // Used by Server, to closed pending streams after server close
     void closedServer(int fd);
 private:
-    
-#ifdef _MIOSIX
-    using REF_PTR = miosix::intrusive_ref_ptr<Endpoint>;
-    using REF_PTR_STREAM = miosix::intrusive_ref_ptr<Stream>;
-    using REF_PTR_SERVER = miosix::intrusive_ref_ptr<Server>;
-#else
-    using REF_PTR = std::shared_ptr<Endpoint>;
-    using REF_PTR_STREAM = std::shared_ptr<Stream>;
-    using REF_PTR_SERVER = std::shared_ptr<Server>;
-#endif
 
     /**
      * The following methods are called by StreamManager itself,
@@ -177,14 +167,14 @@ private:
     // to the map streams and fdt
     // returning the fd
     // NOTE: to be called with the mutex locked
-    std::pair<int,REF_PTR> addStream(StreamInfo streamInfo);
+    std::pair<int,REF_PTR_EP> addStream(StreamInfo streamInfo);
 
     // Performs the operations needed to add a new Server to the maps
     // It allocates a new fd number, it creates a new server and adds it
     // to the map servers and fdt
     // returning the fd
     // NOTE: to be called with the mutex locked
-    std::pair<int,REF_PTR> addServer(StreamInfo serverInfo);
+    std::pair<int,REF_PTR_EP> addServer(StreamInfo serverInfo);
 
     // Closes and removes a given Stream from the maps
     // deleting the actual Stream object
@@ -211,7 +201,7 @@ private:
     int fdcounter = 1;
 
     /* Map containing pointers to Stream and Server classes, indexed by file-descriptors */
-    std::map<int, REF_PTR> fdt;
+    std::map<int, REF_PTR_EP> fdt;
     /* Map containing pointers to Stream classes, indexed by StreamId */
     std::map<StreamId, REF_PTR_STREAM> streams;
     /* Map containing pointers to Server classes, indexed by port */

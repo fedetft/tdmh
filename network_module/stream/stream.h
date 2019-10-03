@@ -53,8 +53,19 @@ class IntrusiveRefCounted {};
 namespace mxnet {
 
 class StreamManager;
+class Endpoint;
 class Stream;
 class Server;
+
+#ifdef _MIOSIX
+using REF_PTR_EP     = miosix::intrusive_ref_ptr<Endpoint>;
+using REF_PTR_STREAM = miosix::intrusive_ref_ptr<Stream>;
+using REF_PTR_SERVER = miosix::intrusive_ref_ptr<Server>;
+#else
+using REF_PTR_EP     = std::shared_ptr<Endpoint>;
+using REF_PTR_STREAM = std::shared_ptr<Stream>;
+using REF_PTR_SERVER = std::shared_ptr<Server>;
+#endif
 
 /**
  * The class Endpoint is the parent class of Stream and Server

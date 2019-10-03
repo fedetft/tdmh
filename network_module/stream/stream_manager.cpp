@@ -67,7 +67,7 @@ void StreamManager::desync() {
 
 int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParameters params) {
     int fd = -1;
-    REF_PTR stream;
+    REF_PTR_EP stream;
     StreamId streamId;
     {
         // Lock map_mutex to access the shared Stream map
@@ -103,7 +103,7 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
 }
 
 int StreamManager::write(int fd, const void* data, int size) {
-    REF_PTR stream;
+    REF_PTR_EP stream;
     {
         // Lock map_mutex to access the shared Stream map
 #ifdef _MIOSIX
@@ -119,7 +119,7 @@ int StreamManager::write(int fd, const void* data, int size) {
 }
 
 int StreamManager::read(int fd, void* data, int maxSize) {
-    REF_PTR stream;
+    REF_PTR_EP stream;
     {
         // Lock map_mutex to access the shared Stream map
 #ifdef _MIOSIX
@@ -135,7 +135,7 @@ int StreamManager::read(int fd, void* data, int maxSize) {
 }
 
 StreamInfo StreamManager::getInfo(int fd) {
-    REF_PTR endpoint;
+    REF_PTR_EP endpoint;
     {
         // Lock map_mutex to access the shared Stream/Server map
 #ifdef _MIOSIX
@@ -151,7 +151,7 @@ StreamInfo StreamManager::getInfo(int fd) {
 }
 
 void StreamManager::close(int fd) {
-    REF_PTR endpoint;
+    REF_PTR_EP endpoint;
     {
         // Lock map_mutex to access the shared Stream/Server map
 #ifdef _MIOSIX
@@ -186,7 +186,7 @@ int StreamManager::listen(unsigned char port, StreamParameters params) {
     auto serverId = StreamId(myId, myId, 0, port);
     StreamInfo serverInfo(serverId, params, StreamStatus::LISTEN_WAIT);
     int fd = -1;
-    REF_PTR server;
+    REF_PTR_EP server;
     {
         // Lock map_mutex to access the shared Server map
 #ifdef _MIOSIX
@@ -214,7 +214,7 @@ int StreamManager::listen(unsigned char port, StreamParameters params) {
 }
 
 int StreamManager::accept(int serverfd) {
-    REF_PTR server,stream;
+    REF_PTR_EP server,stream;
     int fd = -1;
     {
         // Lock map_mutex to access the shared Server map
@@ -462,7 +462,7 @@ void StreamManager::enqueueSME(StreamManagementElement sme) {
 }
 
 void StreamManager::closedServer(int fd) {
-    REF_PTR stream;
+    REF_PTR_EP stream;
     {
         // Lock map_mutex to access the shared Stream map
 #ifdef _MIOSIX
@@ -495,7 +495,7 @@ void StreamManager::freeClientPort(unsigned char port) {
     clientPorts[port] = false;
 }
 
-std::pair<int,StreamManager::REF_PTR> StreamManager::addStream(StreamInfo streamInfo) {
+std::pair<int,REF_PTR_EP> StreamManager::addStream(StreamInfo streamInfo) {
     int fd = fdcounter++;
 #ifdef _MIOSIX
     miosix::intrusive_ref_ptr<Stream> stream(new Stream(config, fd, streamInfo));
@@ -508,7 +508,7 @@ std::pair<int,StreamManager::REF_PTR> StreamManager::addStream(StreamInfo stream
     return std::make_pair(fd,stream);
 }
 
-std::pair<int,StreamManager::REF_PTR> StreamManager::addServer(StreamInfo serverInfo) {
+std::pair<int,REF_PTR_EP> StreamManager::addServer(StreamInfo serverInfo) {
     int fd = fdcounter++;
 #ifdef _MIOSIX
     miosix::intrusive_ref_ptr<Server> server(new Server(config, fd, serverInfo));
