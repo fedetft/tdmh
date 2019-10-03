@@ -62,7 +62,7 @@ class Server;
  * and managed through intrusive_ref_ptr<FileBase>
  */
 
-    class Endpoint : public miosix::IntrusiveRefCounted {
+class Endpoint : public miosix::IntrusiveRefCounted {
 public:
     Endpoint(const NetworkConfiguration& config,
              int fd, StreamInfo info) : fd(fd), info(info), smeTimeout(smeTimeoutMax),
@@ -171,10 +171,10 @@ protected:
     int failTimeout;
         /* Thread synchronization */
 #ifdef _MIOSIX
-        // Protects concurrent access at StreamInfo
-        miosix::FastMutex status_mutex;
+    // Protects concurrent access at StreamInfo
+    miosix::FastMutex status_mutex;
 #else
-        std::mutex status_mutex;
+    std::mutex status_mutex;
 #endif
 };
 
@@ -247,6 +247,7 @@ public:
     // Returns true if the Stream class can be deleted
     bool desync() override;
 
+private:
     const unsigned short panId;
 
     Server* myServer;
@@ -284,7 +285,7 @@ public:
     std::condition_variable tx_cv;
     std::condition_variable rx_cv;
 #endif
-private:
+
     // Called by Stream itself, used to update cached redundancy info
     void updateRedundancy();
     // Called by Stream itself, when the stream status changes and we need to wake up
@@ -339,6 +340,7 @@ public:
     // Returns true if the Server class can be deleted
     bool desync() override;
 
+private:
     // Contains fd of streams not yet accepted
     // It's a set to avoid duplicates
     std::set<int> pendingAccept;
