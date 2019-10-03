@@ -350,9 +350,8 @@ public:
     bool desync() override;
 
 private:
-    // Contains fd of streams not yet accepted
-    // It's a set to avoid duplicates
-    std::set<REF_PTR_STREAM> pendingAccept;
+    // Contains streams not yet accepted
+    std::list<REF_PTR_STREAM> pendingAccept;
     /* Thread synchronization */
 #ifdef _MIOSIX
     miosix::ConditionVariable listen_cv;

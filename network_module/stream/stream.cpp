@@ -552,9 +552,8 @@ int Server::accept() {
     if(info.getStatus() != StreamStatus::LISTEN)
         return -1;
     // Return first stream fd from pendingAccept
-    auto it = pendingAccept.begin();
-    REF_PTR_STREAM stream = *it;
-    pendingAccept.erase(it);
+    REF_PTR_STREAM stream  = pendingAccept.front();
+    pendingAccept.pop_front();
     return stream->getFd();
 }
 
@@ -566,7 +565,7 @@ void Server::addPendingStream(REF_PTR_STREAM stream) {
     std::unique_lock<std::mutex> lck(status_mutex);
 #endif
     // Push add new stream fd to set
-    pendingAccept.insert(stream);
+    pendingAccept.push_back(stream);
     // Wake up the accept() method
 #ifdef _MIOSIX
     listen_cv.signal();
