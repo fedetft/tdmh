@@ -553,12 +553,12 @@ int Server::accept() {
         return -1;
     // Return first stream fd from pendingAccept
     auto it = pendingAccept.begin();
-    int fd = *it;
+    REF_PTR_STREAM stream = *it;
     pendingAccept.erase(it);
-    return fd;
+    return stream->getFd();
 }
 
-void Server::addPendingStream(int fd) {
+void Server::addPendingStream(REF_PTR_STREAM stream) {
     // Lock mutex for concurrent access at pendingAccept
 #ifdef _MIOSIX
     miosix::Lock<miosix::FastMutex> lck(status_mutex);
@@ -566,7 +566,7 @@ void Server::addPendingStream(int fd) {
     std::unique_lock<std::mutex> lck(status_mutex);
 #endif
     // Push add new stream fd to set
-    pendingAccept.insert(fd);
+    pendingAccept.insert(stream);
     // Wake up the accept() method
 #ifdef _MIOSIX
     listen_cv.signal();
@@ -655,8 +655,8 @@ bool Server::close(StreamManager* mgr) {
             break;
         }
         // Close pendingAccept Streams
-        for(auto fd : pendingAccept) {
-            mgr->closedServer(fd);
+        for(auto stream : pendingAccept) {
+            stream->closedServer(mgr);
         }
     }
     // Wake up the listen and accept methods

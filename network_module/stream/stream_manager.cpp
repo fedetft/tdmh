@@ -355,7 +355,7 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
                 StreamInfo streamInfo(streamId, params, StreamStatus::ACCEPT_WAIT);
                 auto res = addStream(streamInfo);
                 auto server = serverit->second;
-                server->addPendingStream(res.first);
+                server->addPendingStream(res.second);
             }
             // If the corresponding server is not present,
             else {
@@ -461,22 +461,6 @@ void StreamManager::enqueueSME(StreamManagementElement sme) {
     }
 }
 
-void StreamManager::closedServer(int fd) {
-    REF_PTR_EP stream;
-    {
-        // Lock map_mutex to access the shared Stream map
-#ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
-#else
-        std::unique_lock<std::mutex> lck(map_mutex);
-#endif
-        auto it = fdt.find(fd);
-        if(it == fdt.end()) return;
-        stream = it->second;
-    }
-    stream->closedServer(this);
-}
-
 int StreamManager::allocateClientPort() {
     for(unsigned int i = 0; i < maxPorts; i++) {
         if(clientPorts[i] == false) {
@@ -495,7 +479,7 @@ void StreamManager::freeClientPort(unsigned char port) {
     clientPorts[port] = false;
 }
 
-std::pair<int,REF_PTR_EP> StreamManager::addStream(StreamInfo streamInfo) {
+std::pair<int,REF_PTR_STREAM> StreamManager::addStream(StreamInfo streamInfo) {
     int fd = fdcounter++;
 #ifdef _MIOSIX
     miosix::intrusive_ref_ptr<Stream> stream(new Stream(config, fd, streamInfo));
@@ -508,7 +492,7 @@ std::pair<int,REF_PTR_EP> StreamManager::addStream(StreamInfo streamInfo) {
     return std::make_pair(fd,stream);
 }
 
-std::pair<int,REF_PTR_EP> StreamManager::addServer(StreamInfo serverInfo) {
+std::pair<int,REF_PTR_SERVER> StreamManager::addServer(StreamInfo serverInfo) {
     int fd = fdcounter++;
 #ifdef _MIOSIX
     miosix::intrusive_ref_ptr<Server> server(new Server(config, fd, serverInfo));

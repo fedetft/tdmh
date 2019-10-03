@@ -146,8 +146,6 @@ public:
     // Used by Stream, Server, enqueues an SME to be sent on the network
     void enqueueSME(StreamManagementElement sme);
 
-    // Used by Server, to closed pending streams after server close
-    void closedServer(int fd);
 private:
 
     /**
@@ -167,14 +165,14 @@ private:
     // to the map streams and fdt
     // returning the fd
     // NOTE: to be called with the mutex locked
-    std::pair<int,REF_PTR_EP> addStream(StreamInfo streamInfo);
+    std::pair<int,REF_PTR_STREAM> addStream(StreamInfo streamInfo);
 
     // Performs the operations needed to add a new Server to the maps
     // It allocates a new fd number, it creates a new server and adds it
     // to the map servers and fdt
     // returning the fd
     // NOTE: to be called with the mutex locked
-    std::pair<int,REF_PTR_EP> addServer(StreamInfo serverInfo);
+    std::pair<int,REF_PTR_SERVER> addServer(StreamInfo serverInfo);
 
     // Closes and removes a given Stream from the maps
     // deleting the actual Stream object

@@ -123,8 +123,6 @@ public:
         return -1;
     }
     // Used by derived class Server
-    virtual void addPendingStream(int fd) {}
-    // Used by derived class Server
     virtual void acceptedServer() {}
     // Used by derived class Server
     virtual void rejectedServer() {}
@@ -330,7 +328,7 @@ public:
 
     // Called by StreamManager, used to add a Stream to the list of
     // streams waiting for an accept
-    void addPendingStream(int fd) override;
+    void addPendingStream(REF_PTR_STREAM stream);
 
     // Called by StreamManager when a SERVER_ACCEPT info element is received
     void acceptedServer() override;
@@ -354,7 +352,7 @@ public:
 private:
     // Contains fd of streams not yet accepted
     // It's a set to avoid duplicates
-    std::set<int> pendingAccept;
+    std::set<REF_PTR_STREAM> pendingAccept;
     /* Thread synchronization */
 #ifdef _MIOSIX
     miosix::ConditionVariable listen_cv;
