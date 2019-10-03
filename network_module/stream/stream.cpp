@@ -543,13 +543,9 @@ int Server::accept() {
 #else
     std::unique_lock<std::mutex> lck(status_mutex);
 #endif
-    // Return error if server not open
-    if(info.getStatus() != StreamStatus::LISTEN)
-        return -1;
 
     // Wait for opened stream
-    while(pendingAccept.empty()) {
-        // Condition variable to wait for opened streams
+    while(pendingAccept.empty() && info.getStatus() == StreamStatus::LISTEN) {
         listen_cv.wait(lck);
     }
     // Return error if server not open
