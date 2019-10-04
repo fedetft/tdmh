@@ -95,83 +95,6 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
     return result;
 }
 
-void ScheduleDownlinkPhase::printSchedule(unsigned char nodeID) {
-    print_dbg("[SD] Node: %d, implicit schedule n. %lu\n", nodeID, header.getScheduleID());
-    print_dbg("ID   TX  RX  PER OFF\n");
-    for(auto& elem : schedule) {
-        print_dbg("%d  %d-->%d   %d   %d\n", elem.getKey(), elem.getTx(), elem.getRx(),
-               toInt(elem.getPeriod()), elem.getOffset());
-    }
-}
-
-void ScheduleDownlinkPhase::printExplicitSchedule(unsigned char nodeID, bool printHeader, const std::vector<ExplicitScheduleElement>& expSchedule) {
-    auto slotsInTile = ctx.getSlotsInTileCount();
-    if(explicitSchedule.size() > (2 * slotsInTile)) {
-        print_dbg("[SD] Not printing schedule longer than 2 tiles\n");
-        return;
-    }
-    // print header
-    if(printHeader) {
-        print_dbg("        | ");
-        for(unsigned int i=0; i<expSchedule.size(); i++) {
-            print_dbg("%2d ", i);
-            if(((i+1) % slotsInTile) == 0)
-                print_dbg("| ");
-        }
-        print_dbg("\n");
-    }
-    // print schedule line
-    print_dbg("Node: %2d|", nodeID);
-    for(unsigned int i=0; i<expSchedule.size(); i++)
-        {
-            switch(expSchedule[i].getAction()) {
-            case Action::SLEEP:
-                print_dbg(" _ ");
-                break;
-            case Action::SENDSTREAM:
-                print_dbg(" SS");
-                break;
-            case Action::RECVSTREAM:
-                print_dbg(" RS");
-                break;
-            case Action::SENDBUFFER:
-                print_dbg(" SB");
-                break;
-            case Action::RECVBUFFER:
-                print_dbg(" RB");
-                break;
-            }
-            if(((i+1) % slotsInTile) == 0)
-                print_dbg(" |");
-        }
-    print_dbg("\n");
-}
-
-void ScheduleDownlinkPhase::printCompleteSchedule() {
-#ifdef _MIOSIX
-    print_dbg("[SD] Warning!: printing complete schedule on real hardware delays the TDMH thread and can cause <too late to send> errors! \n");
-#endif
-    auto myID = ctx.getNetworkId();
-    if(myID == 0)
-        print_dbg("[SD] ### Schedule distribution, Master node\n");
-    auto maxNodes = ctx.getNetworkConfig().getMaxNodes();
-    printSchedule(myID);
-    for(auto& elem : schedule) {
-        if(toInt(elem.getPeriod()) > 2) {
-            print_dbg("[SD] Not printing schedule longer than 2 tiles\n");
-            return;
-        }
-    }
-    print_dbg("[SD] ### Explicit Schedule for all nodes (maxnodes=%d)\n", maxNodes);
-    std::vector<ExplicitScheduleElement> nodeSchedule;
-    for(unsigned char node = 0; node < maxNodes; node++)
-    {
-        nodeSchedule = expandSchedule(node);
-        // Print schedule header only for first line
-        printExplicitSchedule(node, (node == 0), nodeSchedule);
-    } 
-}
-
 bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
     // NOTE: The schedule can be explicited as soon as possible or toghether
     // with schedule activation, we decided to do it as soon as possible
@@ -228,5 +151,74 @@ bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
     }
     return false;
 }
+
+#ifndef _MIOSIX
+void ScheduleDownlinkPhase::printCompleteSchedule()
+{
+    auto myID = ctx.getNetworkId();
+    if(myID == 0) print_dbg("[SD] ### Schedule distribution, Master node\n");
+    auto maxNodes = ctx.getNetworkConfig().getMaxNodes();
+    printSchedule(myID);
+    print_dbg("[SD] ### Explicit Schedule for all nodes (maxnodes=%d)\n", maxNodes);
+    std::vector<ExplicitScheduleElement> nodeSchedule;
+    for(unsigned char node = 0; node < maxNodes; node++)
+    {
+        nodeSchedule = expandSchedule(node);
+        printExplicitSchedule(node, (node == 0), nodeSchedule);
+    } 
+}
+
+void ScheduleDownlinkPhase::printSchedule(unsigned char nodeID)
+{
+    print_dbg("[SD] Node: %d, implicit schedule n. %lu\n", nodeID, header.getScheduleID());
+    print_dbg("ID   TX  RX  PER OFF\n");
+    for(auto& elem : schedule)
+    {
+        print_dbg("%d  %d-->%d   %d   %d\n", elem.getKey(), elem.getTx(), elem.getRx(),
+               toInt(elem.getPeriod()), elem.getOffset());
+    }
+}
+
+void ScheduleDownlinkPhase::printExplicitSchedule(unsigned char nodeID,
+    bool printHeader, const std::vector<ExplicitScheduleElement>& expSchedule)
+{
+    auto slotsInTile = ctx.getSlotsInTileCount();
+    // print header
+    if(printHeader)
+    {
+        print_dbg("        | ");
+        for(unsigned int i=0; i<expSchedule.size(); i++)
+        {
+            print_dbg("%2d ", i);
+            if(((i+1) % slotsInTile) == 0) print_dbg("| ");
+        }
+        print_dbg("\n");
+    }
+    // print schedule line
+    print_dbg("Node: %2d|", nodeID);
+    for(unsigned int i=0; i<expSchedule.size(); i++)
+    {
+        switch(expSchedule[i].getAction()) {
+            case Action::SLEEP:
+                print_dbg(" _ ");
+                break;
+            case Action::SENDSTREAM:
+                print_dbg(" SS");
+                break;
+            case Action::RECVSTREAM:
+                print_dbg(" RS");
+                break;
+            case Action::SENDBUFFER:
+                print_dbg(" SB");
+                break;
+            case Action::RECVBUFFER:
+                print_dbg(" RB");
+                break;
+        }
+        if(((i+1) % slotsInTile) == 0) print_dbg(" |");
+    }
+    print_dbg("\n");
+}
+#endif
 
 }

@@ -73,16 +73,36 @@ protected:
      * to explicit form (action to do on every timeslot)
      * keeping only the actions that involve this node */
     std::vector<ExplicitScheduleElement> expandSchedule(unsigned char nodeID);
-    void printSchedule(unsigned char nodeID);
-    void printExplicitSchedule(unsigned char nodeID, bool printHeader, const std::vector<ExplicitScheduleElement>& expSchedule);
-    /* Calculates and prints explicit schedule for all the nodes */
-    void printCompleteSchedule();
+
     /* The new schedule must be set in the first downlink tile after the old schedule is over.
        This function calculates the tilesPassedTotal time indicator,
        if it is equal to the one in the schedule header,
        replace expanded schedule in the dataphase with the new one
        @return true if the schedule has been applied, false otherwise */
     bool checkTimeSetSchedule(long long slotStart);
+    
+#ifndef _MIOSIX
+    /**
+     * Print the implicit schedule and explicit schedule of all nodes
+     * Very verbose.
+     */
+    void printCompleteSchedule();
+    
+    /**
+     * Print the implict schedule, just like the schedule computation
+     */
+    void printSchedule(unsigned char nodeID);
+    
+    /**
+     * Print the explicit schedule of a given node
+     */
+    void printExplicitSchedule(unsigned char nodeID, bool printHeader,
+                               const std::vector<ExplicitScheduleElement>& expSchedule);
+#else
+    void printCompleteSchedule() {}
+    void printExplicitSchedule(unsigned char nodeID, bool printHeader,
+                               const std::vector<ExplicitScheduleElement>& expSchedule) {}
+#endif
 
     /* Constant value from NetworkConfiguration */
     const unsigned short panId;

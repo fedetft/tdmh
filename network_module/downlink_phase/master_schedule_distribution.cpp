@@ -55,11 +55,10 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart) {
         }
         // Reset variable for splitting schedule in packets
         position = 0;
-        // Print explicit schedule of every node only on simulator
-#ifndef _MIOSIX
+        
         if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)        
             printCompleteSchedule();
-#endif
+
         // If we updated the schedule, wait for the next Downlink before
         // sending the first packet
         return;
