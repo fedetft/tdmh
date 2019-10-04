@@ -75,6 +75,7 @@ private:
     ConditionVariable cv;
     queue<string,list<string>> messages;
     unsigned int size=0;
+    unsigned int maxSize=0;
 };
 
 DebugPrinter& DebugPrinter::instance()
@@ -89,12 +90,15 @@ void DebugPrinter::enqueue(const string& s)
     if(size + s.size() > maxQueueSize) return;
     messages.push(s);
     size += s.size();
+    maxSize = max(maxSize,size);
     cv.signal();
 }
 
 void DebugPrinter::run()
 {
     printStackRange("DebugPrinter");
+    const int logMaxSize = 10000; //Log max size every 10000 print_dbg
+    int logCounter = 0;
     for(;;)
     {
         string s;
@@ -106,6 +110,11 @@ void DebugPrinter::run()
             size -= s.size();
         }
         write(STDOUT_FILENO,s.c_str(),s.size());
+        if(++logCounter >= logMaxSize)
+        {
+            logCounter = 0;
+            printf("[L] log max size %d\n",maxSize);
+        }
     }
 }
 
