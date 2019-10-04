@@ -264,9 +264,18 @@ void streamThread(void *arg)
     StreamInfo info = getInfo(stream);
     StreamId id = info.getStreamId();
     printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
+    int cnt = 0;
     while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
         Data data;
         int len = mxnet::read(stream, &data, sizeof(data));
+        if(++cnt>300) {
+            cnt = 0;
+#ifdef _MIOSIX
+            unsigned int stackSize = MemoryProfiling::getStackSize();
+            unsigned int absFreeStack = MemoryProfiling::getAbsoluteFreeStack();
+            printf("[H] Stream thread stack %d/%d\n",stackSize-absFreeStack,stackSize);
+#endif
+        }
         if(len > 0) {
             if(len == sizeof(data))
             {

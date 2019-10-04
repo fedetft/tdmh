@@ -58,7 +58,7 @@ void ScheduleComputation::startThread() {
     if (scthread == nullptr)
 #ifdef _MIOSIX
         // Thread launched using static function threadLauncher with the class instance as parameter.
-        scthread = miosix::Thread::create(&ScheduleComputation::threadLauncher, 2048, miosix::PRIORITY_MAX-2, this, miosix::Thread::JOINABLE);
+        scthread = miosix::Thread::create(&ScheduleComputation::threadLauncher, 3*1024, miosix::PRIORITY_MAX-2, this, miosix::Thread::JOINABLE);
 #else
         scthread = new std::thread(&ScheduleComputation::run, this);
 #endif
@@ -107,6 +107,11 @@ void ScheduleComputation::run() {
             }
             sched_cv.wait(lck); // Wait for beginScheduling() to start scheduling
         }
+#ifdef _MIOSIX
+        unsigned int stackSize = miosix::MemoryProfiling::getStackSize();
+        unsigned int absFreeStack = miosix::MemoryProfiling::getAbsoluteFreeStack();
+        printf("[H] Scheduler stack %d/%d\n",stackSize-absFreeStack,stackSize);
+#endif
         // Take snapshot of stream requests
         stream_snapshot = stream_collection.getSnapshot();
         
