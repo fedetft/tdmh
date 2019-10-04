@@ -74,6 +74,7 @@ private:
        the previous one has been activated */
     
     int incompleteScheduleCounter = 0;
+    bool incompleteSchedule = false;
 };
 
 }

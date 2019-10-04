@@ -106,8 +106,12 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
         unsigned int currentTile = ctx.getCurrentTile(slotStart);
         if(header.getScheduleID() != dataPhase->getScheduleID() &&
            currentTile >= header.getActivationTile())
+        {
             handleIncompleteSchedule();
-        else incompleteScheduleCounter = 0;
+        } else {
+            incompleteSchedule = false;
+            incompleteScheduleCounter = 0;
+        }
     }
     //printStatus();
 }
@@ -156,18 +160,29 @@ void DynamicScheduleDownlinkPhase::printStatus() {
 
 void DynamicScheduleDownlinkPhase::handleIncompleteSchedule()
 {
-    print_dbg("[SD] incomplete schedule!\n");
-    schedule.clear();
-    explicitScheduleID = 0;
-    explicitSchedule.clear();
-    // Derived class status
-    received.clear();
-        
+    if(incompleteSchedule == false)
+    {
+        incompleteSchedule = true;
+        print_dbg("[SD] incomplete schedule %s\n",received.to_string().c_str());
+
+        schedule.clear();
+        explicitScheduleID = 0;
+        explicitSchedule.clear();
+        // Derived class status
+        received.clear();
+
+        dataPhase->applySchedule(explicitSchedule,
+                                 0, //newId = 0 otherwise handleIncompleteSchedule won't be called again
+                                 0, //newScheduleTiles = 0 means empty schedule
+                                 header.getActivationTile(), currentTile);
+        streamMgr->applySchedule(schedule);
+    }
+
     if(incompleteScheduleCounter == 0)
     {
         ctx.getStreamManager()->enqueueSME(StreamManagementElement::makeResendSME(myId));
     }
-    int timeout = ctx.getNetworkConfig().getMaxNodes()*2; //Trying a reasonable timeout
+    const int timeout = ctx.getNetworkConfig().getMaxNodes()*2; //Trying a reasonable timeout
     if(++incompleteScheduleCounter>=timeout)
         incompleteScheduleCounter = 0;
 }
