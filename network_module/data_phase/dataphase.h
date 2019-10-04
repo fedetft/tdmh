@@ -75,7 +75,6 @@ public:
         scheduleID = 0;
         scheduleTiles = 0;
         scheduleSlots = 0;
-        scheduleActivationTile = 0;
         currentSchedule.clear();
     };
     /**
@@ -99,7 +98,6 @@ public:
         setSchedule(newSchedule);
         setScheduleID(newId);
         setScheduleTiles(newScheduleTiles);
-        setScheduleActivationTile(newActivationTile);
         if(lateActivation == false) {
             // The tileSlot for a schedule activated on time is 0
             tileSlot = 0;
@@ -110,7 +108,7 @@ public:
             // Calculate current tileslot for a late schedule
             // NOTE: tileSlot MUST be at the beginning of a tile
             // (0 + scheduleTile * slotsInTile), with scheduleTile < scheduleSize
-            unsigned int scheduleTile = currentTile - scheduleActivationTile;
+            unsigned int scheduleTile = currentTile - newActivationTile;
             unsigned int slotsInTile = ctx.getSlotsInTileCount();
             tileSlot = 0;
             incrementSlot(scheduleTile * slotsInTile);
@@ -147,12 +145,6 @@ private:
     void setScheduleID(unsigned long newID) {
         scheduleID = newID;
     }
-    /* Called from ScheduleDownlinkPhase class on the first downlink slot
-     * of the new schedule, to set the global time number when the scedule
-     * becomes active, useful to know the current dataslot after resync */
-    void setScheduleActivationTile(unsigned long newScheduleActivationTile) {
-        scheduleActivationTile = newScheduleActivationTile;
-    }
 
 
     /* Constant value from NetworkConfiguration */
@@ -166,8 +158,6 @@ private:
     unsigned long scheduleID = 0;
     unsigned long scheduleTiles = 0;
     unsigned long scheduleSlots = 0;
-    // FIXME: if the MAC remains alive for more than 13 years, this overflows
-    unsigned long scheduleActivationTile = 0;
     std::vector<ExplicitScheduleElement> currentSchedule;
 };
 
