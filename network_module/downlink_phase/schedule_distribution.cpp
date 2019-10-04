@@ -89,6 +89,9 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
         }
     }
     print_dbg("[D] expandSchedule: allocated %d buffers\n",buffers.size());
+    if (result.size() != scheduleSlots) {
+        print_dbg("BUG: Schedule expansion inconsistency\n");
+    }
     return result;
 }
 
