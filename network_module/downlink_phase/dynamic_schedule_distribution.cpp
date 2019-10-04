@@ -107,7 +107,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
         if(header.getScheduleID() != dataPhase->getScheduleID() &&
            currentTile >= header.getActivationTile())
         {
-            handleIncompleteSchedule();
+            handleIncompleteSchedule(slotStart);
         } else {
             incompleteSchedule = false;
             incompleteScheduleCounter = 0;
@@ -158,12 +158,15 @@ void DynamicScheduleDownlinkPhase::printStatus() {
     print_dbg("]\n");
 }
 
-void DynamicScheduleDownlinkPhase::handleIncompleteSchedule()
+void DynamicScheduleDownlinkPhase::handleIncompleteSchedule(long long slotStart)
 {
     if(incompleteSchedule == false)
     {
         incompleteSchedule = true;
-        print_dbg("[SD] incomplete schedule %s\n",received.to_string().c_str());
+        std::string schd;
+        schd.reserve(received.size());
+        for(auto bit : received) schd += bit ? '1' : '0';
+        print_dbg("[SD] incomplete schedule %s\n",schd.c_str());
 
         schedule.clear();
         explicitScheduleID = 0;
@@ -171,6 +174,7 @@ void DynamicScheduleDownlinkPhase::handleIncompleteSchedule()
         // Derived class status
         received.clear();
 
+        auto currentTile = ctx.getCurrentTile(slotStart);
         dataPhase->applySchedule(explicitSchedule,
                                  0, //newId = 0 otherwise handleIncompleteSchedule won't be called again
                                  0, //newScheduleTiles = 0 means empty schedule

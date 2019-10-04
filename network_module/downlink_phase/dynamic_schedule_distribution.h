@@ -60,7 +60,7 @@ private:
     void printHeader(ScheduleHeader& header);
     bool isScheduleComplete();
     void printStatus();
-    void handleIncompleteSchedule();
+    void handleIncompleteSchedule(long long slotStart);
 
     /* NetworkId of this node */
     unsigned char myId;
