@@ -98,9 +98,8 @@ public:
         setSchedule(newSchedule);
         setScheduleID(newId);
         setScheduleTiles(newScheduleTiles);
+        tileSlot = 0;
         if(lateActivation == false) {
-            // The tileSlot for a schedule activated on time is 0
-            tileSlot = 0;
             print_dbg("[D] Schedule ID:%lu, StartTile:%lu activated at tile:%2u\n",
                       newId, newActivationTile, currentTile);
         }
@@ -110,7 +109,6 @@ public:
             // (0 + scheduleTile * slotsInTile), with scheduleTile < scheduleSize
             unsigned int scheduleTile = currentTile - newActivationTile;
             unsigned int slotsInTile = ctx.getSlotsInTileCount();
-            tileSlot = 0;
             incrementSlot(scheduleTile * slotsInTile);
             print_dbg("[D] Schedule ID:%lu, StartTile:%lu activated late at tile:%2u\n",
                       newId, newActivationTile, currentTile);
