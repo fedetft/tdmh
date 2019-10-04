@@ -68,11 +68,18 @@ protected:
                                              streamMgr(ctx.getStreamManager()),
                                              dataPhase(ctx.getDataPhase()) {}
 
-    /* Called after receiving a complete schedule,
-     * it converts the schedule from implicit form (list of streams)
-     * to explicit form (action to do on every timeslot)
-     * keeping only the actions that involve this node */
+    /**
+     * Convert the explicit schedule to an implicit one
+     * \param nodeID node for which the explicit schedule is needed
+     * \return the explicit schedule
+     */
     std::vector<ExplicitScheduleElement> expandSchedule(unsigned char nodeID);
+
+    /**
+     * Apply the explicit schedule to the rest of the MAC
+     * \param slotStart downlink slot start time
+     */
+    void applySchedule(long long slotStart);
 
     /* The new schedule must be set in the first downlink tile after the old schedule is over.
        This function calculates the tilesPassedTotal time indicator,
@@ -104,7 +111,7 @@ protected:
                                const std::vector<ExplicitScheduleElement>& expSchedule) {}
 #endif
 
-    /* Constant value from NetworkConfiguration */
+    // Constant value from NetworkConfiguration
     const unsigned short panId;
 
     // Schedule header with information on schedule distribution

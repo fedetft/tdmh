@@ -34,7 +34,8 @@ using namespace miosix;
 
 namespace mxnet {
 
-std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsigned char nodeID) {
+std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsigned char nodeID)
+{
     // New explicitSchedule to return
     std::vector<ExplicitScheduleElement> result;
     std::map<unsigned int,std::shared_ptr<Packet>> buffers;
@@ -43,7 +44,8 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
     auto scheduleSlots = header.getScheduleTiles() * slotsInTile;
     result.resize(scheduleSlots, ExplicitScheduleElement());
     // Scan implicit schedule for element that imply the node action
-    for(auto e : schedule) {
+    for(auto e : schedule)
+    {
         // Period is normally expressed in tiles, get period in slots
         auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
         Action action = Action::SLEEP;
@@ -55,7 +57,8 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
         else if(e.getDst() == nodeID && e.getRx() == nodeID)
             action = Action::RECVSTREAM;
         // Send from buffer case (send saved multi-hop packet)
-        else if(e.getSrc() != nodeID && e.getTx() == nodeID) {
+        else if(e.getSrc() != nodeID && e.getTx() == nodeID)
+        {
             action = Action::SENDBUFFER;
             auto it=buffers.find(e.getStreamId().getKey());
             if(it!=buffers.end())
@@ -81,21 +84,56 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
         }
         
         // Apply action if different than SLEEP (to avoid overwriting already scheduled slots)
-        if(action != Action::SLEEP) {
-            for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) { 
+        if(action != Action::SLEEP)
+        {
+            for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots)
+            { 
                 result[slot] = ExplicitScheduleElement(action, e.getStreamInfo());
                 if(buffer) result[slot].setBuffer(buffer);
             }
         }
     }
     print_dbg("[D] expandSchedule: allocated %d buffers\n",buffers.size());
-    if (result.size() != scheduleSlots) {
-        print_dbg("BUG: Schedule expansion inconsistency\n");
-    }
+    if(result.size() != scheduleSlots) print_dbg("BUG: Schedule expansion inconsistency\n");
     return result;
 }
 
-bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
+void ScheduleDownlinkPhase::applySchedule(long long slotStart)
+{
+    int schId = header.getScheduleID();
+    unsigned int currentTile = ctx.getCurrentTile(slotStart);
+    
+    if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
+        print_dbg("[SD] Activating schedule n.%2lu at tile n.%u\n", schId, currentTile);
+    
+    // Apply schedule to DataPhase
+    dataPhase->applySchedule(explicitSchedule, schId,
+                             header.getScheduleTiles(),
+                             header.getActivationTile(), currentTile);
+    
+    // Apply schedule to StreamManager
+    streamMgr->applySchedule(schedule);
+    
+    //NOTE: after we apply the schedule, we need to leave the time for connect() to return
+    //in applications, and for them to call write(), otherwise the first transmission
+    //fails due to no packet being available. If checkTimeSetSchedule returns immediately,
+    //the code im MacContext will start executing the first slot of the data phase so early
+    //that the stream in the first slot following the downlink phase does not have enough
+    //time to do so.
+    //Thus, we wait till a little before the end of the downlink slot.
+    //NOTE: although in the downlink slot where the schedule needs to be
+    //activated no packet should be sent, we still wait to see if a packet
+    //is received. This leaves around 3ms to apply the schedule, if this
+    //turns out to be not enough, it's possible to recover some time by
+    //not litening to the radio in that downlink
+    auto rwa=MediumAccessController::receivingNodeWakeupAdvance + ctx.getNetworkConfig().getMaxAdmittedRcvWindow();
+    auto swa=MediumAccessController::sendingNodeWakeupAdvance;
+    const int downlinkEndAdvance = MediumAccessController::downlinkToDataphaseSlack + std::max(rwa,swa);
+    ctx.sleepUntil(slotStart + ctx.getDownlinkSlotDuration() - downlinkEndAdvance);
+}
+
+bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart)
+{
     // NOTE: The schedule can be explicited as soon as possible or toghether
     // with schedule activation, we decided to do it as soon as possible
     // because no info element can be sent during the slots in which we check
@@ -116,32 +154,7 @@ bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
         return true;
     unsigned int currentTile = ctx.getCurrentTile(slotStart);
     if (currentTile >= header.getActivationTile()) {
-        if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
-            print_dbg("[SD] Activating schedule n.%2lu at tile n.%u\n", explicitScheduleID, currentTile);
-        // Apply schedule to DataPhase
-        dataPhase->applySchedule(explicitSchedule, explicitScheduleID,
-                                 header.getScheduleTiles(),
-                                 header.getActivationTile(), currentTile);
-        // Apply schedule to StreamManager
-        /* NOTE: we call applySchedule on the implicitSchedule to save time,
-         * because implicit schedule is much smaller than explicit one */
-        streamMgr->applySchedule(schedule);
-        //NOTE: after we apply the schedule, we need to leave the time for connect() to return
-        //in applications, and for them to call write(), otherwise the first transmission
-        //fails due to no packet being available. If checkTimeSetSchedule returns immediately,
-        //the code im MacContext will start executing the first slot of the data phase so early
-        //that the stream in the first slot following the downlink phase does not have enough
-        //time to do so.
-        //Thus, we wait till a little before the end of the downlink slot.
-        //NOTE: although in the downlink slot where the schedule needs to be
-        //activated no packet should be sent, we still wait to see if a packet
-        //is received. This leaves around 3ms to apply the schedule, if this
-        //turns out to be not enough, it's possible to recover some time by
-        //not litening to the radio in that downlink
-        auto rwa=MediumAccessController::receivingNodeWakeupAdvance + ctx.getNetworkConfig().getMaxAdmittedRcvWindow();
-        auto swa=MediumAccessController::sendingNodeWakeupAdvance;
-        const int downlinkEndAdvance = MediumAccessController::downlinkToDataphaseSlack + std::max(rwa,swa);
-        ctx.sleepUntil(slotStart + ctx.getDownlinkSlotDuration() - downlinkEndAdvance);
+        applySchedule(slotStart);
         return true;
     }
     else{
