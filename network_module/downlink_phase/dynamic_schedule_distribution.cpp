@@ -97,7 +97,6 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
         // If we received info elements, apply them
         if(!infos.empty()) {            
             streamMgr->applyInfoElements(infos);
-            infos.clear();
         }
     }
     // If we received a complete schedule, check application tile
