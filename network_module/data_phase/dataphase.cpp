@@ -36,7 +36,7 @@ namespace mxnet {
 
 void DataPhase::execute(long long slotStart) {
     // Schedule not received yet
-    if(tileSlot >= currentSchedule.size()) {
+    if(slotIndex >= currentSchedule.size()) {
         sleep(slotStart);
         return;
     }
@@ -47,21 +47,21 @@ void DataPhase::execute(long long slotStart) {
     usleep(1000);
 #endif
     // Schedule playback
-    switch(currentSchedule[tileSlot].getAction()){
+    switch(currentSchedule[slotIndex].getAction()){
     case Action::SLEEP:
         sleep(slotStart);
         break;
     case Action::SENDSTREAM:
-        sendFromStream(slotStart, currentSchedule[tileSlot].getStreamId());
+        sendFromStream(slotStart, currentSchedule[slotIndex].getStreamId());
         break;
     case Action::RECVSTREAM:
-        receiveToStream(slotStart, currentSchedule[tileSlot].getStreamId());
+        receiveToStream(slotStart, currentSchedule[slotIndex].getStreamId());
         break;
     case Action::SENDBUFFER:
-        sendFromBuffer(slotStart, currentSchedule[tileSlot].getBuffer());
+        sendFromBuffer(slotStart, currentSchedule[slotIndex].getBuffer());
         break;
     case Action::RECVBUFFER:
-        receiveToBuffer(slotStart, currentSchedule[tileSlot].getBuffer());
+        receiveToBuffer(slotStart, currentSchedule[slotIndex].getBuffer());
         break;
     }
     incrementSlot();

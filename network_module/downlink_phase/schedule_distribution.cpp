@@ -195,8 +195,7 @@ bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart) {
         // Apply schedule to DataPhase
         dataPhase->applySchedule(explicitSchedule, explicitScheduleID,
                                  header.getScheduleTiles(),
-                                 header.getActivationTile(), currentTile,
-                                 currentTile > header.getActivationTile());
+                                 header.getActivationTile(), currentTile);
         // Apply schedule to StreamManager
         /* NOTE: we call applySchedule on the implicitSchedule to save time,
          * because implicit schedule is much smaller than explicit one */

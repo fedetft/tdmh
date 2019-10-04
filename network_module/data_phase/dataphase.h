@@ -71,7 +71,7 @@ public:
      * to avoid playback of an old schedule
      */
     void resync() override {
-        tileSlot = 0;
+        slotIndex = 0;
         scheduleID = 0;
         scheduleTiles = 0;
         scheduleSlots = 0;
@@ -93,13 +93,12 @@ public:
      * taking effect in the next dataphase */
     void applySchedule(const std::vector<ExplicitScheduleElement>& newSchedule,
                        unsigned long newId, unsigned int newScheduleTiles,
-                       unsigned long newActivationTile, unsigned int currentTile,
-                       bool lateActivation) {
+                       unsigned long newActivationTile, unsigned int currentTile) {
         setSchedule(newSchedule);
         setScheduleID(newId);
         setScheduleTiles(newScheduleTiles);
-        tileSlot = 0;
-        if(lateActivation == false) {
+        slotIndex = 0;
+        if(newActivationTile == currentTile) {
             print_dbg("[D] Schedule ID:%lu, StartTile:%lu activated at tile:%2u\n",
                       newId, newActivationTile, currentTile);
         }
@@ -123,9 +122,9 @@ private:
     void incrementSlot(unsigned int n = 1) {
         // Make sure that tileSlot is always in range {0;scheduleSlots}
         if(scheduleSlots != 0)
-            tileSlot = (tileSlot + n) % scheduleSlots;
+            slotIndex = (slotIndex + n) % scheduleSlots;
         else
-            tileSlot = 0;
+            slotIndex = 0;
     }
     // Check streamId inside packet without extracting it
     bool checkStreamId(Packet pkt, StreamId streamId);
@@ -152,7 +151,7 @@ private:
 
     // Reference to Stream class, to get packets from stream buffers
     StreamManager& stream;
-    unsigned short tileSlot = 0;
+    unsigned short slotIndex = 0;
     unsigned long scheduleID = 0;
     unsigned long scheduleTiles = 0;
     unsigned long scheduleSlots = 0;
