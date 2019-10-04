@@ -104,7 +104,7 @@ void ScheduleDownlinkPhase::printSchedule(unsigned char nodeID) {
     }
 }
 
-void ScheduleDownlinkPhase::printExplicitSchedule(unsigned char nodeID, bool printHeader, std::vector<ExplicitScheduleElement> expSchedule) {
+void ScheduleDownlinkPhase::printExplicitSchedule(unsigned char nodeID, bool printHeader, const std::vector<ExplicitScheduleElement>& expSchedule) {
     auto slotsInTile = ctx.getSlotsInTileCount();
     if(explicitSchedule.size() > (2 * slotsInTile)) {
         print_dbg("[SD] Not printing schedule longer than 2 tiles\n");

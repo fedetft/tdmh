@@ -43,7 +43,6 @@ class ScheduleDownlinkPhase : public MACPhase {
 public:
     ScheduleDownlinkPhase() = delete;
     ScheduleDownlinkPhase(const ScheduleDownlinkPhase& orig) = delete;
-    virtual ~ScheduleDownlinkPhase() {};
 
     /**
      * \return the duration in nanoseconds of a downlink slot
@@ -75,7 +74,7 @@ protected:
      * keeping only the actions that involve this node */
     std::vector<ExplicitScheduleElement> expandSchedule(unsigned char nodeID);
     void printSchedule(unsigned char nodeID);
-    void printExplicitSchedule(unsigned char nodeID, bool printHeader, std::vector<ExplicitScheduleElement> expSchedule);
+    void printExplicitSchedule(unsigned char nodeID, bool printHeader, const std::vector<ExplicitScheduleElement>& expSchedule);
     /* Calculates and prints explicit schedule for all the nodes */
     void printCompleteSchedule();
     /* The new schedule must be set in the first downlink tile after the old schedule is over.
