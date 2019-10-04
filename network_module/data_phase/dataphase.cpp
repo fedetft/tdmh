@@ -35,8 +35,8 @@ using namespace miosix;
 namespace mxnet {
 
 void DataPhase::execute(long long slotStart) {
-    // Schedule not received yet
-    if(slotIndex >= currentSchedule.size()) {
+    // Empty schedule
+    if(scheduleTiles == 0) {
         sleep(slotStart);
         return;
     }
