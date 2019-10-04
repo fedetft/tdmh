@@ -272,14 +272,6 @@ void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
     streamMgr->applyInfoElements(infos);
 }
 
-void MasterScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
-    print_dbg("[SD] sending schedule %u/%u/%lu/%d\n",
-              header.getTotalPacket(),
-              header.getCurrentPacket(),
-              header.getScheduleID(),
-              header.getRepetition());
-}
-
 void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart) {
     SchedulePacket spkt(panId);
     // Build Info packet header
@@ -299,6 +291,14 @@ void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart) {
     ctx.transceiverIdle();
     // NOTE: Apply vector of Info elements to local StreamManager
     streamMgr->applyInfoElements(infos);
+}
+
+void MasterScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
+    print_dbg("[SD] sending schedule %u/%u/%lu/%d\n",
+              header.getTotalPacket(),
+              header.getCurrentPacket(),
+              header.getScheduleID(),
+              header.getRepetition());
 }
 
 }

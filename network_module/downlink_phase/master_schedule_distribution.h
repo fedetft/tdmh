@@ -52,11 +52,14 @@ public:
     
 private:
     void getCurrentSchedule(long long slotStart);
-    void sendSchedulePkt(long long slotstart);
-    void sendInfoPkt(long long slotstart);
-    void printHeader(ScheduleHeader& header);
-
+    
     unsigned int getActivationTile(unsigned int currentTile, unsigned int numPackets);
+    
+    void sendSchedulePkt(long long slotstart);
+    
+    void sendInfoPkt(long long slotstart);
+    
+    void printHeader(ScheduleHeader& header);
     
     // Last schedule element sent
     unsigned position = 0;
