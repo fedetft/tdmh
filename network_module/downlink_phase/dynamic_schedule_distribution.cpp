@@ -47,6 +47,8 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart)
             if(isScheduleComplete())
             {
                 applySchedule(slotStart);
+                if(ENABLE_SCHEDULE_DIST_DBG)
+                    print_dbg("[SD] full schedule %s\n",scheduleStatusAsString().c_str());
                 status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
             } else {
                 resetAndDisableSchedule(slotStart);
@@ -81,7 +83,10 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart)
             printHeader(newHeader);
         if(newHeader.isSchedulePacket() &&
            newHeader.getActivationTile()<=ctx.getCurrentTile(slotStart))
-            print_dbg("[SD] BUG: schedule activation tile in the past\n");
+        {
+            if(ENABLE_SCHEDULE_DIST_DBG)
+                print_dbg("[SD] BUG: schedule activation tile in the past\n");
+        }
         
         //Packet received
         switch(status)
@@ -150,6 +155,8 @@ void DynamicScheduleDownlinkPhase::advance(long long slotStart)
             if(isScheduleComplete())
             {
                 applySchedule(slotStart);
+                if(ENABLE_SCHEDULE_DIST_DBG)
+                    print_dbg("[SD] full schedule %s\n",scheduleStatusAsString().c_str());
                 status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
             } else {
                 resetAndDisableSchedule(slotStart);
@@ -203,9 +210,9 @@ void DynamicScheduleDownlinkPhase::initSchedule(SchedulePacket& spkt)
     schedule = spkt.getElements();
     // Resize the received bool vector to the size of the new schedule
     received.clear();
-    received.resize(header.getTotalPacket(), false);
+    received.resize(header.getTotalPacket(), 0);
     // Set current packet as received
-    received.at(header.getCurrentPacket()) = true;
+    received.at(header.getCurrentPacket()) = 1;
 }
 
 void DynamicScheduleDownlinkPhase::appendToSchedule(SchedulePacket& spkt, bool beginResend)
@@ -223,13 +230,14 @@ void DynamicScheduleDownlinkPhase::appendToSchedule(SchedulePacket& spkt, bool b
        header.getScheduleTiles() != newHeader.getScheduleTiles() ||
        (beginResend==false && header.getActivationTile() != newHeader.getActivationTile()))
     {
-        print_dbg("[SD] BUG: appendToSchedule header differs, refusing to apply\n");
+        if(ENABLE_SCHEDULE_DIST_DBG)
+            print_dbg("[SD] BUG: appendToSchedule header differs, refusing to apply\n");
         return; //Not applying this schedule packet
     }
     header = newHeader;
 
     // Set current packet as received
-    received.at(newHeader.getCurrentPacket()) = true;
+    received.at(newHeader.getCurrentPacket())++;
     // Add elements from received packet to new schedule
     std::vector<ScheduleElement> elements = spkt.getElements();
     schedule.insert(schedule.end(), elements.begin(), elements.end());
@@ -239,17 +247,14 @@ bool DynamicScheduleDownlinkPhase::isScheduleComplete()
 {
     // If no packet was received, the schedule is not complete
     if(received.size() == 0) return false;
-    bool complete = true;
-    for(unsigned int i=0; i<received.size(); i++) complete &= received[i];
-    return complete;
+    for(auto pkt : received) if(pkt==0) return false;
+    return true;
 }
 
 void DynamicScheduleDownlinkPhase::resetAndDisableSchedule(long long slotStart)
 {
-    std::string schd;
-    schd.reserve(received.size());
-    for(auto bit : received) schd += bit ? '1' : '0';
-    print_dbg("[SD] incomplete schedule %s\n",schd.c_str());
+    if(ENABLE_SCHEDULE_DIST_DBG)
+        print_dbg("[SD] incomplete schedule %s\n",scheduleStatusAsString().c_str());
     
     header = ScheduleHeader();
     schedule.clear();
@@ -275,7 +280,17 @@ void DynamicScheduleDownlinkPhase::handleIncompleteSchedule()
     }
 }
 
-void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header)
+std::string DynamicScheduleDownlinkPhase::scheduleStatusAsString() const
+{
+    std::string result;
+    result.reserve(received.size() + 2);
+    result += '[';
+    for(auto pkt : received) result += ('0' + pkt); //Assuming pkt<10
+    result += ']';
+    return result;
+}
+
+void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header) const
 {
     print_dbg("[SD] node %d, hop %d, received schedule %u/%u/%lu/%d\n",
               ctx.getNetworkId(),

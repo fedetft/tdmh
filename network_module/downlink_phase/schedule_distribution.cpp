@@ -66,7 +66,8 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
                 buffer=it->second;
             } else {
                 //Should never happen, how can we transmit from a buffer we haven't received from?
-                print_dbg("Error: ScheduleDownlinkPhase::expandSchedule missing buffer\n");
+                if(ENABLE_SCHEDULE_DIST_DBG)
+                    print_dbg("[SD] Error: expandSchedule missing buffer\n");
             }
         // Receive to buffer case (receive and save multi-hop packet)
         } else if(e.getDst() != nodeID && e.getRx() == nodeID) {
@@ -93,8 +94,12 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
             }
         }
     }
-    print_dbg("[D] expandSchedule: allocated %d buffers\n",buffers.size());
-    if(result.size() != scheduleSlots) print_dbg("BUG: Schedule expansion inconsistency\n");
+    if(ENABLE_SCHEDULE_DIST_DBG)
+    {
+        print_dbg("[SD] expandSchedule: allocated %d buffers\n",buffers.size());
+        if(result.size() != scheduleSlots)
+            print_dbg("[SD] BUG: Schedule expansion inconsistency\n");
+    }
     return result;
 }
 

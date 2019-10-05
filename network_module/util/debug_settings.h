@@ -88,6 +88,9 @@ const bool SCHEDULER_SUMMARY_DBG = true;
 //prints detailed information on scheduling in the master node
 const bool SCHEDULER_DETAILED_DBG = false;
 
+//lightweight prints for schedule distribution
+const bool ENABLE_SCHEDULE_DIST_DBG = true;
+
 //prints the schedule distribution info in the master node
 const bool ENABLE_SCHEDULE_DIST_MAS_INFO_DBG = false;
 

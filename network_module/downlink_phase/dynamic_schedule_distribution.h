@@ -59,14 +59,15 @@ private:
     
     void handleIncompleteSchedule();
     
-    void printHeader(ScheduleHeader& header);
+    std::string scheduleStatusAsString() const;
+    
+    void printHeader(ScheduleHeader& header) const;
 
     /* NetworkId of this node */
     unsigned char myId;
 
-    // Vector of bool with size = total packets of a schedule
-    // To check if all the schedule packets are received
-    std::vector<bool> received;
+    // Number of times each schedule packet has been received
+    std::vector<unsigned char> received;
     
     int incompleteScheduleCounter = 0;
 };

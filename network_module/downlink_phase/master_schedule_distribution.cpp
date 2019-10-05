@@ -124,8 +124,11 @@ void MasterScheduleDownlinkPhase::getScheduleAndComputeActivation(long long slot
         // Use activationTile of the previous schedule (still saved in header)
         unsigned int lastActivationTile = header.getActivationTile();
         if(currentTile < lastActivationTile)
-            print_dbg("[SD] BUG! currentTile=%2lu < lastActivationTile=%2lu\n",
-                      currentTile, lastActivationTile);
+        {
+            if(ENABLE_SCHEDULE_DIST_DBG)
+                print_dbg("[SD] BUG! currentTile=%2lu < lastActivationTile=%2lu\n",
+                          currentTile, lastActivationTile);
+        }
         
         // The first beginning of a schedule that is at or after activationTile
         unsigned int alignedActivationTile = lastActivationTile;
@@ -142,8 +145,11 @@ void MasterScheduleDownlinkPhase::getScheduleAndComputeActivation(long long slot
         unsigned int bugTwoConsecutiveTimesyncs = ctx.getNumTimesyncs(alignedActivationTile + 1)
                                                 - ctx.getNumTimesyncs(alignedActivationTile);
         if(bugTwoConsecutiveTimesyncs)
-            print_dbg("[SD] BUG! two consecutive timesyncs (aat=%u, lst=%u lat=%u)\n",
-                      alignedActivationTile, lastScheduleTiles, lastActivationTile);
+        {
+            if(ENABLE_SCHEDULE_DIST_DBG)
+                print_dbg("[SD] BUG! two consecutive timesyncs (aat=%u, lst=%u lat=%u)\n",
+                          alignedActivationTile, lastScheduleTiles, lastActivationTile);
+        }
 
         activationTile = alignedActivationTile;
     }
