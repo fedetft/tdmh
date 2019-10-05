@@ -91,10 +91,10 @@ public:
     /* Called from ScheduleDownlinkPhase class on the first downlink slot
      * of the new schedule, to replace the currentSchedule,
      * taking effect in the next dataphase */
-    void applySchedule(const std::vector<ExplicitScheduleElement>& newSchedule,
+    void applySchedule(const std::vector<ExplicitScheduleElement>&& newSchedule,
                        unsigned long newId, unsigned int newScheduleTiles,
                        unsigned long newActivationTile, unsigned int currentTile) {
-        setSchedule(newSchedule);
+        currentSchedule = std::move(newSchedule);
         setScheduleID(newId);
         setScheduleTiles(newScheduleTiles);
         slotIndex = 0;
@@ -128,10 +128,7 @@ private:
     }
     // Check streamId inside packet without extracting it
     bool checkStreamId(Packet pkt, StreamId streamId);
-    /* Replaces running schedule with new one */
-    void setSchedule(const std::vector<ExplicitScheduleElement>& newSchedule) {
-        currentSchedule = newSchedule;
-    }
+
     /* Sets the schedule lenght or DataSuperframeSize */
     void setScheduleTiles(unsigned int newScheduleTiles) {
         scheduleTiles = newScheduleTiles;

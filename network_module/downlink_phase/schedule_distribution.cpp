@@ -121,7 +121,7 @@ void ScheduleDownlinkPhase::applySchedule(long long slotStart)
     }
     
     // Apply schedule to DataPhase
-    dataPhase->applySchedule(explicitSchedule, schId,
+    dataPhase->applySchedule(std::move(explicitSchedule), schId,
                              header.getScheduleTiles(),
                              header.getActivationTile(), currentTile);
     
