@@ -89,6 +89,7 @@ public:
     std::size_t size() const override { return maxSize(); }
     static std::size_t maxSize() { return sizeof(ScheduleHeaderPkt); }
     unsigned int getTotalPacket() const { return header.totalPacket; }
+    bool isSchedulePacket() const { return header.totalPacket>0; }
     unsigned int getCurrentPacket() const { return header.currentPacket; }
     // NOTE: schedule with ScheduleID=0 are not sent in MasterScheduleDistribution
     unsigned long getScheduleID() const { return header.scheduleID; }

@@ -106,6 +106,15 @@ void ScheduleDownlinkPhase::applySchedule(long long slotStart)
     if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
         print_dbg("[SD] Activating schedule n.%2lu at tile n.%u\n", schId, currentTile);
     
+    auto myID = ctx.getNetworkId();
+    auto explicitSchedule = expandSchedule(myID);
+    
+    if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) {
+        print_dbg("[SD] Calculated explicit schedule n.%2lu, tiles:%d, slots:%d\n",
+                    schId, header.getScheduleTiles(), explicitSchedule.size());
+        printExplicitSchedule(myID, true, explicitSchedule);
+    }
+    
     // Apply schedule to DataPhase
     dataPhase->applySchedule(explicitSchedule, schId,
                              header.getScheduleTiles(),
@@ -121,48 +130,10 @@ void ScheduleDownlinkPhase::applySchedule(long long slotStart)
     //that the stream in the first slot following the downlink phase does not have enough
     //time to do so.
     //Thus, we wait till a little before the end of the downlink slot.
-    //NOTE: although in the downlink slot where the schedule needs to be
-    //activated no packet should be sent, we still wait to see if a packet
-    //is received. This leaves around 3ms to apply the schedule, if this
-    //turns out to be not enough, it's possible to recover some time by
-    //not litening to the radio in that downlink
     auto rwa=MediumAccessController::receivingNodeWakeupAdvance + ctx.getNetworkConfig().getMaxAdmittedRcvWindow();
     auto swa=MediumAccessController::sendingNodeWakeupAdvance;
     const int downlinkEndAdvance = MediumAccessController::downlinkToDataphaseSlack + std::max(rwa,swa);
     ctx.sleepUntil(slotStart + ctx.getDownlinkSlotDuration() - downlinkEndAdvance);
-}
-
-bool ScheduleDownlinkPhase::checkTimeSetSchedule(long long slotStart)
-{
-    // NOTE: The schedule can be explicited as soon as possible or toghether
-    // with schedule activation, we decided to do it as soon as possible
-    // because no info element can be sent during the slots in which we check
-    // for activation.
-    // Calculating the explicit schedule is possible and equivalent to what we do now
-    if(explicitScheduleID != header.getScheduleID()) {
-        auto myID = ctx.getNetworkId();
-        explicitSchedule = expandSchedule(myID);
-        explicitScheduleID = header.getScheduleID();
-        if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) {
-            print_dbg("[SD] Calculated explicit schedule n.%2lu, tiles:%d, slots:%d\n",
-                      explicitScheduleID, header.getScheduleTiles(), explicitSchedule.size());
-            printExplicitSchedule(myID, true, explicitSchedule);
-        }
-    }
-    // Schedule has been already activated, return true to resume the scheduler
-    if(explicitScheduleID == dataPhase->getScheduleID())
-        return true;
-    unsigned int currentTile = ctx.getCurrentTile(slotStart);
-    if (currentTile >= header.getActivationTile()) {
-        applySchedule(slotStart);
-        return true;
-    }
-    else{
-        if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
-            print_dbg("[SD] Too early to activate schedule! current:%2lu activation:%2lu\n",
-                      currentTile, header.getActivationTile());
-    }
-    return false;
 }
 
 #ifndef _MIOSIX

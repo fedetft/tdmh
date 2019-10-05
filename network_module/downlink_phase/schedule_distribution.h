@@ -39,7 +39,8 @@
 
 namespace mxnet {
 
-class ScheduleDownlinkPhase : public MACPhase {
+class ScheduleDownlinkPhase : public MACPhase
+{
 public:
     ScheduleDownlinkPhase() = delete;
     ScheduleDownlinkPhase(const ScheduleDownlinkPhase& orig) = delete;
@@ -47,16 +48,15 @@ public:
     /**
      * \return the duration in nanoseconds of a downlink slot
      */
-    static unsigned long long getDuration(unsigned short hops) {
+    static unsigned long long getDuration(unsigned short hops)
+    {
         return phaseStartupTime + hops * rebroadcastInterval;
     }
-
+    
     /**
-     * Called when the node clock synchronization error is too high to operate
-     * but the node is not desynchronized. ITs purpose is to update the phase
-     * state without causing packet transmissions/receptions.
+     * Nothing to do
      */
-    void advance(long long slotStart) override {} //TODO
+    void resync() override {}
 
     static const int phaseStartupTime = 450000;
     static const int rebroadcastInterval = 5000000; //32us per-byte + 600us total delta
@@ -80,13 +80,6 @@ protected:
      * \param slotStart downlink slot start time
      */
     void applySchedule(long long slotStart);
-
-    /* The new schedule must be set in the first downlink tile after the old schedule is over.
-       This function calculates the tilesPassedTotal time indicator,
-       if it is equal to the one in the schedule header,
-       replace expanded schedule in the dataphase with the new one
-       @return true if the schedule has been applied, false otherwise */
-    bool checkTimeSetSchedule(long long slotStart);
     
 #ifndef _MIOSIX
     /**
@@ -111,17 +104,23 @@ protected:
                                const std::vector<ExplicitScheduleElement>& expSchedule) {}
 #endif
 
-    // Constant value from NetworkConfiguration
-    const unsigned short panId;
+    enum class ScheduleDownlinkStatus : unsigned char
+    {
+        APPLIED_SCHEDULE,
+        SENDING_SCHEDULE,
+        AWAITING_ACTIVATION,
+        INCOMPLETE_SCHEDULE
+    };
+    
+    ScheduleDownlinkStatus status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
 
     // Schedule header with information on schedule distribution
     ScheduleHeader header;
     // Copy of last computed/received schedule
     std::vector<ScheduleElement> schedule;
-
-    // Current schedule lenght in tiles
-    unsigned long explicitScheduleID = 0;
-    std::vector<ExplicitScheduleElement> explicitSchedule;
+    
+    // Constant value from NetworkConfiguration
+    const unsigned short panId;
 
     // Pointer to StreamManager, used to apply distributed schedule and info elements
     StreamManager* const streamMgr;

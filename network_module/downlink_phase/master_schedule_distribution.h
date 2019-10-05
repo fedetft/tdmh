@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2018-2019 by Federico Amedeo Izzo                       *
+ *   Copyright (C) 2018-2019 by Federico Amedeo Izzo and Federico Terraneo *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -33,25 +33,24 @@
 
 namespace mxnet {
 
-class MasterScheduleDownlinkPhase : public ScheduleDownlinkPhase {
+class MasterScheduleDownlinkPhase : public ScheduleDownlinkPhase
+{
 public:
     MasterScheduleDownlinkPhase(MACContext& ctx, ScheduleComputation& sch);
     MasterScheduleDownlinkPhase() = delete;
     MasterScheduleDownlinkPhase(const MasterScheduleDownlinkPhase& orig) = delete;
 
     void execute(long long slotStart) override;
-    /**
-     * Master node do not need resync since it never loses synchronization
-     */
-    void resync() override {}
 
-    /**
-     * Master node do not need desync since it never loses synchronization
+    /*
+     * Master node do not need desync/advance since it never loses synchronization
      */
+    void advance(long long slotStart) override {}
     void desync() override {}
     
 private:
-    void getCurrentSchedule(long long slotStart);
+    
+    void getScheduleAndComputeActivation(long long slotStart);
     
     unsigned int getActivationTile(unsigned int currentTile, unsigned int numPackets);
     
@@ -64,7 +63,6 @@ private:
     // Last schedule element sent
     unsigned position = 0;
     const unsigned packetCapacity = SchedulePacket::getPacketCapacity();
-    bool distributing = false;
 
     // Reference to ScheduleComputation class to get current schedule
     ScheduleComputation& schedule_comp;

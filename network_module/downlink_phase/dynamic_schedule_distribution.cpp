@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2018-2019 by Federico Amedeo Izzo                       *
+ *   Copyright (C) 2018-2019 by Federico Amedeo Izzo and Federico Terraneo *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -35,7 +35,28 @@ using namespace miosix;
 
 namespace mxnet {
 
-void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
+void DynamicScheduleDownlinkPhase::execute(long long slotStart)
+{
+    // Handle the special case of the tile activation slot where we shouldn't
+    // waste time listening for packets
+    if(status == ScheduleDownlinkStatus::SENDING_SCHEDULE)
+    {
+        unsigned int currentTile = ctx.getCurrentTile(slotStart);
+        if(currentTile >= header.getActivationTile())
+        {
+            if(isScheduleComplete())
+            {
+                applySchedule(slotStart);
+                status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
+            } else {
+                resetAndDisableSchedule(slotStart);
+                status = ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE;
+            }
+            //Not receiving packet in this downlink slot
+            return;
+        }
+    }
+    
     Packet pkt;
     // Receive the schedule packet
     auto arrivalTime = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
@@ -43,80 +64,117 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart) {
     auto rcvResult = pkt.recv(ctx, arrivalTime);
     ctx.transceiverIdle(); //Save power waiting for rebroadcast time
     // Received a valid schedule packet
-    if (rcvResult.error == RecvResult::ErrorCode::OK && pkt.checkPanHeader(panId) == true) {
-        std::vector<InfoElement> infos;
+    if(rcvResult.error == RecvResult::ErrorCode::OK && pkt.checkPanHeader(panId) == true)
+    {
         // Retransmit the schedule packet unless you belong to maximum hop
         if(ctx.getHop() < ctx.getNetworkConfig().getMaxHops()) {
             ctx.configureTransceiver(ctx.getTransceiverConfig());
             pkt.send(ctx, rcvResult.timestamp + rebroadcastInterval);
             ctx.transceiverIdle();
         }
+        
         // Parse the schedule packet
         SchedulePacket spkt(panId);
         spkt.deserialize(pkt);
         ScheduleHeader newHeader = spkt.getHeader();
         if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
             printHeader(newHeader);
-        // Received Info Packet (no ScheduleElements)
-        if(newHeader.getTotalPacket() == 0){
-            std::vector<ScheduleElement> elements = spkt.getElements();
-            infos = std::vector<InfoElement>(elements.begin(), elements.end());
-        }
-        // Received Schedule + Info packet
-        else {
-            // Extract and delete info elements from packet
-            infos = extractInfoElements(spkt);
-            // We received a new schedule, replace currently received
-            if((newHeader.getScheduleID() != header.getScheduleID())) {
-                if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
-                    print_dbg("[SD] Node:%d New schedule received!\n", myId);
-                // Resize the received bool vector to the size of the new schedule
-                received.clear();
-                received.resize(newHeader.getTotalPacket(), false);
-                // Set current packet as received
-                received.at(newHeader.getCurrentPacket()) = true;
-                // Replace old schedule header and elements
-                header = newHeader;
-                schedule = spkt.getElements();
-            }
-            // We are receiving another part of the same schedule, we accept it if:
-            // - schedule ID is equal to the saved one (else block)
-            // - packet has not been already received (avoid duplicates)
-            else if(!received.at(newHeader.getCurrentPacket())) {
-                if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
-                    print_dbg("[SD] Node:%d Piece %d of schedule received!\n", myId, newHeader.getCurrentPacket());
-                // Set current packet as received
-                received.at(newHeader.getCurrentPacket()) = true;
-                // Replace old schedule header
-                header = newHeader;
-                // Add elements from received packet to new schedule
-                std::vector<ScheduleElement> elements = spkt.getElements();
-                schedule.insert(schedule.end(), elements.begin(), elements.end());
-            }
-        }
-        // If we received info elements, apply them
-        if(!infos.empty()) {            
-            streamMgr->applyInfoElements(infos);
-        }
-    }
-    // If we received a complete schedule, check application tile
-    if(isScheduleComplete()) {
-        checkTimeSetSchedule(slotStart);
-    } else {
-        unsigned int currentTile = ctx.getCurrentTile(slotStart);
-        if(header.getScheduleID() != dataPhase->getScheduleID() &&
-           currentTile >= header.getActivationTile())
+        if(newHeader.isSchedulePacket() &&
+           newHeader.getActivationTile()<=ctx.getCurrentTile(slotStart))
+            print_dbg("[SD] BUG: schedule activation tile in the past\n");
+        
+        //Packet received
+        switch(status)
         {
-            handleIncompleteSchedule(slotStart);
-        } else {
-            incompleteSchedule = false;
-            incompleteScheduleCounter = 0;
+            case ScheduleDownlinkStatus::APPLIED_SCHEDULE:
+            {
+                if(newHeader.isSchedulePacket() &&
+                   newHeader.getScheduleID() != header.getScheduleID())
+                {
+                    initSchedule(spkt);
+                    status = ScheduleDownlinkStatus::SENDING_SCHEDULE;
+                } else applyInfoElements(spkt);
+                break;
+            }
+            case ScheduleDownlinkStatus::SENDING_SCHEDULE:
+            {
+                // NOTE: activation slot already taken care of before
+                // receiving packet
+                if(newHeader.isSchedulePacket())
+                {
+                    if(newHeader.getScheduleID() != header.getScheduleID())
+                    {
+                        initSchedule(spkt);
+                    } else appendToSchedule(spkt);
+                } else applyInfoElements(spkt);
+                break;
+            }
+            case ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE:
+            {
+                if(newHeader.isSchedulePacket())
+                {
+                    if(newHeader.getScheduleID() != header.getScheduleID())
+                    {
+                        initSchedule(spkt);
+                    } else {
+                        appendToSchedule(spkt,true); //Activation tile differs
+                    }
+                    status = ScheduleDownlinkStatus::SENDING_SCHEDULE;
+                } else {
+                    applyInfoElements(spkt);
+                    handleIncompleteSchedule();
+                }
+                break;
+            }
+            default:
+                assert(false);
         }
+    } else {
+        
+        //No packet received
+        if(status == ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE)
+            handleIncompleteSchedule();
     }
-    //printStatus();
 }
 
-std::vector<InfoElement> DynamicScheduleDownlinkPhase::extractInfoElements(SchedulePacket& spkt) {
+void DynamicScheduleDownlinkPhase::advance(long long slotStart)
+{
+    // If a schedule has been sent, it's time to apply it don't delay, apply
+    // it if complete, or reset and disable if incomplete even if the clock
+    // sync error is too high to send/receive packets
+    if(status == ScheduleDownlinkStatus::SENDING_SCHEDULE)
+    {
+        unsigned int currentTile = ctx.getCurrentTile(slotStart);
+        if(currentTile >= header.getActivationTile())
+        {
+            if(isScheduleComplete())
+            {
+                applySchedule(slotStart);
+                status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
+            } else {
+                resetAndDisableSchedule(slotStart);
+                status = ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE;
+            }
+        }
+    }
+}
+
+void DynamicScheduleDownlinkPhase::desync()
+{
+    //NOTE: only resetting our internal state, and not applying the empty
+    //schedule to the rest of the MAC. The rest of the MAC will clear its
+    //schedule when their desync() is called
+    //TODO: check that dataPhase and streamManager DO CLEAR their schedule
+    header = ScheduleHeader();
+    schedule.clear();
+    received.clear();
+    incompleteScheduleCounter = 0;
+    
+    status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
+}
+
+void DynamicScheduleDownlinkPhase::applyInfoElements(SchedulePacket& spkt)
+{
     std::vector<ScheduleElement> elements = spkt.getElements();
     std::vector<InfoElement> infos;
     // Check for Info Elements and separate them from Schedule Elements
@@ -124,14 +182,101 @@ std::vector<InfoElement> DynamicScheduleDownlinkPhase::extractInfoElements(Sched
                                   [](ScheduleElement s){
                                       return (s.getTx()==0 && s.getRx()==0);
                                   });
-    if(firstInfo != elements.end()) {
+    if(firstInfo != elements.end())
+    {
         infos = std::vector<InfoElement>(firstInfo, elements.end());
         spkt.popElements(infos.size());
     }
-    return infos;
+
+    if(!infos.empty()) streamMgr->applyInfoElements(infos);
 }
 
-void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
+void DynamicScheduleDownlinkPhase::initSchedule(SchedulePacket& spkt)
+{
+    applyInfoElements(spkt); //Must be done first as it removes them
+    
+    if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
+        print_dbg("[SD] Node:%d New schedule received!\n", myId);
+
+    // Replace old schedule header and elements
+    header = spkt.getHeader();
+    schedule = spkt.getElements();
+    // Resize the received bool vector to the size of the new schedule
+    received.clear();
+    received.resize(header.getTotalPacket(), false);
+    // Set current packet as received
+    received.at(header.getCurrentPacket()) = true;
+}
+
+void DynamicScheduleDownlinkPhase::appendToSchedule(SchedulePacket& spkt, bool beginResend)
+{
+    applyInfoElements(spkt); //Must be done first as it removes them
+    
+    auto newHeader = spkt.getHeader();
+    
+    if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
+        print_dbg("[SD] Node:%d Piece %d of schedule received!\n",
+                  myId, newHeader.getCurrentPacket());
+    
+    if(header.getTotalPacket()   != newHeader.getTotalPacket()   ||
+       header.getScheduleID()    != newHeader.getScheduleID()    ||
+       header.getScheduleTiles() != newHeader.getScheduleTiles() ||
+       (beginResend==false && header.getActivationTile() != newHeader.getActivationTile()))
+    {
+        print_dbg("[SD] BUG: appendToSchedule header differs, refusing to apply\n");
+        return; //Not applying this schedule packet
+    }
+    header = newHeader;
+
+    // Set current packet as received
+    received.at(newHeader.getCurrentPacket()) = true;
+    // Add elements from received packet to new schedule
+    std::vector<ScheduleElement> elements = spkt.getElements();
+    schedule.insert(schedule.end(), elements.begin(), elements.end());
+}
+
+bool DynamicScheduleDownlinkPhase::isScheduleComplete()
+{
+    // If no packet was received, the schedule is not complete
+    if(received.size() == 0) return false;
+    bool complete = true;
+    for(unsigned int i=0; i<received.size(); i++) complete &= received[i];
+    return complete;
+}
+
+void DynamicScheduleDownlinkPhase::resetAndDisableSchedule(long long slotStart)
+{
+    std::string schd;
+    schd.reserve(received.size());
+    for(auto bit : received) schd += bit ? '1' : '0';
+    print_dbg("[SD] incomplete schedule %s\n",schd.c_str());
+    
+    header = ScheduleHeader();
+    schedule.clear();
+    received.clear();
+    incompleteScheduleCounter = 0;
+
+    auto currentTile = ctx.getCurrentTile(slotStart);
+    dataPhase->applySchedule(std::vector<ExplicitScheduleElement>(),
+                             header.getScheduleID(),
+                             header.getScheduleTiles(),
+                             header.getActivationTile(), currentTile);
+    streamMgr->applySchedule(schedule);
+    ctx.getStreamManager()->enqueueSME(StreamManagementElement::makeResendSME(myId));
+}
+
+void DynamicScheduleDownlinkPhase::handleIncompleteSchedule()
+{
+    const int timeout = ctx.getNetworkConfig().getMaxNodes()*2; //Trying a reasonable timeout
+    if(++incompleteScheduleCounter >= timeout)
+    {
+        incompleteScheduleCounter = 0;
+        ctx.getStreamManager()->enqueueSME(StreamManagementElement::makeResendSME(myId));
+    }
+}
+
+void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header)
+{
     print_dbg("[SD] node %d, hop %d, received schedule %u/%u/%lu/%d\n",
               ctx.getNetworkId(),
               ctx.getHop(),
@@ -139,56 +284,6 @@ void DynamicScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
               header.getCurrentPacket(),
               header.getScheduleID(),
               header.getRepetition());
-}
-
-bool DynamicScheduleDownlinkPhase::isScheduleComplete() {
-    // If no packet was received, the schedule is not complete
-    if(received.size() == 0)
-        return false;
-    bool complete = true;
-    for(unsigned int i=0; i< received.size(); i++) complete &= received[i];
-    return complete;
-}
-
-void DynamicScheduleDownlinkPhase::printStatus() {
-    print_dbg("[SD] node:%d, received:%d[",
-           myId,
-           received.size());
-    for (unsigned int i=0; i < received.size(); i++) print_dbg("%d", static_cast<bool>(received[i]));
-    print_dbg("]\n");
-}
-
-void DynamicScheduleDownlinkPhase::handleIncompleteSchedule(long long slotStart)
-{
-    if(incompleteSchedule == false)
-    {
-        incompleteSchedule = true;
-        std::string schd;
-        schd.reserve(received.size());
-        for(auto bit : received) schd += bit ? '1' : '0';
-        print_dbg("[SD] incomplete schedule %s\n",schd.c_str());
-
-        schedule.clear();
-        explicitScheduleID = 0;
-        explicitSchedule.clear();
-        // Derived class status
-        received.clear();
-
-        auto currentTile = ctx.getCurrentTile(slotStart);
-        dataPhase->applySchedule(explicitSchedule,
-                                 0, //newId = 0 otherwise handleIncompleteSchedule won't be called again
-                                 0, //newScheduleTiles = 0 means empty schedule
-                                 header.getActivationTile(), currentTile);
-        streamMgr->applySchedule(schedule);
-    }
-
-    if(incompleteScheduleCounter == 0)
-    {
-        ctx.getStreamManager()->enqueueSME(StreamManagementElement::makeResendSME(myId));
-    }
-    const int timeout = ctx.getNetworkConfig().getMaxNodes()*2; //Trying a reasonable timeout
-    if(++incompleteScheduleCounter>=timeout)
-        incompleteScheduleCounter = 0;
 }
 
 }

@@ -97,7 +97,6 @@ void ScheduleComputation::run() {
                 {
                     //If we get here we are asked to ONLY resend and not
                     //to also reschedule
-                    schedule.id++;
                     // Mark the presence of a new schedule, not still applied
                     scheduleNotApplied = true;
                 } else {
@@ -179,7 +178,6 @@ void ScheduleComputation::run() {
 #else
             std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-            schedule.id++;
             // Mark the presence of a new schedule, not still applied
             scheduleNotApplied = true;
         }

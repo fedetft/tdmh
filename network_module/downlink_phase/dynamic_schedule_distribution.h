@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2018-2019 by Federico Amedeo Izzo                       *
+ *   Copyright (C) 2018-2019 by Federico Amedeo Izzo and Federico Terraneo *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -31,36 +31,35 @@
 
 namespace mxnet {
 
-class DynamicScheduleDownlinkPhase : public ScheduleDownlinkPhase {
+class DynamicScheduleDownlinkPhase : public ScheduleDownlinkPhase
+{
 public:
     DynamicScheduleDownlinkPhase(MACContext& ctx) : ScheduleDownlinkPhase(ctx),
-                                                    myId(ctx.getNetworkId()) {};
+                                                    myId(ctx.getNetworkId()) {}
     DynamicScheduleDownlinkPhase() = delete;
     DynamicScheduleDownlinkPhase(const DynamicScheduleDownlinkPhase& orig) = delete;
+    
     void execute(long long slotStart) override;
-    /**
-     * Reset the internal status of the ScheduleDownlinkPhase after resynchronization
-     */
-    void resync() override {
-        // Base class status
-        header = ScheduleHeader();
-        schedule.clear();
-        explicitScheduleID = 0;
-        explicitSchedule.clear();
-        // Derived class status
-        received.clear();
-    };
-    /**
-     * This method is called after desynchronization
-     */
-    void desync() override {}
+    
+    void advance(long long slotStart) override;
+
+    void desync() override;
 
 private:
-    std::vector<InfoElement> extractInfoElements(SchedulePacket& spkt);
-    void printHeader(ScheduleHeader& header);
+    
+    void applyInfoElements(SchedulePacket& spkt);
+    
+    void initSchedule(SchedulePacket& spkt);
+    
+    void appendToSchedule(SchedulePacket& spkt, bool beginResend = false);
+    
     bool isScheduleComplete();
-    void printStatus();
-    void handleIncompleteSchedule(long long slotStart);
+    
+    void resetAndDisableSchedule(long long slotStart);
+    
+    void handleIncompleteSchedule();
+    
+    void printHeader(ScheduleHeader& header);
 
     /* NetworkId of this node */
     unsigned char myId;
@@ -68,13 +67,8 @@ private:
     // Vector of bool with size = total packets of a schedule
     // To check if all the schedule packets are received
     std::vector<bool> received;
-    /* NOTE: we don't need to save here a copy of the current schedule
-       being distributed, as we need only the copy in the base class.
-       This is because the master can produce a new schedule only after
-       the previous one has been activated */
     
     int incompleteScheduleCounter = 0;
-    bool incompleteSchedule = false;
 };
 
 }

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2018-2019 by Federico Amedeo Izzo                       *
+ *   Copyright (C) 2018-2019 by Federico Amedeo Izzo and Federico Terraneo *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -42,66 +42,70 @@ MasterScheduleDownlinkPhase::MasterScheduleDownlinkPhase(MACContext& ctx,
     ScheduleDownlinkPhase(ctx), schedule_comp(sch),
     streamColl(sch.getStreamCollection()) {}
 
-void MasterScheduleDownlinkPhase::execute(long long slotStart) {
-    // If a new schedule is available
-    if(schedule_comp.getScheduleID() != header.getScheduleID()) {
-        getCurrentSchedule(slotStart);
-        distributing = true;
-        if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) {
-            // Print schedule packet report
-            print_dbg("[SD] Schedule Packet structure:\n");
-            print_dbg("[SD] %d packet capacity\n", packetCapacity);
-            print_dbg("[SD] %d schedule element\n", schedule.size());
-        }
-        // Reset variable for splitting schedule in packets
-        position = 0;
-        
-        if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)        
-            printCompleteSchedule();
-
-        // If we updated the schedule, wait for the next Downlink before
-        // sending the first packet
-        return;
-    }
-    //FIXME: if we have finished distributing the schedule but we are waiting
-    //for it to be applied, this code doesn't send info packets. This is both
-    //good and bad. Good because we shall leave one downlink slot without
-    //transmitting anything to give time to every node to exlicit the schedule,
-    //but bad because we may spend a lot of time (up to a timesync period or
-    //the length of the past schedule, whichever is greater, without the
-    //possibility to send info elements).
-    if(distributing == false) {
-        // If InfoElements available, send a SchedulePkt with InfoElements only
-        if(streamColl->getNumInfo() != 0)
-            sendInfoPkt(slotStart);
-        return;
-    } else {
-        // If we are still sending the schedule
-        if(header.getRepetition() < scheduleRepetitions) {
-            if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)
-                printHeader(header);
-            // NOTE: schedulePkt includes also info elements
-            sendSchedulePkt(slotStart);
-            header.incrementPacketCounter();
-            if(header.getCurrentPacket() >= header.getTotalPacket()) {
-                /* Reset schedule element index */
-                position = 0;
-                header.resetPacketCounter();
-                header.incrementRepetition();
+void MasterScheduleDownlinkPhase::execute(long long slotStart)
+{
+    switch(status)
+    {
+        case ScheduleDownlinkStatus::APPLIED_SCHEDULE:
+        {
+            if(schedule_comp.needToSendSchedule())
+            {
+                getScheduleAndComputeActivation(slotStart);
+                status = ScheduleDownlinkStatus::SENDING_SCHEDULE;
+                //No packet sent in this downlink slot
+            } else {
+                if(streamColl->getNumInfo() != 0) sendInfoPkt(slotStart);
             }
+            break;
         }
-        // If we already sent the schedule three times
-        else {
-            // Try to apply schedule, if applied, notify the scheduler
-            if(checkTimeSetSchedule(slotStart) == true) {
-                schedule_comp.scheduleApplied();
-                distributing = false;
+        case ScheduleDownlinkStatus::SENDING_SCHEDULE:
+        {
+            if(header.getRepetition() < scheduleRepetitions)
+            {
+                sendSchedulePkt(slotStart);
+                header.incrementPacketCounter();
+                if(header.getCurrentPacket() >= header.getTotalPacket())
+                {
+                    position = 0;
+                    header.resetPacketCounter();
+                    header.incrementRepetition();
+                }
+            } else {
+                unsigned int currentTile = ctx.getCurrentTile(slotStart);
+                if(currentTile >= header.getActivationTile())
+                {
+                    applySchedule(slotStart);
+                    schedule_comp.scheduleSentAndApplied();
+                    status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
+                    //No packet sent in this downlink slot
+                } else {
+                    if(streamColl->getNumInfo() != 0) sendInfoPkt(slotStart);
+                    status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
+                }
             }
+            break;
         }
+        case ScheduleDownlinkStatus::AWAITING_ACTIVATION:
+        {
+            unsigned int currentTile = ctx.getCurrentTile(slotStart);
+            if(currentTile >= header.getActivationTile())
+            {
+                applySchedule(slotStart);
+                schedule_comp.scheduleSentAndApplied();
+                status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
+                //No packet sent in this downlink slot
+            } else {
+                if(streamColl->getNumInfo() != 0) sendInfoPkt(slotStart);
+            }
+            break;
+        }
+        default:
+            assert(false);
     }
 }
 
-void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {
+void MasterScheduleDownlinkPhase::getScheduleAndComputeActivation(long long slotStart)
+{
     unsigned long id;
     unsigned int tiles;
     schedule_comp.getSchedule(schedule,id,tiles);
@@ -151,6 +155,19 @@ void MasterScheduleDownlinkPhase::getCurrentSchedule(long long slotStart) {
         id,                 // scheduleID
         activationTile,     // activationTile
         tiles);             // scheduleTiles
+    
+    if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)
+    {
+        // Print schedule packet report
+        print_dbg("[SD] Schedule Packet structure:\n");
+        print_dbg("[SD] %d packet capacity\n", packetCapacity);
+        print_dbg("[SD] %d schedule element\n", schedule.size());
+    }
+
+    position = 0;
+    
+    if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)        
+        printCompleteSchedule();
 }
 
 unsigned int MasterScheduleDownlinkPhase::getActivationTile(unsigned int currentTile,
@@ -245,22 +262,25 @@ unsigned int MasterScheduleDownlinkPhase::getActivationTile(unsigned int current
     return activationTile;
 }
 
-void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
+void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart)
+{
+    if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) printHeader(header);
+    
     SchedulePacket spkt(panId);
     // Add ScheduleHeader to SchedulePacket
     spkt.setHeader(header);
 
     // Add schedule elements to SchedulePacket
     unsigned int sched = 0;
-    for(sched = 0; (sched < packetCapacity) && (position < schedule.size()); sched++) {
+    for(sched = 0; (sched < packetCapacity) && (position < schedule.size()); sched++)
+    {
         spkt.putElement(schedule[position]);
         position++;
     }
     // Add info elements to SchedulePacket
     unsigned char numInfo = packetCapacity - sched;
     auto infos = streamColl->dequeueInfo(numInfo);
-    for(auto& info : infos)
-        spkt.putInfoElement(info);
+    for(auto& info : infos) spkt.putInfoElement(info);
 
     Packet pkt;
     spkt.serialize(pkt);
@@ -272,7 +292,8 @@ void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart) {
     streamMgr->applyInfoElements(infos);
 }
 
-void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart) {
+void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart)
+{
     SchedulePacket spkt(panId);
     // Build Info packet header
     ScheduleHeader infoHeader(0,0,header.getScheduleID());
@@ -280,8 +301,7 @@ void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart) {
 
     // Add info elements to SchedulePacketacket
     auto infos = streamColl->dequeueInfo(packetCapacity);
-    for(auto& info : infos)
-        spkt.putInfoElement(info);
+    for(auto& info : infos) spkt.putInfoElement(info);
 
     Packet pkt;
     spkt.serialize(pkt);
@@ -293,7 +313,8 @@ void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart) {
     streamMgr->applyInfoElements(infos);
 }
 
-void MasterScheduleDownlinkPhase::printHeader(ScheduleHeader& header) {
+void MasterScheduleDownlinkPhase::printHeader(ScheduleHeader& header)
+{
     print_dbg("[SD] sending schedule %u/%u/%lu/%d\n",
               header.getTotalPacket(),
               header.getCurrentPacket(),
