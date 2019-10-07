@@ -86,7 +86,7 @@ public:
     static const unsigned int maxPropagationDelay = 100; //TODO ?
     static const unsigned int receivingNodeWakeupAdvance = 450000; //TODO fine tune and move to timesync
     static const unsigned int sendingNodeWakeupAdvance = 500000; //TODO fine tune and move to timesync
-    static const unsigned int downlinkToDataphaseSlack = 100000; //NOTE: measured to be consistently ~27us
+    static const unsigned int downlinkToDataphaseSlack = 200000; //NOTE: downlink to dataphase time was measured to be ~133us, on 2019-10-07 commit 5cea84
     static const unsigned char maxPktSize = 125;
     // NOTE: control code fills Packet classes up to its max size without other
     // checks, and the max size of Packet is maxPktSize, so setting
