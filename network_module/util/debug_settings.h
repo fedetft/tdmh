@@ -55,6 +55,9 @@ const bool ENABLE_ROUNDTRIP_INFO_DBG = false;
 //prints the roundtrip subphase errors
 const bool ENABLE_ROUNDTRIP_ERROR_DBG = false;
 
+//prints lightweight uplink message info
+const bool ENABLE_UPLINK_DBG = true;
+
 //prints the uplink phase debug info
 const bool ENABLE_UPLINK_INFO_DBG = false;
 

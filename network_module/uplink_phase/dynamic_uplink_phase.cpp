@@ -106,6 +106,8 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
         ctx.configureTransceiver(ctx.getTransceiverConfig());
         message.send(ctx,slotStart);
         ctx.transceiverIdle();
+        if(ENABLE_UPLINK_DBG)
+            print_dbg("[U] No predecessor\n");
     
         if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
             print_dbg("->%d\n",ctx.getNetworkId());
@@ -129,6 +131,9 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
                 slotStart += packetArrivalAndProcessingTime + transmissionInterval;
             }
         ctx.transceiverIdle();
+        if(ENABLE_UPLINK_DBG){
+            message.printHeader();
+        }
     
         if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
             print_dbg("->%d\n",ctx.getNetworkId());

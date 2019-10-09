@@ -41,7 +41,7 @@
 /**
  * Enable adding a sequence number to each SME to detect SME losses in the uplink
  */
-//#define WITH_SME_SEQNO
+#define WITH_SME_SEQNO
 
 namespace mxnet {
 

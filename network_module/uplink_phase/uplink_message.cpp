@@ -40,11 +40,11 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
                                      int availableTopologies, int availableSMEs) :
     topologySize(TopologyElement::maxSize(config.getNeighborBitmaskSize())),
     smeSize(StreamManagementElement::maxSize()),
-    panId(config.getPanId())
+    panId(config.getPanId()),
+    header({hop, assignee, numTopologies, numSMEs})
 {
     computePacketAllocation(config, availableTopologies, availableSMEs);
     packet.putPanHeader(panId);
-    UplinkHeader header({hop, assignee, numTopologies, numSMEs});
     packet.put(&header, sizeof(UplinkHeader));
     auto neighbors = myTopology.getNeighbors();
     packet.put(neighbors.data(), neighbors.size());
@@ -136,6 +136,11 @@ void SendUplinkMessage::computePacketAllocation(const NetworkConfiguration& conf
     assert(numTopologies >= 0);
     assert(numSMEs >= 0);
     assert(totPackets <= maxPackets);
+}
+
+void SendUplinkMessage::printHeader() {
+    print_dbg("[U] Header: hop=%d, assignee=%d, numTop=%d, numSMEs=%d\n", 
+            header.hop, header.assignee, header.numTopology, header.numSME);
 }
 
 //

@@ -457,6 +457,10 @@ void StreamManager::enqueueSME(StreamManagementElement sme) {
 #else
         std::unique_lock<std::mutex> lck(sme_mutex);
 #endif
+#ifdef WITH_SME_SEQNO
+        if (ENABLE_STREAM_MGR_INFO_DBG) 
+            print_dbg("Enqueueing %s, seq=%d\n", smeTypeToString(sme.getType()), sme.getSeqNo());
+#endif
         smeQueue.enqueue(id, sme);
     }
 }

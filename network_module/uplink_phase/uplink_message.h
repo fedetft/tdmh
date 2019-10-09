@@ -115,6 +115,8 @@ public:
         packet.putPanHeader(panId);
     }
 
+    void printHeader();
+
 private:
 
     void computePacketAllocation(const NetworkConfiguration& config,
@@ -124,6 +126,7 @@ private:
     const unsigned int topologySize;
     const unsigned int smeSize;
     const unsigned short panId;
+    UplinkHeader header;
 
 
     /* One of the UplinkMessage packets */
