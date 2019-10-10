@@ -27,8 +27,6 @@
 
 #pragma once
 
-#define MASTERNODE true
-
 namespace mxnet {
 
 //less understandable but short messages, useful when bandwidth is at limit
@@ -44,7 +42,7 @@ const bool ENABLE_PKT_DUMP_DBG = false;
 const bool ENABLE_RADIO_EXCEPTION_DBG = true;
 
 //prints the timesync downlink phase debug info
-const bool ENABLE_TIMESYNC_DL_INFO_DBG = MASTERNODE;
+const bool ENABLE_TIMESYNC_DL_INFO_DBG = true;
 
 //prints the timesync downlink phase errors
 const bool ENABLE_TIMESYNC_ERROR_DBG = true;
@@ -64,6 +62,7 @@ const bool ENABLE_UPLINK_INFO_DBG = false;
 //prints the uplink phase debug verbose info
 const bool ENABLE_UPLINK_VERB_DBG = false;
 
+//print every bitmask received by the master
 const bool ENABLE_TOPOLOGY_BITMASK_DBG = false;
 
 //prints the topology map at each uplink phase
