@@ -450,16 +450,16 @@ void StreamManager::dequeueSMEs(UpdatableQueue<StreamId,StreamManagementElement>
 
 void StreamManager::enqueueSME(StreamManagementElement sme) {
     StreamId id = sme.getStreamId();
+#ifdef WITH_SME_SEQNO
+    if (ENABLE_STREAM_MGR_INFO_DBG) 
+        print_dbg("Enqueueing %s, seq=%d\n", smeTypeToString(sme.getType()), sme.getSeqNo());
+#endif
     {
         // Lock map_mutex to access the shared SME queue
 #ifdef _MIOSIX
         miosix::Lock<miosix::FastMutex> lck(sme_mutex);
 #else
         std::unique_lock<std::mutex> lck(sme_mutex);
-#endif
-#ifdef WITH_SME_SEQNO
-        if (ENABLE_STREAM_MGR_INFO_DBG) 
-            print_dbg("Enqueueing %s, seq=%d\n", smeTypeToString(sme.getType()), sme.getSeqNo());
 #endif
         smeQueue.enqueue(id, sme);
     }

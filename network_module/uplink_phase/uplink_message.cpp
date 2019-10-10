@@ -40,11 +40,11 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
                                      int availableTopologies, int availableSMEs) :
     topologySize(TopologyElement::maxSize(config.getNeighborBitmaskSize())),
     smeSize(StreamManagementElement::maxSize()),
-    panId(config.getPanId()),
-    header({hop, assignee, numTopologies, numSMEs})
+    panId(config.getPanId())
 {
     computePacketAllocation(config, availableTopologies, availableSMEs);
     packet.putPanHeader(panId);
+    header = {hop, assignee, numTopologies, numSMEs};
     packet.put(&header, sizeof(UplinkHeader));
     auto neighbors = myTopology.getNeighbors();
     packet.put(neighbors.data(), neighbors.size());

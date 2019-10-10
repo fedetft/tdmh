@@ -128,9 +128,9 @@ void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
         std::string s;
         s.reserve(bitset.bitSize()+2);
         s+='[';
-        for(int i=0;i<bitset.bitSize();i++) s+=bitset[i] ? '1' : '0';
+        for(unsigned int i=0;i<bitset.bitSize();i++) s+=bitset[i] ? '1' : '0';
         s+=']';
-        print_dbg("\[U\] Topo %d: %s\n",src,s.c_str());
+        print_dbg("[U] Topo %d: %s\n",src,s.c_str());
     }
 
     /* Update graph according to received topology */
