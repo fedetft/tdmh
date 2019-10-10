@@ -64,6 +64,8 @@ const bool ENABLE_UPLINK_INFO_DBG = false;
 //prints the uplink phase debug verbose info
 const bool ENABLE_UPLINK_VERB_DBG = false;
 
+const bool ENABLE_TOPOLOGY_BITMASK_DBG = false;
+
 //prints the topology map at each uplink phase
 const bool ENABLE_TOPOLOGY_INFO_DBG = false;
 
