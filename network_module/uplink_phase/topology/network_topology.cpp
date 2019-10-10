@@ -126,9 +126,9 @@ void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
     if(ENABLE_TOPOLOGY_BITMASK_DBG)
     {
         std::string s;
-        s.reserve(bitset.size()+2);
+        s.reserve(bitset.bitSize()+2);
         s+='[';
-        for(int i=0;i<bitset.size();i++) s+=bitset[i] ? '1' : '0';
+        for(int i=0;i<bitset.bitSize();i++) s+=bitset[i] ? '1' : '0';
         s+=']';
         print_dbg("\[U\] Topo %d: %s\n",src,s.c_str());
     }
