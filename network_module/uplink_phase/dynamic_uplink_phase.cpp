@@ -75,7 +75,8 @@ void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char curren
             {
                 // NOTE: If we fail to receive a Packet of the UplinkMessage,
                 // do not wait for remaining packets
-                // TODO: do recv at next uplink slot (slotstart + slot duration)
+                // TODO verify that packetArrivalAndProcessingTime + transmissionInterval are correct
+                slotStart += packetArrivalAndProcessingTime + transmissionInterval;
                 if(message.recv(ctx, slotStart) == false) break;
                 message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
             }
