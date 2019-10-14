@@ -266,7 +266,11 @@ void DynamicScheduleDownlinkPhase::resetAndDisableSchedule(long long slotStart)
                              header.getScheduleID(),
                              header.getScheduleTiles(),
                              header.getActivationTile(), currentTile);
-    streamMgr->applySchedule(schedule);
+    //NOTE: applying an empty schedule to the Stream Manager closes all the streams,
+    //causing applications to send another CONNECT when a new schedule is
+    //finally received, resulting in the distribution of two schedules instead
+    //of one.
+    //streamMgr->applySchedule(schedule);
     ctx.getStreamManager()->enqueueSME(StreamManagementElement::makeResendSME(myId));
 }
 
