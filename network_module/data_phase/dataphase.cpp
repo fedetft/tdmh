@@ -66,9 +66,36 @@ void DataPhase::execute(long long slotStart) {
     }
     incrementSlot();
 }
+
+void DataPhase::advance(long long slotStart) {
+    // Empty schedule
+    if(scheduleTiles == 0) {
+        sleep(slotStart);
+        return;
+    }
+    StreamId id = currentSchedule[slotIndex].getStreamId();
+    Packet pkt;
+    switch(currentSchedule[slotIndex].getAction()){
+    case Action::SLEEP:
+        sleep(slotStart);
+        break;
+    case Action::SENDSTREAM:
+        stream.sendPacket(id, pkt);
+        break;
+    case Action::RECVSTREAM:
+        stream.missPacket(id);
+        break;
+    default:
+        sleep(slotStart);
+        break;
+    }
+    incrementSlot();
+}
+
 void DataPhase::sleep(long long slotStart) {
     ctx.sleepUntil(slotStart);
 }
+
 void DataPhase::sendFromStream(long long slotStart, StreamId id) {
     Packet pkt;
     bool pktReady = stream.sendPacket(id, pkt);
@@ -87,6 +114,7 @@ void DataPhase::sendFromStream(long long slotStart, StreamId id) {
     else
         sleep(slotStart);
 }
+
 void DataPhase::receiveToStream(long long slotStart, StreamId id) {
     Packet pkt;
     ctx.configureTransceiver(ctx.getTransceiverConfig());

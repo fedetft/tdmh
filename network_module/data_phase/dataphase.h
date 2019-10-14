@@ -55,9 +55,7 @@ public:
     virtual void execute(long long slotStart) override;
     /* Called instead of DataPhase::execute() when the node
        is not synchronized, to keep track with the current tile slot */
-    void advance(long long slotStart) override {
-        incrementSlot();
-    }
+    virtual void advance(long long slotStart) override;
     /* Called after Downlink and Uplink phases to update the tileSlot counter */
     void advanceBy(unsigned int slots) {
         incrementSlot(slots);
