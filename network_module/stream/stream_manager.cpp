@@ -434,7 +434,7 @@ void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
     }
 }
 
-void StreamManager::dequeueSMEs(UpdatableQueue<StreamId,StreamManagementElement>& queue) {
+void StreamManager::dequeueSMEs(UpdatableQueue<SMEKey,StreamManagementElement>& queue) {
     // Lock map_mutex to access the shared SME queue
 #ifdef _MIOSIX
     miosix::Lock<miosix::FastMutex> lck(sme_mutex);
@@ -443,13 +443,13 @@ void StreamManager::dequeueSMEs(UpdatableQueue<StreamId,StreamManagementElement>
 #endif
     while(!smeQueue.empty()) {
         auto temp = smeQueue.dequeue();
-        StreamId tempId = temp.getStreamId();
-        queue.enqueue(tempId, std::move(temp));
+        SMEKey tempKey = temp.getKey();
+        queue.enqueue(tempKey, std::move(temp));
     }
 }
 
 void StreamManager::enqueueSME(StreamManagementElement sme) {
-    StreamId id = sme.getStreamId();
+    SMEKey key = sme.getKey();
 #ifdef WITH_SME_SEQNO
     if (ENABLE_STREAM_MGR_INFO_DBG) 
         print_dbg("Enqueueing %s, seq=%d\n", smeTypeToString(sme.getType()), sme.getSeqNo());
@@ -461,7 +461,7 @@ void StreamManager::enqueueSME(StreamManagementElement sme) {
 #else
         std::unique_lock<std::mutex> lck(sme_mutex);
 #endif
-        smeQueue.enqueue(id, sme);
+        smeQueue.enqueue(key, sme);
     }
 }
 

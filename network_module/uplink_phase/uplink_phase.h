@@ -99,7 +99,7 @@ protected:
     // Queues used in dynamic nodes to collect and forward topologies and sme
     // and in master node to process received topologies and sme
     UpdatableQueue<unsigned char,TopologyElement> topologyQueue;
-    UpdatableQueue<StreamId,StreamManagementElement> smeQueue;
+    UpdatableQueue<SMEKey,StreamManagementElement> smeQueue;
 };
 
 } // namespace mxnet

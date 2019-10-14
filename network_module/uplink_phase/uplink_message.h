@@ -97,7 +97,7 @@ public:
      * NOTE: Call this function before every send
      */
     void serializeTopologiesAndSMEs(UpdatableQueue<unsigned char,TopologyElement>& topologies,
-                                    UpdatableQueue<StreamId,StreamManagementElement>& smes);
+                                    UpdatableQueue<SMEKey,StreamManagementElement>& smes);
 
     /**
      * @return the number of packet to send with this UplinkMessage
@@ -159,7 +159,7 @@ public:
      * Get TopologyElements and SMEs from the UplinkMessage packet
      */
     void deserializeTopologiesAndSMEs(UpdatableQueue<unsigned char, TopologyElement>& topologies,
-                                      UpdatableQueue<StreamId, StreamManagementElement>& smes);
+                                      UpdatableQueue<SMEKey, StreamManagementElement>& smes);
 
     /**
      * This function listens on the radio for the next Packet of the UplinkMessage

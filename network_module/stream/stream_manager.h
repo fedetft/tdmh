@@ -137,7 +137,7 @@ public:
     void applyInfoElements(const std::vector<InfoElement>& infos);
 
     // Used by DynamicUplinkPhase, gets SMEs to send on the network
-    void dequeueSMEs(UpdatableQueue<StreamId,StreamManagementElement>& queue);
+    void dequeueSMEs(UpdatableQueue<SMEKey,StreamManagementElement>& queue);
 
     /**
      * The following methods are called by StreamManager itself,
@@ -210,7 +210,7 @@ private:
      * 0= port free, 1= port used */
     std::vector<bool> clientPorts;
     /* UpdatableQueue of SME to send to the network to reach the master node */
-    UpdatableQueue<StreamId, StreamManagementElement> smeQueue;
+    UpdatableQueue<SMEKey, StreamManagementElement> smeQueue;
     /* Thread synchronization */
 #ifdef _MIOSIX
     // Mutex to protect access to shared Stream/Server maps

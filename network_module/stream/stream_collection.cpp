@@ -101,7 +101,7 @@ std::map<StreamId, StreamChange> StreamSnapshot::getStreamChanges(const std::lis
     return result;
 }
 
-void StreamCollection::receiveSMEs(UpdatableQueue<StreamId,
+void StreamCollection::receiveSMEs(UpdatableQueue<SMEKey,
                                    StreamManagementElement>& smes) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(coll_mutex);

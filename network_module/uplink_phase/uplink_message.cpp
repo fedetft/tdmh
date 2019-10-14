@@ -51,7 +51,7 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
 }
 
 void SendUplinkMessage::serializeTopologiesAndSMEs(UpdatableQueue<unsigned char,TopologyElement>& topologies,
-                                                  UpdatableQueue<StreamId,StreamManagementElement>& smes) {
+                                                  UpdatableQueue<SMEKey,StreamManagementElement>& smes) {
     int remainingBytes = packet.available();
     // Fit topologies in packets
     int packetTopologies = std::min<int>(numTopologies, remainingBytes / topologySize);
@@ -173,7 +173,7 @@ bool ReceiveUplinkMessage::recv(MACContext& ctx, long long tExpected) {
 
 void ReceiveUplinkMessage::deserializeTopologiesAndSMEs(UpdatableQueue<unsigned char,
                                                         TopologyElement>& topologies,
-                                                        UpdatableQueue<StreamId,
+                                                        UpdatableQueue<SMEKey,
                                                         StreamManagementElement>& smes) {
     for(int i = 0; i < getNumPacketTopologies(); i++) {
         TopologyElement topology(maxNodes); //Need to first know maxNodes to be deserialized
@@ -185,7 +185,7 @@ void ReceiveUplinkMessage::deserializeTopologiesAndSMEs(UpdatableQueue<unsigned 
     for(int i = 0; i < getNumPacketSMEs(); i++) {
         StreamManagementElement sme;
         sme.deserialize(packet);
-        smes.enqueue(sme.getStreamId(),sme);
+        smes.enqueue(sme.getKey(),sme);
     }
 }
 

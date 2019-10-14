@@ -65,6 +65,24 @@ inline const char *smeTypeToString(SMEType s)
     }
 }
 
+struct SMEKey {
+    StreamId id;
+    SMEType type;
+
+    SMEKey(StreamId id, SMEType type) : id(id), type(type) {
+    }
+
+    bool operator <(const SMEKey& other) const {
+        return getKey() < other.getKey();
+    }
+
+    unsigned int getKey() const {
+        return id.getKey() | static_cast<unsigned int>(type)<<24;
+    }
+};
+
+
+
 /**
  *  StreamManagementElement is the message that is sent on the network
  *  to manage the streams
@@ -125,7 +143,7 @@ public:
     /**
      * @return a unique key for each stream
      */
-    unsigned int getKey() const { return id.getKey(); }
+    SMEKey getKey() const { return SMEKey(id, type); }
 
     static unsigned short maxSize() {
         return sizeof(StreamId)

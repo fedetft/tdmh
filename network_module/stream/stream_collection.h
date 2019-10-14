@@ -137,8 +137,7 @@ public:
     /**
      * Receives a vector of SME from the network
      */
-    void receiveSMEs(UpdatableQueue<StreamId,
-                     StreamManagementElement>& smes);
+    void receiveSMEs(UpdatableQueue<SMEKey, StreamManagementElement>& smes);
     /**
      * Apply changes precomputed by StreamSnaphot::getStreamChanges()
      */
