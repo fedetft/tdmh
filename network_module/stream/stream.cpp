@@ -326,12 +326,9 @@ void Stream::periodicUpdate(StreamManager* mgr) {
 #endif
     switch(info.getStatus()) {
     case StreamStatus::CONNECTING:
-        if(smeTimeout-- <= 0) {
-            smeTimeout = smeTimeoutMax;
-            // Send CONNECT SME
-            mgr->enqueueSME(StreamManagementElement(info, SMEType::CONNECT));
-        }
-        if(failTimeout-- <= 0) {
+        smeTimeout--;
+        failTimeout--;
+        if(failTimeout <= 0) {
             smeTimeout = smeTimeoutMax;
             failTimeout = failTimeoutMax;
             // Give up opening stream and close it
@@ -339,6 +336,10 @@ void Stream::periodicUpdate(StreamManager* mgr) {
             // Send CLOSED SME
             mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
             changed = true;
+        } else if(smeTimeout <= 0) {
+            smeTimeout = smeTimeoutMax;
+            // Send CONNECT SME
+            mgr->enqueueSME(StreamManagementElement(info, SMEType::CONNECT));
         }
         break;
     case StreamStatus::REOPENED:
@@ -678,12 +679,9 @@ void Server::periodicUpdate(StreamManager* mgr) {
 #endif
         switch(info.getStatus()) {
         case StreamStatus::LISTEN_WAIT:
-            if(smeTimeout-- <= 0) {
-                smeTimeout = smeTimeoutMax;
-                // Send LISTEN SME
-                mgr->enqueueSME(StreamManagementElement(info, SMEType::LISTEN));
-            }
-            if(failTimeout-- <= 0) {
+            smeTimeout--;
+            failTimeout--;
+            if(failTimeout <= 0) {
                 smeTimeout = smeTimeoutMax;
                 failTimeout = failTimeoutMax;
                 // Give up opening server and close it
@@ -691,6 +689,10 @@ void Server::periodicUpdate(StreamManager* mgr) {
                 // Send CLOSED SME
                 mgr->enqueueSME(StreamManagementElement(info, SMEType::CLOSED));
                 changed = true;
+            } else if(smeTimeout <= 0) {
+                smeTimeout = smeTimeoutMax;
+                // Send LISTEN SME
+                mgr->enqueueSME(StreamManagementElement(info, SMEType::LISTEN));
             }
             break;
         case StreamStatus::REOPENED:
