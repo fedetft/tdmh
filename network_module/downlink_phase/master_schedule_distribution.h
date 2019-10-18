@@ -58,6 +58,8 @@ private:
     
     void sendInfoPkt(long long slotstart);
     
+    void sendPkt(long long slotStart, Packet& pkt);
+    
     void printHeader(ScheduleHeader& header);
     
     // Last schedule element sent

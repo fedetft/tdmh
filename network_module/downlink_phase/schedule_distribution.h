@@ -32,6 +32,8 @@
 #include "../scheduler/schedule_element.h"
 #include "../util/debug_settings.h"
 
+#define FLOOD_TYPE 1
+
 /**
  * Represents the phase in which the schedule is distributed to the entire network,
  * in order to reach all the nodes so they can playback it when it becomes active.
@@ -48,9 +50,11 @@ public:
     /**
      * \return the duration in nanoseconds of a downlink slot
      */
-    static unsigned long long getDuration(unsigned short hops)
+    static unsigned long long getDuration(const NetworkConfiguration& networkConfig)
     {
-        return phaseStartupTime + hops * rebroadcastInterval;
+        return   MediumAccessController::receivingNodeWakeupAdvance
+               + networkConfig.getMaxAdmittedRcvWindow() * 2
+               + networkConfig.getMaxHops() * rebroadcastInterval;
     }
     
     /**
@@ -58,7 +62,6 @@ public:
      */
     void resync() override {}
 
-    static const int phaseStartupTime = 450000;
     static const int rebroadcastInterval = 5000000; //32us per-byte + 600us total delta
     static const int scheduleRepetitions = 4;
 

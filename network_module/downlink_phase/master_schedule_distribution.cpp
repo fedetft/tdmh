@@ -291,9 +291,7 @@ void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart)
     Packet pkt;
     spkt.serialize(pkt);
     // Send schedule downlink packet
-    ctx.configureTransceiver(ctx.getTransceiverConfig());
-    pkt.send(ctx, slotStart);
-    ctx.transceiverIdle();
+    sendPkt(slotStart,pkt);
     // NOTE: Apply vector of Info elements to local StreamManager
     streamMgr->applyInfoElements(infos);
 }
@@ -312,11 +310,42 @@ void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart)
     Packet pkt;
     spkt.serialize(pkt);
     // Send schedule downlink packet
+    sendPkt(slotStart,pkt);
+    // NOTE: Apply vector of Info elements to local StreamManager
+    streamMgr->applyInfoElements(infos);
+}
+
+void MasterScheduleDownlinkPhase::sendPkt(long long slotStart, Packet& pkt)
+{
+#if FLOOD_TYPE == 0
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     pkt.send(ctx, slotStart);
     ctx.transceiverIdle();
-    // NOTE: Apply vector of Info elements to local StreamManager
-    streamMgr->applyInfoElements(infos);
+#elif FLOOD_TYPE == 1
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    int maxHop = ctx.getNetworkConfig().getMaxHops();
+    bool send = true; //Flood initiator, first time, send
+    for(int slot = 0; slot < maxHop; slot++)
+    {
+        if(send)
+        {
+            pkt.send(ctx, slotStart);
+            slotStart += rebroadcastInterval;
+            send = false; //Sent: next time, receive
+        } else {
+            auto rcvResult = pkt.recv(ctx, slotStart);
+            if(rcvResult.error == RecvResult::ErrorCode::OK && pkt.checkPanHeader(panId) == true)
+            {
+                slotStart = rcvResult.timestamp + rebroadcastInterval;
+                send = true; //Received successfully: next time, send
+            } else slotStart += rebroadcastInterval;
+        }
+        
+    }
+    ctx.transceiverIdle();
+#else
+#error
+#endif
 }
 
 void MasterScheduleDownlinkPhase::printHeader(ScheduleHeader& header)

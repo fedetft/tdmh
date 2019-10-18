@@ -55,26 +55,15 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart)
                 status = ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE;
             }
             //Not receiving packet in this downlink slot
+//             print_dbg("! %lld +\n",getTime()-slotStart);
             return;
         }
     }
     
     Packet pkt;
     // Receive the schedule packet
-    auto arrivalTime = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
-    ctx.configureTransceiver(ctx.getTransceiverConfig());
-    auto rcvResult = pkt.recv(ctx, arrivalTime);
-    ctx.transceiverIdle(); //Save power waiting for rebroadcast time
-    // Received a valid schedule packet
-    if(rcvResult.error == RecvResult::ErrorCode::OK && pkt.checkPanHeader(panId) == true)
+    if(recvPkt(slotStart, pkt))
     {
-        // Retransmit the schedule packet unless you belong to maximum hop
-        if(ctx.getHop() < ctx.getNetworkConfig().getMaxHops()) {
-            ctx.configureTransceiver(ctx.getTransceiverConfig());
-            pkt.send(ctx, rcvResult.timestamp + rebroadcastInterval);
-            ctx.transceiverIdle();
-        }
-        
         // Parse the schedule packet
         SchedulePacket spkt(panId);
         spkt.deserialize(pkt);
@@ -140,6 +129,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart)
         if(status == ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE)
             handleIncompleteSchedule();
     }
+//     print_dbg("! %lld\n",getTime()-slotStart);
 }
 
 void DynamicScheduleDownlinkPhase::advance(long long slotStart)
@@ -178,6 +168,57 @@ void DynamicScheduleDownlinkPhase::desync()
     incompleteScheduleCounter = 0;
     
     status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
+}
+
+bool DynamicScheduleDownlinkPhase::recvPkt(long long slotStart, Packet& pkt)
+{
+#if FLOOD_TYPE == 0
+    auto arrivalTime = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    auto rcvResult = pkt.recv(ctx, arrivalTime);
+    ctx.transceiverIdle(); //Save power waiting for rebroadcast time
+    // Received a valid schedule packet
+    if(rcvResult.error == RecvResult::ErrorCode::OK && pkt.checkPanHeader(panId) == true)
+    {
+        // Retransmit the schedule packet unless you belong to maximum hop
+        if(ctx.getHop() < ctx.getNetworkConfig().getMaxHops()) {
+            ctx.configureTransceiver(ctx.getTransceiverConfig());
+            pkt.send(ctx, rcvResult.timestamp + rebroadcastInterval);
+            ctx.transceiverIdle();
+        }
+        return true;
+    }
+    return false;
+#elif FLOOD_TYPE == 1
+    Packet tempPkt;
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    int maxHop = ctx.getNetworkConfig().getMaxHops();
+    bool send = false; //Flood receiver, first time, receive
+    bool receivedAtLeastOnce = false;
+    for(int slot = 0; slot < maxHop; slot++)
+    {
+        if(send)
+        {
+            tempPkt.send(ctx, slotStart);
+            slotStart += rebroadcastInterval;
+            send = false; //Sent: next time, receive
+        } else {
+            auto rcvResult = tempPkt.recv(ctx, slotStart);
+            if(rcvResult.error == RecvResult::ErrorCode::OK && tempPkt.checkPanHeader(panId) == true)
+            {
+                slotStart = rcvResult.timestamp + rebroadcastInterval;
+                pkt = tempPkt;
+                receivedAtLeastOnce = true;
+                send = true; //Received successfully: next time, send
+            } else slotStart += rebroadcastInterval;
+        }
+        
+    }
+    ctx.transceiverIdle();
+    return receivedAtLeastOnce;
+#else
+#error
+#endif
 }
 
 void DynamicScheduleDownlinkPhase::applyInfoElements(SchedulePacket& spkt)

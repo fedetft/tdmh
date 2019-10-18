@@ -63,7 +63,7 @@ void MACContext::calculateDurations() {
     uplinkSlotDuration = UplinkPhase::getDuration(networkConfig.getNumUplinkPackets());
     /* Align the Uplink slot duration is a multiple of the Data slot duration */
     uplinkSlotDuration = align(uplinkSlotDuration, dataSlotDuration);
-    auto scheduleDownlinkDuration = ScheduleDownlinkPhase::getDuration(networkConfig.getMaxHops());
+    auto scheduleDownlinkDuration = ScheduleDownlinkPhase::getDuration(networkConfig);
     auto timesyncDownlinkDuration = TimesyncDownlink::getDuration(networkConfig.getMaxHops());
     /* Align the Downlink slot duration is a multiple of the Data slot duration */
     downlinkSlotDuration = align(std::max(scheduleDownlinkDuration, timesyncDownlinkDuration), dataSlotDuration);

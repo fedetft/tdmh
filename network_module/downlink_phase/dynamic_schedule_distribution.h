@@ -47,6 +47,8 @@ public:
 
 private:
     
+    bool recvPkt(long long slotStart, Packet& pkt);
+    
     void applyInfoElements(SchedulePacket& spkt);
     
     void initSchedule(SchedulePacket& spkt);
