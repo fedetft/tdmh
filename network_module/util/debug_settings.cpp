@@ -46,6 +46,8 @@ using namespace miosix;
 namespace mxnet {
 
 #ifdef DEBUG_MESSAGES_IN_SEPARATE_THREAD
+    
+#define WITH_PRINT_SEQNO
 
 /*
  * Threaded logger configuration parameters
@@ -76,6 +78,9 @@ private:
     queue<string,list<string>> messages;
     unsigned int size=0;
     unsigned int maxSize=0;
+#ifdef WITH_PRINT_SEQNO
+    unsigned int seqNo=0;
+#endif //WITH_PRINT_SEQNO
 };
 
 DebugPrinter& DebugPrinter::instance()
@@ -87,11 +92,22 @@ DebugPrinter& DebugPrinter::instance()
 void DebugPrinter::enqueue(const string& s)
 {
     Lock<FastMutex> l(mutex);
+#ifdef WITH_PRINT_SEQNO
+    char buf[16];
+    sprintf(buf,"%d ",seqNo++);
+    string m=string(buf)+s;
+    if(size + m.size() > maxQueueSize) return;
+    messages.push(m);
+    size += m.size();
+    maxSize = max(maxSize,size);
+    cv.signal();
+#else //WITH_PRINT_SEQNO
     if(size + s.size() > maxQueueSize) return;
     messages.push(s);
     size += s.size();
     maxSize = max(maxSize,size);
     cv.signal();
+#endif //WITH_PRINT_SEQNO
 }
 
 void DebugPrinter::run()
