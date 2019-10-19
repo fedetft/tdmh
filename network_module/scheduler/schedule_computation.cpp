@@ -27,11 +27,8 @@
 
 #include "schedule_computation.h"
 #include "../util/debug_settings.h"
-#include "../stream/stream_management_element.h"
-#include "../mac_context.h"
 #include "../uplink_phase/master_uplink_phase.h"
 #include "../util/stackrange.h"
-#include <list>
 #include <unordered_set>
 #include <utility>
 #include <stdio.h>
@@ -43,11 +40,15 @@
 
 namespace mxnet {
 
-ScheduleComputation::ScheduleComputation(MACContext& mac_ctx) :
-    channelSpatialReuse(mac_ctx.getNetworkConfig().getChannelSpatialReuse()),
-    stream_mgr(mac_ctx.getNetworkConfig(), 0), // Initialize StreamManager with ID=0 (Master node)
-    schedule(0, mac_ctx.getNetworkConfig().getControlSuperframeStructure().size()), // Initialize Schedule with ID=0 and tile_size = superframe size
-    mac_ctx(mac_ctx), netconfig(mac_ctx.getNetworkConfig()),
+ScheduleComputation::ScheduleComputation(const NetworkConfiguration& cfg,
+    unsigned slotsPerTile, unsigned dataslotsPerDownlinkTile, unsigned dataslotsPerUplinkTile) :
+    channelSpatialReuse(cfg.getChannelSpatialReuse()),
+    stream_mgr(cfg, 0), // Initialize StreamManager with ID=0 (Master node)
+    schedule(0, cfg.getControlSuperframeStructure().size()), // Initialize Schedule with ID=0 and tile_size = superframe size
+    slotsPerTile(slotsPerTile),
+    dataslots_downlinktile(dataslotsPerDownlinkTile),
+    dataslots_uplinktile(dataslotsPerUplinkTile),
+    netconfig(cfg),
     superframe(netconfig.getControlSuperframeStructure()),
     network_graph(netconfig.getNeighborBitmaskSize())
 {
@@ -272,7 +273,7 @@ std::pair<std::list<ScheduleElement>,
         std::list<ScheduleElement> empty;
         return make_pair(empty, schedSize);
     }
-    Router router(*this, mac_ctx.getNetworkConfig().getMaxHops(), 1);
+    Router router(*this, netconfig.getMaxHops(), 1);
     if(SCHEDULER_DETAILED_DBG)
         printf("[SC] ## Routing ##\n");
     // Run router to route multi-hop streams and get multiple paths
@@ -306,9 +307,7 @@ std::pair<std::list<ScheduleElement>,
           unsigned int> ScheduleComputation::scheduleStreams(const std::list<std::list<ScheduleElement>>& routed_streams,
                                                              const std::list<ScheduleElement>& current_schedule,
                                                              const unsigned int schedSize) {
-    unsigned tile_size = mac_ctx.getSlotsInTileCount();
-    unsigned dataslots_downlinktile = mac_ctx.getDataSlotsInDownlinkTileCount();
-    unsigned dataslots_uplinktile = mac_ctx.getDataSlotsInUplinkTileCount();
+    unsigned tile_size = slotsPerTile;
     unsigned downlink_size = tile_size - dataslots_downlinktile;
     unsigned uplink_size = tile_size - dataslots_uplinktile;
     if(SCHEDULER_DETAILED_DBG)

@@ -30,7 +30,6 @@
 #include "../stream/stream_manager.h"
 #include "../stream/stream_collection.h"
 #include "../uplink_phase/topology/network_graph.h"
-#include "../uplink_phase/uplink_message.h"
 #include "../network_configuration.h"
 #include "schedule_element.h"
 #ifdef _MIOSIX
@@ -73,7 +72,8 @@ public:
 class ScheduleComputation {
     friend class Router;
 public:
-    ScheduleComputation(MACContext& mac_ctx);
+    ScheduleComputation(const NetworkConfiguration& cfg, unsigned slotsPerTile,
+                        unsigned dataslotsPerDownlinkTile, unsigned dataslotsPerUplinkTile);
 
     void startThread();
     
@@ -191,7 +191,7 @@ private:
     };
 
     /* Cached configuration parameters from NetworkConfiguration */
-    bool channelSpatialReuse = false;
+    const bool channelSpatialReuse;
 
     /* Class containing Streams and Servers related to this node */
     StreamManager stream_mgr;
@@ -207,8 +207,9 @@ private:
     bool scheduleNotApplied = false;
 
     /* References to other classes */
-    // Needed to get number of dataslots
-    MACContext& mac_ctx;
+    const unsigned slotsPerTile;
+    const unsigned dataslots_downlinktile;
+    const unsigned dataslots_uplinktile;
     // Needed to get topology information
     MasterUplinkPhase* uplink_phase = nullptr;
     // Used to get controlsuperframestructure

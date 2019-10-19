@@ -32,7 +32,12 @@
 namespace mxnet {
 MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
     MACContext(mac, transceiver, config),
-    scheduleComputation(*this) {
+    scheduleComputation(
+        this->getNetworkConfig(),
+        this->getSlotsInTileCount(),
+        this->getDataSlotsInDownlinkTileCount(),
+        this->getDataSlotsInUplinkTileCount())
+{
     timesync = new MasterTimesyncDownlink(*this);
     streamMgr = scheduleComputation.getStreamManager();
     uplink = new MasterUplinkPhase(*this, streamMgr, scheduleComputation);
