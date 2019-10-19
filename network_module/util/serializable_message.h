@@ -30,9 +30,10 @@
 #include <vector>
 #include <cassert>
 #include <array>
-#include "packet.h"
 
 namespace mxnet {
+
+class Packet;
 
 /**
  * Represents a serializable data structure, providing an interface with the basic methods for doing so.

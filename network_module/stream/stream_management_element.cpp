@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "stream_management_element.h"
+#include "../util/packet.h"
 #include <cstring>
 
 namespace mxnet {

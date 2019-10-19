@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "schedule_element.h"
+#include "../util/packet.h"
 
 namespace mxnet {
 
@@ -68,6 +69,17 @@ void SchedulePacket::deserialize(Packet& pkt) {
         elem.deserialize(pkt);
         elements.push_back(elem);
     }
+}
+
+std::size_t SchedulePacket::size() const {
+    return panHeaderSize +
+        header.size() +
+        elements.size();
+}
+
+unsigned int SchedulePacket::getPacketCapacity() {
+    return (MediumAccessController::maxControlPktSize - (panHeaderSize + ScheduleHeader::maxSize()))
+        / ScheduleElement::maxSize();
 }
 
 } /* namespace mxnet */

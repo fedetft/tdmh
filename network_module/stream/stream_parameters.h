@@ -27,6 +27,8 @@
 
 #pragma once
 
+#include <cstring>
+
 namespace mxnet {
 
 enum class Redundancy

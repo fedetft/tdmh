@@ -199,15 +199,10 @@ public:
     void serialize(Packet& pkt) const override;
     void deserialize(Packet& pkt) override;
     
-    std::size_t size() const override {
-        return panHeaderSize +
-            header.size() +
-            elements.size();
-    }
-    static unsigned int getPacketCapacity() {
-        return (MediumAccessController::maxControlPktSize - (panHeaderSize + ScheduleHeader::maxSize()))
-            / ScheduleElement::maxSize();
-    }
+    std::size_t size() const override;
+    
+    static unsigned int getPacketCapacity();
+    
     ScheduleHeader getHeader() const { return header; }
     std::vector<ScheduleElement> getElements() const { return elements; }
     void popElements(int n) {

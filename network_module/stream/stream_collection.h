@@ -31,9 +31,9 @@
 #include "stream_management_element.h"
 // For InfoElement
 #include "../scheduler/schedule_element.h"
-// For ReceiveUplinkMessage
-#include "../uplink_phase/uplink_message.h"
+#include "../util/updatable_queue.h"
 #include <map>
+#include <list>
 #ifdef _MIOSIX
 #include <miosix.h>
 #else
