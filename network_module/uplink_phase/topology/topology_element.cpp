@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "topology_element.h"
+#include "../../util/packet.h"
 #include <cassert>
 
 namespace mxnet {

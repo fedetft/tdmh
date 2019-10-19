@@ -29,6 +29,7 @@
 #include "../util/debug_settings.h"
 #include "../util/stackrange.h"
 #include <unordered_set>
+#include <algorithm>
 #include <utility>
 #include <stdio.h>
 

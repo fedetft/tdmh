@@ -28,7 +28,9 @@
 #pragma once
 
 #include "../../util/runtime_bitset.h"
-#include "../uplink_message.h"
+#include "../../util/updatable_queue.h"
+#include "../../network_configuration.h"
+#include "topology_element.h"
 #include "network_graph.h"
 #ifdef _MIOSIX
 #include <miosix.h>

@@ -28,6 +28,7 @@
 #pragma once
 
 #ifdef _MIOSIX
+#include <cstdio>
 #include <miosix.h>
 
 inline void printStackRange(const char *threadName)

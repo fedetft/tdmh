@@ -27,6 +27,7 @@
  ***************************************************************************/
 
 #include "master_uplink_phase.h"
+#include "uplink_message.h"
 #include "../util/debug_settings.h"
 #include <limits>
 

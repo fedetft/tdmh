@@ -28,6 +28,7 @@
 #pragma once
 
 #include "topology_element.h"
+#include "../../network_configuration.h"
 #include <map>
 #include <vector>
 #include <utility>

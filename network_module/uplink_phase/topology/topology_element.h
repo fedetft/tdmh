@@ -29,9 +29,10 @@
 
 #include "../../util/serializable_message.h"
 #include "../../util/runtime_bitset.h"
-#include "../../util/packet.h"
 
 namespace mxnet {
+
+class Packet;
 
 /**
  * TopologyElement containg a map of the neighbors of a given node on the network

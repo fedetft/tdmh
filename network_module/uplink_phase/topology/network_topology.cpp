@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "network_topology.h"
+#include "../../util/debug_settings.h"
 
 namespace mxnet {
 
