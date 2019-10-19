@@ -27,7 +27,6 @@
 
 #pragma once
 
-#include "../stream/stream_manager.h"
 #include "../stream/stream_collection.h"
 #include "../uplink_phase/topology/network_graph.h"
 #include "../network_configuration.h"
@@ -112,10 +111,6 @@ public:
         scheduleNotApplied = false;
     }
 
-    StreamManager* getStreamManager() {
-        return &stream_mgr;
-    }
-
     StreamCollection* getStreamCollection() {
         return &stream_collection;
     }
@@ -193,8 +188,6 @@ private:
     /* Cached configuration parameters from NetworkConfiguration */
     const bool channelSpatialReuse;
 
-    /* Class containing Streams and Servers related to this node */
-    StreamManager stream_mgr;
     /* Class containing a map of all the Streams and Servers in the network
      * and a queue of InfoElements to send on the network */
     StreamCollection stream_collection;

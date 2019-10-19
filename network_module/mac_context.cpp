@@ -45,13 +45,13 @@ MACContext::~MACContext() {
     delete uplink;
     delete scheduleDistribution;
     delete data;
-    delete streamMgr;
 }
     
 MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiver, const NetworkConfiguration& config) :
                 mac(mac), transceiverConfig(config.getBaseFrequency(), config.getTxPower(), true, false),
                 networkConfig(config), networkId(config.getStaticNetworkId()), transceiver(transceiver),
                 pm(miosix::PowerManager::instance()), controlSuperframe(networkConfig.getControlSuperframeStructure()),
+                streamMgr(config,networkId),
                 sendTotal(0), sendErrors(0), rcvTotal(0), rcvErrors(0),
                 running(false)
 {
@@ -203,7 +203,7 @@ void MACContext::run()
             currentNextDeadline += dataSlotDuration;
         }
         /* Call periodicUpdate to Streams and Servers */
-        streamMgr->periodicUpdate();
+        streamMgr.periodicUpdate();
 
         currentNextDeadline += tileSlackTime;
         if(++tileCounter >= controlSuperframe.size())

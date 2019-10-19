@@ -39,9 +39,8 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
         this->getDataSlotsInUplinkTileCount())
 {
     timesync = new MasterTimesyncDownlink(*this);
-    streamMgr = scheduleComputation.getStreamManager();
-    uplink = new MasterUplinkPhase(*this, streamMgr, scheduleComputation);
-    data = new DataPhase(*this, *streamMgr);
+    uplink = new MasterUplinkPhase(*this, getStreamManager(), scheduleComputation);
+    data = new DataPhase(*this, *getStreamManager());
     scheduleDistribution = new MasterScheduleDownlinkPhase(*this, scheduleComputation);
 };
 

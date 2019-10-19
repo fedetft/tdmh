@@ -199,7 +199,7 @@ public:
     /**
      * @return the StreamManager
      */
-    StreamManager* const getStreamManager() const { return streamMgr; }
+    StreamManager* getStreamManager() { return &streamMgr; }
 
     /**
      * @return the number of slots (of data slot size) in a generic tile
@@ -297,7 +297,6 @@ protected:
     UplinkPhase* uplink = nullptr;
     ScheduleDownlinkPhase* scheduleDistribution = nullptr;
     DataPhase* data = nullptr;
-    StreamManager* streamMgr = nullptr;
 
     unsigned long long dataSlotDuration;
     unsigned long long downlinkSlotDuration;
@@ -313,6 +312,7 @@ private:
     miosix::Transceiver& transceiver;
     miosix::PowerManager& pm;
     ControlSuperframeStructure controlSuperframe;
+    StreamManager streamMgr;
 
     unsigned numSlotInTile;
     unsigned numDataSlotInDownlinkTile;

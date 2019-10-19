@@ -43,7 +43,6 @@ namespace mxnet {
 ScheduleComputation::ScheduleComputation(const NetworkConfiguration& cfg,
     unsigned slotsPerTile, unsigned dataslotsPerDownlinkTile, unsigned dataslotsPerUplinkTile) :
     channelSpatialReuse(cfg.getChannelSpatialReuse()),
-    stream_mgr(cfg, 0), // Initialize StreamManager with ID=0 (Master node)
     schedule(0, cfg.getControlSuperframeStructure().size()), // Initialize Schedule with ID=0 and tile_size = superframe size
     slotsPerTile(slotsPerTile),
     dataslots_downlinktile(dataslotsPerDownlinkTile),
