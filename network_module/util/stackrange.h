@@ -27,14 +27,19 @@
 
 #pragma once
 
+#ifdef _MIOSIX
 #include <miosix.h>
 
 inline void printStackRange(const char *threadName)
 {
-#ifdef _MIOSIX
     printf("Thread %s stack %p-%p\n",
            threadName,
            miosix::Thread::getStackBottom(),
            miosix::Thread::getStackBottom()+miosix::Thread::getStackSize()/sizeof(unsigned));
-#endif
 }
+
+#else
+
+inline void printStackRange(const char *threadName) {}
+
+#endif
