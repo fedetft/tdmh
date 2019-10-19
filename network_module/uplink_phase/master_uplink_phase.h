@@ -45,7 +45,7 @@ public:
         UplinkPhase(ctx, streamMgr),
         streamColl(scheduleComputation.getStreamCollection()),
         topology(ctx.getNetworkConfig()) {
-        scheduleComputation.setUplinkPhase(this);
+        scheduleComputation.setTopology(&topology);
     }
     
     /**
@@ -69,18 +69,6 @@ public:
      * together with forwarded TopologyElements and SMEs.
      */
     void sendMyUplink(long long slotStart);
-
-    bool wasModified() {
-        return topology.wasModified();
-    }
-
-    bool updateSchedulerNetworkGraph(GRAPH_TYPE& otherGraph) {
-        return topology.updateSchedulerNetworkGraph(otherGraph);
-    }
-
-    bool writeBackNetworkGraph(const GRAPH_TYPE& newGraph) {
-        return topology.writeBackNetworkGraph(newGraph);
-    }
     
 private:
     StreamCollection* const streamColl;

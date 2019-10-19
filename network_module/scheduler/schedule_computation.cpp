@@ -27,7 +27,6 @@
 
 #include "schedule_computation.h"
 #include "../util/debug_settings.h"
-#include "../uplink_phase/master_uplink_phase.h"
 #include "../util/stackrange.h"
 #include <unordered_set>
 #include <utility>
@@ -91,7 +90,7 @@ void ScheduleComputation::run() {
                 the previous one */
             if(scheduleNotApplied==false) {
                 // Can compute a new schedule if required
-                if(uplink_phase->wasModified()) break;
+                if(topology->wasModified()) break;
                 auto op = stream_collection.getOperation();
                 if(op.resend && !op.reschedule)
                 {
@@ -115,7 +114,7 @@ void ScheduleComputation::run() {
         stream_snapshot = stream_collection.getSnapshot();
         
         // Get new graph snapshot if graph changed
-        bool graph_changed = uplink_phase->updateSchedulerNetworkGraph(network_graph);
+        bool graph_changed = topology->updateSchedulerNetworkGraph(network_graph);
         
         /* IMPORTANT!: From now on use only the snapshot classes
            `stream_snapshot` and `network_graph` */
@@ -126,7 +125,7 @@ void ScheduleComputation::run() {
         if(network_graph.hasUnreachableNodes()) {
             removed = network_graph.removeUnreachableNodes();
             if(removed)
-                wrote_back = uplink_phase->writeBackNetworkGraph(network_graph);
+                wrote_back = topology->writeBackNetworkGraph(network_graph);
         }
         initialPrint(removed, wrote_back, graph_changed);
         // Used to check if the schedule has been changed in this iteration

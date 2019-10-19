@@ -28,7 +28,7 @@
 #pragma once
 
 #include "../stream/stream_collection.h"
-#include "../uplink_phase/topology/network_graph.h"
+#include "../uplink_phase/topology/network_topology.h"
 #include "../network_configuration.h"
 #include "schedule_element.h"
 #ifdef _MIOSIX
@@ -43,9 +43,6 @@
 #include <tuple>
 
 namespace mxnet {
-
-class MACContext;
-class MasterUplinkPhase;
 
 // Used by the ScheduleDownlink to get all data related to schedule at once
 class Schedule {
@@ -115,8 +112,8 @@ public:
         return &stream_collection;
     }
 
-    void setUplinkPhase(MasterUplinkPhase* uplink) {
-        uplink_phase = uplink;
+    void setTopology(NetworkTopology* topology) {
+        this->topology = topology;
     }
 
 private: 
@@ -204,7 +201,7 @@ private:
     const unsigned dataslots_downlinktile;
     const unsigned dataslots_uplinktile;
     // Needed to get topology information
-    MasterUplinkPhase* uplink_phase = nullptr;
+    NetworkTopology* topology = nullptr;
     // Used to get controlsuperframestructure
     const NetworkConfiguration& netconfig;
     // Get network tile/superframe information
