@@ -50,13 +50,6 @@ void MasterUplinkPhase::execute(long long slotStart)
     streamMgr->dequeueSMEs(smeQueue);
     // Consume elements from the SME queue
     streamColl->receiveSMEs(smeQueue);
-    
-    if(ENABLE_TOPOLOGY_INFO_DBG && currentNode == 1)
-    {
-        print_dbg("[U] Current topology @%llu:\n", getTime());
-        for (auto it : topology.getEdges())
-            print_dbg("[%d - %d]\n", it.first, it.second);
-    }
 }
 
 void MasterUplinkPhase::sendMyUplink(long long slotStart)

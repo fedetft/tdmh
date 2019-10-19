@@ -59,11 +59,6 @@ public:
 
     void handleTopologies(UpdatableQueue<unsigned char, TopologyElement>& topologies);
 
-    std::vector<std::pair<unsigned char, unsigned char>> getEdges() {
-        std::vector<std::pair<unsigned char, unsigned char>> result;
-        return result;
-    }
-
     /**
      * Return true if the map was modified since last time the flag was cleared 
      */
