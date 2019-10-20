@@ -39,45 +39,13 @@ void MasterUplinkPhase::execute(long long slotStart)
     auto currentNode = getAndUpdateCurrentNode();
     
     if(ENABLE_UPLINK_VERB_DBG)
-        print_dbg("[U] N=%u T=%lld\n", currentNode, slotStart);
+        print_dbg("[U] N=%u NT=%lld\n", currentNode, NetworkTime::fromLocalTime(slotStart).get());
 
-    ReceiveUplinkMessage message(ctx.getNetworkConfig());
-    ctx.configureTransceiver(ctx.getTransceiverConfig());
-    if(message.recv(ctx, slotStart))
-    {
-        auto numPackets = message.getNumPackets();
-        topology.receivedMessage(currentNode, message.getHop(),
-                                 message.getRssi(), message.getSenderTopology());
-        
-        if(ENABLE_UPLINK_INFO_DBG)
-            print_dbg("[U]<-N=%u @%llu %hddBm\n",currentNode,message.getTimestamp(),message.getRssi());
-        if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
-            print_dbg("<-%d %ddBm\n",currentNode,message.getRssi());
-    
-        if(message.getAssignee() == myId)
-        {
-            // Enqueue topology and SMEs from the network
-            message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
-            for(int i = 1; i < numPackets; i++)
-            {
-                // NOTE: If we fail to receive a Packet of the UplinkMessage,
-                // do not wait for remaining packets
-                // TODO: do recv at next uplink slot (slotstart + slot duration)
-                if(message.recv(ctx, slotStart) == false) break;
-                message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
-            }
-        }
-        // Consume elements from the topology queue
-        topology.handleForwardedTopologies(topologyQueue);
-        
-    } else {
-        topology.missedMessage(currentNode);
-        
-        if(ENABLE_TOPOLOGY_SHORT_SUMMARY)
-            print_dbg("  %d\n",currentNode);
-    }
-    ctx.transceiverIdle();
+    if (currentNode == myId) sendMyUplink(slotStart);
+    else receiveUplink(slotStart, currentNode);
 
+    // Consume elements from the topology queue
+    topology.handleTopologies(topologyQueue);
     // Enqueue SMEs produced by the Master node itself
     streamMgr->dequeueSMEs(smeQueue);
     // Consume elements from the SME queue
@@ -88,6 +56,28 @@ void MasterUplinkPhase::execute(long long slotStart)
         print_dbg("[U] Current topology @%llu:\n", getTime());
         for (auto it : topology.getEdges())
             print_dbg("[%d - %d]\n", it.first, it.second);
+    }
+}
+
+void MasterUplinkPhase::sendMyUplink(long long slotStart)
+{
+    SendUplinkMessage message(ctx.getNetworkConfig(), 0, ctx.getNetworkId(),
+                              myNeighborTable.getMyTopologyElement(),
+                              0, 0);
+    if(ENABLE_UPLINK_DYN_INFO_DBG)
+        print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), NetworkTime::fromLocalTime(slotStart).get());
+
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    message.send(ctx,slotStart);
+    ctx.transceiverIdle();
+
+    //send my topology to myself
+    topologyQueue.enqueue(0, myNeighborTable.getMyTopologyElement());
+
+    if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
+        print_dbg("->%d\n",ctx.getNetworkId());
+    if(ENABLE_UPLINK_DBG){
+        message.printHeader();
     }
 }
 

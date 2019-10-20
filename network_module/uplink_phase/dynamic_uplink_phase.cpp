@@ -48,49 +48,6 @@ void DynamicUplinkPhase::execute(long long slotStart)
     else receiveUplink(slotStart, currentNode);
 }
 
-void DynamicUplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode)
-{
-    ReceiveUplinkMessage message(ctx.getNetworkConfig());
-    
-    ctx.configureTransceiver(ctx.getTransceiverConfig());
-    if(message.recv(ctx, slotStart))
-    {
-        auto numPackets = message.getNumPackets();
-        auto senderTopology = message.getSenderTopology();
-        myNeighborTable.receivedMessage(currentNode, message.getHop(),
-                                    message.getRssi(), senderTopology);
-        
-        if(ENABLE_UPLINK_DYN_INFO_DBG)
-            print_dbg("[U]<-N=%u @%llu %hddBm\n",currentNode,NetworkTime::fromLocalTime(slotStart).get(),message.getRssi());
-        if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
-            print_dbg("<-%d %ddBm\n",currentNode,message.getRssi());
-    
-        if(message.getAssignee() == myId)
-        {
-            topologyQueue.enqueue(currentNode,
-                TopologyElement(currentNode, std::move(senderTopology)));
-            message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
-            
-            for(int i = 1; i < numPackets; i++)
-            {
-                // NOTE: If we fail to receive a Packet of the UplinkMessage,
-                // do not wait for remaining packets
-                // TODO verify that packetArrivalAndProcessingTime + transmissionInterval are correct
-                slotStart += packetArrivalAndProcessingTime + transmissionInterval;
-                if(message.recv(ctx, slotStart) == false) break;
-                message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
-            }
-        }
-        
-    } else {
-        myNeighborTable.missedMessage(currentNode);
-        
-        if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
-            print_dbg("  %d\n",currentNode);
-    }
-    ctx.transceiverIdle();
-}
-
 void DynamicUplinkPhase::sendMyUplink(long long slotStart)
 {
     /* If we don't have a predecessor, we send an uplink message without

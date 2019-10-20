@@ -50,15 +50,60 @@ void UplinkPhase::alignToNetworkTime(NetworkTime nt)
         timeWithinSuperframe -= tileDuration;
         if(controlSuperframe.isControlUplink(i)) phase++;
     }
-    nextNode = nodesCount - 1 - (phase % (nodesCount - 1));
+    nextNode = nodesCount - 1 - (phase % nodesCount);
 }
 
 unsigned char UplinkPhase::getAndUpdateCurrentNode()
 {
     auto currentNode = nextNode;
-    if (--nextNode <= 0) nextNode = nodesCount - 1;
+    if (nextNode == 0) nextNode = nodesCount - 1;
+    else nextNode--;
     return currentNode;
 }
 
+
+void UplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode)
+{
+    ReceiveUplinkMessage message(ctx.getNetworkConfig());
+    
+    ctx.configureTransceiver(ctx.getTransceiverConfig());
+    if(message.recv(ctx, slotStart))
+    {
+        auto numPackets = message.getNumPackets();
+        auto senderTopology = message.getSenderTopology();
+        myNeighborTable.receivedMessage(currentNode, message.getHop(),
+                                    message.getRssi(), senderTopology);
+        
+        if(ENABLE_UPLINK_DYN_INFO_DBG)
+            print_dbg("[U]<-N=%u @%llu %hddBm\n",currentNode,
+                    NetworkTime::fromLocalTime(slotStart).get(),message.getRssi());
+        if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
+            print_dbg("<-%d %ddBm\n",currentNode,message.getRssi());
+    
+        if(message.getAssignee() == myId)
+        {
+            topologyQueue.enqueue(currentNode,
+                TopologyElement(currentNode, std::move(senderTopology)));
+            message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
+            
+            for(int i = 1; i < numPackets; i++)
+            {
+                // NOTE: If we fail to receive a Packet of the UplinkMessage,
+                // do not wait for remaining packets
+                // TODO verify that packetArrivalAndProcessingTime + transmissionInterval are correct
+                slotStart += packetArrivalAndProcessingTime + transmissionInterval;
+                if(message.recv(ctx, slotStart) == false) break;
+                message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
+            }
+        }
+        
+    } else {
+        myNeighborTable.missedMessage(currentNode);
+        
+        if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
+            print_dbg("  %d\n",currentNode);
+    }
+    ctx.transceiverIdle();
+}
 } // namespace mxnet
 

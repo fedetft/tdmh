@@ -33,65 +33,8 @@ namespace mxnet {
 // class NetworkTopology
 //
 
-void NetworkTopology::receivedMessage(unsigned char currentNode, unsigned char currentHop,
-                                      int rssi, RuntimeBitset senderTopology) {
-    // Received message from direct neighbor
-    auto it = activeDirectNeighbors.find(currentNode);
-    if(currentHop == 1) {
-        // If currentNode is present in activeDirectNeighbors
-        if (it != activeDirectNeighbors.end()) {
-            // Reset timeout because we received uplink from currentNode
-            it->second = maxTimeout;
-
-            // Lock mutex to access NetworkGraph (shared with ScheduleComputation).
-            graph_mutex.lock();
-
-            // Reset timeout on the graph
-            graph.resetCounter(0, currentNode);
-        }
-        // If currentNode is not present in activeDirectNeighbors
-        else {
-            // Add node to activeDirectNeighbors with timeout=max
-            activeDirectNeighbors[currentNode] = maxTimeout;
-
-            // Lock mutex to access NetworkGraph (shared with ScheduleComputation).
-            graph_mutex.lock();
-
-            graph.addEdge(0, currentNode);
-            // Set flag since we added an arc that was not present before
-            modified_flag = true;
-        }
-        doReceivedTopology(TopologyElement(currentNode, senderTopology));
-
-        // Unlock mutex, we finished modifying the graph
-        graph_mutex.unlock();
-    }
-    // Received message from non direct neighbor
-    else {
-        // If currentNode is present in activeDirectNeighbors
-        if (it != activeDirectNeighbors.end()) {
-            // Remove node from activeDirectNeighbors
-            activeDirectNeighbors.erase(currentNode);
-        }
-        // If currentNode is not present in activeDirectNeighbors, do nothing.
-    }
-}
-
-void NetworkTopology::missedMessage(unsigned char currentNode) {
-    // If currentNode is present in activeDirectNeighbors means its at hop=1
-    // and we have seen it recently
-    auto it = activeDirectNeighbors.find(currentNode);
-    if (it != activeDirectNeighbors.end()) {
-        /* Decrement timeout because we missed the uplink message from currentNode
-           if timeout is zero, neighbor node is considered dead */
-        if(it->second-- <= 0) {
-            removeDirectNeighbor(currentNode);
-        }
-    }
-}
-
-void NetworkTopology::handleForwardedTopologies(UpdatableQueue<unsigned char,
-                                                TopologyElement>& topologies) {
+void NetworkTopology::handleTopologies(UpdatableQueue<unsigned char,
+                                       TopologyElement>& topologies) {
     // Lock mutex to access NetworkGraph (shared with ScheduleComputation).
     graph_mutex.lock();
 
@@ -103,19 +46,6 @@ void NetworkTopology::handleForwardedTopologies(UpdatableQueue<unsigned char,
     // Unlock mutex, we finished modifying the graph
     graph_mutex.unlock();
 
-}
-
-void NetworkTopology::removeDirectNeighbor(unsigned char neighbor) {
-    activeDirectNeighbors.erase(neighbor);
-    // Lock mutex to access NetworkGraph (shared with ScheduleComputation).
-    graph_mutex.lock();
-
-    graph.removeEdge(0, neighbor);
-    // Set flag since we added an arc that was not present before
-    modified_flag = true;
-
-    // Unlock mutex, we finished modifying the graph
-    graph_mutex.unlock();
 }
 
 void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
@@ -134,8 +64,7 @@ void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
     }
 
     /* Update graph according to received topology */
-    // Avoid arcs toward node 0 (handled by acriveDirectNeighbors)
-    for (unsigned i = 1; i < bitset.bitSize(); i++) {
+    for (unsigned i = 0; i < bitset.bitSize(); i++) {
         // Avoid auto-arcs (useless in NetworkGraph)
         if(i == src)
             continue;

@@ -30,7 +30,6 @@
 
 #include "../network_configuration.h"
 #include "uplink_phase.h"
-#include "topology/neighbor_table.h"
 
 namespace mxnet {
 
@@ -42,10 +41,7 @@ class DynamicUplinkPhase : public UplinkPhase
 {
 public:
     DynamicUplinkPhase(MACContext& ctx, StreamManager* const streamMgr) :
-        UplinkPhase(ctx, streamMgr),
-        myNeighborTable(NeighborTable(ctx.getNetworkConfig(),
-                                      ctx.getNetworkId(),
-                                      ctx.getHop())) {};
+        UplinkPhase(ctx, streamMgr) {};
 
     /**
      * Calls getAndUpdateCurrentNode() from the base class to check if it's our turn
@@ -72,12 +68,6 @@ public:
     void desync() override {}
 
     /**
-     * Starts expecting a message from the node to which the slot is assigned
-     * and modifies the TopologyContext as needed.
-     */
-    void receiveUplink(long long slotStart, unsigned char expectedNode);
-
-    /**
      * Called when it's our turn to transmit in the round-robin.
      * It sends the UplinkMessage containing our local TopologyElement and SMEs
      * together with forwarded TopologyElements and SMEs.
@@ -85,7 +75,6 @@ public:
     void sendMyUplink(long long slotStart);
 
 private:
-    NeighborTable myNeighborTable;
 };
 
 } // namespace mxnet

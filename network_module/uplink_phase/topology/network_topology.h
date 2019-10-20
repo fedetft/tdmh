@@ -57,8 +57,7 @@ public:
 
     void missedMessage(unsigned char currentNode);
 
-    void handleForwardedTopologies(UpdatableQueue<unsigned char,
-                                   TopologyElement>& topologies);
+    void handleTopologies(UpdatableQueue<unsigned char, TopologyElement>& topologies);
 
     std::vector<std::pair<unsigned char, unsigned char>> getEdges() {
         std::vector<std::pair<unsigned char, unsigned char>> result;
@@ -130,24 +129,12 @@ public:
 
 private:
 
-    /* Method used to remove direct neighbors (hop=1) from the list of neighbors
-       and the network graph */
-    void removeDirectNeighbor(unsigned char neighbor);
-
     /* Method used internally to add or remove arcs of the graph depending on
        the forwarded topology */
     void doReceivedTopology(const TopologyElement& topology);
 
     /* Constant value from NetworkConfiguration */
     const unsigned short maxTimeout;
-
-    /* map with key: unsigned char id, value: unsigned char timeoutCounter,
-       used to remove links from the master to the neighbors from the network graph
-       after not receiving their message for timeoutCounter times */
-    /* NOTE: activeDirectNeighbors manages timeouts for nodes with hop=1,
-       the timeouts of all the other hops are managed by the graph if
-       DelayedRemovalNetworkGraph is selected, otherwise they have no counter */
-    std::map<unsigned char, unsigned short> activeDirectNeighbors;
 
     /* NetworkGraph class containing the complete graph of the network */
     GRAPH_TYPE graph;

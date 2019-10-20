@@ -34,6 +34,7 @@
 #include "../stream/stream_manager.h"
 #include "../util/updatable_queue.h"
 #include "topology/topology_element.h"
+#include "topology/neighbor_table.h"
 
 namespace mxnet {
 
@@ -82,8 +83,18 @@ protected:
             streamMgr(streamMgr),
             myId(ctx.getNetworkId()),
             nodesCount(ctx.getNetworkConfig().getMaxNodes()),
-            nextNode(nodesCount - 1) {}
+            nextNode(nodesCount - 1),
+            myNeighborTable(NeighborTable(ctx.getNetworkConfig(),
+                                          ctx.getNetworkId(),
+                                          ctx.getHop())) {};
     
+
+    /**
+     * Starts expecting a message from the node to which the slot is assigned
+     * and modifies the TopologyContext as needed.
+     */
+    void UplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode);
+
     /**
      * Called at every execute() or advance() updates the state of the
      * round-robin scheme used for uplink.
@@ -100,6 +111,7 @@ protected:
     // and in master node to process received topologies and sme
     UpdatableQueue<unsigned char,TopologyElement> topologyQueue;
     UpdatableQueue<SMEKey,StreamManagementElement> smeQueue;
+    NeighborTable myNeighborTable;
 };
 
 } // namespace mxnet

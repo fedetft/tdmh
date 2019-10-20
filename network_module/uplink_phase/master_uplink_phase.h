@@ -63,6 +63,13 @@ public:
      */
     void desync() override {}
 
+    /**
+     * Called when it's our turn to transmit in the round-robin.
+     * It sends the UplinkMessage containing our local TopologyElement and SMEs
+     * together with forwarded TopologyElements and SMEs.
+     */
+    void sendMyUplink(long long slotStart);
+
     bool wasModified() {
         return topology.wasModified();
     }
