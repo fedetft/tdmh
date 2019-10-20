@@ -30,7 +30,7 @@
 #include "../tdmh.h"
 #include "../util/packet.h"
 #include "stream_management_element.h"
-#include <set>
+#include <list>
 #ifdef _MIOSIX
 #include <miosix.h>
 #include <kernel/intrusive.h>

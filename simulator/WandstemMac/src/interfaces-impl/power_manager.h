@@ -28,11 +28,17 @@
 #ifndef INTERFACES_IMPL_POWER_MANAGER_H_
 #define INTERFACES_IMPL_POWER_MANAGER_H_
 
+#ifndef UNITTEST
+
 #include "../MiosixInterface.h"
 #include <mutex>
 #include <map>
 
+#endif //UNITTEST
+
 namespace miosix {
+
+#ifndef UNITTEST
 
 class PowerManager : public MiosixInterface {
 public:
@@ -47,11 +53,28 @@ public:
     void deepSleepUntil(long long when);
 private:
     PowerManager();
+    PowerManager(const PowerManager&)=delete;
+    PowerManager& operator=(const PowerManager&)=delete;
 
     static std::mutex instanceMutex;
     static std::map<NodeBase*, PowerManager*> instances;
 
 };
+
+#else //UNITTEST
+
+class PowerManager {
+public:
+    static PowerManager& instance();
+    void deepSleep(long long delta);
+    void deepSleepUntil(long long when);
+private:
+    PowerManager();
+    PowerManager(const PowerManager&)=delete;
+    PowerManager& operator=(const PowerManager&)=delete;
+};
+
+#endif //UNITTEST
 
 } /* namespace miosix */
 

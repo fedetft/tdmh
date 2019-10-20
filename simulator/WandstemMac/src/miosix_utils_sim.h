@@ -28,6 +28,8 @@
 #ifndef MIOSIX_UTILS_SIM_H_
 #define MIOSIX_UTILS_SIM_H_
 
+#ifndef UNITTEST
+
 #include <omnetpp.h>
 #include "MiosixStaticInterface.h"
 
@@ -36,6 +38,8 @@ void print_dbg_(const char *fmt, ...);
 #define print_dbg print_dbg_
 }
 
+#endif //UNITTEST
+
 namespace miosix {
 
 void ledOn();
@@ -43,11 +47,23 @@ void ledOff();
 long long getTime();
 void memDump(const void *start, int len);
 
+#ifndef UNITTEST
+
 class Thread : public MiosixStaticInterface {
 public:
     static void nanoSleep(long long delta);
     static void nanoSleepUntil(long long when);
 };
+
+#else //UNITTEST
+
+class Thread {
+public:
+    static void nanoSleep(long long delta);
+    static void nanoSleepUntil(long long when);
+};
+
+#endif //UNITTEST
 
 struct Leds {
     static bool greenOn;

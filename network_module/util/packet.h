@@ -31,6 +31,7 @@
 #include "interfaces-impl/transceiver.h"
 #include "miosix.h"
 #include "debug_settings.h"
+#include <cassert>
 #include <array>
 #include <limits>
 #include <stdexcept>

@@ -29,6 +29,8 @@
 #ifndef TRANSCEIVER_H_
 #define TRANSCEIVER_H_
 
+#ifndef UNITTEST
+
 const unsigned int KIND_TIMEOUT=15;
 
 #include "../MiosixInterface.h"
@@ -38,6 +40,11 @@ const unsigned int KIND_TIMEOUT=15;
 #include <boost/crc.hpp>
 #include <mutex>
 #include <map>
+
+#endif //UNITTEST
+
+#include <string>
+#include <limits>
 
 namespace miosix {
 
@@ -95,6 +102,8 @@ public:
                         ///< packet. If true, return upon timeout even if a
                         ///< packet is being received
 };
+
+#ifndef UNITTEST
 
 class Transceiver : public MiosixInterface {
 public:
@@ -231,6 +240,38 @@ private:
     uint16_t computeCrc(const void* data, int size);
     static const bool SIM_DBG;
 };
+
+#else //UNITTEST
+
+class Transceiver
+{
+public:
+    enum Unit{TICK,NS};
+    enum Correct{CORR,UNCORR};
+    static const int minFrequency=2405;
+    static const int maxFrequency=2480;
+    static Transceiver& instance();
+    void turnOn() { isOn = true; }
+    void turnOff() { isOn = false; }
+    bool isTurnedOn() const { return isOn; }
+    void idle() {}
+    void configure(const TransceiverConfiguration& config);
+    void sendNow(const void *pkt, int size, std::string pktName = "sendNow");
+    bool sendCca(const void *pkt, int size);
+    void sendAt(const void *pkt, int size, long long when, std::string pktName = "sendAt", Unit = Unit::NS);
+    RecvResult recv(void *pkt, int size, long long timeout, Unit unit=Unit::NS, Correct c=Correct::CORR);
+    short readRssi() { return 5; }
+
+private:
+    Transceiver();
+    Transceiver(const Transceiver&)=delete;
+    Transceiver& operator= (const Transceiver&)=delete;
+    bool isOn = false;
+};
+
+#endif //UNITTEST
+
+
 }
 
 #endif /* TRANSCEIVER_H_ */
