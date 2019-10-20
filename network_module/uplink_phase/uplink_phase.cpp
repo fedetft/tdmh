@@ -27,6 +27,7 @@
  ***************************************************************************/
 
 #include "uplink_phase.h"
+#include "uplink_message.h"
 
 namespace mxnet {
 

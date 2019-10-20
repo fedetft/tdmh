@@ -93,7 +93,7 @@ protected:
      * Starts expecting a message from the node to which the slot is assigned
      * and modifies the TopologyContext as needed.
      */
-    void UplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode);
+    void receiveUplink(long long slotStart, unsigned char currentNode);
 
     /**
      * Called at every execute() or advance() updates the state of the
