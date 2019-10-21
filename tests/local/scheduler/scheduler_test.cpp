@@ -59,8 +59,7 @@ int main()
     NetworkTopology topology(config);
     scheduler.setTopology(&topology);
     scheduler.startThread();
-    
-    this_thread::sleep_for(milliseconds(10)); //TODO find a way to sync with the scheduler
+    scheduler.sync();
     
     {
         UpdatableQueue<SMEKey, StreamManagementElement> smes;
@@ -77,8 +76,7 @@ int main()
     }
     
     scheduler.beginScheduling();
+    scheduler.sync();
     
-    this_thread::sleep_for(seconds(1)); //TODO find a way to sync with the scheduler
-    
-    
+    exit(1);
 }

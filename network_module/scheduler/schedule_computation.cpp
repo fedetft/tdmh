@@ -104,7 +104,15 @@ void ScheduleComputation::run() {
                     if(op.reschedule) break;
                 }
             }
+#ifdef UNITTEST
+            ready=true;
+            sched_cv.notify_all();
+#endif
             sched_cv.wait(lck); // Wait for beginScheduling() to start scheduling
+            
+#ifdef UNITTEST
+            ready=false;
+#endif
         }
 #ifdef _MIOSIX
         unsigned int stackSize = miosix::MemoryProfiling::getStackSize();

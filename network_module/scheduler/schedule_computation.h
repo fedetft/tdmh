@@ -115,6 +115,17 @@ public:
     void setTopology(NetworkTopology* topology) {
         this->topology = topology;
     }
+    
+#ifdef UNITTEST
+    /**
+     * Wait until the scheduler is ready to accept a beginScheduling()
+     */
+    void sync()
+    {
+        std::unique_lock<std::mutex> lck(sched_mutex);
+        while(ready==false) sched_cv.wait(lck);
+    }
+#endif
 
 private: 
     void run();
@@ -208,6 +219,10 @@ private:
     const ControlSuperframeStructure superframe;
     // Class containing a snapshot of the network topology
     GRAPH_TYPE network_graph;
+    
+#ifdef UNITTEST
+    bool ready=false;
+#endif
 
 #ifdef _MIOSIX
     miosix::Mutex sched_mutex;
