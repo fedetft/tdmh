@@ -124,6 +124,14 @@ public:
         return false;
     }
 
+    /** Manually add an edge to the graph
+     *  NOTE: to be used for debugging only */
+    void addEdge(unsigned char a, unsigned char b) {
+        graph.addEdge(a,b);
+        // Set flag since we added an arc that was not present before
+        modified_flag = true;
+    }
+
 private:
 
     /* Method used internally to add or remove arcs of the graph depending on
