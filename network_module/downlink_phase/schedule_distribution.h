@@ -54,7 +54,7 @@ public:
     {
         return   MediumAccessController::receivingNodeWakeupAdvance
                + networkConfig.getMaxAdmittedRcvWindow() * 2
-               + networkConfig.getMaxHops() * rebroadcastInterval;
+               + networkConfig.getMaxHops() * computeRebroadcastInterval(networkConfig);
     }
     
     /**
@@ -62,11 +62,10 @@ public:
      */
     void resync() override {}
 
-    static const int rebroadcastInterval = 5000000; //32us per-byte + 600us total delta
-    static const int scheduleRepetitions = 4;
 
 protected:
     ScheduleDownlinkPhase(MACContext& ctx) : MACPhase(ctx),
+                                             rebroadcastInterval(computeRebroadcastInterval(ctx.getNetworkConfig())),
                                              panId(ctx.getNetworkConfig().getPanId()),
                                              streamMgr(ctx.getStreamManager()),
                                              dataPhase(ctx.getDataPhase()) {}
@@ -107,6 +106,20 @@ protected:
                                const std::vector<ExplicitScheduleElement>& expSchedule) {}
 #endif
 
+    static int computeRebroadcastInterval(const NetworkConfiguration& cfg)
+    {
+        const int computationTime=244000;
+        const int txTime=(MediumAccessController::maxControlPktSize+8)*32000;
+#if FLOOD_TYPE==0
+        return txTime+computationTime+MediumAccessController::sendingNodeWakeupAdvance;
+#elif FLOOD_TYPE==1
+        return txTime+computationTime+std::max(
+            MediumAccessController::sendingNodeWakeupAdvance,
+            MediumAccessController::receivingNodeWakeupAdvance+cfg.getMaxAdmittedRcvWindow()
+        );
+#endif
+    }
+
     enum class ScheduleDownlinkStatus : unsigned char
     {
         APPLIED_SCHEDULE,
@@ -114,6 +127,9 @@ protected:
         AWAITING_ACTIVATION,
         INCOMPLETE_SCHEDULE
     };
+    
+    const int rebroadcastInterval;
+    static const int scheduleRepetitions = 4;
     
     ScheduleDownlinkStatus status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
 
