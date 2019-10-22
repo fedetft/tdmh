@@ -113,10 +113,9 @@ protected:
 #if FLOOD_TYPE==0
         return txTime+computationTime+MediumAccessController::sendingNodeWakeupAdvance;
 #elif FLOOD_TYPE==1
-        return txTime+computationTime+std::max(
-            MediumAccessController::sendingNodeWakeupAdvance,
-            MediumAccessController::receivingNodeWakeupAdvance+cfg.getMaxAdmittedRcvWindow()
-        );
+        auto a=MediumAccessController::sendingNodeWakeupAdvance;
+        auto b=MediumAccessController::receivingNodeWakeupAdvance+cfg.getMaxAdmittedRcvWindow();
+        return txTime+computationTime+std::max(a,b);
 #endif
     }
 
