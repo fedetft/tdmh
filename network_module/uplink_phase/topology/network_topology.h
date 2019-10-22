@@ -124,6 +124,7 @@ public:
         return false;
     }
 
+#ifdef UNITTEST
     /** Manually add an edge to the graph
      *  NOTE: to be used for debugging only */
     void addEdge(unsigned char a, unsigned char b) {
@@ -131,6 +132,7 @@ public:
         // Set flag since we added an arc that was not present before
         modified_flag = true;
     }
+#endif
 
 private:
 
