@@ -633,6 +633,7 @@ std::list<std::list<ScheduleElement>> Router::run(std::vector<MasterStreamInfo>&
         routed_streams.push_back(schedule);
         Redundancy redundancy = stream.getRedundancy();
         // Temporal redundancy
+        // Push primary path 2 or 3 times depending on redundancy level
         if(redundancy == Redundancy::DOUBLE ||
            redundancy == Redundancy::TRIPLE_SPATIAL)
             routed_streams.push_back(schedule);
@@ -650,7 +651,23 @@ std::list<std::list<ScheduleElement>> Router::run(std::vector<MasterStreamInfo>&
                 printf("[SC] Searching alternative paths of length %d + %d\n", sol_size, more_hops);
             std::list<std::list<unsigned char>> extra_paths = depthFirstSearch(stream, sol_size + more_hops);
             // Choose best secondary path for redundancy
-            if(!extra_paths.empty()) {
+            if(extra_paths.empty()) {
+                printf("[SC] No extra paths found for stream %d->%d\n", src, dst);
+                printf("[SC] The only path is the primary path.\nDowngrading from spatial to temporal redundancy\n");
+                // Downgrade spatial redundancies to non spatial ones
+                if (redundancy == Redundancy::DOUBLE_SPATIAL) {
+                    redundancy = Redundancy::DOUBLE;
+                    stream.setRedundancy(redundancy);
+                    routed_streams.push_back(schedule);
+                }
+                if (redundancy == Redundancy::TRIPLE_SPATIAL) {
+                    redundancy = Redundancy::TRIPLE;
+                    stream.setRedundancy(redundancy);
+                    routed_streams.push_back(schedule);
+                }
+                continue;
+            }
+            else {
                 // Print secondary paths found
                 if(SCHEDULER_DETAILED_DBG) {
                     printf("[SC] Secondary Paths found: \n");
