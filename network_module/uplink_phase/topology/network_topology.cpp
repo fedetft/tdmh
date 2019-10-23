@@ -46,7 +46,42 @@ void NetworkTopology::handleTopologies(UpdatableQueue<unsigned char,
 
     // Unlock mutex, we finished modifying the graph
     graph_mutex.unlock();
+}
 
+void NetworkTopology::usedLinksNotChanged()
+{
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(graph_mutex);
+#else
+    std::unique_lock<std::mutex> lck(graph_mutex);
+#endif
+    performDelayedRemovalChecks();
+}
+
+void NetworkTopology::usedLinksChanged(std::set<std::pair<unsigned char,unsigned char>>&& usedLinks)
+{
+#ifdef _MIOSIX
+    miosix::Lock<miosix::Mutex> lck(graph_mutex);
+#else
+    std::unique_lock<std::mutex> lck(graph_mutex);
+#endif
+    //First update usedLinks, then perform checks
+    this->usedLinks=std::move(usedLinks);
+    performDelayedRemovalChecks();
+}
+
+void NetworkTopology::performDelayedRemovalChecks()
+{
+    scheduleInProgress = false;
+    for(auto removedLink : removedWhileScheduling)
+    {
+        if(usedLinks.find(removedLink)!=usedLinks.end())
+        {
+            modified_flag = true;
+            break;
+        }
+    }
+    removedWhileScheduling.clear();
 }
 
 void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
@@ -78,8 +113,7 @@ void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
             // Arc not present in graph
             else {
                 graph.addEdge(src, i);
-                // Set flag since we added an arc that was not present before
-                modified_flag = true;
+                //Not marking the graph as modified
             }
         }
         // Arc is not present in topology, decrementCounter
@@ -89,8 +123,18 @@ void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
                 bool removed = graph.decrementCounter(src, i);
                 if(removed) {
                     graph.removeEdge(src, i);
-                    // Set flag since we removed an arc from the graph
-                    modified_flag = true;
+                    
+                    if(scheduleInProgress == false)
+                    {
+                        // We have an up-to-date usedLinks
+                        if(usedLinks.find(orderLink(src, i))!=usedLinks.end())
+                        {
+                            modified_flag = true;
+                        }
+                    } else {
+                        // We don't have usedLinks, so we need to defer this check
+                        removedWhileScheduling.insert(orderLink(src, i));
+                    }
                 }
             }
         }

@@ -90,8 +90,14 @@ void ScheduleComputation::run() {
                 next activation time and the new schedule may not be aligned to
                 the previous one */
             if(scheduleNotApplied==false) {
-                // Can compute a new schedule if required
-                if(topology->wasModified()) break;
+                // If topology changes, need to reschedule
+                if(topology->wasModified())
+                {
+                    auto op = stream_collection.getOperation();
+                    if(op.resend) forceResend = true;
+                    break;
+                }
+                // We may also need to reschedule due to stream changes
                 auto op = stream_collection.getOperation();
                 if(op.resend && !op.reschedule)
                 {
@@ -161,6 +167,10 @@ void ScheduleComputation::run() {
             scheduleAcceptedStreams(newSchedule);
             scheduleChanged = true;
         }
+        
+        if(scheduleChanged) topology->usedLinksChanged(computeUsedLinks());
+        else topology->usedLinksNotChanged();
+        
         if(scheduleChanged) {
             // Mutex lock to access schedule (shared with ScheduleDownlink).
 #ifdef _MIOSIX
@@ -191,6 +201,13 @@ void ScheduleComputation::run() {
         }
         finalPrint();
     }
+}
+
+std::set<std::pair<unsigned char,unsigned char>> ScheduleComputation::computeUsedLinks() const
+{
+    std::set<std::pair<unsigned char,unsigned char>> result;
+    for(auto& se : schedule.schedule) result.insert(orderLink(se.getTx(),se.getRx()));
+    return result;
 }
 
 void ScheduleComputation::initialPrint(bool removed, bool wrote_back, bool graph_changed) {

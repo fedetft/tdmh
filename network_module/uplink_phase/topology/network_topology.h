@@ -38,11 +38,18 @@
 #include <mutex>
 #endif
 
+#include <set>
 #include <vector>
 #include <utility>
 
 
 namespace mxnet {
+
+inline std::pair<unsigned char,unsigned char> orderLink(unsigned char a, unsigned char b)
+{
+   if(a<b) return std::make_pair(a,b);
+   else return std::make_pair(b,a);
+}
 
 /**
  * NetworkTopology contains all the information about the network graph
@@ -86,13 +93,14 @@ public:
 #else
         std::unique_lock<std::mutex> lck(graph_mutex);
 #endif
-        // If graph has changed, copy graph snapshot and set graph_changed in ScheduleComputation
-        if(modified_flag) {
-            otherGraph = graph;
-            modified_flag = false;
-            return true;
-        }
-        return false;
+        scheduleInProgress = true;
+        
+        // Always copy, as some changes do not set modified_flag
+        otherGraph = graph;
+        
+        bool result = modified_flag;
+        modified_flag = false;
+        return result;
     }
 
     /**
@@ -123,6 +131,10 @@ public:
         }
         return false;
     }
+    
+    void usedLinksNotChanged();
+    
+    void usedLinksChanged(std::set<std::pair<unsigned char,unsigned char>>&& usedLinks);
 
 #ifdef UNITTEST
     /** Manually add an edge to the graph
@@ -135,6 +147,8 @@ public:
 #endif
 
 private:
+    
+    void performDelayedRemovalChecks();
 
     /* Method used internally to add or remove arcs of the graph depending on
        the forwarded topology */
@@ -148,7 +162,12 @@ private:
 
     /* Flag used by the scheduler to check if the topology has changed */
     bool modified_flag = false;
-
+    
+    bool scheduleInProgress = false;
+    std::set<std::pair<unsigned char,unsigned char>> removedWhileScheduling;
+    
+    std::set<std::pair<unsigned char,unsigned char>> usedLinks;
+    
     /* Mutex to synchronize the concurrent access to the network graph
        by the uplink and schedule_computation classes */
 #ifdef _MIOSIX

@@ -129,6 +129,8 @@ public:
 
 private: 
     void run();
+    
+    std::set<std::pair<unsigned char,unsigned char>> computeUsedLinks() const;
 
     void initialPrint(bool removed, bool wrote_back, bool graph_changed);
 
