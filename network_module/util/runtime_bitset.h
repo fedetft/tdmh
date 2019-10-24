@@ -32,7 +32,6 @@
 #include <cstring>
 #include <cstdint>
 #include <string>
-#include <sstream>
 
 namespace mxnet {
 /**
@@ -274,16 +273,10 @@ public:
      * Debug method used to print the bitmap content as a string of 0s and 1s
      */
     operator std::string() const {
-        std::ostringstream oss;
-#ifdef _ARCH_CORTEXM3_EFM32GG
-        for (unsigned i = 0; i < bitCount; i++)
-            oss << ((bbData[i] > 0)? '1': '0');
-#else
-        for (unsigned i = 0; i < byteSize; i++)
-            for (int j = 0; j < std::numeric_limits<uint8_t>::digits; j++)
-                oss << (((content[i] & b0) >> j)? '1': '0');
-#endif
-        return oss.str();
+        std::string result;
+        result.reserve(bitCount);
+        for (unsigned i = 0; i < bitCount; i++) result+=this->operator[](i) ? '1' : '0';
+        return result;
     }
 private:
     std::size_t bitCount;
