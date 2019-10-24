@@ -165,13 +165,13 @@ private:
                                             const std::list<ScheduleElement>& current_schedule,
                                             const unsigned int sched_size);
 
-    bool checkAllConflicts(std::list<ScheduleElement> other_streams, const ScheduleElement& transmission, unsigned offset, unsigned tile_size);
+    bool checkAllConflicts(std::list<ScheduleElement> other_streams, const ScheduleElement& transmission, unsigned offset);
 
-    bool checkDataSlot(unsigned offset, unsigned tile_size, unsigned downlink_size, unsigned uplink_size);
+    bool checkDataSlot(unsigned offset);
 
-    bool slotConflictPossible(const ScheduleElement& newtransm, const ScheduleElement& oldtransm, unsigned offset, unsigned tile_size);
+    bool slotConflictPossible(const ScheduleElement& newtransm, const ScheduleElement& oldtransm, unsigned offset);
 
-    bool checkSlotConflict(const ScheduleElement& newtransm, const ScheduleElement& oldtransm, unsigned offset_a, unsigned tile_size);
+    bool checkSlotConflict(const ScheduleElement& newtransm, const ScheduleElement& oldtransm, unsigned offset_a);
 
     bool checkUnicityConflict(const ScheduleElement& new_transmission, const ScheduleElement& old_transmission);
 
@@ -213,8 +213,8 @@ private:
 
     /* References to other classes */
     const unsigned slotsPerTile;
-    const unsigned dataslots_downlinktile;
-    const unsigned dataslots_uplinktile;
+    const unsigned reservedSlotsDownlink;
+    const unsigned reservedSlotsUplink;
     // Needed to get topology information
     NetworkTopology* topology = nullptr;
     // Used to get controlsuperframestructure

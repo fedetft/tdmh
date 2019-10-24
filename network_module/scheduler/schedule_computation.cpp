@@ -45,8 +45,8 @@ ScheduleComputation::ScheduleComputation(const NetworkConfiguration& cfg,
     channelSpatialReuse(cfg.getChannelSpatialReuse()),
     schedule(0, cfg.getControlSuperframeStructure().size()), // Initialize Schedule with ID=0 and tile_size = superframe size
     slotsPerTile(slotsPerTile),
-    dataslots_downlinktile(dataslotsPerDownlinkTile),
-    dataslots_uplinktile(dataslotsPerUplinkTile),
+    reservedSlotsDownlink(slotsPerTile-dataslotsPerDownlinkTile),
+    reservedSlotsUplink(slotsPerTile-dataslotsPerUplinkTile),
     netconfig(cfg),
     superframe(netconfig.getControlSuperframeStructure()),
     network_graph(netconfig.getNeighborBitmaskSize())
@@ -336,12 +336,9 @@ std::pair<std::list<ScheduleElement>,
           unsigned int> ScheduleComputation::scheduleStreams(const std::list<std::list<ScheduleElement>>& routed_streams,
                                                              const std::list<ScheduleElement>& current_schedule,
                                                              const unsigned int schedSize) {
-    unsigned tile_size = slotsPerTile;
-    unsigned downlink_size = tile_size - dataslots_downlinktile;
-    unsigned uplink_size = tile_size - dataslots_uplinktile;
     if(SCHEDULER_DETAILED_DBG)
         printf("[SC] Network configuration:\n- tile_size: %d\n- downlink_size: %d\n- uplink_size: %d\n",
-           tile_size, downlink_size, uplink_size);
+           slotsPerTile, reservedSlotsDownlink, reservedSlotsUplink);
     // Start with an empty schedule, this schedule will be returned
     std::list<ScheduleElement> scheduled_transmissions;
     // Schedule size of last stream, used if the scheduling of a stream has failed
@@ -381,20 +378,20 @@ std::pair<std::list<ScheduleElement>,
             // The offset must be smaller than (stream period * minimum period size)-1
             // with minimum period size being equal to the tile lenght (by design)
             // Otherwise the resulting stream won't be periodic
-            unsigned max_offset = (toInt(transmission.getPeriod()) * tile_size) - 1;
+            unsigned max_offset = (toInt(transmission.getPeriod()) * slotsPerTile) - 1;
             for(unsigned offset = last_offset; offset < max_offset; offset++) {
-                if(!checkDataSlot(offset, tile_size, downlink_size, uplink_size))
+                if(!checkDataSlot(offset))
                     continue;
                 if(SCHEDULER_DETAILED_DBG)
                     printf("[SC] Checking offset %d\n", offset);
                 // Cycle over already scheduled elements to find conflicts
                 if(SCHEDULER_DETAILED_DBG)
                     printf("[SC] Checking against old streams\n");
-                bool conflict = checkAllConflicts(current_schedule, transmission, offset, tile_size);
+                bool conflict = checkAllConflicts(current_schedule, transmission, offset);
                 // Cycle over elements to be scheduled to find conflicts
                 if(SCHEDULER_DETAILED_DBG)
                     printf("[SC] Checking against new streams\n");
-                conflict |= checkAllConflicts(scheduled_transmissions, transmission, offset, tile_size);
+                conflict |= checkAllConflicts(scheduled_transmissions, transmission, offset);
 
                 if(!conflict) {
                     last_offset = offset;
@@ -439,14 +436,14 @@ std::pair<std::list<ScheduleElement>,
     return make_pair(scheduled_transmissions, newSize);
 }
 
-bool ScheduleComputation::checkAllConflicts(std::list<ScheduleElement> other_streams, const ScheduleElement& transmission, unsigned offset, unsigned tile_size) {
+bool ScheduleComputation::checkAllConflicts(std::list<ScheduleElement> other_streams, const ScheduleElement& transmission, unsigned offset) {
     bool conflict = false;
     for(auto& elem : other_streams) {
         // conflictPossible is a simple condition used to reduce number of conflict checks
-        if(slotConflictPossible(transmission, elem, offset, tile_size)) {
+        if(slotConflictPossible(transmission, elem, offset)) {
             if(SCHEDULER_DETAILED_DBG)
                 printf("[SC] Conflict possible with %d->%d\n", elem.getTx(), elem.getRx());
-            if(checkSlotConflict(transmission, elem, offset, tile_size)) {
+            if(checkSlotConflict(transmission, elem, offset)) {
                 if(SCHEDULER_DETAILED_DBG)
                     printf("[SC] %d->%d and %d-%d have timeslots in common\n", transmission.getTx(),
                            transmission.getRx(), elem.getTx(), elem.getRx());
@@ -483,20 +480,18 @@ bool ScheduleComputation::checkAllConflicts(std::list<ScheduleElement> other_str
 
 // This check makes sure that data is not scheduled in control slots (Downlink, Uplink)
 // Return true if the slot is a data slot, false otherwise
-bool ScheduleComputation::checkDataSlot(unsigned offset, unsigned tile_size,
-                                        unsigned downlink_size,
-                                        unsigned uplink_size) {
+bool ScheduleComputation::checkDataSlot(unsigned offset) {
     /* NOTE: superframe.isControlDownlink/Uplink() accepts a number from 0 to (tileSize-1)
        so we need to convert the tile number to the position in the superframe
        we can do so by using the remainder operation */
 
     // Calculate current tile number
-    unsigned tile = offset / tile_size;
+    unsigned tile = offset / slotsPerTile;
     unsigned tilePos = tile % superframe.size();
     // Calculate position in current tile
-    unsigned slot = offset % tile_size;
-    if((superframe.isControlDownlink(tilePos) && (slot < downlink_size)) ||
-       (superframe.isControlUplink(tilePos) && (slot < uplink_size)))
+    unsigned slot = offset % slotsPerTile;
+    if((superframe.isControlDownlink(tilePos) && (slot < reservedSlotsDownlink)) ||
+       (superframe.isControlUplink(tilePos) && (slot < reservedSlotsUplink)))
         return false;
     return true;
 }
@@ -506,21 +501,21 @@ bool ScheduleComputation::checkDataSlot(unsigned offset, unsigned tile_size,
 // It can be used to avoid nested loops
 bool ScheduleComputation::slotConflictPossible(const ScheduleElement& newtransm,
                                                const ScheduleElement& oldtransm,
-                                               unsigned offset, unsigned tile_size) {
+                                               unsigned offset) {
     // Compare offsets relative to current tile of two transmissions
-    return ((offset % tile_size) == (oldtransm.getOffset() % tile_size));
+    return ((offset % slotsPerTile) == (oldtransm.getOffset() % slotsPerTile));
 }
 
 // Extensive check to be used when slotConflictPossible returns true
 bool ScheduleComputation::checkSlotConflict(const ScheduleElement& newtransm,
                                             const ScheduleElement& oldtransm,
-                                            unsigned offset_a, unsigned tile_size) {
+                                            unsigned offset_a) {
     // Calculate slots used by the two transmissions and see if there is any common value
     unsigned period_a = toInt(newtransm.getPeriod());
     unsigned period_b = toInt(oldtransm.getPeriod());
-    unsigned periodslots_a = period_a * tile_size;
-    unsigned periodslots_b = period_b * tile_size;
-    unsigned schedule_slots = lcm(period_a, period_b) * tile_size;
+    unsigned periodslots_a = period_a * slotsPerTile;
+    unsigned periodslots_b = period_b * slotsPerTile;
+    unsigned schedule_slots = lcm(period_a, period_b) * slotsPerTile;
 
     for(unsigned slot_a=offset_a; slot_a < schedule_slots; slot_a += periodslots_a) {
         for(unsigned slot_b=oldtransm.getOffset(); slot_b < schedule_slots; slot_b += periodslots_b) {
