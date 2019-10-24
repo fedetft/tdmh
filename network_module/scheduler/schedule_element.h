@@ -29,7 +29,6 @@
 #include "../util/serializable_message.h"
 #include "../stream/stream_management_element.h"
 #include <cstring>
-#include <iostream>
 #include <memory>
 
 namespace mxnet {

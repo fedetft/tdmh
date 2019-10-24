@@ -391,7 +391,7 @@ void openStream(unsigned char dest, unsigned char port, StreamParameters params)
             // NOTE: Remember to call close() after the stream has been closed
             mxnet::close(stream);
         } catch(exception& e) {
-            cerr<<"\nException thrown: "<<e.what()<<endl;
+            printf("exception %s\n",e.what());
         }
     }
 }

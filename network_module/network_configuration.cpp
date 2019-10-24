@@ -88,9 +88,7 @@ void NetworkConfiguration::validate() const {
         (numUplinkPackets - 1) * getOtherUplinkPacketCapacity();
     auto topologySize = guaranteedTopologies * TopologyElement::maxSize(getNeighborBitmaskSize());
     if(topologySize > totAvailableBytes) {
-        std::ostringstream error;
-        error << "guaranteedTopologies size of " << topologySize << " exceeds UplinkMessage available space of " << totAvailableBytes;
-        throwLogicError(error.str().c_str());
+        throwLogicError("guaranteedTopologies size of %d exceeds UplinkMessage available space of %d",topologySize,totAvailableBytes);
     }
     if(clockSyncPeriod % controlSuperframeDuration != 0)
         throwLogicError("control superframe (%lld) does not divide clock sync period (%lld)",
