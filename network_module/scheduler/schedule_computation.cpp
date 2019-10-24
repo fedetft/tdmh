@@ -72,135 +72,145 @@ void ScheduleComputation::beginScheduling() {
 #endif
 }
 
-void ScheduleComputation::run() {
+void ScheduleComputation::run()
+{
     printStackRange("scheduler");
-    for(;;) {
-        bool forceResend=false;
-        for(;;)
+    for(;;)
+    {
         {
 #ifdef _MIOSIX
             miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
             std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-            /* NOTE: A new schedule has to be computed if the topology or
-                streams have changed, but once a new schedule has been computed,
-                the scheduling has to wait until the previous schedule has been
-                applied. Otherwise, the getCurrentSchedule fails to compute the
-                next activation time and the new schedule may not be aligned to
-                the previous one */
-            if(scheduleNotApplied==false) {
-                // If topology changes, need to reschedule
-                if(topology->wasModified())
-                {
-                    auto op = stream_collection.getOperation();
-                    if(op.resend) forceResend = true;
-                    break;
-                }
-                // We may also need to reschedule due to stream changes
-                auto op = stream_collection.getOperation();
-                if(op.resend && !op.reschedule)
-                {
-                    //If we get here we are asked to ONLY resend and not
-                    //to also reschedule
-                    // Mark the presence of a new schedule, not still applied
-                    scheduleNotApplied = true;
-                } else {
-                    if(op.resend) forceResend = true;
-                    if(op.reschedule) break;
-                }
-            }
+            
 #ifdef UNITTEST
             ready=true;
             sched_cv.notify_all();
 #endif
-            sched_cv.wait(lck); // Wait for beginScheduling() to start scheduling
+            // The cv is notified at every beginScheduling(), but we need to
+            // prevent scheduling if the previous schedule has not been applied
+            while(scheduleNotApplied==true) sched_cv.wait(lck);
             
 #ifdef UNITTEST
             ready=false;
 #endif
         }
-#ifdef _MIOSIX
-        unsigned int stackSize = miosix::MemoryProfiling::getStackSize();
-        unsigned int absFreeStack = miosix::MemoryProfiling::getAbsoluteFreeStack();
-        printf("[H] Scheduler stack %d/%d\n",stackSize-absFreeStack,stackSize);
-#endif
-        // Take snapshot of stream requests
-        stream_snapshot = stream_collection.getSnapshot();
         
-        // Get new graph snapshot if graph changed
-        bool graph_changed = topology->updateSchedulerNetworkGraph(network_graph);
+        bool forceReschedule=false, forceResend=false;
         
-        /* IMPORTANT!: From now on use only the snapshot classes
-           `stream_snapshot` and `network_graph` */
-        /* NOTE: check local graph copy for nodes unreachable from the master
-           and remove them */
-        bool removed = false;
-        bool wrote_back = false;
-        if(network_graph.hasUnreachableNodes()) {
-            removed = network_graph.removeUnreachableNodes();
-            if(removed)
-                wrote_back = topology->writeBackNetworkGraph(network_graph);
-        }
-        initialPrint(removed, wrote_back, graph_changed);
-        // Used to check if the schedule has been changed in this iteration
-        bool scheduleChanged = false;
-
-        /* NOTE: Here we prioritize established streams over new ones */
-        /* If topology changed or a stream was removed:
-           clear current schedule and reschedule established streams */
-        Schedule newSchedule;
-        if(graph_changed || stream_snapshot.wasRemoved()) {
-            newSchedule = scheduleEstablishedStreams(schedule.id + 1);
-            scheduleChanged = true;
-        }
-        // Otherwise continue scheduling from the last schedule
-        // NOTE: the schedule is read without mutex because the schedule class
-        // is written in a mutex protected block and read by other threads in a
-        // mutex protected block.
-        else{
-            newSchedule = Schedule(schedule.schedule, schedule.id + 1, schedule.tiles);
-        }
-        /* If there are new accepted streams:
-           route + schedule them and add them to existing schedule */
-        if(stream_snapshot.wasAdded()) {
-            scheduleAcceptedStreams(newSchedule);
-            scheduleChanged = true;
+        if(topology->wasModified())
+        {
+            // If topology changes, need to reschedule
+            forceReschedule = true;
+            auto op = stream_collection.getOperation();
+            if(op.resend) forceResend = true;
+        } else {
+            // We may also need to reschedule due to stream changes
+            auto op = stream_collection.getOperation();
+            if(op.reschedule) forceReschedule = true;
+            if(op.resend) forceResend = true;
         }
         
-        if(scheduleChanged) topology->usedLinksChanged(computeUsedLinks());
-        else topology->usedLinksNotChanged();
-        
-        if(scheduleChanged) {
-            // Mutex lock to access schedule (shared with ScheduleDownlink).
+        if(forceReschedule) reschedule(forceResend);
+        else if(forceResend)
+        {
 #ifdef _MIOSIX
             miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
             std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-            // Update stream_collection for printing results and notify REJECTED streams
-            /* NOTE: Here we need to change the stream status in stream_collection.
-            (note: we compute the changes using the snapshot and then update the StreamCollection)
-            Do NOT ever change here the status of the streams in StreamManager,
-            because doing so would mean applying the schedule before its activation time.
-            The status in StreamManager must be changed ONLY in the ScheduleDistribution */
-            auto changes = stream_snapshot.getStreamChanges(newSchedule.schedule);
-            stream_collection.applyChanges(changes);
-            // Overwrite current schedule with new one
-            schedule.swap(newSchedule);
-            // Mark the presence of a new schedule, not still applied
-            scheduleNotApplied = true;
-        } else if(forceResend) {
-#ifdef _MIOSIX
-            miosix::Lock<miosix::Mutex> lck(sched_mutex);
-#else
-            std::unique_lock<std::mutex> lck(sched_mutex);
-#endif
-            // Mark the presence of a new schedule, not still applied
+            // If we get here we are asked to ONLY resend and not
+            // to also reschedule. Just mark the presence of a schedule to be
+            // sent, not yet applied
             scheduleNotApplied = true;
         }
-        finalPrint();
     }
+}
+
+void ScheduleComputation::reschedule(bool forceResend)
+{
+#ifdef _MIOSIX
+    unsigned int stackSize = miosix::MemoryProfiling::getStackSize();
+    unsigned int absFreeStack = miosix::MemoryProfiling::getAbsoluteFreeStack();
+    printf("[H] Scheduler stack %d/%d\n",stackSize-absFreeStack,stackSize);
+#endif
+    // Take snapshot of stream requests
+    stream_snapshot = stream_collection.getSnapshot();
+    
+    // Get new graph snapshot if graph changed
+    bool graph_changed = topology->updateSchedulerNetworkGraph(network_graph);
+    
+    /* IMPORTANT!: From now on use only the snapshot classes
+        `stream_snapshot` and `network_graph` */
+    /* NOTE: check local graph copy for nodes unreachable from the master
+        and remove them */
+    bool removed = false;
+    bool wrote_back = false;
+    if(network_graph.hasUnreachableNodes()) {
+        removed = network_graph.removeUnreachableNodes();
+        if(removed)
+            wrote_back = topology->writeBackNetworkGraph(network_graph);
+    }
+    initialPrint(removed, wrote_back, graph_changed);
+    // Used to check if the schedule has been changed in this iteration
+    bool scheduleChanged = false;
+
+    /* NOTE: Here we prioritize established streams over new ones */
+    /* If topology changed or a stream was removed:
+        clear current schedule and reschedule established streams */
+    Schedule newSchedule;
+    if(graph_changed || stream_snapshot.wasRemoved()) {
+        newSchedule = scheduleEstablishedStreams(schedule.id + 1);
+        scheduleChanged = true;
+    }
+    // Otherwise continue scheduling from the last schedule
+    // NOTE: the schedule is read without mutex because the schedule class
+    // is written in a mutex protected block and read by other threads in a
+    // mutex protected block.
+    else{
+        newSchedule = Schedule(schedule.schedule, schedule.id + 1, schedule.tiles);
+    }
+    /* If there are new accepted streams:
+        route + schedule them and add them to existing schedule */
+    if(stream_snapshot.wasAdded()) {
+        scheduleAcceptedStreams(newSchedule);
+        scheduleChanged = true;
+    }
+    
+    if(scheduleChanged) topology->usedLinksChanged(computeUsedLinks());
+    else topology->usedLinksNotChanged();
+    
+    if(scheduleChanged) {
+        // Update stream_collection for printing results and notify REJECTED streams
+        /* NOTE: Here we need to change the stream status in stream_collection.
+        (note: we compute the changes using the snapshot and then update the StreamCollection)
+        Do NOT ever change here the status of the streams in StreamManager,
+        because doing so would mean applying the schedule before its activation time.
+        The status in StreamManager must be changed ONLY in the ScheduleDistribution */
+        auto changes = stream_snapshot.getStreamChanges(newSchedule.schedule);
+        stream_collection.applyChanges(changes);
+        
+        // Mutex lock to access schedule (shared with ScheduleDownlink).
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+        std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
+        // Overwrite current schedule with new one
+        schedule.swap(newSchedule);
+        // Mark the presence of a new schedule, not still applied
+        scheduleNotApplied = true;
+    } else if(forceResend) {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::Mutex> lck(sched_mutex);
+#else
+        std::unique_lock<std::mutex> lck(sched_mutex);
+#endif
+        // Mark the presence of a new schedule, not still applied
+        scheduleNotApplied = true;
+    }
+    finalPrint();
 }
 
 std::set<std::pair<unsigned char,unsigned char>> ScheduleComputation::computeUsedLinks() const

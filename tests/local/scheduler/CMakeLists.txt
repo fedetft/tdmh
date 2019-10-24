@@ -15,6 +15,8 @@ stubs.cpp
 ../../../simulator/WandstemMac/src/network_module/scheduler/schedule_computation.cpp
 ../../../simulator/WandstemMac/src/network_module/scheduler/schedule_element.cpp
 ../../../simulator/WandstemMac/src/network_module/uplink_phase/topology/network_graph.cpp
+../../../simulator/WandstemMac/src/network_module/uplink_phase/topology/network_topology.cpp
+../../../simulator/WandstemMac/src/network_module/uplink_phase/topology/topology_element.cpp
 ../../../simulator/WandstemMac/src/network_module/stream/stream_collection.cpp
 ../../../simulator/WandstemMac/src/network_module/stream/stream_management_element.cpp
 ../../../simulator/WandstemMac/src/network_module/util/debug_settings.cpp
