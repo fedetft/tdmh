@@ -259,7 +259,6 @@ public:
 private:
     const unsigned short panId;
 
-    Server* myServer;
     Packet txPacket;
     Packet rxPacket;
     /* Cached Redundancy Info */

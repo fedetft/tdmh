@@ -131,10 +131,10 @@ void Node::sendData(MACContext* ctx, unsigned char dest, Period period, Redundan
         }while(stream < 0);
         StreamId id = mgr->getInfo(stream).getStreamId();
         printf("[A] Stream (%d,%d) opened \n", id.src, id.dst);
-        unsigned int counter = 0;
+        unsigned int counter = 1;
         while(mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
             Data data(ctx->getNetworkId(), counter);
-            int len = mgr->write(stream, &data, sizeof(data));
+            /*int len =*/ mgr->write(stream, &data, sizeof(data));
             //printf("[A] Sent ID=%d Counter=%u, result=%d \n", data.id, data.counter, len);
             counter++;
         }
