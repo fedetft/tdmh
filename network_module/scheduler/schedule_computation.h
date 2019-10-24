@@ -130,7 +130,7 @@ public:
 private: 
     void run();
     
-    void reschedule(bool forceResend);
+    bool reschedule();
     
     std::set<std::pair<unsigned char,unsigned char>> computeUsedLinks() const;
 

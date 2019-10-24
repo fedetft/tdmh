@@ -112,23 +112,24 @@ void ScheduleComputation::run()
             if(op.resend) forceResend = true;
         }
         
-        if(forceReschedule) reschedule(forceResend);
-        else if(forceResend)
+        bool scheduleChanged=false;
+        if(forceReschedule) scheduleChanged=reschedule();
+        
+        if(forceResend && !scheduleChanged)
         {
 #ifdef _MIOSIX
             miosix::Lock<miosix::Mutex> lck(sched_mutex);
 #else
             std::unique_lock<std::mutex> lck(sched_mutex);
 #endif
-            // If we get here we are asked to ONLY resend and not
-            // to also reschedule. Just mark the presence of a schedule to be
-            // sent, not yet applied
+            // If we get here we have not rescheduled but are asked to resend.
+            // Just mark the presence of a schedule to be sent, not yet applied
             scheduleNotApplied = true;
         }
     }
 }
 
-void ScheduleComputation::reschedule(bool forceResend)
+bool ScheduleComputation::reschedule()
 {
 #ifdef _MIOSIX
     unsigned int stackSize = miosix::MemoryProfiling::getStackSize();
@@ -178,10 +179,9 @@ void ScheduleComputation::reschedule(bool forceResend)
         scheduleChanged = true;
     }
     
-    if(scheduleChanged) topology->usedLinksChanged(computeUsedLinks());
-    else topology->usedLinksNotChanged();
-    
-    if(scheduleChanged) {
+    if(scheduleChanged)
+    {
+        topology->usedLinksChanged(computeUsedLinks());
         // Update stream_collection for printing results and notify REJECTED streams
         /* NOTE: Here we need to change the stream status in stream_collection.
         (note: we compute the changes using the snapshot and then update the StreamCollection)
@@ -201,16 +201,11 @@ void ScheduleComputation::reschedule(bool forceResend)
         schedule.swap(newSchedule);
         // Mark the presence of a new schedule, not still applied
         scheduleNotApplied = true;
-    } else if(forceResend) {
-#ifdef _MIOSIX
-        miosix::Lock<miosix::Mutex> lck(sched_mutex);
-#else
-        std::unique_lock<std::mutex> lck(sched_mutex);
-#endif
-        // Mark the presence of a new schedule, not still applied
-        scheduleNotApplied = true;
+    } else {
+        topology->usedLinksNotChanged();
     }
     finalPrint();
+    return scheduleChanged;
 }
 
 std::set<std::pair<unsigned char,unsigned char>> ScheduleComputation::computeUsedLinks() const
