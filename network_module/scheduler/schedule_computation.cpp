@@ -88,9 +88,10 @@ void ScheduleComputation::run()
             ready=true;
             sched_cv.notify_all();
 #endif
+            if(scheduleNotApplied==false) sched_cv.wait(lck);
             // The cv is notified at every beginScheduling(), but we need to
             // prevent scheduling if the previous schedule has not been applied
-            while(scheduleNotApplied==true) sched_cv.wait(lck);
+            else while(scheduleNotApplied==true) sched_cv.wait(lck);
             
 #ifdef UNITTEST
             ready=false;
