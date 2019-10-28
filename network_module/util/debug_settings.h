@@ -72,7 +72,7 @@ const bool ENABLE_TOPOLOGY_INFO_DBG = false;
 const bool ENABLE_TOPOLOGY_SHORT_SUMMARY = false;
 
 //prints the uplink phase debug info
-const bool ENABLE_UPLINK_DYN_INFO_DBG = false;
+const bool ENABLE_UPLINK_DYN_INFO_DBG = true;
 
 //prints the uplink phase debug verbose info
 const bool ENABLE_UPLINK_DYN_VERB_DBG = true;
