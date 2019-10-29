@@ -65,19 +65,49 @@ inline const char *smeTypeToString(SMEType s)
     }
 }
 
+/**
+ * Perform the grouping of SMETypes into SME classes
+ * \param s SMEType
+ * \return SME class
+ */
+inline unsigned char smeTypeToClass(SMEType s)
+{
+    switch(s)
+    {
+        case SMEType::CONNECT:         return 0; // Class 0, stream/server control
+        case SMEType::LISTEN:          return 0;
+        case SMEType::CLOSED:          return 0;
+        case SMEType::RESEND_SCHEDULE: return 1; // Class 1, schedule control
+        default:                       return 255;
+    }
+}
+
+/**
+ * The SME key is used to put SMEs in UpdatableQueues. The main property of the
+ * UpdatableQueue is that if a new element with the same key is inserted in the
+ * queue, it overwrites the old element. It also isn't put at the end of the
+ * queue, but takes the place of the old element.
+ * The key of a SME is the StreamId and the SME class. The StreamId is
+ * is self-evident, SMEs for different streams shouldn't overwrite each other,
+ * the SME class is used to allow grouping SME types in classes, where SMEs
+ * with the same class (and the same StreamId) can overwrite each other.
+ * For example, if a stream sends a CONNECT, followed by a CLOSED (due to
+ * timeout) and a new CONNECT, all with the same StreamId, those SMES overwrite
+ * each other. While on the other hand, a RESEND_SCHEDULE does not overwrite
+ * any of those.
+ */
 struct SMEKey {
     StreamId id;
-    SMEType type;
+    unsigned char smeClass;
 
-    SMEKey(StreamId id, SMEType type) : id(id), type(type) {
-    }
+    SMEKey(StreamId id, SMEType type) : id(id), smeClass(smeTypeToClass(type)) {}
 
     bool operator <(const SMEKey& other) const {
         return getKey() < other.getKey();
     }
 
     unsigned int getKey() const {
-        return id.getKey() | static_cast<unsigned int>(type)<<24;
+        return id.getKey() | static_cast<unsigned int>(smeClass)<<24;
     }
 };
 
@@ -106,9 +136,7 @@ public:
     {
         StreamManagementElement result;
         result.type = SMEType::RESEND_SCHEDULE;
-        //(id,id,0,port) is used by LISTEN, so use (id,id,1,0) for RESEND.
-        //These have to be unique as the stream id is key in the updatable queues
-        result.id = StreamId(nodeId,nodeId,1,0);
+        result.id = StreamId(nodeId,0,0,0);
 #ifdef WITH_SME_SEQNO
 #ifdef _MIOSIX
         result.seqNo = miosix::atomicAddExchange(&seqCounter,1);
