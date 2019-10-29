@@ -47,7 +47,7 @@ namespace mxnet {
 
 #ifdef DEBUG_MESSAGES_IN_SEPARATE_THREAD
     
-#define WITH_PRINT_SEQNO
+//#define WITH_PRINT_SEQNO
 
 /*
  * Threaded logger configuration parameters
