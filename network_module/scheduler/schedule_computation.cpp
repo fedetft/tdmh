@@ -58,7 +58,7 @@ void ScheduleComputation::startThread() {
     if (scthread == nullptr)
 #ifdef _MIOSIX
         // Thread launched using static function threadLauncher with the class instance as parameter.
-        scthread = miosix::Thread::create(&ScheduleComputation::threadLauncher, 3*1024, miosix::PRIORITY_MAX-2, this, miosix::Thread::JOINABLE);
+        scthread = miosix::Thread::create(&ScheduleComputation::threadLauncher, 3*1024, miosix::MAIN_PRIORITY, this, miosix::Thread::JOINABLE);
 #else
         scthread = new std::thread(&ScheduleComputation::run, this);
 #endif
@@ -133,9 +133,12 @@ void ScheduleComputation::run()
 bool ScheduleComputation::reschedule()
 {
 #ifdef _MIOSIX
+    long long begin = miosix::getTime();
     unsigned int stackSize = miosix::MemoryProfiling::getStackSize();
     unsigned int absFreeStack = miosix::MemoryProfiling::getAbsoluteFreeStack();
     printf("[H] Scheduler stack %d/%d\n",stackSize-absFreeStack,stackSize);
+#else
+    long long begin = 0;
 #endif
     // Take snapshot of stream requests
     stream_snapshot = stream_collection.getSnapshot();
@@ -205,7 +208,7 @@ bool ScheduleComputation::reschedule()
     } else {
         topology->usedLinksNotChanged();
     }
-    finalPrint();
+    finalPrint(begin);
     return scheduleChanged;
 }
 
@@ -228,11 +231,11 @@ void ScheduleComputation::initialPrint(bool removed, bool wrote_back, bool graph
             printf("[%d - %d]\n", it.first, it.second);
         printf("[SC] End Topology\n");
         if(removed) {
-            printf("[SC] Removed nodes not reachable by master from the network graph\n");
+            printf("[SC] Removed nodes not reachable by master\n");
             if(wrote_back)
-                printf("[SC] Network graph without non-reachable nodes wrote-back to Uplink Phase\n");
+                printf("[SC] Network graph wrote-back\n");
             else
-                printf("[SC] Cannot write back network graph with non-reachable nodes\n");
+                printf("[SC] Could not write back network graph\n");
         }
         printf("[SC] Stream list before scheduling:\n");
         printStreams(stream_snapshot.getStreams());
@@ -278,7 +281,7 @@ void ScheduleComputation::scheduleAcceptedStreams(Schedule& currSchedule) {
     currSchedule.tiles = extraSchedulePair.second;
 }
 
-void ScheduleComputation::finalPrint() {
+void ScheduleComputation::finalPrint(long long begin) {
     /* Get updated stream status from StreamCollection */
     std::vector<MasterStreamInfo> streams = stream_collection.getStreams();
     /* Print the schedule and updated stream status */
@@ -289,6 +292,10 @@ void ScheduleComputation::finalPrint() {
         printf("[SC] Stream list after scheduling:\n");
         printStreams(streams);
     }
+#ifdef _MIOSIX
+    long long end = miosix::getTime();
+    printf("[SC] sched time %lldms\n",(end-begin)/1000000);
+#endif
     // To avoid caching of stdout
     fflush(stdout);
 }
@@ -670,8 +677,7 @@ std::list<std::list<ScheduleElement>> Router::run(std::vector<MasterStreamInfo>&
             std::list<std::list<unsigned char>> extra_paths = depthFirstSearch(stream, sol_size + more_hops);
             // Choose best secondary path for redundancy
             if(extra_paths.empty()) {
-                printf("[SC] No extra paths found for stream %d->%d\n", src, dst);
-                printf("[SC] The only path is the primary path.\nDowngrading from spatial to temporal redundancy\n");
+                printf("[SC] No extra paths found for %d->%d (downgrading)\n", src, dst);
                 // Downgrade spatial redundancies to non spatial ones
                 if (redundancy == Redundancy::DOUBLE_SPATIAL) {
                     redundancy = Redundancy::DOUBLE;
@@ -699,7 +705,7 @@ std::list<std::list<ScheduleElement>> Router::run(std::vector<MasterStreamInfo>&
                 }
                 // If the only path is the primary path (extra_paths empty)
                 if(!extra_paths.size()) {
-                    printf("[SC] The only path is the primary path.\nDowngrading from spatial to temporal redundancy\n");
+                    printf("[SC] The only path is the primary path (downgrading).\n");
                     // Downgrade spatial redundancies to non spatial ones
                     if (redundancy == Redundancy::DOUBLE_SPATIAL) {
                         redundancy = Redundancy::DOUBLE;

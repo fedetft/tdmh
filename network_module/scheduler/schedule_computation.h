@@ -147,7 +147,7 @@ private:
      */
     void scheduleAcceptedStreams(Schedule& currSchedule);
 
-    void finalPrint();
+    void finalPrint(long long begin);
     /**
      * @return a pair of schedule and schedule_size
      * Runs the Router and the Scheduler to produce a new schedule
