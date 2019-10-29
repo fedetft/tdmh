@@ -33,12 +33,12 @@ namespace mxnet {
 
     /**
      *  Used by make_heap, push_heap and pop_heap,
-     *  returns true if the first value has lower rssi than the second
+     *  returns true if the first value has higher rssi than the second
      */
     struct comparePredecessors{ 
-        bool operator()(const pair<unsigned char, short>& a,
-                        const pair<unsigned char, short>& b) const{
-            return a.second > b.second; 
+        bool operator()(const tuple<unsigned char, short, unsigned char>& a,
+                        const tuple<unsigned char, short, unsigned char>& b) const{
+            return get<1>(a) > get<1>(b); 
         } 
     };
 
@@ -87,14 +87,14 @@ void NeighborTable::receivedMessage(unsigned char currentNode, unsigned char cur
         // Add to predecessors, overwrite if present
         if (bad) {
             // Artificially lower priority if a node is declared badAssignee
-            addPredecessor(make_pair(currentNode, rssi-128));
+            addPredecessor(make_tuple(currentNode, rssi-128, maxTimeout));
         } else {
-            addPredecessor(make_pair(currentNode, rssi));
+            addPredecessor(make_tuple(currentNode, rssi, maxTimeout));
         }
     }
     else {
-        // Remove from predecessors if present
-        removePredecessor(currentNode);
+        // Remove from predecessors if present (this happens if node desyncs/resyncs)
+        removePredecessor(currentNode, true);
     }
 
     // Evaluate whether I am a bad assignee for others
@@ -102,7 +102,7 @@ void NeighborTable::receivedMessage(unsigned char currentNode, unsigned char cur
         setBadAssignee(true);
     }
     // If my best predecessor is a bad assignee, I am a bad assignee
-    else if(predecessors.front().second < minRssi) {
+    else if(get<1>(predecessors.front()) < minRssi) {
         setBadAssignee(true);
     } else {
         setBadAssignee(false);
@@ -118,32 +118,34 @@ void NeighborTable::missedMessage(unsigned char currentNode) {
            if timeout is zero, neighbor node is considered dead */
         if(it->second-- <= 0) {
             activeNeighbors.erase(currentNode);
-            removePredecessor(currentNode);
             myTopologyElement.removeNode(currentNode);
         }
     }
-    // If currentNode is not present in activeNeighbors, do nothing.
+    
+    removePredecessor(currentNode, false);
 }
 
-void NeighborTable::addPredecessor(pair<unsigned char, short> node) {
+void NeighborTable::addPredecessor(tuple<unsigned char, short, unsigned char> node) {
     // Remove old value if already present in the heap
-    removePredecessor(node.first);
+    removePredecessor(get<0>(node), true);
     // Add new value
     predecessors.push_back(node);
     // Sort new value in heap
     push_heap(predecessors.begin(), predecessors.end(), comparePredecessors());
 }
 
-void NeighborTable::removePredecessor(unsigned char nodeId) {
+void NeighborTable::removePredecessor(unsigned char nodeId, bool force) {
     // Check if value is already present in the heap
     auto it = find_if(predecessors.begin(), 
                            predecessors.end(), 
-                           [&nodeId](const pair<unsigned char, short>& p)
-                           { return p.first == nodeId; });
+                           [&nodeId](const tuple<unsigned char, short, unsigned char>& p)
+                           { return get<1>(p) == nodeId; });
     // Remove old value if present
     if(it != predecessors.end()) {
-        predecessors.erase(it); 
-        make_heap(predecessors.begin(), predecessors.end(), comparePredecessors());
+        if(force || get<2>(*it)-- == 0) {
+            predecessors.erase(it); 
+            make_heap(predecessors.begin(), predecessors.end(), comparePredecessors());
+        }
     }
 }
 

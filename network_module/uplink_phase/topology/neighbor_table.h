@@ -32,6 +32,7 @@
 #include <map>
 #include <vector>
 #include <utility>
+#include <tuple>
 
 namespace mxnet {
 
@@ -60,7 +61,7 @@ public:
 
     bool isBadAssignee() { return badAssignee; };
 
-    unsigned char getBestPredecessor() { return predecessors.front().first; };
+    unsigned char getBestPredecessor() { return std::get<0>(predecessors.front()); };
 
     TopologyElement getMyTopologyElement() { return myTopologyElement; };
 
@@ -77,12 +78,12 @@ private:
     /**
      * Add a node to the predecessor list, replacing if already present
      */
-    void addPredecessor(std::pair<unsigned char, short> node);
+    void addPredecessor(std::tuple<unsigned char, short, unsigned char> node);
 
     /**
      * Remove the node from the predecessor list if present
      */
-    void removePredecessor(unsigned char nodeId);
+    void removePredecessor(unsigned char nodeId, bool force);
 
     /* Constant value from NetworkConfiguration */
     const unsigned short maxTimeout;
@@ -108,7 +109,7 @@ private:
        The pair is <node ID, last RSSI>.
        This list is kept sorted by descending rssi, and it is
        used to pick the predecessor node with highest rssi */
-    std::vector<std::pair<unsigned char, short>> predecessors;
+    std::vector<std::tuple<unsigned char, short, unsigned char>> predecessors;
 
 };
 
