@@ -54,11 +54,12 @@ NeighborTable::NeighborTable(const NetworkConfiguration& config, const unsigned 
     myId(myId),
     myTopologyElement(TopologyElement(maxNodes)) {
     setHop(myHop);
+    setBadAssignee(false);
 }
 
 
 void NeighborTable::receivedMessage(unsigned char currentNode, unsigned char currentHop,
-                                    int rssi, RuntimeBitset senderTopology) {
+                                    int rssi, bool bad, RuntimeBitset senderTopology) {
     // If currentNode is present in activeNeighbors
     auto it = activeNeighbors.find(currentNode);
     if (it != activeNeighbors.end()) {
@@ -80,21 +81,33 @@ void NeighborTable::receivedMessage(unsigned char currentNode, unsigned char cur
             // Add to myTopologyElement
             myTopologyElement.addNode(currentNode);
         }
-        // No need to add currentNode to neighbors
-        else
-            return;
     }
-    // If we end up here we have reset the timeout for currentNode or
-    // just added currentNode to neighbors
     // Check if currentNode is a predecessor
     if(currentHop < myHop) {
         // Add to predecessors, overwrite if present
-        addPredecessor(make_pair(currentNode, rssi));
+        if (bad) {
+            // Artificially lower priority if a node is declared badAssignee
+            addPredecessor(make_pair(currentNode, rssi-128));
+        } else {
+            addPredecessor(make_pair(currentNode, rssi));
+        }
     }
     else {
         // Remove from predecessors if present
         removePredecessor(currentNode);
     }
+
+    // Evaluate whether I am a bad assignee for others
+    if(!hasPredecessor()) {
+        setBadAssignee(true);
+    }
+    // If my best predecessor is a bad assignee, I am a bad assignee
+    else if(predecessors.front().second < minRssi) {
+        setBadAssignee(true);
+    } else {
+        setBadAssignee(false);
+    }
+
 }
 
 void NeighborTable::missedMessage(unsigned char currentNode) {

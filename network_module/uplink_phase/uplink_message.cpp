@@ -34,8 +34,9 @@ namespace mxnet {
 // class SendUplinkMessage
 //
 
-SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
-                                     unsigned char hop, unsigned char assignee,
+SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config, 
+                                     unsigned char hop,
+                                     bool badFlag, unsigned char assignee,
                                      const TopologyElement& myTopology,
                                      int availableTopologies, int availableSMEs) :
     topologySize(TopologyElement::maxSize(config.getNeighborBitmaskSize())),
@@ -44,7 +45,10 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
 {
     computePacketAllocation(config, availableTopologies, availableSMEs);
     packet.putPanHeader(panId);
-    header = {hop, assignee, numTopologies, numSMEs};
+    unsigned char hopFlag;
+    if(badFlag) hopFlag = hop | 0x80;
+    else hopFlag = hop & 0x7F;
+    header = {hopFlag, assignee, numTopologies, numSMEs};
     packet.put(&header, sizeof(UplinkHeader));
     auto neighbors = myTopology.getNeighbors();
     packet.put(neighbors.data(), neighbors.size());
@@ -140,7 +144,7 @@ void SendUplinkMessage::computePacketAllocation(const NetworkConfiguration& conf
 
 void SendUplinkMessage::printHeader() {
     print_dbg("[U] Header: hop=%d, assignee=%d, numTop=%d, numSMEs=%d\n", 
-            header.hop, header.assignee, header.numTopology, header.numSME);
+            getHop(), header.assignee, header.numTopology, header.numSME);
 }
 
 //
@@ -196,7 +200,7 @@ bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) 
     packet.removePanHeader();
     UplinkHeader tempHeader;
     packet.get(&tempHeader, sizeof(UplinkHeader));
-    if(tempHeader.hop > config.getMaxHops()) return false;
+    if(tempHeader.getHop() > config.getMaxHops()) return false;
     if(tempHeader.assignee > config.getMaxNodes()) return false;
     // Extract sender topology
     RuntimeBitset tempSenderTopology(maxNodes);

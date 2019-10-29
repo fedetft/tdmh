@@ -48,14 +48,17 @@ public:
         activeNeighbors.clear();
         predecessors.clear();
         setHop(newHop);
+        setBadAssignee(true);
     }
 
     void receivedMessage(unsigned char currentNode, unsigned char currentHop,
-                         int rssi, RuntimeBitset senderTopology);
+                         int rssi, bool bad, RuntimeBitset senderTopology);
 
     void missedMessage(unsigned char currentNode);
 
     bool hasPredecessor() { return (predecessors.size() != 0); };
+
+    bool isBadAssignee() { return badAssignee; };
 
     unsigned char getBestPredecessor() { return predecessors.front().first; };
 
@@ -65,6 +68,10 @@ private:
 
     void setHop(unsigned char newHop) {
         myHop = newHop;
+    }
+
+    void setBadAssignee(bool bad) {
+        badAssignee = bad;
     }
 
     /**
@@ -85,6 +92,8 @@ private:
 
     /* Current hop in the network, reset with clear() after resync */
     unsigned char myHop;
+
+    bool badAssignee;
 
     /* TopologyElement containing neighbors of this node */
     TopologyElement myTopologyElement;

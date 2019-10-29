@@ -44,6 +44,13 @@ struct UplinkHeader {
     unsigned char assignee;
     unsigned char numTopology;
     unsigned char numSME;
+
+    bool getHop() { return hop & 0x7F; };
+
+    bool getBadAssignee() const {
+        if(hop & 0x80) return true;
+        else return false;
+    }
 } __attribute__((packed));
 
 /**
@@ -84,8 +91,8 @@ inline int getOtherUplinkPacketCapacity() {
 
 class SendUplinkMessage {
 public:
-    SendUplinkMessage(const NetworkConfiguration& config,
-                      unsigned char hop, unsigned char assignee,
+    SendUplinkMessage(const NetworkConfiguration& config, unsigned char hop,
+                      bool badFlag, unsigned char assignee,
                       const TopologyElement& myTopology,
                       int availableTopologies, int availableSMEs);
 
@@ -116,6 +123,13 @@ public:
     }
 
     void printHeader();
+
+    /**
+     * @return the hop of the message sender
+     * We use the most significant bit of the hop field as badAssignee flag
+     */
+    unsigned char getHop() const { return header.hop & 0x7F; }
+
 
 private:
 
@@ -184,8 +198,18 @@ public:
 
     /**
      * @return the hop of the message sender
+     * We use the most significant bit of the hop field as badAssignee flag
      */
-    unsigned char getHop() const { return header.hop; }
+    unsigned char getHop() const { return header.hop & 0x7F; }
+
+    /**
+     * @return the badAssignee flag
+     * We use the most significant bit of the hop field as badAssignee flag
+     */
+    bool getBadAssignee() const {
+        if(header.hop & 0x80) return true;
+        else return false;
+    }
 
     /**
      * @return the recipient node of the UplinkMessage

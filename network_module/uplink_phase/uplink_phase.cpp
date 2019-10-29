@@ -73,7 +73,7 @@ void UplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode)
         auto numPackets = message.getNumPackets();
         auto senderTopology = message.getSenderTopology();
         myNeighborTable.receivedMessage(currentNode, message.getHop(),
-                                    message.getRssi(), senderTopology);
+                message.getRssi(), message.getBadAssignee(), senderTopology);
         
         if(ENABLE_UPLINK_DYN_INFO_DBG)
             print_dbg("[U]<-N=%u @%llu %hddBm\n",currentNode,

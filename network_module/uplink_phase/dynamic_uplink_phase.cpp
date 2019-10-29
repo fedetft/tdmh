@@ -55,7 +55,7 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
        collection */
     if(!myNeighborTable.hasPredecessor()) {
         SendUplinkMessage message(ctx.getNetworkConfig(), ctx.getHop(),
-                                  ctx.getNetworkId(),
+                                  myNeighborTable.isBadAssignee(), ctx.getNetworkId(), //NOTE: why the network id?
                                   myNeighborTable.getMyTopologyElement(),
                                   0, 0);
         if(ENABLE_UPLINK_DYN_INFO_DBG)
@@ -75,6 +75,7 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
     else {
         streamMgr->dequeueSMEs(smeQueue);
         SendUplinkMessage message(ctx.getNetworkConfig(), ctx.getHop(),
+                                  myNeighborTable.isBadAssignee(),
                                   myNeighborTable.getBestPredecessor(),
                                   myNeighborTable.getMyTopologyElement(),
                                   topologyQueue.size(), smeQueue.size());

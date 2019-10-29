@@ -55,7 +55,7 @@ void MasterUplinkPhase::execute(long long slotStart)
 
 void MasterUplinkPhase::sendMyUplink(long long slotStart)
 {
-    SendUplinkMessage message(ctx.getNetworkConfig(), 0, ctx.getNetworkId(),
+    SendUplinkMessage message(ctx.getNetworkConfig(), 0, false, ctx.getNetworkId(),
                               myNeighborTable.getMyTopologyElement(),
                               0, 0);
     if(ENABLE_UPLINK_DYN_INFO_DBG)
