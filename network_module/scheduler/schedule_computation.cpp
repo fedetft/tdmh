@@ -70,6 +70,9 @@ void ScheduleComputation::beginScheduling() {
 #else
     sched_cv.notify_one();
 #endif
+#ifdef UNITTEST
+    ready=false;
+#endif
 }
 
 void ScheduleComputation::run()
