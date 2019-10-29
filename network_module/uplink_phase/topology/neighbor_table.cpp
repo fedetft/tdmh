@@ -52,9 +52,9 @@ NeighborTable::NeighborTable(const NetworkConfiguration& config, const unsigned 
     minRssi(config.getMinNeighborRSSI()),
     maxNodes(config.getMaxNodes()),
     myId(myId),
-    myTopologyElement(TopologyElement(maxNodes)) {
+    myTopologyElement(myId,maxNodes) {
     setHop(myHop);
-    setBadAssignee(false);
+    setBadAssignee(true);
 }
 
 

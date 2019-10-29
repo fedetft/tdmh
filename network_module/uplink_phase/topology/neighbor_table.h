@@ -44,7 +44,7 @@ public:
                   const unsigned char myHop);
 
     void clear(const unsigned char newHop) {
-        myTopologyElement = TopologyElement(maxNodes);
+        myTopologyElement = TopologyElement(myId,maxNodes);
         activeNeighbors.clear();
         predecessors.clear();
         setHop(newHop);
