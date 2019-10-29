@@ -116,7 +116,7 @@ void NeighborTable::missedMessage(unsigned char currentNode) {
     if (it != activeNeighbors.end()) {
         /* Decrement timeout because we missed the uplink message from currentNode        
            if timeout is zero, neighbor node is considered dead */
-        if(it->second-- <= 0) {
+        if(--it->second == 0) {
             activeNeighbors.erase(currentNode);
             myTopologyElement.removeNode(currentNode);
         }
@@ -139,10 +139,10 @@ void NeighborTable::removePredecessor(unsigned char nodeId, bool force) {
     auto it = find_if(predecessors.begin(), 
                            predecessors.end(), 
                            [&nodeId](const tuple<unsigned char, short, unsigned char>& p)
-                           { return get<1>(p) == nodeId; });
+                           { return get<0>(p) == nodeId; });
     // Remove old value if present
     if(it != predecessors.end()) {
-        if(force || get<2>(*it)-- == 0) {
+        if(force || --get<2>(*it) == 0) {
             predecessors.erase(it); 
             make_heap(predecessors.begin(), predecessors.end(), comparePredecessors());
         }
