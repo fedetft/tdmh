@@ -47,7 +47,7 @@ if($ARGV[0] ne "notimeweight") {
     }
 
     foreach(sort keys %links) {
-        printf("$_ %7.3f %%\n",$links{$_}/($curtime-$begintime)*100);
+        printf("$_ %7.2f %%\n",$links{$_}/($curtime-$begintime)*100);
     }
 
 } else {
@@ -68,7 +68,7 @@ if($ARGV[0] ne "notimeweight") {
 
     foreach(sort keys %links)
     {
-        printf("$_ %7.3f %%\n",$links{$_}/$uplinks*100);
+        printf("$_ %7.2f %%\n",$links{$_}/$uplinks*100);
     }
 
 }

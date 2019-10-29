@@ -99,8 +99,8 @@ foreach(sort keys %streams) {
     my $key=$_;
     my $val=$streams{$_};
     my ($sp, $rs, $rd, $rt, $pha, $f, $s, $t) = @{$val};
-    my $rels=100*$rs/$sp;
-    my $reld=100*$rd/$sp;
-    my $relt=100*$rt/$sp;
-    print "[$key]: SENT=$sp RCVD_SINGLE=$rs RCVD_DOUBLE=$rd RCVD_TRIPLE=$rt REL_SINGLE=$rels% REL_DOUBLE=$reld%  REL_TRIPLE=$relt%\n";
+    my $rels=100*$rs/$sp; my $relsstr=sprintf("%.2f",$rels);
+    my $reld=100*$rd/$sp; my $reldstr=sprintf("%.2f",$reld);
+    my $relt=100*$rt/$sp; my $reltstr=sprintf("%.2f",$relt);
+    print "[$key]: SENT=$sp RCVD_SINGLE=$rs RCVD_DOUBLE=$rd RCVD_TRIPLE=$rt REL_SINGLE=$relsstr% REL_DOUBLE=$reldstr%  REL_TRIPLE=$reltstr%\n";
 }

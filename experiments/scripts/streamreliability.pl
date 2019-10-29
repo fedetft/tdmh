@@ -134,6 +134,6 @@ foreach(sort keys %streams) {
     my $val=$streams{$_};
     my ($ctr, $t, $mheap, $reboot, $closed, $sentctr, $sentlog, $recvd, $failed) = @{$val};
     my $sent=max($sentctr,$sentlog);
-    my $reliability=100*$recvd/$sent;
-    print "[$key]: MIN_HEAP=$mheap REBOOT=$reboot CLOSED=$closed SENT=$sentctr,$sentlog RECVD=$recvd FAILED=$failed RELIABILITY=$reliability%\n";
+    my $reliability=100*$recvd/$sent; my $reliabilitystr=sprintf("%.2f",$reliability);
+    print "[$key]: MIN_HEAP=$mheap REBOOT=$reboot CLOSED=$closed SENT=$sentctr,$sentlog RECVD=$recvd FAILED=$failed RELIABILITY=$reliabilitystr%\n";
 }
