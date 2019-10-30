@@ -103,12 +103,14 @@ private:
 
     /* map with key: unsigned char id, value: unsigned char timeoutCounter,
        used to remove nodes from the list of neighbors after not receiving
-       their message for timeoutCounter times */
-    std::map<unsigned char, unsigned short> activeNeighbors;
+       their message for timeoutCounter times.
+       This timeout is used for removing nodes from my local topology. */
+    std::map<unsigned char, unsigned char> activeNeighbors;
 
     /* vector containing predecessor nodes (with hop < this node)
        used as a heap (with stl methods make_heap, push_heap and pop_heap)
-       The pair is <node ID, last RSSI>.
+       The tuple is <node ID, last RSSI, timeoutCounter>.
+       This timeout is used for removing nodes from my list of predecessors.
        This list is kept sorted by descending rssi, and it is
        used to pick the predecessor node with highest rssi */
     std::vector<std::tuple<unsigned char, short, unsigned char>> predecessors;
