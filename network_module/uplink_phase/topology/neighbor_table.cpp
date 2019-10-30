@@ -33,12 +33,12 @@ namespace mxnet {
 
     /**
      *  Used by make_heap, push_heap and pop_heap,
-     *  returns true if the first value has higher rssi than the second
+     *  returns true if the first value has lower rssi than the second
      */
     struct comparePredecessors{ 
         bool operator()(const tuple<unsigned char, short, unsigned char>& a,
                         const tuple<unsigned char, short, unsigned char>& b) const{
-            return get<1>(a) > get<1>(b); 
+            return get<1>(a) < get<1>(b); 
         } 
     };
 
