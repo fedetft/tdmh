@@ -263,7 +263,7 @@ public:
     std::size_t bitSize() const { return bitCount; }
 
     bool operator ==(const RuntimeBitset& other) const {
-        return other.bitCount == bitCount && memcmp(content, other.content, size());
+        return other.bitCount == bitCount && !memcmp(content, other.content, size());
     }
     bool operator !=(const RuntimeBitset& other) const {
         return !(*this == other);
