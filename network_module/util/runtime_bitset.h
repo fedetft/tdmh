@@ -28,6 +28,7 @@
 #pragma once
 
 #include "bitwise_ops.h"
+#include <stdexcept>
 #include <limits>
 #include <cstring>
 #include <cstdint>
@@ -199,14 +200,16 @@ public:
 #ifdef _ARCH_CORTEXM3_EFM32GG
         if (i < bitCount)
             return Bit(bbData, bbData[i], i);
-        return Bit(bbData, false, 0);
+        throw std::range_error("runtime_bitset");
+        //return Bit(bbData, false, 0);
 #else
         if (i < bitCount) {
             unsigned char bitPow = i & indexSplitterMask;
             auto index = i >> shiftDivisor;
             return Bit(content, (content[index] & (b0 >> bitPow)) > 0, index, bitPow);
         }
-        return Bit(content, false, 0, 0);
+        throw std::range_error("runtime_bitset");
+        //return Bit(content, false, 0, 0);
 #endif
     }
 
@@ -218,14 +221,16 @@ public:
 #ifdef _ARCH_CORTEXM3_EFM32GG
         if (i < bitCount)
             return Bit(bbData, bbData[i], i);
-        return Bit(bbData, false, 0);
+        throw std::range_error("runtime_bitset");
+        //return Bit(bbData, false, 0);
 #else
         if (i < bitCount) {
             unsigned char bitPow = i & indexSplitterMask;
             auto index = i >> shiftDivisor;
             return Bit(content, (content[index] & (b0 >> bitPow)) > 0, index, bitPow);
         }
-        return Bit(content, false, 0, 0);
+        throw std::range_error("runtime_bitset");
+        //return Bit(content, false, 0, 0);
 #endif
     }
 
