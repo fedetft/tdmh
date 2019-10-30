@@ -8,6 +8,14 @@ using namespace std;
 using namespace std::chrono;
 using namespace mxnet;
 
+// Convert string to RuntimeBitset
+RuntimeBitset rts(const string& s)
+{
+    RuntimeBitset result(s.size(),0);
+    for(int i=0;i<s.size();i++) if(s.at(i)=='1') result[i]=1;
+    return result;
+}
+
 inline int maxForwardedTopologiesFromMaxNumNodes(int maxNumNodes)
 {
     /*
@@ -24,7 +32,7 @@ inline int maxForwardedTopologiesFromMaxNumNodes(int maxNumNodes)
     return std::min<int>(packetCapacity * topologySMERatio, maxNumNodes - 2);
 }
 
-int main()
+void testNeighborTable()
 {
     const int maxNodes = 16;
     const int maxHops = 6;
@@ -53,26 +61,41 @@ int main()
         2  //hop
     );
     
-    nt.receivedMessage(7,1,-70,false,RuntimeBitset(maxNodes,0));
+    nt.receivedMessage(7,1,-99,false,RuntimeBitset(maxNodes,0));
+    
+    assert(nt.hasPredecessor());
+    assert(nt.getBestPredecessor()==7);
+    //printf("%s\n",string(nt.getMyTopologyElement().getNeighbors()).c_str());
+    assert(nt.getMyTopologyElement().getNeighbors()==rts("0000000000000000"));
 
+    nt.receivedMessage(7,1,-50,false,RuntimeBitset(maxNodes,0));
+    
     assert(nt.hasPredecessor());
     assert(nt.getBestPredecessor()==7);
-    printf("%s\n",string(nt.getMyTopologyElement().getNeighbors()).c_str());
+    assert(nt.getMyTopologyElement().getNeighbors()==rts("0000000100000000"));
     
     nt.missedMessage(7);
     
     assert(nt.hasPredecessor());
     assert(nt.getBestPredecessor()==7);
-    printf("%s\n",string(nt.getMyTopologyElement().getNeighbors()).c_str());
+    assert(nt.getMyTopologyElement().getNeighbors()==rts("0000000100000000"));
     
     nt.missedMessage(7);
     
     assert(nt.hasPredecessor());
     assert(nt.getBestPredecessor()==7);
-    printf("%s\n",string(nt.getMyTopologyElement().getNeighbors()).c_str());
+    assert(nt.getMyTopologyElement().getNeighbors()==rts("0000000100000000"));
     
     nt.missedMessage(7);
     
     assert(nt.hasPredecessor()==false);
-    printf("%s\n",string(nt.getMyTopologyElement().getNeighbors()).c_str());
+    assert(nt.getMyTopologyElement().getNeighbors()==rts("0000000000000000"));
+}
+
+int main()
+{
+    testNeighborTable();
+    
+    cout<<"ok"<<endl;
+    return 0;
 }
