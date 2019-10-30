@@ -58,8 +58,7 @@ inline std::pair<unsigned char,unsigned char> orderLink(unsigned char a, unsigne
 class NetworkTopology {
 public:
     NetworkTopology(const NetworkConfiguration& config) :
-        maxTimeout(config.getMaxRoundsUnavailableBecomesDead()),
-        graph(config.getMaxNodes()) {};
+        graph(config.getMaxNodes()) {}
 
     void receivedMessage(unsigned char currentNode, unsigned char currentHop,
                          int rssi, RuntimeBitset senderTopology);
@@ -153,9 +152,6 @@ private:
     /* Method used internally to add or remove arcs of the graph depending on
        the forwarded topology */
     void doReceivedTopology(const TopologyElement& topology);
-
-    /* Constant value from NetworkConfiguration */
-    const unsigned short maxTimeout;
 
     /* NetworkGraph class containing the complete graph of the network */
     GRAPH_TYPE graph;
