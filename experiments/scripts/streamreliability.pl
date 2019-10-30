@@ -32,9 +32,9 @@ while(<>)
             
             if($ctr >= $octr) {
                 $osentctr += $ctr - $octr;
-            if($ctr > $octr+1) {
-                print "Note @ line $line: node ID=$id CTR went from $octr to $ctr, missed print\n";
-            }
+                #if($ctr > $octr+1) {
+                #    print "Note @ line $line: node ID=$id CTR went from $octr to $ctr, missed print\n";
+                #}
             } else {
                 print "Note @ line $line: node ID=$id CTR went from $octr to $ctr, closed stream?\n";
                 $oclosed++;
@@ -57,7 +57,7 @@ while(<>)
 
         } else {
             # First time we've seen this stream
-            print "Stream [$key] first seen @ line $line\n";
+            #print "Stream [$key] first seen @ line $line\n";
             print "Note @ line $line: stream [$key] starts with CTR=$ctr and not 1\n" if $ctr!=1;
             $streams{$key} =
                 [
@@ -100,7 +100,7 @@ while(<>)
             
         } else {
             # First time we've seen this stream
-            print "Stream [$key] first seen @ line $line\n";
+            #print "Stream [$key] first seen @ line $line\n";
             $streams{$key} =
                 [
                     0,      # Last ctr value
