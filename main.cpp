@@ -140,7 +140,7 @@ void masterNode(void*)
             1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
-            3,             //maxRoundsUnavailableBecomesDead
+            4,             //maxRoundsUnavailableBecomesDead
             -75,           //minNeighborRSSI
             4,             //maxMissedTimesyncs
             false          //channelSpatialReuse
@@ -179,7 +179,7 @@ void dynamicNode(void* argv)
             1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
-            3,             //maxRoundsUnavailableBecomesDead
+            4,             //maxRoundsUnavailableBecomesDead
             -75,           //minNeighborRSSI
             4,             //maxMissedTimesyncs
             false          //channelSpatialReuse
