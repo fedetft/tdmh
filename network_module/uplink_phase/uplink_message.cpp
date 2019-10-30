@@ -143,8 +143,9 @@ void SendUplinkMessage::computePacketAllocation(const NetworkConfiguration& conf
 }
 
 void SendUplinkMessage::printHeader() {
-    print_dbg("[U] Header: hop=%d, assignee=%d, numTop=%d, numSMEs=%d\n", 
-            getHop(), header.assignee, header.numTopology, header.numSME);
+    print_dbg("[U] Header: hop=%d, iAmBad=%d, assignee=%d, numTop=%d, numSMEs=%d\n", 
+            getHop(), getBadAssignee(), header.assignee, header.numTopology,
+            header.numSME);
 }
 
 //

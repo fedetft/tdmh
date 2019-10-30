@@ -130,6 +130,14 @@ public:
      */
     unsigned char getHop() const { return header.hop & 0x7F; }
 
+    /**
+     * @return the badAssignee flag
+     * We use the most significant bit of the hop field as badAssignee flag
+     */
+    bool getBadAssignee() const {
+        if(header.hop & 0x80) return true;
+        else return false;
+    }
 
 private:
 
