@@ -69,6 +69,10 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
     
         if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
             print_dbg("->%d\n",ctx.getNetworkId());
+
+        if(ENABLE_UPLINK_DBG){
+            message.printHeader();
+        }
     }
 
     /* Otherwise pick the best predecessor and send enqueued SMEs and topologies */
