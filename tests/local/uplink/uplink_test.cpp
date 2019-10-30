@@ -61,6 +61,7 @@ void testNeighborTable()
         2  //hop
     );
     
+    //Add link with lower hop, sub-threshold: should be the predecessor but not in the topology
     nt.receivedMessage(7,1,-99,false,RuntimeBitset(maxNodes,0));
     
     assert(nt.hasPredecessor());
@@ -68,12 +69,14 @@ void testNeighborTable()
     //printf("%s\n",string(nt.getMyTopologyElement().getNeighbors()).c_str());
     assert(nt.getMyTopologyElement().getNeighbors()==rts("0000000000000000"));
 
+    //Add same link, above threshold: should be also in the topology
     nt.receivedMessage(7,1,-50,false,RuntimeBitset(maxNodes,0));
     
     assert(nt.hasPredecessor());
     assert(nt.getBestPredecessor()==7);
     assert(nt.getMyTopologyElement().getNeighbors()==rts("0000000100000000"));
     
+    //After three misses should disappear from both
     nt.missedMessage(7);
     
     assert(nt.hasPredecessor());
@@ -90,6 +93,45 @@ void testNeighborTable()
     
     assert(nt.hasPredecessor()==false);
     assert(nt.getMyTopologyElement().getNeighbors()==rts("0000000000000000"));
+    
+    //Add bad link with higher rssi and good link with low rssi
+    //The bad but high should be in topology, the good but low rssi the predecessor
+    nt.receivedMessage(8,1,-50,true,RuntimeBitset(maxNodes,0));
+    nt.receivedMessage(5,1,-80,false,RuntimeBitset(maxNodes,0));
+    
+    assert(nt.hasPredecessor());
+    assert(nt.getBestPredecessor()==5);
+    assert(nt.getMyTopologyElement().getNeighbors()==rts("0000000010000000"));
+    
+    //After three misses should disappear from both
+    nt.missedMessage(8);
+    nt.missedMessage(5);
+    
+    assert(nt.hasPredecessor());
+    assert(nt.getBestPredecessor()==5);
+    assert(nt.getMyTopologyElement().getNeighbors()==rts("0000000010000000"));
+    
+    nt.missedMessage(8);
+    nt.missedMessage(5);
+    
+    assert(nt.hasPredecessor());
+    assert(nt.getBestPredecessor()==5);
+    assert(nt.getMyTopologyElement().getNeighbors()==rts("0000000010000000"));
+    
+    nt.missedMessage(8);
+    nt.missedMessage(5);
+    
+    assert(nt.hasPredecessor()==false);
+    assert(nt.getMyTopologyElement().getNeighbors()==rts("0000000000000000"));
+    
+    //Add three good links, make sure it picks the one with the higest rssi as predecessor
+    nt.receivedMessage(7,1,-82,false,RuntimeBitset(maxNodes,0));
+    nt.receivedMessage(15,1,-70,false,RuntimeBitset(maxNodes,0));
+    nt.receivedMessage(2,1,-5,false,RuntimeBitset(maxNodes,0));
+    
+    assert(nt.hasPredecessor());
+    assert(nt.getBestPredecessor()==2);
+    assert(nt.getMyTopologyElement().getNeighbors()==rts("0010000000000001"));
 }
 
 int main()
