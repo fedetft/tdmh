@@ -98,7 +98,10 @@ void NeighborTable::receivedMessage(unsigned char currentNode, unsigned char cur
     }
 
     // Evaluate whether I am a bad assignee for others
-    if(!hasPredecessor()) {
+    if(myId == 0) {
+        // Master is never a bad assignee
+        setBadAssignee(false);
+    } else if(!hasPredecessor()) {
         setBadAssignee(true);
     }
     // If my best predecessor is a bad assignee, I am a bad assignee
