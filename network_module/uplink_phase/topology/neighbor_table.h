@@ -61,6 +61,8 @@ public:
 
     bool isBadAssignee() { return badAssignee; };
 
+    bool bestPredecessorIsBad() { return std::get<1>(predecessors.front()) < minRssi; };
+
     unsigned char getBestPredecessor() { return std::get<0>(predecessors.front()); };
 
     TopologyElement getMyTopologyElement() { return myTopologyElement; };

@@ -79,6 +79,11 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
                                   myNeighborTable.getBestPredecessor(),
                                   myNeighborTable.getMyTopologyElement(),
                                   topologyQueue.size(), smeQueue.size());
+        if(ENABLE_UPLINK_DBG) {
+            if( myNeighborTable.bestPredecessorIsBad() ) {
+                print_dbg("[U] Assignee chosen is bad\n");
+            }
+        }
         if(ENABLE_UPLINK_DYN_INFO_DBG)
             print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), NetworkTime::fromLocalTime(slotStart).get());
 
