@@ -109,7 +109,7 @@ void DebugPrinter::run()
             messages.pop();
             size -= s.size();
         }
-        write(STDOUT_FILENO,s.c_str(),s.size());
+        printf("%s",s.c_str());
         if(++logCounter >= logMaxSize)
         {
             logCounter = 0;
