@@ -337,7 +337,7 @@ void openServer(unsigned char port, StreamParameters params) {
     try {
         while(getInfo(server).getStatus() == StreamStatus::LISTEN) {
             int stream = accept(server);
-            Thread::create(streamThread, 2048, MAIN_PRIORITY, new StreamThreadPar(stream));
+            Thread::create(streamThread, 1536, MAIN_PRIORITY, new StreamThreadPar(stream));
         }
     } catch(exception& e) {
         printf("Unexpected exception while server accept: %s\n",e.what());
