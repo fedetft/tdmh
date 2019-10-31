@@ -126,7 +126,7 @@ void UpdatableQueue<K,V>::enqueue(K key, V&& val)
     {
         it->second = std::move(val); //Replace
     } else {
-        data[key] = std::move(val);
+        data.insert(std::make_pair(key, std::move(val)));
         queue.push_front(key);
     }
 }
@@ -140,7 +140,7 @@ void UpdatableQueue<K,V>::enqueue(K key, const V& val, std::function<void (V& ol
         f(it->second, val);
         it->second = val; //Replace
     } else {
-        data[key] = val;
+        data.insert(std::make_pair(key, val));
         queue.push_front(key);
     }
 }

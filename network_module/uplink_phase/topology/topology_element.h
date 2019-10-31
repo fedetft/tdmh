@@ -41,7 +41,6 @@ class Packet;
  */
 class TopologyElement : public SerializableMessage {
 public:
-    TopologyElement() : id(0) {}
     TopologyElement(unsigned short maxNodes) : id(0), neighbors(maxNodes, 0) {}
     TopologyElement(unsigned char id, unsigned short maxNodes) : id(id), neighbors(maxNodes, 0) {}
     TopologyElement(unsigned char id, const RuntimeBitset& neighbors) :
