@@ -60,11 +60,6 @@ public:
     NetworkTopology(const NetworkConfiguration& config) :
         graph(config.getMaxNodes()) {}
 
-    void receivedMessage(unsigned char currentNode, unsigned char currentHop,
-                         int rssi, RuntimeBitset senderTopology);
-
-    void missedMessage(unsigned char currentNode);
-
     void handleTopologies(UpdatableQueue<unsigned char, TopologyElement>& topologies);
 
     /**
