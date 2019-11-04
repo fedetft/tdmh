@@ -103,7 +103,7 @@ public:
             unsigned long long tileDuration, unsigned long long maxAdmittedRcvWindow,
             unsigned short maxRoundsUnavailableBecomesDead,
             short minNeighborRSSI, unsigned char maxMissedTimesyncs,
-            bool channelSpatialReuse,
+            bool channelSpatialReuse, bool useWeakTopologies,
             ControlSuperframeStructure controlSuperframe=ControlSuperframeStructure());
 
     /**
@@ -277,6 +277,14 @@ public:
         return channelSpatialReuse;
     }
 
+    /**
+     * @return true if weak topologies are collected and forwarded
+     * for spatial reuse of channel functionality
+     */
+    bool getUseWeakTopologies() const {
+        return useWeakTopologies;
+    }
+
 private:
     /**
      * Validates the times configured
@@ -303,6 +311,7 @@ private:
     const unsigned short maxRoundsUnavailableBecomesDead;
     const short minNeighborRSSI;
     const bool channelSpatialReuse;
+    const bool useWeakTopologies;
     const ControlSuperframeStructure controlSuperframe;
     const unsigned long long controlSuperframeDuration;
 

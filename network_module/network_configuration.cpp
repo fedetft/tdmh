@@ -68,7 +68,7 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
         unsigned long long maxAdmittedRcvWindow,
         unsigned short maxRoundsUnavailableBecomesDead, short minNeighborRSSI,
         unsigned char maxMissedTimesyncs, bool channelSpatialReuse,
-        ControlSuperframeStructure controlSuperframe) :
+        bool useWeakTopologies, ControlSuperframeStructure controlSuperframe) :
     maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)),
     numUplinkPerSuperframe(controlSuperframe.countUplinkSlots()), numDownlinkPerSuperframe(controlSuperframe.countDownlinkSlots()),
     staticNetworkId(networkId), staticHop(staticHop), maxNodes(maxNodes),
@@ -78,7 +78,8 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
     numUplinkPackets(numUplinkPackets),
     maxRoundsUnavailableBecomesDead(maxRoundsUnavailableBecomesDead),
     minNeighborRSSI(minNeighborRSSI), channelSpatialReuse(channelSpatialReuse),
-    controlSuperframe(controlSuperframe), controlSuperframeDuration(tileDuration * controlSuperframe.size()),
+    useWeakTopologies(useWeakTopologies), controlSuperframe(controlSuperframe),
+    controlSuperframeDuration(tileDuration * controlSuperframe.size()),
     numSuperframesPerClockSync(clockSyncPeriod / controlSuperframeDuration) {
     validate();
 }
@@ -86,7 +87,8 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
 void NetworkConfiguration::validate() const {
     const int totAvailableBytes = getFirstUplinkPacketCapacity(*this) +
         (numUplinkPackets - 1) * getOtherUplinkPacketCapacity();
-    auto topologySize = guaranteedTopologies * TopologyElement::maxSize(getNeighborBitmaskSize());
+    auto topologySize = guaranteedTopologies * TopologyElement::maxSize(
+                                getNeighborBitmaskSize(), useWeakTopologies);
     if(topologySize > totAvailableBytes) {
         throwLogicError("guaranteedTopologies size of %d exceeds UplinkMessage available space of %d",topologySize,totAvailableBytes);
     }
