@@ -93,6 +93,7 @@ private:
     /* Current hop in the network, reset with clear() after resync */
     unsigned char myHop;
 
+    /* Whether I am a bad assignee for others */
     bool badAssignee;
 
     /* TopologyElement containing neighbors of this node */
@@ -103,6 +104,7 @@ private:
        their message for timeoutCounter times.
        This timeout is used for removing nodes from my local topology. */
     std::map<unsigned char, unsigned char> activeNeighbors;
+    std::map<unsigned char, unsigned char> weakActiveNeighbors;
 
     /* vector containing predecessor nodes (with hop < this node)
        used as a heap (with stl methods make_heap, push_heap and pop_heap)

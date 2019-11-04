@@ -62,10 +62,11 @@ NeighborTable::NeighborTable(const NetworkConfiguration& config, const unsigned 
 void NeighborTable::receivedMessage(unsigned char currentHop, int rssi,
                                     bool bad, TopologyElement senderTopology) {
     unsigned char currentNode = senderTopology.getId();
-    // If currentNode is present in activeNeighbors
+
+    // Handle primary topology information
+    // If currentNode is present in activeNeighbors, reset timeout
     auto it = activeNeighbors.find(currentNode);
     if (it != activeNeighbors.end()) {
-        // Reset timeout because we received uplink from currentNode
         it->second = maxTimeout;
     }
     else {
@@ -84,6 +85,21 @@ void NeighborTable::receivedMessage(unsigned char currentHop, int rssi,
             myTopologyElement.addNode(currentNode);
         }
     }
+
+    // Handle weak topology information
+    // If currentNode is present in weakActiveNeighbors, reset timeout
+    it = weakActiveNeighbors.find(currentNode);
+    if (it != weakActiveNeighbors.end()) {
+        it->second = maxTimeout;
+    }
+    else {
+        // Add new weak neighbor to set and to topology element,
+        // regardless of rssi
+        weakActiveNeighbors[currentNode] = maxTimeout;
+        myTopologyElement.weakAddNode(currentNode);
+    }
+
+    // Handle predecessor set
     // Check if currentNode is a predecessor
     if(currentHop < myHop) {
         // Add to predecessors, overwrite if present
@@ -124,6 +140,14 @@ void NeighborTable::missedMessage(unsigned char currentNode) {
         if(--it->second == 0) {
             activeNeighbors.erase(currentNode);
             myTopologyElement.removeNode(currentNode);
+        }
+    }
+
+    it = weakActiveNeighbors.find(currentNode);
+    if (it != weakActiveNeighbors.end()) {
+        if(--it->second == 0) {
+            weakActiveNeighbors.erase(currentNode);
+            myTopologyElement.weakRemoveNode(currentNode);
         }
     }
     

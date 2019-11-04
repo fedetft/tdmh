@@ -82,8 +82,10 @@ public:
     RuntimeBitset getWeakNeighbors() const { return weakNeighbors; }
 
     void addNode(unsigned char nodeId) { neighbors[nodeId] = true; }
-
     void removeNode(unsigned char nodeId) { neighbors[nodeId] = false; }
+
+    void weakAddNode(unsigned char nodeId) { weakNeighbors[nodeId] = true; }
+    void weakRemoveNode(unsigned char nodeId) { weakNeighbors[nodeId] = false; }
 
 private:
 
