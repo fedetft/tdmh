@@ -58,9 +58,15 @@ struct UplinkHeader {
  * panHeader, UplinkHeader and myTopology
  */
 inline int getFirstUplinkPacketCapacity(const NetworkConfiguration& config) {
-    return Packet::maxSize() - (panHeaderSize +
-                                sizeof(UplinkHeader) +
-                                config.getNeighborBitmaskSize());
+    if(config.getUseWeakTopologies()) {
+        return Packet::maxSize() - (panHeaderSize +
+                                    sizeof(UplinkHeader) +
+                                    2*config.getNeighborBitmaskSize());
+    } else {
+        return Packet::maxSize() - (panHeaderSize +
+                                    sizeof(UplinkHeader) +
+                                    config.getNeighborBitmaskSize());
+    }
 }
 
 /**
@@ -145,6 +151,7 @@ private:
                                  int availableTopologies, int availableSMEs);
 
     /* Constant values used in the methods */
+    bool weakTop;
     const unsigned int topologySize;
     const unsigned int smeSize;
     const unsigned short panId;
@@ -170,10 +177,12 @@ public:
     ReceiveUplinkMessage(const NetworkConfiguration& config) :
         bitsetSize(config.getNeighborBitmaskSize()),
         maxNodes(config.getMaxNodes()),
-        topologySize(TopologyElement::maxSize(bitsetSize)),
+        weakTop(config.getUseWeakTopologies()),
+        topologySize(TopologyElement::maxSize(bitsetSize, weakTop)),
         smeSize(StreamManagementElement::maxSize()),
         panId(config.getPanId()),
-        topology(RuntimeBitset(maxNodes)) {}
+        topology(RuntimeBitset(maxNodes)),
+        weakTopology(RuntimeBitset(maxNodes)) {}
     ReceiveUplinkMessage(const ReceiveUplinkMessage&) = delete;
     ReceiveUplinkMessage& operator=(const ReceiveUplinkMessage&) = delete;
 
@@ -235,9 +244,12 @@ public:
     int getNumPacketSMEs() const { return packetSMEs; }
 
     /**
-     * @return the RuntimeBitset containing the neighbors of the sender
+     * @return the TopologyElement containing the neighbors of the sender
      */
-    RuntimeBitset getSenderTopology() const { return topology; }
+    TopologyElement getSenderTopology(unsigned char id) const {
+        if(weakTop) return TopologyElement(id, topology, weakTopology);
+        else return TopologyElement(id, topology);
+    }
 
 private:
 
@@ -263,6 +275,7 @@ private:
     /* Constant values used in the methods */
     const unsigned short bitsetSize;
     const unsigned short maxNodes;
+    bool weakTop;
     const unsigned int topologySize;
     const unsigned int smeSize;
     const unsigned short panId;
@@ -281,6 +294,8 @@ private:
     UplinkHeader header;
     /* TopologyElement containing topology of node sending the packet */
     RuntimeBitset topology;
+    /* TopologyElement containing weak topology of node sending the packet */
+    RuntimeBitset weakTopology;
     /* Number of topologies contained in the current packet */
     unsigned int packetTopologies = 0;
     /* Number of SMEs contained in the current packet */

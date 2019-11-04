@@ -88,14 +88,21 @@ void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
     // Mutex already locked by caller
     unsigned char src = topology.getId();
     RuntimeBitset bitset = topology.getNeighbors();
+    RuntimeBitset weakBitset = topology.getWeakNeighbors();
     
     if(ENABLE_TOPOLOGY_BITMASK_DBG)
     {
         std::string s;
-        s.reserve(bitset.bitSize()+2);
+        if(weakTop) s.reserve(bitset.bitSize()+2);
+        else s.reserve(bitset.bitSize()+weakBitset.bitSize()+4);
         s+='[';
         for(unsigned int i=0;i<bitset.bitSize();i++) s+=bitset[i] ? '1' : '0';
         s+=']';
+        if(weakTop) {
+            s+='[';
+            for(unsigned int i=0;i<weakBitset.bitSize();i++) s+=weakBitset[i] ? '1' : '0';
+            s+=']';
+        }
         print_dbg("[U] Topo %03d: %s\n",src,s.c_str());
     }
 

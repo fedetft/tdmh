@@ -41,20 +41,33 @@ class Packet;
  */
 class TopologyElement : public SerializableMessage {
 public:
-    TopologyElement(unsigned short maxNodes) : id(0), neighbors(maxNodes, 0) {}
-    TopologyElement(unsigned char id, unsigned short maxNodes) : id(id), neighbors(maxNodes, 0) {}
+    TopologyElement(unsigned short maxNodes, bool useWeakTopologies) :
+        id(0), neighbors(maxNodes,0), weakNeighbors(maxNodes,0),
+        weakTop(useWeakTopologies){}
+
+    TopologyElement(unsigned char id, unsigned short maxNodes, bool useWeakTopologies) :
+        id(id), neighbors(maxNodes,0), weakNeighbors(maxNodes,0),
+        weakTop(useWeakTopologies){}
+
+    TopologyElement(unsigned char id, const RuntimeBitset& neighbors,
+                    const RuntimeBitset& weakNeighbors) :
+        id(id), neighbors(neighbors), weakNeighbors(weakNeighbors), weakTop(1) {}
+
     TopologyElement(unsigned char id, const RuntimeBitset& neighbors) :
-        id(id), neighbors(neighbors) {}
+        id(id), neighbors(neighbors), weakNeighbors(neighbors.bitSize(),0), weakTop(0) {}
+
     // Zero copy constructor
     TopologyElement(unsigned char id, RuntimeBitset&& neighbors) :
-        id(id), neighbors(std::move(neighbors)) {}
+        id(id), neighbors(std::move(neighbors)), weakTop(0)  {}
     virtual ~TopologyElement() {};
 
-    static unsigned short maxSize(unsigned short bitmaskSize) {
-        return sizeof(unsigned char) + bitmaskSize;
+    static unsigned short maxSize(unsigned short bitmaskSize, bool useWeakTopologies) {
+        if(useWeakTopologies) return sizeof(unsigned char) + 2*bitmaskSize;
+        else return sizeof(unsigned char) + bitmaskSize;
     }
     std::size_t size() const override {
-        return sizeof(unsigned char) + neighbors.size();
+        if(weakTop) return sizeof(unsigned char) + neighbors.size() + weakNeighbors.size();
+        else return sizeof(unsigned char) + neighbors.size();
     }
     void serialize(Packet& pkt) const override;
 
@@ -66,6 +79,7 @@ public:
     unsigned char getId() const { return id; }
 
     const RuntimeBitset& getNeighbors() const { return neighbors; }
+    RuntimeBitset getWeakNeighbors() const { return weakNeighbors; }
 
     void addNode(unsigned char nodeId) { neighbors[nodeId] = true; }
 
@@ -77,6 +91,10 @@ private:
     unsigned char id;
     /* Neighbors of the node */
     RuntimeBitset neighbors;
+    /* Weak neighbors of the node: nodes whose uplink I receive with *any* rssi */
+    RuntimeBitset weakNeighbors;
+    /* Whether weak topology bitmask is being used and should be serialized*/
+    bool weakTop;
 };
 
 } /* namespace mxnet */

@@ -38,12 +38,19 @@ namespace mxnet {
 void TopologyElement::serialize(Packet& pkt) const {
     pkt.put(&id, sizeof(unsigned char));
     pkt.put(neighbors.data(), neighbors.size());
+    if(weakTop) {
+        pkt.put(weakNeighbors.data(), weakNeighbors.size());
+    }
 }
 
 void TopologyElement::deserialize(Packet& pkt) {
     assert(neighbors.size()>0);
+    assert(weakNeighbors.size()>0);
     pkt.get(&id, sizeof(unsigned char));
     pkt.get(neighbors.data(), neighbors.size());
+    if(weakTop) {
+        pkt.get(weakNeighbors.data(), weakNeighbors.size());
+    }
 }
 
 

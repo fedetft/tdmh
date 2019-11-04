@@ -39,7 +39,8 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
                                      bool badFlag, unsigned char assignee,
                                      const TopologyElement& myTopology,
                                      int availableTopologies, int availableSMEs) :
-    topologySize(TopologyElement::maxSize(config.getNeighborBitmaskSize())),
+    weakTop(config.getUseWeakTopologies()),
+    topologySize(TopologyElement::maxSize(config.getNeighborBitmaskSize(), weakTop)),
     smeSize(StreamManagementElement::maxSize()),
     panId(config.getPanId())
 {
@@ -52,6 +53,10 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
     packet.put(&header, sizeof(UplinkHeader));
     auto neighbors = myTopology.getNeighbors();
     packet.put(neighbors.data(), neighbors.size());
+    if(weakTop) {
+        auto weakNeighbors = myTopology.getWeakNeighbors();
+        packet.put(weakNeighbors.data(), weakNeighbors.size());
+    }
 }
 
 void SendUplinkMessage::serializeTopologiesAndSMEs(UpdatableQueue<unsigned char,TopologyElement>& topologies,
@@ -181,7 +186,8 @@ void ReceiveUplinkMessage::deserializeTopologiesAndSMEs(UpdatableQueue<unsigned 
                                                         UpdatableQueue<SMEKey,
                                                         StreamManagementElement>& smes) {
     for(int i = 0; i < getNumPacketTopologies(); i++) {
-        TopologyElement topology(maxNodes); //Need to first know maxNodes to be deserialized
+        //Need to first know maxNodes to be deserialized
+        TopologyElement topology(maxNodes, weakTop);
         topology.deserialize(packet);
         unsigned char id = topology.getId();
         topologies.enqueue(id, std::move(topology));
@@ -205,7 +211,9 @@ bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) 
     if(tempHeader.assignee > config.getMaxNodes()) return false;
     // Extract sender topology
     RuntimeBitset tempSenderTopology(maxNodes);
+    RuntimeBitset tempSenderWeakTopology(maxNodes);
     packet.get(tempSenderTopology.data(), bitsetSize);
+    if(weakTop) packet.get(tempSenderWeakTopology.data(), bitsetSize);
 
     // Check topologies and SME only if uplink packet has any of them
     if(tempHeader.numTopology != 0 || tempHeader.numSME != 0)
@@ -215,6 +223,7 @@ bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) 
     // Write temporary values to class fields
     header = tempHeader;
     topology = std::move(tempSenderTopology);
+    if(weakTop) weakTopology = std::move(tempSenderWeakTopology);
     return true;
 }
 

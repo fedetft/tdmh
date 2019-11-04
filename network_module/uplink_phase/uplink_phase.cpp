@@ -71,9 +71,9 @@ void UplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode)
     if(message.recv(ctx, slotStart))
     {
         auto numPackets = message.getNumPackets();
-        auto senderTopology = message.getSenderTopology();
-        myNeighborTable.receivedMessage(currentNode, message.getHop(),
-                message.getRssi(), message.getBadAssignee(), senderTopology);
+        TopologyElement senderTopology = message.getSenderTopology(currentNode);
+        myNeighborTable.receivedMessage(message.getHop(), message.getRssi(),
+                                    message.getBadAssignee(), senderTopology);
         
         if(ENABLE_UPLINK_DYN_INFO_DBG)
             print_dbg("[U]<-N=%u @%llu %hddBm\n",currentNode,
@@ -83,8 +83,7 @@ void UplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode)
     
         if(message.getAssignee() == myId)
         {
-            topologyQueue.enqueue(currentNode,
-                TopologyElement(currentNode, std::move(senderTopology)));
+            topologyQueue.enqueue(currentNode, std::move(senderTopology));
             message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
             
             for(int i = 1; i < numPackets; i++)

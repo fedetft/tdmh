@@ -48,18 +48,20 @@ namespace mxnet {
 
 NeighborTable::NeighborTable(const NetworkConfiguration& config, const unsigned char myId,
                              const unsigned char myHop) :
+    weakTop(config.getUseWeakTopologies()),
     maxTimeout(config.getMaxRoundsUnavailableBecomesDead()),
     minRssi(config.getMinNeighborRSSI()),
     maxNodes(config.getMaxNodes()),
     myId(myId),
-    myTopologyElement(myId,maxNodes) {
+    myTopologyElement(myId,maxNodes,weakTop) {
     setHop(myHop);
     badAssignee = true;
 }
 
 
-void NeighborTable::receivedMessage(unsigned char currentNode, unsigned char currentHop,
-                                    int rssi, bool bad, RuntimeBitset senderTopology) {
+void NeighborTable::receivedMessage(unsigned char currentHop, int rssi,
+                                    bool bad, TopologyElement senderTopology) {
+    unsigned char currentNode = senderTopology.getId();
     // If currentNode is present in activeNeighbors
     auto it = activeNeighbors.find(currentNode);
     if (it != activeNeighbors.end()) {
@@ -75,7 +77,7 @@ void NeighborTable::receivedMessage(unsigned char currentNode, unsigned char cur
             myTopologyElement.addNode(currentNode);
         }
         // If rssi < treshold but we are present in senderTopology
-        else if(senderTopology[myId] == true) {
+        else if(senderTopology.getNeighbors()[myId] == true) {
             // Add to activeNeighbors with timeout=max
             activeNeighbors[currentNode] = maxTimeout;
             // Add to myTopologyElement

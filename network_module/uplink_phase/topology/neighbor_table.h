@@ -45,15 +45,15 @@ public:
                   const unsigned char myHop);
 
     void clear(const unsigned char newHop) {
-        myTopologyElement = TopologyElement(myId,maxNodes);
+        myTopologyElement = TopologyElement(myId,maxNodes,weakTop);
         activeNeighbors.clear();
         predecessors.clear();
         setHop(newHop);
         badAssignee = true;
     }
 
-    void receivedMessage(unsigned char currentNode, unsigned char currentHop,
-                         int rssi, bool bad, RuntimeBitset senderTopology);
+    void receivedMessage(unsigned char currentHop, int rssi, bool bad,
+                         TopologyElement senderTopology);
 
     void missedMessage(unsigned char currentNode);
 
@@ -84,6 +84,7 @@ private:
     void removePredecessor(unsigned char nodeId, bool force);
 
     /* Constant value from NetworkConfiguration */
+    const bool weakTop;
     const unsigned short maxTimeout;
     const short minRssi;
     const unsigned short maxNodes;

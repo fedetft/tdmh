@@ -58,6 +58,7 @@ inline std::pair<unsigned char,unsigned char> orderLink(unsigned char a, unsigne
 class NetworkTopology {
 public:
     NetworkTopology(const NetworkConfiguration& config) :
+        weakTop(config.getUseWeakTopologies()),
         graph(config.getMaxNodes()) {}
 
     void handleTopologies(UpdatableQueue<unsigned char, TopologyElement>& topologies);
@@ -147,6 +148,9 @@ private:
     /* Method used internally to add or remove arcs of the graph depending on
        the forwarded topology */
     void doReceivedTopology(const TopologyElement& topology);
+    
+    /* Whether weak topology bitmasks are being used*/
+    bool weakTop;
 
     /* NetworkGraph class containing the complete graph of the network */
     GRAPH_TYPE graph;
@@ -158,7 +162,7 @@ private:
     std::set<std::pair<unsigned char,unsigned char>> removedWhileScheduling;
     
     std::set<std::pair<unsigned char,unsigned char>> usedLinks;
-    
+
     /* Mutex to synchronize the concurrent access to the network graph
        by the uplink and schedule_computation classes */
 #ifdef _MIOSIX
