@@ -132,6 +132,30 @@ void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
             }
         }
     }
+
+    if(weakTop) {
+        /* Update weak graph according to received topology */
+        for (unsigned i = 0; i < weakBitset.bitSize(); i++) {
+            if(i == src) //no auto-arcs
+                continue;
+            if(weakBitset[i]) {
+                bool added = weakGraph.addEdge(src, i);
+                if(added) {
+                    /* Modified flag is set because new weak arcs can cause
+                       new conflicts for channel spatial reuse */
+                    modified_flag = true;
+                }
+            } else {
+                weakGraph.removeEdge(src, i);
+                /* NOTE : while the weak topology has changed, the 
+                   removal of weak links does not cause problems to
+                   existing streams, so rescheduling is not necessary.
+                   Therefore we do not set the modified flag in this
+                   case. */
+            }
+
+        }
+    }
 }
 
 } /* namespace mxnet */

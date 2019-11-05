@@ -59,7 +59,8 @@ class NetworkTopology {
 public:
     NetworkTopology(const NetworkConfiguration& config) :
         weakTop(config.getUseWeakTopologies()),
-        graph(config.getMaxNodes()) {}
+        graph(config.getMaxNodes()),
+        weakGraph(config.getMaxNodes()) {}
 
     void handleTopologies(UpdatableQueue<unsigned char, TopologyElement>& topologies);
 
@@ -154,6 +155,8 @@ private:
 
     /* NetworkGraph class containing the complete graph of the network */
     GRAPH_TYPE graph;
+    /* NetworkGraph class containing the graph of weak links */
+    GRAPH_TYPE weakGraph;
 
     /* Flag used by the scheduler to check if the topology has changed */
     bool modified_flag = false;
