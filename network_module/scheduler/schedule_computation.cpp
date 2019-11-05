@@ -43,13 +43,15 @@ namespace mxnet {
 ScheduleComputation::ScheduleComputation(const NetworkConfiguration& cfg,
     unsigned slotsPerTile, unsigned dataslotsPerDownlinkTile, unsigned dataslotsPerUplinkTile) :
     channelSpatialReuse(cfg.getChannelSpatialReuse()),
+    useWeakTopologies(cfg.getUseWeakTopologies()),
     schedule(0, cfg.getControlSuperframeStructure().size()), // Initialize Schedule with ID=0 and tile_size = superframe size
     slotsPerTile(slotsPerTile),
     reservedSlotsDownlink(slotsPerTile-dataslotsPerDownlinkTile),
     reservedSlotsUplink(slotsPerTile-dataslotsPerUplinkTile),
     netconfig(cfg),
     superframe(netconfig.getControlSuperframeStructure()),
-    network_graph(netconfig.getNeighborBitmaskSize())
+    network_graph(netconfig.getNeighborBitmaskSize()),
+    weak_graph(netconfig.getNeighborBitmaskSize())
 {
 
 }
@@ -147,7 +149,7 @@ bool ScheduleComputation::reschedule()
     stream_snapshot = stream_collection.getSnapshot();
     
     // Get new graph snapshot if graph changed
-    bool graph_changed = topology->updateSchedulerNetworkGraph(network_graph);
+    bool graph_changed = topology->updateSchedulerNetworkGraph(network_graph, weak_graph);
     
     /* IMPORTANT!: From now on use only the snapshot classes
         `stream_snapshot` and `network_graph` */
@@ -559,8 +561,15 @@ bool ScheduleComputation::checkInterferenceConflict(const ScheduleElement& new_t
     unsigned char rx_b = old_transmission.getRx();
 
     bool conflict = false;
-    conflict |= network_graph.hasEdge(tx_a, rx_b);
-    conflict |= network_graph.hasEdge(rx_a, tx_b);
+    if (useWeakTopologies) {
+        conflict |= weak_graph.hasEdge(tx_a, rx_b);
+        conflict |= weak_graph.hasEdge(rx_a, tx_b);
+    } else {
+        /* If weak topologies are not being used, use the main network graph
+         * for conflict checks */
+        conflict |= network_graph.hasEdge(tx_a, rx_b);
+        conflict |= network_graph.hasEdge(rx_a, tx_b);
+    }
     return conflict;
 }
 

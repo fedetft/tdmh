@@ -79,10 +79,10 @@ public:
 
     /**
      * This function is called by ScheduleComputation at every scheduler round
-     * If the graph has changed from the last check, update the graph snapshot
+     * If the graphs have changed from the last check, update the graph snapshots
      * of the scheduler, and set corresponding graph_changed flag
      */
-    bool updateSchedulerNetworkGraph(GRAPH_TYPE& otherGraph) {
+    bool updateSchedulerNetworkGraph(GRAPH_TYPE& otherGraph, GRAPH_TYPE& otherWeakGraph) {
         // Mutex lock to access NetworkGraph (shared with ScheduleComputation).
 #ifdef _MIOSIX
         miosix::Lock<miosix::Mutex> lck(graph_mutex);
@@ -93,6 +93,8 @@ public:
         
         // Always copy, as some changes do not set modified_flag
         otherGraph = graph;
+        if(weakTop)
+            otherWeakGraph = weakGraph;
         
         bool result = modified_flag;
         modified_flag = false;

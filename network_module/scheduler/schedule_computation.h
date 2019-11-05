@@ -199,6 +199,7 @@ private:
 
     /* Cached configuration parameters from NetworkConfiguration */
     const bool channelSpatialReuse;
+    const bool useWeakTopologies;
 
     /* Class containing a map of all the Streams and Servers in the network
      * and a queue of InfoElements to send on the network */
@@ -223,6 +224,7 @@ private:
     const ControlSuperframeStructure superframe;
     // Class containing a snapshot of the network topology
     GRAPH_TYPE network_graph;
+    GRAPH_TYPE weak_graph;
     
 #ifdef UNITTEST
     bool ready=false;
