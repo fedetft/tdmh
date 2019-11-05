@@ -93,12 +93,12 @@ void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
     if(ENABLE_TOPOLOGY_BITMASK_DBG)
     {
         std::string s;
-        if(weakTop) s.reserve(bitset.bitSize()+2);
+        if(useWeakTopologies) s.reserve(bitset.bitSize()+2);
         else s.reserve(bitset.bitSize()+weakBitset.bitSize()+4);
         s+='[';
         for(unsigned int i=0;i<bitset.bitSize();i++) s+=bitset[i] ? '1' : '0';
         s+=']';
-        if(weakTop) {
+        if(useWeakTopologies) {
             s+='[';
             for(unsigned int i=0;i<weakBitset.bitSize();i++) s+=weakBitset[i] ? '1' : '0';
             s+=']';
@@ -113,7 +113,16 @@ void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
             continue;
         
         if(bitset[i]) {
-            graph.addEdge(src, i);
+            bool added = graph.addEdge(src, i);
+            if(added) {
+                if(channelSpatialReuse && !useWeakTopologies) {
+                    /* In this case, since the main topology graph is used for
+                        * interference conflict detection, a new arc MUST cause
+                        * rescheduling, otherwise it may cause systematic packet
+                        * loss on transmissions involving nodes src, i */
+                    modified_flag = true;
+                }
+            }
         } else {
             bool removed = graph.removeEdge(src, i);
             
@@ -133,7 +142,7 @@ void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
         }
     }
 
-    if(weakTop) {
+    if(useWeakTopologies) {
         /* Update weak graph according to received topology */
         for (unsigned i = 0; i < weakBitset.bitSize(); i++) {
             if(i == src) //no auto-arcs

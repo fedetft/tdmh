@@ -58,7 +58,8 @@ inline std::pair<unsigned char,unsigned char> orderLink(unsigned char a, unsigne
 class NetworkTopology {
 public:
     NetworkTopology(const NetworkConfiguration& config) :
-        weakTop(config.getUseWeakTopologies()),
+        channelSpatialReuse(config.getChannelSpatialReuse()),
+        useWeakTopologies(config.getUseWeakTopologies()),
         graph(config.getMaxNodes()),
         weakGraph(config.getMaxNodes()) {}
 
@@ -93,7 +94,7 @@ public:
         
         // Always copy, as some changes do not set modified_flag
         otherGraph = graph;
-        if(weakTop)
+        if(useWeakTopologies)
             otherWeakGraph = weakGraph;
         
         bool result = modified_flag;
@@ -152,8 +153,8 @@ private:
        the forwarded topology */
     void doReceivedTopology(const TopologyElement& topology);
     
-    /* Whether weak topology bitmasks are being used*/
-    bool weakTop;
+    bool channelSpatialReuse;
+    bool useWeakTopologies;
 
     /* NetworkGraph class containing the complete graph of the network */
     GRAPH_TYPE graph;
