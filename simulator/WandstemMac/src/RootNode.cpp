@@ -55,7 +55,7 @@ void RootNode::activity()
             3,             //maxRoundsUnavailableBecomesDead
             -75,           //minNeighborRSSI
             3,             //maxMissedTimesyncs
-            false,          //channelSpatialReuse
+            true,          //channelSpatialReuse
             true           //useWeakTopologies
     );
     MasterMediumAccessController controller(Transceiver::instance(), config);
