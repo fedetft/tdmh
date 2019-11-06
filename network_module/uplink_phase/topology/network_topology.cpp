@@ -93,8 +93,8 @@ void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
     if(ENABLE_TOPOLOGY_BITMASK_DBG)
     {
         std::string s;
-        if(useWeakTopologies) s.reserve(bitset.bitSize()+2);
-        else s.reserve(bitset.bitSize()+weakBitset.bitSize()+4);
+        if(useWeakTopologies) s.reserve(bitset.bitSize()+weakBitset.bitSize()+4);
+        else s.reserve(bitset.bitSize()+2);
         s+='[';
         for(unsigned int i=0;i<bitset.bitSize();i++) s+=bitset[i] ? '1' : '0';
         s+=']';
