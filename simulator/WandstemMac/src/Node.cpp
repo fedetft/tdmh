@@ -62,6 +62,7 @@ try {
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
             3,             //maxRoundsUnavailableBecomesDead
+            16,            //maxRoundsWeakLinkBecomesDead
             -75,           //minNeighborRSSI
             3,             //maxMissedTimesyncs
             true,          //channelSpatialReuse

@@ -66,7 +66,8 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
         unsigned long long clockSyncPeriod, unsigned char guaranteedTopologies,
         unsigned char numUplinkPackets, unsigned long long tileDuration,
         unsigned long long maxAdmittedRcvWindow,
-        unsigned short maxRoundsUnavailableBecomesDead, short minNeighborRSSI,
+        unsigned short maxRoundsUnavailableBecomesDead,
+        unsigned short maxRoundsWeakLinkBecomesDead, short minNeighborRSSI,
         unsigned char maxMissedTimesyncs, bool channelSpatialReuse,
         bool useWeakTopologies, ControlSuperframeStructure controlSuperframe) :
     maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)),
@@ -77,6 +78,7 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
     maxMissedTimesyncs(maxMissedTimesyncs), guaranteedTopologies(guaranteedTopologies),
     numUplinkPackets(numUplinkPackets),
     maxRoundsUnavailableBecomesDead(maxRoundsUnavailableBecomesDead),
+    maxRoundsWeakLinkBecomesDead(maxRoundsWeakLinkBecomesDead),
     minNeighborRSSI(minNeighborRSSI), channelSpatialReuse(channelSpatialReuse),
     useWeakTopologies(useWeakTopologies), controlSuperframe(controlSuperframe),
     controlSuperframeDuration(tileDuration * controlSuperframe.size()),

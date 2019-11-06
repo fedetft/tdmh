@@ -86,6 +86,7 @@ private:
     /* Constant value from NetworkConfiguration */
     const bool weakTop;
     const unsigned short maxTimeout;
+    const unsigned short weakTimeout;
     const short minRssi;
     const unsigned short maxNodes;
     const unsigned char myId;

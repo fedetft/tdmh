@@ -50,6 +50,7 @@ NeighborTable::NeighborTable(const NetworkConfiguration& config, const unsigned 
                              const unsigned char myHop) :
     weakTop(config.getUseWeakTopologies()),
     maxTimeout(config.getMaxRoundsUnavailableBecomesDead()),
+    weakTimeout(config.getMaxRoundsWeakLinkBecomesDead()),
     minRssi(config.getMinNeighborRSSI()),
     maxNodes(config.getMaxNodes()),
     myId(myId),
@@ -90,12 +91,12 @@ void NeighborTable::receivedMessage(unsigned char currentHop, int rssi,
     // If currentNode is present in weakActiveNeighbors, reset timeout
     it = weakActiveNeighbors.find(currentNode);
     if (it != weakActiveNeighbors.end()) {
-        it->second = maxTimeout;
+        it->second = weakTimeout;
     }
     else {
         // Add new weak neighbor to set and to topology element,
         // regardless of rssi
-        weakActiveNeighbors[currentNode] = maxTimeout;
+        weakActiveNeighbors[currentNode] = weakTimeout;
         myTopologyElement.weakAddNode(currentNode);
     }
 

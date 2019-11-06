@@ -102,6 +102,7 @@ public:
             unsigned char guaranteedTopologies, unsigned char numUplinkPackets,
             unsigned long long tileDuration, unsigned long long maxAdmittedRcvWindow,
             unsigned short maxRoundsUnavailableBecomesDead,
+            unsigned short maxRoundsWeakLinkBecomesDead,
             short minNeighborRSSI, unsigned char maxMissedTimesyncs,
             bool channelSpatialReuse, bool useWeakTopologies,
             ControlSuperframeStructure controlSuperframe=ControlSuperframeStructure());
@@ -208,6 +209,14 @@ public:
     }
 
     /**
+     * @return the number of uplinks (for which it would be his turn)
+     * after which a weak neighbor not sending a packet is considered disconnected.
+     */
+    unsigned short getMaxRoundsWeakLinkBecomesDead() const {
+        return maxRoundsWeakLinkBecomesDead;
+    }
+
+    /**
      * @return the minimum RSSI for considering a link reliable, thus adding the sender node as neighbor.
      */
     short getMinNeighborRSSI() const {
@@ -309,6 +318,7 @@ private:
     const unsigned char guaranteedTopologies;
     const unsigned char numUplinkPackets;
     const unsigned short maxRoundsUnavailableBecomesDead;
+    const unsigned short maxRoundsWeakLinkBecomesDead;
     const short minNeighborRSSI;
     const bool channelSpatialReuse;
     const bool useWeakTopologies;
