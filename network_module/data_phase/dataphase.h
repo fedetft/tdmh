@@ -45,7 +45,7 @@ public:
     DataPhase(MACContext& ctx, StreamManager& str) : MACPhase(ctx),
                                                      panId(ctx.getNetworkConfig().getPanId()),
                                                      myId(ctx.getNetworkId()),
-                                                     stream(str) {};
+                                                     stream(str), bufCtr() {};
     
     virtual ~DataPhase() {}
 
@@ -74,6 +74,7 @@ public:
         scheduleTiles = 0;
         scheduleSlots = 0;
         currentSchedule.clear();
+        bufCtr.clear();
     };
     /**
      * Called after desynchronization
@@ -84,8 +85,8 @@ public:
     void sleep(long long slotStart);
     void sendFromStream(long long slotStart, StreamId id);
     void receiveToStream(long long slotStart, StreamId id);
-    void sendFromBuffer(long long slotStart, std::shared_ptr<Packet> buffer);
-    void receiveToBuffer(long long slotStart, std::shared_ptr<Packet> buffer);
+    void sendFromBuffer(long long slotStart, std::shared_ptr<Packet> buffer, StreamId id);
+    void receiveToBuffer(long long slotStart, std::shared_ptr<Packet> buffer, StreamId id);
     /* Called from ScheduleDownlinkPhase class on the first downlink slot
      * of the new schedule, to replace the currentSchedule,
      * taking effect in the next dataphase */
@@ -95,6 +96,7 @@ public:
         currentSchedule = std::move(newSchedule);
         setScheduleID(newId);
         setScheduleTiles(newScheduleTiles);
+        initializeBufferCounters();
         slotIndex = 0;
         if(newActivationTile == currentTile) {
             print_dbg("[D] Schedule ID:%lu, StartTile:%lu activated at tile:%2u\n",
@@ -138,6 +140,8 @@ private:
         scheduleID = newID;
     }
 
+    /* Initialize the bufCtr structure when applying a schedule */
+    void initializeBufferCounters();
 
     /* Constant value from NetworkConfiguration */
     const unsigned short panId;
@@ -151,6 +155,15 @@ private:
     unsigned long scheduleTiles = 0;
     unsigned long scheduleSlots = 0;
     std::vector<ExplicitScheduleElement> currentSchedule;
+    
+    /* Used by receiveToBuffer and sendFromBuffer in order 
+     * to keep track of multiple transmissions of the same stream and
+     * clear buffers after the correct number of sends.
+     * For each stream that uses this node for forwarding, a counter
+     * is incremented after every RECEIVEBUFFER action, and decremented
+     * after every SENDBUFFER action. When the counter reaches zero the
+     * buffer should be cleared. */
+    std::map<StreamId, unsigned char> bufCtr;
 };
 
 }

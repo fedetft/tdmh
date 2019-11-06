@@ -58,10 +58,12 @@ void DataPhase::execute(long long slotStart) {
         receiveToStream(slotStart, currentSchedule[slotIndex].getStreamId());
         break;
     case Action::SENDBUFFER:
-        sendFromBuffer(slotStart, currentSchedule[slotIndex].getBuffer());
+        sendFromBuffer(slotStart, currentSchedule[slotIndex].getBuffer(),
+                                  currentSchedule[slotIndex].getStreamId());
         break;
     case Action::RECVBUFFER:
-        receiveToBuffer(slotStart, currentSchedule[slotIndex].getBuffer());
+        receiveToBuffer(slotStart, currentSchedule[slotIndex].getBuffer(),
+                                   currentSchedule[slotIndex].getStreamId());
         break;
     }
     incrementSlot();
@@ -154,7 +156,8 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
         }
     }
 }
-void DataPhase::sendFromBuffer(long long slotStart, std::shared_ptr<Packet> buffer) {
+void DataPhase::sendFromBuffer(long long slotStart,
+                               std::shared_ptr<Packet> buffer, StreamId id) {
     if(!buffer)
     {
         print_dbg("Error: DataPhase::sendFromBuffer no buffer\n");
@@ -164,12 +167,19 @@ void DataPhase::sendFromBuffer(long long slotStart, std::shared_ptr<Packet> buff
         ctx.configureTransceiver(ctx.getTransceiverConfig());
         buffer->send(ctx, slotStart);
         ctx.transceiverIdle();
-        buffer->clear();
+        bufCtr[id]--;
+        if(bufCtr[id] == 0) {
+            buffer->clear();
+        }
     }
-    else
+    else {
+        /* If buffer is empty we still need to decrement the counter */
+        bufCtr[id]--;
         sleep(slotStart);
+    }
 }
-void DataPhase::receiveToBuffer(long long slotStart, std::shared_ptr<Packet> buffer) {
+void DataPhase::receiveToBuffer(long long slotStart,
+                                std::shared_ptr<Packet> buffer, StreamId id) {
     if(!buffer)
     {
         print_dbg("Error: DataPhase::receiveToBuffer no buffer\n");
@@ -178,6 +188,7 @@ void DataPhase::receiveToBuffer(long long slotStart, std::shared_ptr<Packet> buf
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     auto rcvResult = buffer->recv(ctx, slotStart);
     ctx.transceiverIdle();
+    bufCtr[id]++;
     if(rcvResult.error != RecvResult::ErrorCode::OK || buffer->checkPanHeader(panId) == false) {
         // Delete received packet if pan header doesn't match with our network
         buffer->clear();
@@ -192,4 +203,16 @@ bool DataPhase::checkStreamId(Packet pkt, StreamId streamId) {
     StreamId packetId = StreamId::fromBytes(&pkt[5]);
     return packetId == streamId;
 }
+void DataPhase::initializeBufferCounters() {
+    bufCtr.clear();
+    for(unsigned i=0; i<currentSchedule.size(); i++) {
+        if(currentSchedule[i].getAction() == Action::SENDBUFFER) {
+            StreamId id = currentSchedule[i].getStreamId();
+            bufCtr[id] = 0;
+        }
+    }
 }
+
+}
+
+
