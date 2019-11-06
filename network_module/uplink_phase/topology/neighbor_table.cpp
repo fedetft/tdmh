@@ -54,7 +54,7 @@ NeighborTable::NeighborTable(const NetworkConfiguration& config, const unsigned 
     myId(myId),
     myTopologyElement(myId,maxNodes) {
     setHop(myHop);
-    setBadAssignee(true);
+    badAssignee = true;
 }
 
 
@@ -100,15 +100,15 @@ void NeighborTable::receivedMessage(unsigned char currentNode, unsigned char cur
     // Evaluate whether I am a bad assignee for others
     if(myId == 0) {
         // Master is never a bad assignee
-        setBadAssignee(false);
+        badAssignee = false;
     } else if(!hasPredecessor()) {
-        setBadAssignee(true);
+        badAssignee = true;
     }
     // If my best predecessor is a bad assignee, I am a bad assignee
     else if(get<1>(predecessors.front()) < minRssi) {
-        setBadAssignee(true);
+        badAssignee = true;
     } else {
-        setBadAssignee(false);
+        badAssignee = false;
     }
 
 }

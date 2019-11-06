@@ -49,7 +49,7 @@ public:
         activeNeighbors.clear();
         predecessors.clear();
         setHop(newHop);
-        setBadAssignee(true);
+        badAssignee = true;
     }
 
     void receivedMessage(unsigned char currentNode, unsigned char currentHop,
@@ -71,10 +71,6 @@ private:
 
     void setHop(unsigned char newHop) {
         myHop = newHop;
-    }
-
-    void setBadAssignee(bool bad) {
-        badAssignee = bad;
     }
 
     /**
