@@ -141,6 +141,7 @@ void masterNode(void*)
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
             8,             //maxRoundsUnavailableBecomesDead
+            16,            //maxRoundsWeakLinkBecomesDead
             -75,           //minNeighborRSSI
             4,             //maxMissedTimesyncs
             true,          //channelSpatialReuse
@@ -181,6 +182,7 @@ void dynamicNode(void* argv)
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
             8,             //maxRoundsUnavailableBecomesDead
+            16,            //maxRoundsWeakLinkBecomesDead
             -75,           //minNeighborRSSI
             4,             //maxMissedTimesyncs
             true,          //channelSpatialReuse
