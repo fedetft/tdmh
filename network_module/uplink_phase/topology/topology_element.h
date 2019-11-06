@@ -42,23 +42,39 @@ class Packet;
 class TopologyElement : public SerializableMessage {
 public:
     TopologyElement(unsigned short maxNodes, bool useWeakTopologies) :
-        id(0), neighbors(maxNodes,0), weakNeighbors(maxNodes,0),
-        weakTop(useWeakTopologies){}
+        id(0), neighbors(maxNodes,0), weakTop(useWeakTopologies) {
+            if(weakTop) {
+                weakNeighbors = RuntimeBitset(maxNodes, 0);
+            } else {
+                weakNeighbors = RuntimeBitset();
+            }
+        }
 
     TopologyElement(unsigned char id, unsigned short maxNodes, bool useWeakTopologies) :
-        id(id), neighbors(maxNodes,0), weakNeighbors(maxNodes,0),
-        weakTop(useWeakTopologies){}
+        id(id), neighbors(maxNodes,0), weakTop(useWeakTopologies) {
+            if(weakTop) {
+                weakNeighbors = RuntimeBitset(maxNodes, 0);
+            } else {
+                weakNeighbors = RuntimeBitset();
+            }
+        }
 
     TopologyElement(unsigned char id, const RuntimeBitset& neighbors,
                     const RuntimeBitset& weakNeighbors) :
         id(id), neighbors(neighbors), weakNeighbors(weakNeighbors), weakTop(1) {}
 
     TopologyElement(unsigned char id, const RuntimeBitset& neighbors) :
-        id(id), neighbors(neighbors), weakNeighbors(neighbors.bitSize(),0), weakTop(0) {}
+        id(id), neighbors(neighbors), weakNeighbors(), weakTop(0) {}
 
-    // Zero copy constructor
+    // Zero copy constructors
     TopologyElement(unsigned char id, RuntimeBitset&& neighbors) :
         id(id), neighbors(std::move(neighbors)), weakTop(0)  {}
+
+    TopologyElement(unsigned char id, RuntimeBitset&& neighbors,
+                    RuntimeBitset&& weakNeighbors) :
+        id(id), neighbors(std::move(neighbors)), weakNeighbors(std::move(weakNeighbors)),
+        weakTop(1)  {}
+
     virtual ~TopologyElement() {};
 
     static unsigned short maxSize(unsigned short bitmaskSize, bool useWeakTopologies) {

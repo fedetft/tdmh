@@ -45,10 +45,10 @@ void TopologyElement::serialize(Packet& pkt) const {
 
 void TopologyElement::deserialize(Packet& pkt) {
     assert(neighbors.size()>0);
-    assert(weakNeighbors.size()>0);
     pkt.get(&id, sizeof(unsigned char));
     pkt.get(neighbors.data(), neighbors.size());
     if(weakTop) {
+        assert(weakNeighbors.size()>0);
         pkt.get(weakNeighbors.data(), weakNeighbors.size());
     }
 }
