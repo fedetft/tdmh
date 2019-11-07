@@ -283,11 +283,8 @@ void streamThread(void *arg)
                     printf("[A] Received data from (%d,%d): ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
                        id.src, id.dst, data.getId(), data.getTime(), data.getMinHeap(), data.getHeap(), data.getCounter());
                 else {
-                    char str[128];
-                    snprintf(str,sizeof(str),"[A] R (%d,%d) ID=%d T=%lld MH=%u C=%u\n",
+                    printf("[A] R (%d,%d) ID=%d T=%lld MH=%u C=%u\n",
                        id.src, id.dst, data.getId(), data.getTime(), data.getMinHeap(), data.getCounter());
-                    str[sizeof(str)-1]='\0';
-                    write(STDOUT_FILENO,str,strlen(str));
                 }
             } else {
                 if(COMPRESSED_DBG==false)
@@ -302,15 +299,11 @@ void streamThread(void *arg)
                 printf("[E] No data received from Stream (%d,%d): %d\n",
                    id.src, id.dst, len);
             else {
-                char str[128];
-                snprintf(str,sizeof(str),"[E] M (%d,%d)\n", id.src, id.dst);
-                write(STDOUT_FILENO,str,strlen(str));
+                printf("[E] M (%d,%d)\n", id.src, id.dst);
             }
         }
         else {
-            char str[128];
-            snprintf(str,sizeof(str),"[E] M (%d,%d) Read returned %d\n", id.src, id.dst, len);
-            write(STDOUT_FILENO,str,strlen(str));
+            printf("[E] M (%d,%d) Read returned %d\n", id.src, id.dst, len);
         }
     }
     printf("[A] Stream (%d,%d) has been closed, status=", id.src, id.dst);
