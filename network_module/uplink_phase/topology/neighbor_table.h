@@ -47,6 +47,7 @@ public:
     void clear(const unsigned char newHop) {
         myTopologyElement = TopologyElement(myId,maxNodes,weakTop);
         activeNeighbors.clear();
+        weakActiveNeighbors.clear();
         predecessors.clear();
         setHop(newHop);
         badAssignee = true;
