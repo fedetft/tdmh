@@ -55,6 +55,7 @@ void RootNode::activity()
             3,             //maxRoundsUnavailableBecomesDead
             16,            //maxRoundsWeakLinkBecomesDead
             -75,           //minNeighborRSSI
+            -90,           //minWeakNeighborRSSI
             3,             //maxMissedTimesyncs
             true,          //channelSpatialReuse
             true           //useWeakTopologies

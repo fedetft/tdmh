@@ -143,6 +143,7 @@ void masterNode(void*)
             8,             //maxRoundsUnavailableBecomesDead
             16,            //maxRoundsWeakLinkBecomesDead
             -75,           //minNeighborRSSI
+            -95,           //minWeakNeighborRSSI
             4,             //maxMissedTimesyncs
             true,          //channelSpatialReuse
             true           //useWeakTopologies
@@ -184,6 +185,7 @@ void dynamicNode(void* argv)
             8,             //maxRoundsUnavailableBecomesDead
             16,            //maxRoundsWeakLinkBecomesDead
             -75,           //minNeighborRSSI
+            -95,           //minWeakNeighborRSSI
             4,             //maxMissedTimesyncs
             true,          //channelSpatialReuse
             true           //useWeakTopologies

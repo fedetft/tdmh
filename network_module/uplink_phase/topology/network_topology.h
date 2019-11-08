@@ -143,6 +143,12 @@ public:
         // Set flag since we added an arc that was not present before
         modified_flag = true;
     }
+
+    void weakAddEdge(unsigned char a, unsigned char b) {
+        weakGraph.addEdge(a,b);
+        // Set flag since we added an arc that was not present before
+        modified_flag = true;
+    }
 #endif
 
 private:

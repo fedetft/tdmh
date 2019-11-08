@@ -52,6 +52,7 @@ NeighborTable::NeighborTable(const NetworkConfiguration& config, const unsigned 
     maxTimeout(config.getMaxRoundsUnavailableBecomesDead()),
     weakTimeout(config.getMaxRoundsWeakLinkBecomesDead()),
     minRssi(config.getMinNeighborRSSI()),
+    minWeakRssi(config.getMinWeakNeighborRSSI()),
     maxNodes(config.getMaxNodes()),
     myId(myId),
     myTopologyElement(myId,maxNodes,weakTop) {
@@ -94,10 +95,10 @@ void NeighborTable::receivedMessage(unsigned char currentHop, int rssi,
         it->second = weakTimeout;
     }
     else {
-        // Add new weak neighbor to set and to topology element,
-        // regardless of rssi
-        weakActiveNeighbors[currentNode] = weakTimeout;
-        myTopologyElement.weakAddNode(currentNode);
+        if(rssi >= minWeakRssi || senderTopology.getWeakNeighbors()[myId] == true ) {
+            weakActiveNeighbors[currentNode] = weakTimeout;
+            myTopologyElement.weakAddNode(currentNode);
+        } 
     }
 
     // Handle predecessor set

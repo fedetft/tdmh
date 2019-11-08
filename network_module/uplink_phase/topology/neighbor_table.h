@@ -89,6 +89,7 @@ private:
     const unsigned short maxTimeout;
     const unsigned short weakTimeout;
     const short minRssi;
+    const short minWeakRssi;
     const unsigned short maxNodes;
     const unsigned char myId;
 

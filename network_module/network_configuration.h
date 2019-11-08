@@ -103,7 +103,8 @@ public:
             unsigned long long tileDuration, unsigned long long maxAdmittedRcvWindow,
             unsigned short maxRoundsUnavailableBecomesDead,
             unsigned short maxRoundsWeakLinkBecomesDead,
-            short minNeighborRSSI, unsigned char maxMissedTimesyncs,
+            short minNeighborRSSI, short minWeakNeighborRSSI,
+            unsigned char maxMissedTimesyncs,
             bool channelSpatialReuse, bool useWeakTopologies,
             ControlSuperframeStructure controlSuperframe=ControlSuperframeStructure());
 
@@ -224,6 +225,13 @@ public:
     }
 
     /**
+     * @return the minimum RSSI for considering a link present, but weak, thus considering possible interference between the nodes.
+     */
+    short getMinWeakNeighborRSSI() const {
+        return minWeakNeighborRSSI;
+    }
+
+    /**
      * @return the pan id used in the timesync packets' header.
      */
     unsigned short getPanId() const {
@@ -320,6 +328,7 @@ private:
     const unsigned short maxRoundsUnavailableBecomesDead;
     const unsigned short maxRoundsWeakLinkBecomesDead;
     const short minNeighborRSSI;
+    const short minWeakNeighborRSSI;
     const bool channelSpatialReuse;
     const bool useWeakTopologies;
     const ControlSuperframeStructure controlSuperframe;
