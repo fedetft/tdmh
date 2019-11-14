@@ -22,9 +22,9 @@ while(<STDIN>){
         # If we are given the uplink period, print Nan if uplink packets are missed
         while($previous+$period+$slack<$time) {
             $previous+=$period;
-            print "$previous Nan\n";
+            printf("%.2f,Nan\n",$previous);
         }
     }
-    print "$time $rssi\n";
+    printf("%.2f,%d\n",$time,$rssi);
     $previous=$time;
 }
