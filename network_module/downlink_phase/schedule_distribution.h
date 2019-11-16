@@ -136,7 +136,17 @@ protected:
     ScheduleHeader header;
     // Copy of last computed/received schedule
     std::vector<ScheduleElement> schedule;
-    
+
+    /* Structure used to keep count of redundancy groups of streams that this
+     * node is scheduled to forward to others. This info will be moved to 
+     * dataphase at the end of schedule explicitation and used to correctly
+     * clear the buffers.
+     * For each stream being forwarded, the second number of the pair is set
+     * to the number of transmissions that this node is assigned. The first 
+     * number of the pair will be set to zero and used as counter by
+     * the dataphase */
+    std::map<StreamId, std::pair<unsigned char, unsigned char>> forwardedStreamCtr;
+
     // Constant value from NetworkConfiguration
     const unsigned short panId;
 

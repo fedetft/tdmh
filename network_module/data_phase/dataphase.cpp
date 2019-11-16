@@ -167,14 +167,18 @@ void DataPhase::sendFromBuffer(long long slotStart,
         ctx.configureTransceiver(ctx.getTransceiverConfig());
         buffer->send(ctx, slotStart);
         ctx.transceiverIdle();
-        bufCtr[id]--;
-        if(bufCtr[id] == 0) {
+
+        incrementBufCtr(id);
+        if(lastTransmission(id)) {
             buffer->clear();
+            resetBufCtr(id);
         }
-    }
-    else {
+    } else {
         /* If buffer is empty we still need to decrement the counter */
-        bufCtr[id]--;
+        incrementBufCtr(id);
+        if(lastTransmission(id)) {
+            resetBufCtr(id);
+        }
         sleep(slotStart);
     }
 }
@@ -188,7 +192,6 @@ void DataPhase::receiveToBuffer(long long slotStart,
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     auto rcvResult = buffer->recv(ctx, slotStart);
     ctx.transceiverIdle();
-    bufCtr[id]++;
     if(rcvResult.error != RecvResult::ErrorCode::OK || buffer->checkPanHeader(panId) == false) {
         // Delete received packet if pan header doesn't match with our network
         buffer->clear();
@@ -203,16 +206,33 @@ bool DataPhase::checkStreamId(Packet pkt, StreamId streamId) {
     StreamId packetId = StreamId::fromBytes(&pkt[5]);
     return packetId == streamId;
 }
-void DataPhase::initializeBufferCounters() {
-    bufCtr.clear();
-    for(unsigned i=0; i<currentSchedule.size(); i++) {
-        if(currentSchedule[i].getAction() == Action::SENDBUFFER) {
-            StreamId id = currentSchedule[i].getStreamId();
-            bufCtr[id] = 0;
-        }
+
+void DataPhase::incrementBufCtr(StreamId id){
+    auto it = bufCtr.find(id);
+    if(it != bufCtr.end()) {
+        bufCtr[id].first++;
+    } else {
+        print_dbg("BUG: buffer counters incorrectly initialized\n");
+    }
+}
+
+bool DataPhase::lastTransmission(StreamId id){
+    auto it = bufCtr.find(id);
+    if(it != bufCtr.end()) {
+        return (bufCtr[id].first >= bufCtr[id].second);
+    } else {
+        print_dbg("BUG: buffer counters incorrectly initialized\n");
+        return true;
+    }
+}
+
+void DataPhase::resetBufCtr(StreamId id){
+    auto it = bufCtr.find(id);
+    if(it != bufCtr.end()) {
+        bufCtr[id].first = 0;
+    } else {
+        print_dbg("BUG: buffer counters incorrectly initialized\n");
     }
 }
 
 }
-
-

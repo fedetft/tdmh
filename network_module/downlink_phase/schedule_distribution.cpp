@@ -34,11 +34,12 @@ using namespace miosix;
 
 namespace mxnet {
 
-std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsigned char nodeID)
+std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule( unsigned char nodeID)
 {
     // New explicitSchedule to return
     std::vector<ExplicitScheduleElement> result;
     std::map<unsigned int,std::shared_ptr<Packet>> buffers;
+    forwardedStreamCtr = std::map<StreamId, std::pair<unsigned char, unsigned char>>();
     // Resize new explicitSchedule and fill with default value (sleep)
     auto slotsInTile = ctx.getSlotsInTileCount();
     auto scheduleSlots = header.getScheduleTiles() * slotsInTile;
@@ -69,6 +70,18 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
                 if(ENABLE_SCHEDULE_DIST_DBG)
                     print_dbg("[SD] Error: expandSchedule missing buffer\n");
             }
+
+            {
+                // Look for this stream in map to set and increment counter
+                StreamId id = e.getStreamId();
+                auto it = forwardedStreamCtr.find(id);
+                if(it != forwardedStreamCtr.end()) {
+                    it->second.second++;
+                } else {
+                    forwardedStreamCtr[id] = std::make_pair(0,1);
+                }
+            }
+
         // Receive to buffer case (receive and save multi-hop packet)
         } else if(e.getDst() != nodeID && e.getRx() == nodeID) {
             action = Action::RECVBUFFER;
@@ -121,8 +134,9 @@ void ScheduleDownlinkPhase::applySchedule(long long slotStart)
     }
     
     // Apply schedule to DataPhase
-    dataPhase->applySchedule(std::move(explicitSchedule), schId,
-                             header.getScheduleTiles(),
+    dataPhase->applySchedule(std::move(explicitSchedule),
+                             std::move(forwardedStreamCtr), 
+                             schId, header.getScheduleTiles(),
                              header.getActivationTile(), currentTile);
     
     // Apply schedule to StreamManager

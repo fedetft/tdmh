@@ -277,11 +277,14 @@ void DynamicScheduleDownlinkPhase::appendToSchedule(SchedulePacket& spkt, bool b
     }
     header = newHeader;
 
+    // Add elements from received packet to new schedule only if this is the
+    // first time these elements are being received
+    if(received.at(newHeader.getCurrentPacket()) == 0) {
+        std::vector<ScheduleElement> elements = spkt.getElements();
+        schedule.insert(schedule.end(), elements.begin(), elements.end());
+    }
     // Set current packet as received
     received.at(newHeader.getCurrentPacket())++;
-    // Add elements from received packet to new schedule
-    std::vector<ScheduleElement> elements = spkt.getElements();
-    schedule.insert(schedule.end(), elements.begin(), elements.end());
 }
 
 bool DynamicScheduleDownlinkPhase::isScheduleComplete()
@@ -304,6 +307,7 @@ void DynamicScheduleDownlinkPhase::resetAndDisableSchedule(long long slotStart)
 
     auto currentTile = ctx.getCurrentTile(slotStart);
     dataPhase->applySchedule(std::vector<ExplicitScheduleElement>(),
+                             std::map<StreamId, std::pair<unsigned char, unsigned char>>(),
                              header.getScheduleID(),
                              header.getScheduleTiles(),
                              header.getActivationTile(), currentTile);

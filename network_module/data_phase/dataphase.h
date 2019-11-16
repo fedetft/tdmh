@@ -91,12 +91,13 @@ public:
      * of the new schedule, to replace the currentSchedule,
      * taking effect in the next dataphase */
     void applySchedule(const std::vector<ExplicitScheduleElement>&& newSchedule,
+                       const std::map<StreamId, std::pair<unsigned char, unsigned char>>&& forwardedStreamCtr,
                        unsigned long newId, unsigned int newScheduleTiles,
                        unsigned long newActivationTile, unsigned int currentTile) {
         currentSchedule = std::move(newSchedule);
+        bufCtr = std::move(forwardedStreamCtr);
         setScheduleID(newId);
         setScheduleTiles(newScheduleTiles);
-        initializeBufferCounters();
         slotIndex = 0;
         if(newActivationTile == currentTile) {
             print_dbg("[D] Schedule ID:%lu, StartTile:%lu activated at tile:%2u\n",
@@ -140,8 +141,9 @@ private:
         scheduleID = newID;
     }
 
-    /* Initialize the bufCtr structure when applying a schedule */
-    void initializeBufferCounters();
+    void incrementBufCtr(StreamId id);
+    bool lastTransmission(StreamId id);
+    void resetBufCtr(StreamId id);
 
     /* Constant value from NetworkConfiguration */
     const unsigned short panId;
@@ -155,15 +157,14 @@ private:
     unsigned long scheduleTiles = 0;
     unsigned long scheduleSlots = 0;
     std::vector<ExplicitScheduleElement> currentSchedule;
-    
-    /* Used by receiveToBuffer and sendFromBuffer in order 
-     * to keep track of multiple transmissions of the same stream and
-     * clear buffers after the correct number of sends.
-     * For each stream that uses this node for forwarding, a counter
-     * is incremented after every RECEIVEBUFFER action, and decremented
-     * after every SENDBUFFER action. When the counter reaches zero the
-     * buffer should be cleared. */
-    std::map<StreamId, unsigned char> bufCtr;
+
+    /* Structure used to keep count of redundancy groups of streams that this
+     * node is scheduled to forward to others. 
+     * For each stream being forwarded, the second number of the pair is the
+     * number of transmissions that this node is assigned. The first 
+     * number of the pair is used as counter and reset after each redundancy
+     * group ends */
+    std::map<StreamId, std::pair<unsigned char, unsigned char>> bufCtr;
 };
 
 }
