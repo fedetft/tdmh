@@ -31,17 +31,15 @@
 namespace mxnet {
 
 //
-// class NetworkGraph
+// class ImmediateRemovalNetworkGraph
 //
 
-NetworkGraph::~NetworkGraph() {}
-
-bool NetworkGraph::hasNode(unsigned char a) {
+bool ImmediateRemovalNetworkGraph::hasNode(unsigned char a) {
     auto it = graph.find(a);
     return (it != graph.end());
 }
 
-std::vector<std::pair<unsigned char, unsigned char>> NetworkGraph::getEdges() {
+std::vector<std::pair<unsigned char, unsigned char>> ImmediateRemovalNetworkGraph::getEdges() {
     std::vector<std::pair<unsigned char, unsigned char>> result;
     for(auto& el : graph) {
         // Search (a,b) with b > a
@@ -52,7 +50,7 @@ std::vector<std::pair<unsigned char, unsigned char>> NetworkGraph::getEdges() {
     return result;
 }
 
-std::vector<unsigned char> NetworkGraph::getEdges(unsigned char a) {
+std::vector<unsigned char> ImmediateRemovalNetworkGraph::getEdges(unsigned char a) {
     std::vector<unsigned char> result;
     auto it = graph.find(a);
     if(it == graph.end()) return result;
@@ -64,7 +62,34 @@ std::vector<unsigned char> NetworkGraph::getEdges(unsigned char a) {
     return result;
 }
 
-bool NetworkGraph::removeUnreachableNodes() {
+bool ImmediateRemovalNetworkGraph::addEdge(unsigned char a, unsigned char b) {
+    auto it = graph.find(a);
+    if(it == graph.end()) it = graph.insert(std::make_pair(a, RuntimeBitset(bitsetSize, false))).first;
+    bool added = it->second[b]==false;
+    if(added)
+    {
+        it->second[b] = true;
+        setBit(b,a);
+    }
+    return added;
+}
+
+bool ImmediateRemovalNetworkGraph::removeEdge(unsigned char a, unsigned char b) {
+    auto it = graph.find(a);
+    if(it == graph.end() || it->second[b]==false) return false; //Already not present
+    it->second[b] = false;
+    // If the BitVector is empty, delete it
+    if(it->second.empty()) graph.erase(it);
+    
+    clearBit(b,a);
+    /* Set this flag to true because removing edges may generate a graph
+        where some nodes are not connected to the master node, these nodes
+        needs to be eliminated with removeNotConnected() */
+    possiblyNotConnected_flag = true;
+    return true;
+}
+
+bool ImmediateRemovalNetworkGraph::removeUnreachableNodes() {
     std::set<unsigned char> reachable;
     std::set<unsigned char> openSet;
     // Add master-node to the openSet
@@ -105,7 +130,7 @@ bool NetworkGraph::removeUnreachableNodes() {
     return removed;
 }
 
-bool NetworkGraph::getBit(unsigned char a, unsigned char b) {
+bool ImmediateRemovalNetworkGraph::getBit(unsigned char a, unsigned char b) {
     auto it = graph.find(a);
     if(it == graph.end()) return false;
     else {
@@ -113,136 +138,23 @@ bool NetworkGraph::getBit(unsigned char a, unsigned char b) {
     }
 }
 
-void NetworkGraph::setBit(unsigned char a, unsigned char b) {
+void ImmediateRemovalNetworkGraph::setBit(unsigned char a, unsigned char b) {
     auto it = graph.find(a);
     // RuntimeBitset does not exists yet, we have to create it, initializing to false;
-    if(it == graph.end()) {
-        auto ret = graph.insert(std::make_pair(a, RuntimeBitset(bitsetSize, false)));
-        // Add the new edge
-        ret.first->second[b] = true;
-    }
-    // Bitset already exists, just add new edge if not already present.
-    else if(it->second[b] == false) {
-        it->second[b] = true;
-    }
+    if(it == graph.end()) it = graph.insert(std::make_pair(a, RuntimeBitset(bitsetSize, false))).first;
+    it->second[b] = true;
 }
 
-void NetworkGraph::clearBit(unsigned char a, unsigned char b) {
+void ImmediateRemovalNetworkGraph::clearBit(unsigned char a, unsigned char b) {
     auto it = graph.find(a);
     if(it != graph.end()) {
         // If edge is present, remove it
         if(it->second[b] == true) {
             it->second[b] = false;
-        }
-        // If the BitVector is empty, delete it
-        if(it->second.empty()) graph.erase(it);
-    }
-}
-
-std::vector<std::pair<unsigned char, unsigned char>> DelayedRemovalNetworkGraph::getEdges() {
-    std::vector<std::pair<unsigned char, unsigned char>> result;
-    for(auto& el : graph) {
-        // Search (a,b) with b > a
-        for (unsigned i = el.first; i < maxNodes; i++) {
-            if(el.second[i] || el.second[i + maxNodes]) result.push_back(std::make_pair(el.first, i));
-        }
-    }
-    return result;
-}
-
-std::vector<unsigned char> DelayedRemovalNetworkGraph::getEdges(unsigned char a) {
-    std::vector<unsigned char> result;
-    auto it = graph.find(a);
-    if(it == graph.end()) return result;
-    else {
-        for (unsigned i = 0; i < maxNodes; i++) {
-            if(it->second[i] || it->second[i + maxNodes]) result.push_back(i);
-        }
-    }
-    return result;
-}
-
-bool DelayedRemovalNetworkGraph::getBit(unsigned char a, unsigned char b) {
-    auto it = graph.find(a);
-    if(it == graph.end()) return false;
-    else {
-        // If bit1 OR bit2 is true, it means the counter is not 0
-        return (it->second[b] || it->second[b + maxNodes]);
-    }
-}
-
-void DelayedRemovalNetworkGraph::setBit(unsigned char a, unsigned char b) {
-    auto it = graph.find(a);
-    // RuntimeBitset does not exists yet, we have to create it, initializing to false;
-    if(it == graph.end()) {
-        auto ret = graph.insert(std::make_pair(a, RuntimeBitset(bitsetSize, false)));
-        // Add the new edge (LSB bit)
-        ret.first->second[b] = true;
-        // Add the new edge (MSB bit)
-        ret.first->second[b + maxNodes] = true;
-    }
-    // Bitset already exists, just add new edge.
-    else {
-        // (LSB bit)
-        if(it->second[b] == false) {
-            it->second[b] = true;
-        }
-        // (MSB bit)
-        else if(it->second[b + maxNodes] == false) {
-            it->second[b + maxNodes] = true;
+            // If the BitVector is empty, delete it
+            if(it->second.empty()) graph.erase(it);
         }
     }
 }
-
-void DelayedRemovalNetworkGraph::clearBit(unsigned char a, unsigned char b) {
-    auto it = graph.find(a);
-    if(it != graph.end()) {
-        // If edge is present, remove it
-        if(it->second[b] == true) {
-            // (LSB bit)
-            it->second[b] = false;
-            // (MSB bit)
-            it->second[b + maxNodes] = false;
-
-        }
-        // If the BitVector is empty, delete it
-        if(it->second.empty()) graph.erase(it);
-    }
-}
-
-bool DelayedRemovalNetworkGraph::decrementBits(unsigned char a, unsigned char b) {
-    auto it = graph.find(a);
-    if(it != graph.end()) {
-        bool LSB = it->second[b];
-        bool MSB = it->second[b + maxNodes];
-
-        // value = 0
-        if((LSB == 0) && (MSB == 0)) {
-            // Do nothing
-        }
-        // value = 1
-        else if((LSB == 1) && (MSB == 0)) {
-            it->second[b] = false;
-        }
-        // value = 2
-        else if((LSB == 0) && (MSB == 1)) {
-            it->second[b] = true;
-            it->second[b + maxNodes] = false;
-        }
-        // value = 3
-        else if((LSB == 1) && (MSB == 1)) {
-            it->second[b] = false;
-            it->second[b + maxNodes] = true;
-        }
-        
-        bool counter_zero = it->second[b] || it->second[b + maxNodes];
-        // If the BitVector is empty, delete it
-        if(it->second.empty()) graph.erase(it);
-        return counter_zero;
-    }
-    // If the RuntimeBitset is absent, we assume the counter is 0
-    return true;
-}
-
 
 } /* namespace mxnet */

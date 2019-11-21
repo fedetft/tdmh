@@ -104,37 +104,23 @@ void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
         // Avoid auto-arcs (useless in NetworkGraph)
         if(i == src)
             continue;
-        // Arc is present in topology, add or resetCounter
+        
         if(bitset[i]) {
-            // Arc already present in graph
-            if(graph.hasEdge(src, i)) {
-                graph.resetCounter(src, i);
-            }
-            // Arc not present in graph
-            else {
-                graph.addEdge(src, i);
-                //Not marking the graph as modified
-            }
-        }
-        // Arc is not present in topology, decrementCounter
-        else {
-            // Arc already present in graph
-            if(graph.hasEdge(src, i)) {
-                bool removed = graph.decrementCounter(src, i);
-                if(removed) {
-                    graph.removeEdge(src, i);
-                    
-                    if(scheduleInProgress == false)
+            graph.addEdge(src, i);
+        } else {
+            bool removed = graph.removeEdge(src, i);
+            
+            if(removed) {
+                if(scheduleInProgress == false)
+                {
+                    // We have an up-to-date usedLinks
+                    if(usedLinks.find(orderLink(src, i))!=usedLinks.end())
                     {
-                        // We have an up-to-date usedLinks
-                        if(usedLinks.find(orderLink(src, i))!=usedLinks.end())
-                        {
-                            modified_flag = true;
-                        }
-                    } else {
-                        // We don't have usedLinks, so we need to defer this check
-                        removedWhileScheduling.insert(orderLink(src, i));
+                        modified_flag = true;
                     }
+                } else {
+                    // We don't have usedLinks, so we need to defer this check
+                    removedWhileScheduling.insert(orderLink(src, i));
                 }
             }
         }

@@ -40,16 +40,14 @@ namespace mxnet {
 
 
 /**
- * NetworkGraph contains the complete graph of the network.
+ * ImmediateRemovalNetworkGraph contains the complete graph of the network.
  * It is used only by the Master node to collect the toplogy information received
  * by Dynamic nodes
  */
-class NetworkGraph {
+class ImmediateRemovalNetworkGraph {
 public:
-    NetworkGraph(unsigned short maxNodes, unsigned short bitsetSize) : maxNodes(maxNodes),
-                                                                       bitsetSize(bitsetSize) {}
-
-    virtual ~NetworkGraph() = 0;
+    ImmediateRemovalNetworkGraph(unsigned short maxNodes) : maxNodes(maxNodes),
+                                                            bitsetSize(maxNodes) {}
 
     bool hasNode(unsigned char a);
 
@@ -63,46 +61,23 @@ public:
 
     // NOTE: The graph stores (a,b) and (b,a) for easier searching
     // however getEdges() returns only (a,b) for shorter topology prints
-    virtual std::vector<std::pair<unsigned char, unsigned char>> getEdges();
+    std::vector<std::pair<unsigned char, unsigned char>> getEdges();
 
-    virtual std::vector<unsigned char> getEdges(unsigned char a);
+    std::vector<unsigned char> getEdges(unsigned char a);
 
-    void addEdge(unsigned char a, unsigned char b) {
-        if(a == b) throw std::logic_error("TopologyMap.addEdge() does not accept auto-edges");
-        /* Create edge a->b */
-        setBit(a,b);
-        /* Create edge b->a */
-        setBit(b,a);
-    }
+    /**
+     * \param a one of the two nodes (order is irrelevant)
+     * \param b the other node
+     * \return true if the graph was modified, that is the edge was added to the graph
+     */
+    bool addEdge(unsigned char a, unsigned char b);
 
-    void removeEdge(unsigned char a, unsigned char b) {
-        if(a == b) throw std::logic_error("TopologyMap.removeEdge() does not accept auto-edges");
-        /* Remove edge a->b */
-        clearBit(a,b);
-        /* Remove edge b->a */
-        clearBit(b,a);
-        /* Set this flag to true because removing edges may generate a graph
-           where some nodes are not connected to the master node, these nodes
-           needs to be eliminated with removeNotConnected() */
-        possiblyNotConnected_flag = true;
-    }
-
-    /* The basic NetworkGraph has no counters, so just check that the arc exists
-       NOTE: when this function is used in DelayedRemovalNetworkGraph, it sets
-       both bits to 1 */
-    void resetCounter(unsigned char a, unsigned char b) {
-        if(a == b) throw std::logic_error("TopologyMap.removeEdge() does not accept auto-edges");
-        addEdge(a,b);
-        addEdge(b,a);
-    }
-
-    /* The basic NetworkGraph has no counter, so just delete the arc */
-    virtual bool decrementCounter(unsigned char a, unsigned char b) {
-        if(a == b) throw std::logic_error("TopologyMap.removeEdge() does not accept auto-edges");
-        removeEdge(a,b);
-        removeEdge(b,a);
-        return true;
-    }
+    /**
+     * \param a one of the two nodes (order is irrelevant)
+     * \param b the other node
+     * \return true if the graph was modified, that is the edge was removed from the graph
+     */
+    bool removeEdge(unsigned char a, unsigned char b);
 
     /* This method performs a walk of the graph to find all the nodes that
        are not reachable from the node 0 (Master node), these nodes are eliminated
@@ -114,13 +89,13 @@ public:
 protected:
 
     /* This method returns the value of a bit in the RuntimeBitset */
-    virtual bool getBit(unsigned char a, unsigned char b);
+    bool getBit(unsigned char a, unsigned char b);
 
     /* This method sets a bit in the RuntimeBitset to 1 */
-    virtual void setBit(unsigned char a, unsigned char b);
+    void setBit(unsigned char a, unsigned char b);
 
     /* This method sets a bit in the RuntimeBitset to 0 */
-    virtual void clearBit(unsigned char a, unsigned char b);
+    void clearBit(unsigned char a, unsigned char b);
 
     /* Flag that indicates that some nodes in the graph may not be connected
        to the master node, set after removeEdge, reset after calling
@@ -138,68 +113,6 @@ protected:
     /* Map with a RuntimeBitset for each node of the network, representing
        his adjacency list */
     std::map<unsigned char, RuntimeBitset> graph;
-};
-
-class ImmediateRemovalNetworkGraph : public NetworkGraph {
-public:
-    ImmediateRemovalNetworkGraph(unsigned short maxNodes) : NetworkGraph(maxNodes,
-                                                                         maxNodes) {}
-    ~ImmediateRemovalNetworkGraph() {}
-
-};
-
-
-/**
- * DelayedRemovalNetworkGraph contains the complete graph of the network.
- * It is used only by the Master node to collect the toplogy information received
- * by Dynamic nodes
- */
-/** NOTE: This class containg a two-bit counter for each edge, to provide a mechanism
- * that is able to remove the edge only after not hearing it for a long time.
- * Because of this we need RuntimeBitset of double size
- */
-/** NOTE: The first half of the double-sized RuntimeBitset stores the LSB bit
- * of the timer, is equivalent to the normal NetworkGraph class, this allows to
- * reuse the NetworkGraph implementations.
- * The second part of the RuntimeBitset contains the other bit of the counter (MSB)
- * for each node
- */
- 
-class DelayedRemovalNetworkGraph : public NetworkGraph {
-public:
-    DelayedRemovalNetworkGraph(unsigned short maxNodes) : NetworkGraph(maxNodes,
-                                                                       maxNodes*2) {}
-
-    ~DelayedRemovalNetworkGraph() {}
-
-    /* NOTE: The two methods getEdges are reimplemented because they
-       don't use the getBit/setBit primitives. (the could but the resulting
-       code would be less efficient) */
-    std::vector<std::pair<unsigned char, unsigned char>> getEdges();
-
-    std::vector<unsigned char> getEdges(unsigned char a);
-
-    /* This methods decrements bits of the counter to true */
-    bool decrementCounter(unsigned char a, unsigned char b) {
-        return decrementBits(a,b) || decrementBits(b,a); 
-    }
-
-private:
-
-    /* This method returns the value of a bit in the RuntimeBitset */
-    bool getBit(unsigned char a, unsigned char b);
-
-    /* This method sets both bits in the RuntimeBitset to 1 */
-    void setBit(unsigned char a, unsigned char b);
-
-    /* This method sets both bits in the RuntimeBitset to 0 */
-    void clearBit(unsigned char a, unsigned char b);
-
-    /* This method decrement the value of the counter
-       returns true if the final value is zero */
-    bool decrementBits(unsigned char a, unsigned char b);
-
-
 };
 
 } /* namespace mxnet */
