@@ -65,7 +65,7 @@ public:
 
     unsigned char getId() const { return id; }
 
-    RuntimeBitset getNeighbors() const { return neighbors; }
+    const RuntimeBitset& getNeighbors() const { return neighbors; }
 
     void addNode(unsigned char nodeId) { neighbors[nodeId] = true; }
 
