@@ -131,9 +131,10 @@ public:
         return false;
     }
     
-    void usedLinksNotChanged();
-    
-    void usedLinksChanged(std::set<std::pair<unsigned char,unsigned char>>&& usedLinks);
+    /* Called by the scheduler to perform write back on the usedLinks set*/
+    void scheduleNotChanged();
+    void scheduleChanged(std::set<std::pair<unsigned char,unsigned char>>&& usedLinks,
+            std::set<std::pair<unsigned char, unsigned char>>&& newLinksCausingReschedule);
 
 #ifdef UNITTEST
     /** Manually add an edge to the graph
@@ -153,7 +154,7 @@ public:
 
 private:
     
-    void performDelayedRemovalChecks();
+    void performDelayedChangesChecks();
 
     /* Method used internally to add or remove arcs of the graph depending on
        the forwarded topology */
@@ -171,9 +172,28 @@ private:
     bool modified_flag = false;
     
     bool scheduleInProgress = false;
-    std::set<std::pair<unsigned char,unsigned char>> removedWhileScheduling;
     
+    /* Set of links used by transmissions, used to test whether rescheduling is necessary
+     * after a topology change. */
     std::set<std::pair<unsigned char,unsigned char>> usedLinks;
+
+    /* If a rescheduling is in progress while a topology change happens, changes need
+     * to be tested against the usedLinks set after the scheduler performs a write back.
+     * This set is used for temporarily keep these changes while a rescheduling is in 
+     * progress. */
+    std::set<std::pair<unsigned char,unsigned char>> removedWhileScheduling;
+
+    /* This set contains the (weak or strong) links that are currently not present in
+     * the topology, but, should they become present, would cause an interference conflict
+     * on the current schedule, therefore should cause rescheduling. */
+    std::set<std::pair<unsigned char,unsigned char>> newLinksCausingReschedule;
+
+    /* If a rescheduling is in progress while a topology change happens, changes need
+     * to be tested against the newLinksCausingReschedule set after the scheduler
+     * performs a write back.
+     * This set is used for temporarily keep these changes while a rescheduling is in 
+     * progress. */
+    std::set<std::pair<unsigned char,unsigned char>> addedWhileScheduling;
 
     /* Mutex to synchronize the concurrent access to the network graph
        by the uplink and schedule_computation classes */

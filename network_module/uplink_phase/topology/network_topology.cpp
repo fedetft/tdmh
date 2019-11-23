@@ -48,29 +48,30 @@ void NetworkTopology::handleTopologies(UpdatableQueue<unsigned char,
     graph_mutex.unlock();
 }
 
-void NetworkTopology::usedLinksNotChanged()
+void NetworkTopology::scheduleNotChanged()
 {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(graph_mutex);
 #else
     std::unique_lock<std::mutex> lck(graph_mutex);
 #endif
-    performDelayedRemovalChecks();
+    performDelayedChangesChecks();
 }
 
-void NetworkTopology::usedLinksChanged(std::set<std::pair<unsigned char,unsigned char>>&& usedLinks)
+void NetworkTopology::scheduleChanged(std::set<std::pair<unsigned char,unsigned char>>&& usedLinks, std::set<std::pair<unsigned char, unsigned char>>&& newLinksCausingReschedule)
 {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(graph_mutex);
 #else
     std::unique_lock<std::mutex> lck(graph_mutex);
 #endif
-    //First update usedLinks, then perform checks
+    //First update temporary sets, then perform checks
     this->usedLinks=std::move(usedLinks);
-    performDelayedRemovalChecks();
+    this->newLinksCausingReschedule = std::move(newLinksCausingReschedule);
+    performDelayedChangesChecks();
 }
 
-void NetworkTopology::performDelayedRemovalChecks()
+void NetworkTopology::performDelayedChangesChecks()
 {
     scheduleInProgress = false;
     for(auto removedLink : removedWhileScheduling)
@@ -81,7 +82,16 @@ void NetworkTopology::performDelayedRemovalChecks()
             break;
         }
     }
+    if(!modified_flag) {
+        for(auto newLink : addedWhileScheduling) {
+            if(newLinksCausingReschedule.find(newLink) != newLinksCausingReschedule.end()){
+                modified_flag = true;
+                break;
+            }
+        }
+    }
     removedWhileScheduling.clear();
+    addedWhileScheduling.clear();
 }
 
 void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
@@ -116,11 +126,20 @@ void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
             bool added = graph.addEdge(src, i);
             if(added) {
                 if(channelSpatialReuse && !useWeakTopologies) {
-                    /* In this case, since the main topology graph is used for
-                        * interference conflict detection, a new arc MUST cause
-                        * rescheduling, otherwise it may cause systematic packet
-                        * loss on transmissions involving nodes src, i */
-                    modified_flag = true;
+                    /* In this case, the main topology graph is used for
+                     * interference conflict detection. A new arc is checked
+                     * against the current set to determine if rescheduling
+                     * should happen.  If a rescheduling is in progress, new
+                     * links are saved in a temporary set to be applied later,
+                     * and the check is defered. */
+                    if(!scheduleInProgress) {
+                        if(newLinksCausingReschedule.find(orderLink(src,i)) !=
+                                newLinksCausingReschedule.end()) {
+                            modified_flag = true;
+                        }
+                    } else {
+                        addedWhileScheduling.insert(orderLink(src,i));
+                    }
                 }
             }
         } else {
@@ -150,9 +169,14 @@ void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
             if(weakBitset[i]) {
                 bool added = weakGraph.addEdge(src, i);
                 if(added) {
-                    /* Modified flag is set because new weak arcs can cause
-                       new conflicts for channel spatial reuse */
-                    modified_flag = true;
+                    if(!scheduleInProgress) {
+                        if(newLinksCausingReschedule.find(orderLink(src,i)) !=
+                                newLinksCausingReschedule.end()) {
+                            modified_flag = true;
+                        }
+                    } else {
+                        addedWhileScheduling.insert(orderLink(src,i));
+                    }
                 }
             } else {
                 weakGraph.removeEdge(src, i);

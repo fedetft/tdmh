@@ -50,19 +50,36 @@ public:
     Schedule() {}
     Schedule(unsigned long id, unsigned int tiles) : id(id), tiles(tiles) {}
     Schedule(std::list<ScheduleElement> schedule, unsigned long id,
-              unsigned int tiles) : schedule(schedule), id(id), tiles(tiles) {}
+             unsigned int tiles,
+             std::set<std::pair<unsigned char, unsigned char>> linksCausingInterference) :
+        schedule(schedule), id(id), tiles(tiles),
+        linksCausingInterference(linksCausingInterference) {}
+
     void swap(Schedule& rhs) {
         schedule.swap(rhs.schedule);
         std::swap(id, rhs.id);
         std::swap(tiles, rhs.tiles);
+        std::swap(linksCausingInterference, rhs.linksCausingInterference);
+    }
+
+    std::set<std::pair<unsigned char, unsigned char>> getLinksCausingInterference() {
+        return linksCausingInterference;
     }
 
     std::list<ScheduleElement> schedule;
+
     // NOTE: schedule with id=0 are not sent in MasterScheduleDistribution
     unsigned long id;
     // schedule_size must always be initialized to the number of tiles in superframe
     // it can be obtained with superframe.size()
     unsigned int tiles;
+
+    /* When channel spatial reuse is on, this set keeps track of the links
+     * (strong or weak depending on useWeakTopologies) that are currently not
+     * present in the topology but, should they be created, would cause 
+     * an interference conflict to arise with respect to the current schedule.
+     * */
+    std::set<std::pair<unsigned char, unsigned char>> linksCausingInterference;
 };
 
 class ScheduleComputation {
@@ -152,20 +169,24 @@ private:
      * @return a pair of schedule and schedule_size
      * Runs the Router and the Scheduler to produce a new schedule
      */
-    std::pair<std::list<ScheduleElement>,
-              unsigned int> routeAndScheduleStreams(std::vector<MasterStreamInfo>& stream_list,
-                                                    const std::list<ScheduleElement>& current_schedule,
-                                                    const unsigned int sched_size);
+    std::pair<std::list<ScheduleElement>, unsigned int> routeAndScheduleStreams(
+        std::vector<MasterStreamInfo>& stream_list,
+        const std::list<ScheduleElement>& current_schedule,
+        const unsigned int sched_size,
+        std::set<std::pair<unsigned char, unsigned char>>& linksCausingInterference);
     /**
      * @return a pair of schedule and schedule_size.
      * Runs the Scheduler to schedule routed streams
      */
-    std::pair<std::list<ScheduleElement>,
-              unsigned int> scheduleStreams(const std::list<std::list<ScheduleElement>>& routed_streams,
-                                            const std::list<ScheduleElement>& current_schedule,
-                                            const unsigned int sched_size);
+    std::pair<std::list<ScheduleElement>, unsigned int> scheduleStreams(
+        const std::list<std::list<ScheduleElement>>& routed_streams,
+        const std::list<ScheduleElement>& current_schedule,
+        const unsigned int sched_size,
+        std::set<std::pair<unsigned char, unsigned char>>& linksCausingInterference);
 
-    bool checkAllConflicts(std::list<ScheduleElement> other_streams, const ScheduleElement& transmission, unsigned offset);
+    bool checkAllConflicts(std::list<ScheduleElement> other_streams,
+        const ScheduleElement& transmission, unsigned offset,
+        std::set<std::pair<unsigned char, unsigned char>>& linksCausingInterference);
 
     bool checkDataSlot(unsigned offset);
 

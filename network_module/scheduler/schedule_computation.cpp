@@ -179,7 +179,8 @@ bool ScheduleComputation::reschedule()
     // is written in a mutex protected block and read by other threads in a
     // mutex protected block.
     else{
-        newSchedule = Schedule(schedule.schedule, schedule.id + 1, schedule.tiles);
+        newSchedule = Schedule(schedule.schedule, schedule.id + 1,
+                               schedule.tiles, schedule.linksCausingInterference);
     }
     /* If there are new accepted streams:
         route + schedule them and add them to existing schedule */
@@ -190,7 +191,7 @@ bool ScheduleComputation::reschedule()
     
     if(scheduleChanged)
     {
-        topology->usedLinksChanged(computeUsedLinks());
+        topology->scheduleChanged(computeUsedLinks(), std::move(newSchedule.getLinksCausingInterference()));
         // Update stream_collection for printing results and notify REJECTED streams
         /* NOTE: Here we need to change the stream status in stream_collection.
         (note: we compute the changes using the snapshot and then update the StreamCollection)
@@ -211,7 +212,7 @@ bool ScheduleComputation::reschedule()
         // Mark the presence of a new schedule, not still applied
         scheduleNotApplied = true;
     } else {
-        topology->usedLinksNotChanged();
+        topology->scheduleNotChanged();
     }
     finalPrint(begin);
     return scheduleChanged;
@@ -260,9 +261,11 @@ Schedule ScheduleComputation::scheduleEstablishedStreams(unsigned long id) {
     std::list<ScheduleElement> empty;
     // Schedule size must always be initialized to the number of tiles in superframe
     auto newSize = superframe.size();
+    std::set<std::pair<unsigned char, unsigned char>> linksCausingInterference;
     // Reschedule ESTABLISHED streams and return pair of schedule and schedule size
-    auto schedulePair = routeAndScheduleStreams(established_streams, empty, newSize);
-    return Schedule(schedulePair.first, id, schedulePair.second);
+    auto schedulePair = routeAndScheduleStreams(established_streams, empty, newSize,
+                                                linksCausingInterference);
+    return Schedule(schedulePair.first, id, schedulePair.second, linksCausingInterference);
 }
 
 void ScheduleComputation::scheduleAcceptedStreams(Schedule& currSchedule) {
@@ -278,7 +281,8 @@ void ScheduleComputation::scheduleAcceptedStreams(Schedule& currSchedule) {
         printf("[SC] Accepted streams: %u\n", accepted_streams.size());
     auto extraSchedulePair = routeAndScheduleStreams(accepted_streams,
                                                      currSchedule.schedule,
-                                                     currSchedule.tiles);
+                                                     currSchedule.tiles,
+                                                     currSchedule.linksCausingInterference);
     // Insert computed schedule elements
     currSchedule.schedule.insert(currSchedule.schedule.end(), extraSchedulePair.first.begin(),
                               extraSchedulePair.first.end());
@@ -305,10 +309,12 @@ void ScheduleComputation::finalPrint(long long begin) {
     fflush(stdout);
 }
 
-std::pair<std::list<ScheduleElement>,
-          unsigned int> ScheduleComputation::routeAndScheduleStreams(std::vector<MasterStreamInfo>& stream_list,
-                                                                     const std::list<ScheduleElement>& current_schedule,
-                                                                     const unsigned int schedSize) {
+std::pair<std::list<ScheduleElement>, unsigned int> ScheduleComputation::routeAndScheduleStreams(
+        std::vector<MasterStreamInfo>& stream_list,
+        const std::list<ScheduleElement>& current_schedule,
+        const unsigned int schedSize,
+        std::set<std::pair<unsigned char, unsigned char>>& linksCausingInterference)
+    {
     if(stream_list.empty()) {
         if(SCHEDULER_DETAILED_DBG)
             printf("[SC] Stream list empty, scheduling done.\n");
@@ -327,7 +333,7 @@ std::pair<std::list<ScheduleElement>,
     // Schedule expanded streams, avoiding conflicts
     if(SCHEDULER_DETAILED_DBG)
         printf("[SC] ## Scheduling ##\n");
-    return scheduleStreams(routed_streams, current_schedule, schedSize);
+    return scheduleStreams(routed_streams, current_schedule, schedSize, linksCausingInterference);
 }
 
 void ScheduleComputation::getSchedule(std::vector<ScheduleElement>& sched,
@@ -345,10 +351,12 @@ void ScheduleComputation::getSchedule(std::vector<ScheduleElement>& sched,
     tiles = schedule.tiles;
 }
 
-std::pair<std::list<ScheduleElement>,
-          unsigned int> ScheduleComputation::scheduleStreams(const std::list<std::list<ScheduleElement>>& routed_streams,
-                                                             const std::list<ScheduleElement>& current_schedule,
-                                                             const unsigned int schedSize) {
+std::pair<std::list<ScheduleElement>, unsigned int> ScheduleComputation::scheduleStreams(
+        const std::list<std::list<ScheduleElement>>& routed_streams,
+        const std::list<ScheduleElement>& current_schedule,
+        const unsigned int schedSize,
+        std::set<std::pair<unsigned char, unsigned char>>& linksCausingInterference)
+    {
     if(SCHEDULER_DETAILED_DBG)
         printf("[SC] Network configuration:\n- tile_size: %d\n- downlink_size: %d\n- uplink_size: %d\n",
            slotsPerTile, reservedSlotsDownlink, reservedSlotsUplink);
@@ -400,11 +408,13 @@ std::pair<std::list<ScheduleElement>,
                 // Cycle over already scheduled elements to find conflicts
                 if(SCHEDULER_DETAILED_DBG)
                     printf("[SC] Checking against old streams\n");
-                bool conflict = checkAllConflicts(current_schedule, transmission, offset);
+                bool conflict = checkAllConflicts(current_schedule, transmission,
+                                                  offset, linksCausingInterference);
                 // Cycle over elements to be scheduled to find conflicts
                 if(SCHEDULER_DETAILED_DBG)
                     printf("[SC] Checking against new streams\n");
-                conflict |= checkAllConflicts(scheduled_transmissions, transmission, offset);
+                conflict |= checkAllConflicts(scheduled_transmissions, transmission,
+                                              offset, linksCausingInterference);
 
                 if(!conflict) {
                     last_offset = offset;
@@ -449,8 +459,12 @@ std::pair<std::list<ScheduleElement>,
     return make_pair(scheduled_transmissions, newSize);
 }
 
-bool ScheduleComputation::checkAllConflicts(std::list<ScheduleElement> other_streams, const ScheduleElement& transmission, unsigned offset) {
+bool ScheduleComputation::checkAllConflicts(std::list<ScheduleElement> other_streams,
+        const ScheduleElement& transmission, unsigned offset,
+        std::set<std::pair<unsigned char, unsigned char>>& linksCausingInterference)
+    {
     bool conflict = false;
+    std::set<std::pair<unsigned char, unsigned char>> temp;
     for(auto& elem : other_streams) {
         // conflictPossible is a simple condition used to reduce number of conflict checks
         if(slotConflictPossible(transmission, elem, offset)) {
@@ -475,6 +489,8 @@ bool ScheduleComputation::checkAllConflicts(std::list<ScheduleElement> other_str
                             printf("[SC] Unicity conflict!\n");
                     }
                     // Interference check: no TX and RX for nodes at 1-hop distance in the same timeslot
+                    temp.insert(orderLink(transmission.getTx(), elem.getRx()));
+                    temp.insert(orderLink(transmission.getRx(), elem.getTx()));
                     if(checkInterferenceConflict(transmission, elem)) {
                         conflict |= true;
                         if(SCHEDULER_DETAILED_DBG)
@@ -487,6 +503,15 @@ bool ScheduleComputation::checkAllConflicts(std::list<ScheduleElement> other_str
             }
         }
         // else conflict is not possible
+    }
+
+    // At this point, if conflict is false, it means the element will be
+    // added to the schedule and the temp set needs to be merged into the set
+    // of all linksCausingInterference global to the schedule
+    if(!conflict) {
+        for(auto &link : temp) {
+            linksCausingInterference.insert(link);
+        }
     }
     return conflict;            
 }
@@ -572,6 +597,7 @@ bool ScheduleComputation::checkInterferenceConflict(const ScheduleElement& new_t
     }
     return conflict;
 }
+
 
 void ScheduleComputation::printSchedule(const Schedule& sched) {
     printf("ID  TX  RX  PER OFF\n");
