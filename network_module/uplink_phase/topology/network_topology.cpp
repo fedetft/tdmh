@@ -97,8 +97,8 @@ void NetworkTopology::performDelayedChangesChecks()
 void NetworkTopology::doReceivedTopology(const TopologyElement& topology) {
     // Mutex already locked by caller
     unsigned char src = topology.getId();
-    RuntimeBitset bitset = topology.getNeighbors();
-    RuntimeBitset weakBitset = topology.getWeakNeighbors();
+    auto& bitset = topology.getNeighbors();
+    auto& weakBitset = topology.getWeakNeighbors();
     
     if(ENABLE_TOPOLOGY_BITMASK_DBG)
     {

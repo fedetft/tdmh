@@ -51,10 +51,10 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
     else hopFlag = hop & 0x7F;
     header = {hopFlag, assignee, numTopologies, numSMEs};
     packet.put(&header, sizeof(UplinkHeader));
-    auto neighbors = myTopology.getNeighbors();
+    auto& neighbors = myTopology.getNeighbors();
     packet.put(neighbors.data(), neighbors.size());
     if(weakTop) {
-        auto weakNeighbors = myTopology.getWeakNeighbors();
+        auto& weakNeighbors = myTopology.getWeakNeighbors();
         packet.put(weakNeighbors.data(), weakNeighbors.size());
     }
 }

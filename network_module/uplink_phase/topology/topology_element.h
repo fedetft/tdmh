@@ -95,7 +95,7 @@ public:
     unsigned char getId() const { return id; }
 
     const RuntimeBitset& getNeighbors() const { return neighbors; }
-    RuntimeBitset getWeakNeighbors() const { return weakNeighbors; }
+    const RuntimeBitset& getWeakNeighbors() const { return weakNeighbors; }
 
     void addNode(unsigned char nodeId) { neighbors[nodeId] = true; }
     void removeNode(unsigned char nodeId) { neighbors[nodeId] = false; }
