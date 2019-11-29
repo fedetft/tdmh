@@ -48,58 +48,29 @@ namespace mxnet {
 
 NeighborTable::NeighborTable(const NetworkConfiguration& config, const unsigned char myId,
                              const unsigned char myHop) :
-    weakTop(config.getUseWeakTopologies()),
-    maxTimeout(config.getMaxRoundsUnavailableBecomesDead()),
-    weakTimeout(config.getMaxRoundsWeakLinkBecomesDead()),
-    minRssi(config.getMinNeighborRSSI()),
-    minWeakRssi(config.getMinWeakNeighborRSSI()),
+    params(config),
     maxNodes(config.getMaxNodes()),
     myId(myId),
-    myTopologyElement(myId,maxNodes,weakTop) {
-    setHop(myHop);
-    badAssignee = true;
-}
+    myTopologyElement(myId,maxNodes,params.useWeakTopologies) {
+        setHop(myHop);
+        badAssignee = true;
+        neighbors.resize(maxNodes);
+    }
 
 
 void NeighborTable::receivedMessage(unsigned char currentHop, int rssi,
                                     bool bad, TopologyElement senderTopology) {
     unsigned char currentNode = senderTopology.getId();
-
-    // Handle primary topology information
-    // If currentNode is present in activeNeighbors, reset timeout
-    auto it = activeNeighbors.find(currentNode);
-    if (it != activeNeighbors.end()) {
-        it->second = maxTimeout;
-    }
-    else {
-        // If rssi > treshold
-        if(rssi >= minRssi) {
-            // Add to activeNeighbors with timeout=max
-            activeNeighbors[currentNode] = maxTimeout;
-            // Add to myTopologyElement
-            myTopologyElement.addNode(currentNode);
-        }
-        // If rssi < treshold but we are present in senderTopology
-        else if(senderTopology.getNeighbors()[myId] == true) {
-            // Add to activeNeighbors with timeout=max
-            activeNeighbors[currentNode] = maxTimeout;
-            // Add to myTopologyElement
-            myTopologyElement.addNode(currentNode);
-        }
+    bool strongRec = senderTopology.getNeighbors()[myId];
+    bool weakRec = false;
+    if(params.useWeakTopologies) {
+        weakRec = senderTopology.getWeakNeighbors()[myId];
     }
 
-    // Handle weak topology information
-    // If currentNode is present in weakActiveNeighbors, reset timeout
-    it = weakActiveNeighbors.find(currentNode);
-    if (it != weakActiveNeighbors.end()) {
-        it->second = weakTimeout;
-    }
-    else {
-        if(rssi >= minWeakRssi || senderTopology.getWeakNeighbors()[myId] == true ) {
-            weakActiveNeighbors[currentNode] = weakTimeout;
-            myTopologyElement.weakAddNode(currentNode);
-        } 
-    }
+    // Handle state machine and topology element
+    neighbors[currentNode].updateReceived(params, rssi, strongRec, weakRec);
+    updateTopologyElement(neighbors[currentNode].getStatus(), currentNode);
+    short avgRssi = neighbors[currentNode].getAvgRssi();
 
     // Handle predecessor set
     // Check if currentNode is a predecessor
@@ -107,9 +78,9 @@ void NeighborTable::receivedMessage(unsigned char currentHop, int rssi,
         // Add to predecessors, overwrite if present
         if (bad) {
             // Artificially lower priority if a node is declared badAssignee
-            addPredecessor(make_tuple(currentNode, rssi-128, maxTimeout));
+            addPredecessor(make_tuple(currentNode, avgRssi-128, params.strongTimeout));
         } else {
-            addPredecessor(make_tuple(currentNode, rssi, maxTimeout));
+            addPredecessor(make_tuple(currentNode, avgRssi, params.strongTimeout));
         }
     }
     else {
@@ -125,7 +96,7 @@ void NeighborTable::receivedMessage(unsigned char currentHop, int rssi,
         badAssignee = true;
     }
     // If my best predecessor is a bad assignee, I am a bad assignee
-    else if(get<1>(predecessors.front()) < minRssi) {
+    else if(get<1>(predecessors.front()) < params.minStrongRssi) {
         badAssignee = true;
     } else {
         badAssignee = false;
@@ -134,26 +105,38 @@ void NeighborTable::receivedMessage(unsigned char currentHop, int rssi,
 }
 
 void NeighborTable::missedMessage(unsigned char currentNode) {
-    // If currentNode is present in activeNeighbors
-    auto it = activeNeighbors.find(currentNode);
-    if (it != activeNeighbors.end()) {
-        /* Decrement timeout because we missed the uplink message from currentNode        
-           if timeout is zero, neighbor node is considered dead */
-        if(--it->second == 0) {
-            activeNeighbors.erase(currentNode);
-            myTopologyElement.removeNode(currentNode);
-        }
-    }
+    // Handle state machine and topology element
+    neighbors[currentNode].updateMissed(params);
+    updateTopologyElement(neighbors[currentNode].getStatus(), currentNode);
 
-    it = weakActiveNeighbors.find(currentNode);
-    if (it != weakActiveNeighbors.end()) {
-        if(--it->second == 0) {
-            weakActiveNeighbors.erase(currentNode);
-            myTopologyElement.weakRemoveNode(currentNode);
+    // Handle predecessor set
+    removePredecessor(currentNode, false);
+}
+
+void NeighborTable::updateTopologyElement(Neighbor::Status status, unsigned char node) {
+    switch (status) {
+    case Neighbor::Status::UNKNOWN:
+        myTopologyElement.removeNode(node);
+        if(params.useWeakTopologies) {
+            myTopologyElement.weakRemoveNode(node);
         }
+        break;
+    case Neighbor::Status::WEAK:
+        myTopologyElement.removeNode(node);
+        if(params.useWeakTopologies) {
+            myTopologyElement.weakAddNode(node);
+        }
+        break;
+    case Neighbor::Status::STRONG:
+        myTopologyElement.addNode(node);
+        if(params.useWeakTopologies) {
+            myTopologyElement.weakAddNode(node);
+        }
+        break;
+    default:
+        break;
     }
     
-    removePredecessor(currentNode, false);
 }
 
 void NeighborTable::addPredecessor(tuple<unsigned char, short, unsigned char> node) {
@@ -177,6 +160,91 @@ void NeighborTable::removePredecessor(unsigned char nodeId, bool force) {
             predecessors.erase(it); 
             make_heap(predecessors.begin(), predecessors.end(), comparePredecessors());
         }
+    }
+}
+
+void Neighbor::updateReceived(const NeighborParams& params, short rssi, bool strongRec, bool weakRec){
+    if(params.useWeakTopologies) {
+        switch(status) {
+        case Status::UNKNOWN:
+            freqTimeoutCtr += params.unknownNeighborIncrement;
+            /* A link is created as strong if received once with high rssi, 
+             * or for reciprocity */
+            if(rssi >= params.minStrongRssi || strongRec) {
+                status = Status::STRONG;
+                resetAvgRssi(rssi);
+                freqTimeoutCtr = 0;
+            /* A link is created as weak if received often with low rssi,
+             * or for reciprocity */
+            } else if (freqTimeoutCtr >= params.unknownNeighborThreshold || weakRec) {
+                status = Status::WEAK;
+                resetAvgRssi(rssi);
+                freqTimeoutCtr = 0;
+            }
+            break;
+        case Status::WEAK:
+            freqTimeoutCtr = 0;
+            /* Upgrade to strong link if rssi rises above high threshold,
+             * or for reciprocity */
+            if(updateAvgRssi(rssi) >= params.minStrongRssi || strongRec) {
+                status = Status::STRONG;
+            }
+            break;
+        case Status::STRONG:
+            freqTimeoutCtr = 0;
+            /* Downgrade to weak link if rssi falls below low threshold,
+             * or for reciprocity */
+            if(updateAvgRssi(rssi) <= params.minWeakRssi || !strongRec) {
+                status = Status::WEAK;
+            }
+            break;
+        default:
+            break;
+        }
+    } else {
+        switch(status) {
+        case Status::UNKNOWN:
+            freqTimeoutCtr += params.unknownNeighborIncrement;
+            if(rssi >= params.minStrongRssi || strongRec) {
+                status = Status::STRONG;
+                resetAvgRssi(rssi);
+                freqTimeoutCtr = 0;
+            }
+            break;
+        case Status::STRONG:
+            freqTimeoutCtr = 0;
+            updateAvgRssi(rssi);
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+void Neighbor::updateMissed(const NeighborParams& params){
+    switch(status) {
+    case Status::UNKNOWN:
+        if(freqTimeoutCtr >= params.unknownNeighborDecrement) {
+            freqTimeoutCtr -= params.unknownNeighborDecrement;
+        }
+        break;
+    /* Both weak and strong links disappear for timeout */
+    case Status::WEAK:
+        freqTimeoutCtr++;
+        if(freqTimeoutCtr >= params.weakTimeout) {
+            status = Status::UNKNOWN;
+            freqTimeoutCtr = 0;
+        }
+        break;
+    case Status::STRONG:
+        freqTimeoutCtr++;
+        if(freqTimeoutCtr >= params.strongTimeout) {
+            status = Status::UNKNOWN;
+            freqTimeoutCtr = 0;
+        }
+        break;
+    default:
+        break;
     }
 }
 

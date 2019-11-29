@@ -29,12 +29,79 @@
 
 #include "topology_element.h"
 #include "../../network_configuration.h"
-#include <map>
 #include <vector>
 #include <utility>
 #include <tuple>
 
 namespace mxnet {
+
+
+class NeighborParams {
+public:
+    NeighborParams(const NetworkConfiguration& config) :
+        useWeakTopologies(config.getUseWeakTopologies()),
+        strongTimeout(config.getMaxRoundsUnavailableBecomesDead()),
+        weakTimeout(config.getMaxRoundsWeakLinkBecomesDead()),
+        minStrongRssi(config.getMinNeighborRSSI()),
+        minWeakRssi(config.getMinWeakNeighborRSSI()) {}
+
+    static const unsigned char unknownNeighborThreshold = 11;
+    static const unsigned char unknownNeighborIncrement = 5;
+    static const unsigned char unknownNeighborDecrement = 1;
+
+    const bool useWeakTopologies;
+    const unsigned short strongTimeout;
+    const unsigned short weakTimeout;
+    const short minStrongRssi;
+    const short minWeakRssi;
+};
+
+/* Encapsulates the state of a neighbor, existent or not */
+class Neighbor {
+public:
+    enum class Status : unsigned char {
+        UNKNOWN,    // a node absent from both strong and weak topology
+        WEAK,       // a node present in weak topology only
+        STRONG      // a node present in both strong and weak topologies
+    };
+
+    Neighbor() {
+        reset();
+    }
+
+    short getAvgRssi() { return avgRssi/one; };
+    Status getStatus() { return status; };
+    /* Update neighbor state after receiving an uplink message */
+    void updateReceived(const NeighborParams& params, short rssi, bool strongRec, bool weakRec);
+    /* Update neighbor state after missing an uplink message */
+    void updateMissed(const NeighborParams& params);
+
+    void reset() {
+        status = Status::UNKNOWN;
+        avgRssi = 0;
+        freqTimeoutCtr = 0;
+    }
+
+private:
+    //One in fixed point notation, defines # of bits of fracpart
+    static constexpr short one=16;
+
+    /* One pole low pass filter */
+    short updateAvgRssi(short rssi) {
+        // Hardcoded filter a=0.75
+        constexpr short a=static_cast<short>(0.75f*one);
+        avgRssi = avgRssi*a/one + (one-a)*rssi;
+        return avgRssi/one;
+    }
+
+    void resetAvgRssi(short rssi) { avgRssi = rssi; };
+
+    Status status;
+    short avgRssi;
+    /* Counter used both for link removal timeout and frequency counter for
+     * link insertion */
+    unsigned char freqTimeoutCtr;
+};
 
 /**
  * NeighborTable contains informations on the neighbors of a node
@@ -45,12 +112,13 @@ public:
                   const unsigned char myHop);
 
     void clear(const unsigned char newHop) {
-        myTopologyElement = TopologyElement(myId,maxNodes,weakTop);
-        activeNeighbors.clear();
-        weakActiveNeighbors.clear();
+        myTopologyElement = TopologyElement(myId,maxNodes,params.useWeakTopologies);
         predecessors.clear();
         setHop(newHop);
         badAssignee = true;
+        for (auto neigh : neighbors) {
+            neigh.reset();
+        }
     }
 
     void receivedMessage(unsigned char currentHop, int rssi, bool bad,
@@ -58,11 +126,13 @@ public:
 
     void missedMessage(unsigned char currentNode);
 
+    void updateTopologyElement(Neighbor::Status status, unsigned char node);
+
     bool hasPredecessor() { return (predecessors.size() != 0); };
 
     bool isBadAssignee() { return badAssignee; };
 
-    bool bestPredecessorIsBad() { return std::get<1>(predecessors.front()) < minRssi; };
+    bool bestPredecessorIsBad() { return std::get<1>(predecessors.front()) < params.minStrongRssi; };
 
     unsigned char getBestPredecessor() { return std::get<0>(predecessors.front()); };
 
@@ -70,9 +140,7 @@ public:
 
 private:
 
-    void setHop(unsigned char newHop) {
-        myHop = newHop;
-    }
+    void setHop(unsigned char newHop) { myHop = newHop; }
 
     /**
      * Add a node to the predecessor list, replacing if already present
@@ -85,11 +153,7 @@ private:
     void removePredecessor(unsigned char nodeId, bool force);
 
     /* Constant value from NetworkConfiguration */
-    const bool weakTop;
-    const unsigned short maxTimeout;
-    const unsigned short weakTimeout;
-    const short minRssi;
-    const short minWeakRssi;
+    NeighborParams params;
     const unsigned short maxNodes;
     const unsigned char myId;
 
@@ -102,12 +166,8 @@ private:
     /* TopologyElement containing neighbors of this node */
     TopologyElement myTopologyElement;
 
-    /* map with key: unsigned char id, value: unsigned char timeoutCounter,
-       used to remove nodes from the list of neighbors after not receiving
-       their message for timeoutCounter times.
-       This timeout is used for removing nodes from my local topology. */
-    std::map<unsigned char, unsigned char> activeNeighbors;
-    std::map<unsigned char, unsigned char> weakActiveNeighbors;
+    /* Collection of neighbors, existent or not  */
+    std::vector<Neighbor> neighbors;
 
     /* vector containing predecessor nodes (with hop < this node)
        used as a heap (with stl methods make_heap, push_heap and pop_heap)
@@ -118,5 +178,6 @@ private:
     std::vector<std::tuple<unsigned char, short, unsigned char>> predecessors;
 
 };
+
 
 } /* namespace mxnet */
