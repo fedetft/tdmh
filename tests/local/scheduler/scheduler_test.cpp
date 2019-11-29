@@ -42,9 +42,12 @@ int main()
         100000000,     //tileDuration
         150000,        //maxAdmittedRcvWindow
         3,             //maxRoundsUnavailableBecomesDead
+        128,           //maxRoundsWeakLinkBecomesDead
         -75,           //minNeighborRSSI
+        -95,           //minWeakNeighborRSSI
         4,             //maxMissedTimesyncs
-        false          //channelSpatialReuse
+        false,         //channelSpatialReuse
+        false          //useWeakTopologies
     );
     
     
