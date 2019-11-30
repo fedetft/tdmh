@@ -136,7 +136,7 @@ public:
 
     unsigned char getBestPredecessor() { return std::get<0>(predecessors.front()); };
 
-    TopologyElement getMyTopologyElement() { return myTopologyElement; };
+    const TopologyElement& getMyTopologyElement() { return myTopologyElement; };
 
 private:
 

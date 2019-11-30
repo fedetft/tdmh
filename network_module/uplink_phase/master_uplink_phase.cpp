@@ -66,7 +66,8 @@ void MasterUplinkPhase::sendMyUplink(long long slotStart)
     ctx.transceiverIdle();
 
     //send my topology to myself
-    topologyQueue.enqueue(0, myNeighborTable.getMyTopologyElement());
+    TopologyElement myTopology = myNeighborTable.getMyTopologyElement();
+    topologyQueue.enqueue(0, std::move(myTopology));
 
     if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
         print_dbg("->%d\n",ctx.getNetworkId());
