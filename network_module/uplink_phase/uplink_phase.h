@@ -84,9 +84,9 @@ protected:
             myId(ctx.getNetworkId()),
             nodesCount(ctx.getNetworkConfig().getMaxNodes()),
             nextNode(nodesCount - 1),
-            myNeighborTable(NeighborTable(ctx.getNetworkConfig(),
-                                          ctx.getNetworkId(),
-                                          ctx.getHop())) {};
+            myNeighborTable(ctx.getNetworkConfig(),
+                            ctx.getNetworkId(),
+                            ctx.getHop()) {}
     
 
     /**

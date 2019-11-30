@@ -112,7 +112,7 @@ public:
                   const unsigned char myHop);
 
     void clear(const unsigned char newHop) {
-        myTopologyElement = TopologyElement(myId,maxNodes,params.useWeakTopologies);
+        myTopologyElement.clear();
         predecessors.clear();
         setHop(newHop);
         badAssignee = true;

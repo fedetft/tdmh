@@ -45,8 +45,6 @@ public:
         id(0), neighbors(maxNodes,0), weakTop(useWeakTopologies) {
             if(weakTop) {
                 weakNeighbors = RuntimeBitset(maxNodes, 0);
-            } else {
-                weakNeighbors = RuntimeBitset();
             }
         }
 
@@ -54,8 +52,6 @@ public:
         id(id), neighbors(maxNodes,0), weakTop(useWeakTopologies) {
             if(weakTop) {
                 weakNeighbors = RuntimeBitset(maxNodes, 0);
-            } else {
-                weakNeighbors = RuntimeBitset();
             }
         }
 
@@ -75,7 +71,13 @@ public:
         id(id), neighbors(std::move(neighbors)), weakNeighbors(std::move(weakNeighbors)),
         weakTop(1)  {}
 
-    virtual ~TopologyElement() {};
+    virtual ~TopologyElement() {}
+    
+    void clear()
+    {
+        neighbors.setAll(0);
+        if(weakTop) weakNeighbors.setAll(0);
+    }
 
     static unsigned short maxSize(unsigned short bitmaskSize, bool useWeakTopologies) {
         if(useWeakTopologies) return sizeof(unsigned char) + 2*bitmaskSize;
