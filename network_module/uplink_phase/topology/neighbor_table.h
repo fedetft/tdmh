@@ -94,13 +94,13 @@ private:
         return avgRssi/one;
     }
 
-    void resetAvgRssi(short rssi) { avgRssi = rssi; };
+    void resetAvgRssi(short rssi) { avgRssi = rssi*one; };
 
     Status status;
-    short avgRssi;
     /* Counter used both for link removal timeout and frequency counter for
      * link insertion */
     unsigned char freqTimeoutCtr;
+    short avgRssi;
 };
 
 /**

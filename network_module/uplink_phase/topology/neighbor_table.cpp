@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "neighbor_table.h"
+#include "../../util/debug_settings.h"
 #include <algorithm>
 using namespace std;
 
@@ -224,9 +225,7 @@ void Neighbor::updateReceived(const NeighborParams& params, short rssi, bool str
 void Neighbor::updateMissed(const NeighborParams& params){
     switch(status) {
     case Status::UNKNOWN:
-        if(freqTimeoutCtr >= params.unknownNeighborDecrement) {
-            freqTimeoutCtr -= params.unknownNeighborDecrement;
-        }
+        freqTimeoutCtr = max(0, freqTimeoutCtr - params.unknownNeighborDecrement);
         break;
     /* Both weak and strong links disappear for timeout */
     case Status::WEAK:
