@@ -152,6 +152,11 @@ private:
      */
     void removePredecessor(unsigned char nodeId, bool force);
 
+    /**
+     * Internal method to keep the badAssignee flag updated
+     */
+    void computeBadAssignee();
+
     /* Constant value from NetworkConfiguration */
     NeighborParams params;
     const unsigned short maxNodes;

@@ -89,20 +89,7 @@ void NeighborTable::receivedMessage(unsigned char currentHop, int rssi,
         removePredecessor(currentNode, true);
     }
 
-    // Evaluate whether I am a bad assignee for others
-    if(myId == 0) {
-        // Master is never a bad assignee
-        badAssignee = false;
-    } else if(!hasPredecessor()) {
-        badAssignee = true;
-    }
-    // If my best predecessor is a bad assignee, I am a bad assignee
-    else if(get<1>(predecessors.front()) < params.minStrongRssi) {
-        badAssignee = true;
-    } else {
-        badAssignee = false;
-    }
-
+    computeBadAssignee();
 }
 
 void NeighborTable::missedMessage(unsigned char currentNode) {
@@ -112,6 +99,7 @@ void NeighborTable::missedMessage(unsigned char currentNode) {
 
     // Handle predecessor set
     removePredecessor(currentNode, false);
+    computeBadAssignee();
 }
 
 void NeighborTable::updateTopologyElement(Neighbor::Status status, unsigned char node) {
@@ -161,6 +149,21 @@ void NeighborTable::removePredecessor(unsigned char nodeId, bool force) {
             predecessors.erase(it); 
             make_heap(predecessors.begin(), predecessors.end(), comparePredecessors());
         }
+    }
+}
+
+void NeighborTable::computeBadAssignee() {
+    if(myId == 0) {
+        // Master is never a bad assignee
+        badAssignee = false;
+    } else if(!hasPredecessor()) {
+        badAssignee = true;
+    }
+    // If my best predecessor is a bad assignee, I am a bad assignee
+    else if(get<1>(predecessors.front()) < params.minStrongRssi) {
+        badAssignee = true;
+    } else {
+        badAssignee = false;
     }
 }
 
