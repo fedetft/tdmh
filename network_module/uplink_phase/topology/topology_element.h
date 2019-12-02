@@ -70,6 +70,12 @@ public:
                     RuntimeBitset&& weakNeighbors) :
         id(id), neighbors(std::move(neighbors)), weakNeighbors(std::move(weakNeighbors)),
         weakTop(1)  {}
+    
+    // Explicitly enable move semantics which has been disabled by the destructor declaration
+    TopologyElement(const TopologyElement& rhs) = default;
+    TopologyElement(TopologyElement&& rhs) = default;
+    TopologyElement& operator=(const TopologyElement& rhs) = default;
+    TopologyElement& operator=(TopologyElement&& rhs) = default;
 
     virtual ~TopologyElement() {}
     
