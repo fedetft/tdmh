@@ -122,7 +122,7 @@ public:
     }
 
     void receivedMessage(unsigned char currentHop, int rssi, bool bad,
-                         TopologyElement senderTopology);
+                         const TopologyElement& senderTopology);
 
     void missedMessage(unsigned char currentNode);
 

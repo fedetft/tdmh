@@ -59,7 +59,7 @@ NeighborTable::NeighborTable(const NetworkConfiguration& config, const unsigned 
 
 
 void NeighborTable::receivedMessage(unsigned char currentHop, int rssi,
-                                    bool bad, TopologyElement senderTopology) {
+                                    bool bad, const TopologyElement& senderTopology) {
     unsigned char currentNode = senderTopology.getId();
     bool strongRec = senderTopology.getNeighbors()[myId];
     bool weakRec = false;
