@@ -72,8 +72,7 @@ bool StreamManagementElement::validateInPacket(Packet& packet, unsigned int offs
             break;
         case SMEType::RESEND_SCHEDULE:
             if(id.src==0) result = false; //Master node can't ask resend
-            if(id.src!=id.dst) result = false; //Wrong resend packet
-            if(id.srcPort!=1 || id.dstPort!=0) result = false;
+            if(id.dst!=0 || id.srcPort!=0 || id.dstPort!=0) result = false; //Wrong resend packet
             break;
         default:
             result = false;
