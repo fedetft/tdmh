@@ -125,7 +125,6 @@ void NeighborTable::updateTopologyElement(Neighbor::Status status, unsigned char
     default:
         break;
     }
-    
 }
 
 void NeighborTable::addPredecessor(tuple<unsigned char, short, unsigned char> node) {
@@ -171,7 +170,6 @@ void Neighbor::updateReceived(const NeighborParams& params, short rssi, bool str
     if(params.useWeakTopologies) {
         switch(status) {
         case Status::UNKNOWN:
-            freqTimeoutCtr += params.unknownNeighborIncrement;
             /* A link is created as strong if received once with high rssi, 
              * or for reciprocity */
             if(rssi >= params.minStrongRssi || strongRec) {
@@ -180,11 +178,14 @@ void Neighbor::updateReceived(const NeighborParams& params, short rssi, bool str
                 freqTimeoutCtr = 0;
             /* A link is created as weak if received often with low rssi,
              * or for reciprocity */
-            } else if (freqTimeoutCtr >= params.unknownNeighborThreshold || weakRec) {
-                status = Status::WEAK;
-                resetAvgRssi(rssi);
-                freqTimeoutCtr = 0;
-            }
+            } else if(rssi >= params.minWeakRssi || weakRec) {
+                freqTimeoutCtr += params.unknownNeighborIncrement;
+                if(freqTimeoutCtr >= params.unknownNeighborThreshold || weakRec) {
+                    status = Status::WEAK;
+                    resetAvgRssi(rssi);
+                    freqTimeoutCtr = 0;
+                }
+            } else freqTimeoutCtr = max(0, freqTimeoutCtr - params.unknownNeighborDecrement);
             break;
         case Status::WEAK:
             freqTimeoutCtr = 0;
@@ -198,7 +199,7 @@ void Neighbor::updateReceived(const NeighborParams& params, short rssi, bool str
             freqTimeoutCtr = 0;
             /* Downgrade to weak link if rssi falls below low threshold,
              * or for reciprocity */
-            if(updateAvgRssi(rssi) <= params.minWeakRssi || !strongRec) {
+            if(updateAvgRssi(rssi) <= params.minMidRssi || !strongRec) {
                 status = Status::WEAK;
             }
             break;

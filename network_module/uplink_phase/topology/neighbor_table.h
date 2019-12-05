@@ -43,7 +43,8 @@ public:
         strongTimeout(config.getMaxRoundsUnavailableBecomesDead()),
         weakTimeout(config.getMaxRoundsWeakLinkBecomesDead()),
         minStrongRssi(config.getMinNeighborRSSI()),
-        minWeakRssi(config.getMinWeakNeighborRSSI()) {}
+        minWeakRssi(config.getMinWeakNeighborRSSI()),
+        minMidRssi((minStrongRssi+minWeakRssi)/2) {}
 
     static const unsigned char unknownNeighborThreshold = 11;
     static const unsigned char unknownNeighborIncrement = 5;
@@ -54,6 +55,7 @@ public:
     const unsigned short weakTimeout;
     const short minStrongRssi;
     const short minWeakRssi;
+    const short minMidRssi;
 };
 
 /* Encapsulates the state of a neighbor, existent or not */
