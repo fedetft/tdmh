@@ -37,7 +37,7 @@ namespace mxnet {
 void DataPhase::execute(long long slotStart) {
     // Empty schedule
     if(scheduleTiles == 0) {
-        sleep(slotStart);
+        this->sleep(slotStart);
         return;
     }
     // NOTE FIXME: this sleep is currently needed only in the simulator, to avoid
@@ -46,52 +46,62 @@ void DataPhase::execute(long long slotStart) {
 #ifndef _MIOSIX
     usleep(1000);
 #endif
-    // Schedule playback
-    switch(currentSchedule[slotIndex].getAction()){
-    case Action::SLEEP:
-        sleep(slotStart);
-        break;
-    case Action::SENDSTREAM:
-        sendFromStream(slotStart, currentSchedule[slotIndex].getStreamId());
-        break;
-    case Action::RECVSTREAM:
-        receiveToStream(slotStart, currentSchedule[slotIndex].getStreamId());
-        break;
-    case Action::SENDBUFFER:
-        sendFromBuffer(slotStart, currentSchedule[slotIndex].getBuffer(),
-                                  currentSchedule[slotIndex].getStreamId());
-        break;
-    case Action::RECVBUFFER:
-        receiveToBuffer(slotStart, currentSchedule[slotIndex].getBuffer(),
-                                   currentSchedule[slotIndex].getStreamId());
-        break;
+    try {
+        // Schedule playback
+        switch(currentSchedule.at(slotIndex).getAction()){
+        case Action::SLEEP:
+            this->sleep(slotStart);
+            break;
+        case Action::SENDSTREAM:
+            sendFromStream(slotStart, currentSchedule.at(slotIndex).getStreamId());
+            break;
+        case Action::RECVSTREAM:
+            receiveToStream(slotStart, currentSchedule.at(slotIndex).getStreamId());
+            break;
+        case Action::SENDBUFFER:
+            sendFromBuffer(slotStart, currentSchedule.at(slotIndex).getBuffer(),
+                                    currentSchedule.at(slotIndex).getStreamId());
+            break;
+        case Action::RECVBUFFER:
+            receiveToBuffer(slotStart, currentSchedule.at(slotIndex).getBuffer(),
+                                    currentSchedule.at(slotIndex).getStreamId());
+            break;
+        }
+        incrementSlot();
+    } catch(...) {
+        incrementSlot(); //Do not forget to increment the slot
+        throw;
     }
-    incrementSlot();
 }
 
 void DataPhase::advance(long long slotStart) {
     // Empty schedule
     if(scheduleTiles == 0) {
-        sleep(slotStart);
+        this->sleep(slotStart);
         return;
     }
-    StreamId id = currentSchedule[slotIndex].getStreamId();
-    Packet pkt;
-    switch(currentSchedule[slotIndex].getAction()){
-    case Action::SLEEP:
-        sleep(slotStart);
-        break;
-    case Action::SENDSTREAM:
-        stream.sendPacket(id, pkt);
-        break;
-    case Action::RECVSTREAM:
-        stream.missPacket(id);
-        break;
-    default:
-        sleep(slotStart);
-        break;
+    try {
+        StreamId id = currentSchedule.at(slotIndex).getStreamId();
+        Packet pkt;
+        switch(currentSchedule.at(slotIndex).getAction()){
+        case Action::SLEEP:
+            this->sleep(slotStart);
+            break;
+        case Action::SENDSTREAM:
+            stream.sendPacket(id, pkt);
+            break;
+        case Action::RECVSTREAM:
+            stream.missPacket(id);
+            break;
+        default:
+            this->sleep(slotStart);
+            break;
+        }
+        incrementSlot();
+    } catch(...) {
+        incrementSlot(); //Do not forget to increment the slot
+        throw;
     }
-    incrementSlot();
 }
 
 void DataPhase::sleep(long long slotStart) {
@@ -114,7 +124,7 @@ void DataPhase::sendFromStream(long long slotStart, StreamId id) {
         }
     }
     else
-        sleep(slotStart);
+        this->sleep(slotStart);
 }
 
 void DataPhase::receiveToStream(long long slotStart, StreamId id) {
@@ -179,7 +189,7 @@ void DataPhase::sendFromBuffer(long long slotStart,
         if(lastTransmission(id)) {
             resetBufCtr(id);
         }
-        sleep(slotStart);
+        this->sleep(slotStart);
     }
 }
 void DataPhase::receiveToBuffer(long long slotStart,
