@@ -70,23 +70,26 @@ void NeighborTable::receivedMessage(unsigned char currentHop, int rssi,
 
     // Handle state machine and topology element
     neighbors[currentNode].updateReceived(params, rssi, strongRec, weakRec);
-    updateTopologyElement(neighbors[currentNode].getStatus(), currentNode);
-    short avgRssi = neighbors[currentNode].getAvgRssi();
+    Neighbor::Status status = neighbors[currentNode].getStatus();
+    updateTopologyElement(status, currentNode);
 
-    // Handle predecessor set
-    // Check if currentNode is a predecessor
-    if(currentHop < myHop) {
-        // Add to predecessors, overwrite if present
-        if (bad) {
-            // Artificially lower priority if a node is declared badAssignee
-            addPredecessor(make_tuple(currentNode, avgRssi-128, params.strongTimeout));
-        } else {
-            addPredecessor(make_tuple(currentNode, avgRssi, params.strongTimeout));
+    if (status != Neighbor::Status::UNKNOWN) {
+        // Handle predecessor set
+        // Check if currentNode is a predecessor
+        short avgRssi = neighbors[currentNode].getAvgRssi();
+        if(currentHop < myHop) {
+            // Add to predecessors, overwrite if present
+            if (bad) {
+                // Artificially lower priority if a node is declared badAssignee
+                addPredecessor(make_tuple(currentNode, avgRssi-128, params.strongTimeout));
+            } else {
+                addPredecessor(make_tuple(currentNode, avgRssi, params.strongTimeout));
+            }
         }
-    }
-    else {
-        // Remove from predecessors if present (this happens if node desyncs/resyncs)
-        removePredecessor(currentNode, true);
+        else {
+            // Remove from predecessors if present (this happens if node desyncs/resyncs)
+            removePredecessor(currentNode, true);
+        }
     }
 
     computeBadAssignee();
