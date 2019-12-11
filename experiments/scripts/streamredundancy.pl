@@ -95,6 +95,7 @@ while(<STDIN>)
 }
 
 print "\n\nStream stats:\n";
+my $trs=0, my $trd=0, my $trt=0, my $tsp=0;
 foreach(sort keys %streams) {
     my $key=$_;
     my $val=$streams{$_};
@@ -102,5 +103,10 @@ foreach(sort keys %streams) {
     my $rels=100*$rs/$sp; my $relsstr=sprintf("%.2f",$rels);
     my $reld=100*$rd/$sp; my $reldstr=sprintf("%.2f",$reld);
     my $relt=100*$rt/$sp; my $reltstr=sprintf("%.2f",$relt);
+    $trs+=$rs; $trd+=$rd; $trt+=$rt; $tsp+=$sp;
     print "[$key]: SENT=$sp RCVD_SINGLE=$rs RCVD_DOUBLE=$rd RCVD_TRIPLE=$rt REL_SINGLE=$relsstr% REL_DOUBLE=$reldstr%  REL_TRIPLE=$reltstr%\n";
 }
+my $trelsstr=sprintf("%.2f",100*$trs/$tsp);
+my $treldstr=sprintf("%.2f",100*$trd/$tsp);
+my $treltstr=sprintf("%.2f",100*$trt/$tsp);
+print "TOTAL: SENT=$tsp RCVD_SINGLE=$trs RCVD_DOUBLE=$trd RCVD_TRIPLE=$trt REL_SINGLE=$trelsstr% REL_DOUBLE=$treldstr%  REL_TRIPLE=$treltstr%\n";

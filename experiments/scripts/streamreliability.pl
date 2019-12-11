@@ -129,11 +129,17 @@ foreach(sort keys %streams) {
 }
 
 print "\n\nStream stats:\n";
+my $totalsent=0, my $totalrecvd=0, my $totalfailed=0;
 foreach(sort keys %streams) {
     my $key=$_;
     my $val=$streams{$_};
     my ($ctr, $t, $mheap, $reboot, $closed, $sentctr, $sentlog, $recvd, $failed) = @{$val};
     my $sent=max($sentctr,$sentlog);
     my $reliability=100*$recvd/$sent; my $reliabilitystr=sprintf("%.2f",$reliability);
+    $totalsent+=$sent;
+    $totalrecvd+=$recvd;
+    $totalfailed+=$failed;
     print "[$key]: MIN_HEAP=$mheap REBOOT=$reboot CLOSED=$closed SENT=$sentctr,$sentlog RECVD=$recvd FAILED=$failed RELIABILITY=$reliabilitystr%\n";
 }
+my $totalreliability=sprintf("%.2f",100*$totalrecvd/$totalsent);
+print "TOTAL: SENT=$totalsent RECVD=$totalrecvd FAILED=$totalfailed RELIABILITY=$totalreliability%\n";
