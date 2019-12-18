@@ -170,62 +170,43 @@ void NeighborTable::computeBadAssignee() {
 }
 
 void Neighbor::updateReceived(const NeighborParams& params, short rssi, bool strongRec, bool weakRec){
-    if(params.useWeakTopologies) {
-        switch(status) {
-        case Status::UNKNOWN:
-            /* A link is created as strong if received once with high rssi, 
-             * or for reciprocity */
-            if(rssi >= params.minStrongRssi || strongRec) {
-                status = Status::STRONG;
-                resetAvgRssi(rssi);
-                freqTimeoutCtr = 0;
-            /* A link is created as weak if received often with low rssi,
-             * or for reciprocity */
-            } else if(rssi >= params.minWeakRssi || weakRec) {
-                freqTimeoutCtr += params.unknownNeighborIncrement;
-                if(freqTimeoutCtr >= params.unknownNeighborThreshold || weakRec) {
-                    status = Status::WEAK;
-                    resetAvgRssi(rssi);
-                    freqTimeoutCtr = 0;
-                }
-            } else freqTimeoutCtr = max(0, freqTimeoutCtr - params.unknownNeighborDecrement);
-            break;
-        case Status::WEAK:
+    switch(status) {
+    case Status::UNKNOWN:
+        /* A link is created as strong if received once with high rssi, 
+         * or for reciprocity */
+        if(rssi >= params.minStrongRssi || strongRec) {
+            status = Status::STRONG;
+            resetAvgRssi(rssi);
             freqTimeoutCtr = 0;
-            /* Upgrade to strong link if rssi rises above high threshold,
-             * or for reciprocity */
-            if(updateAvgRssi(rssi) >= params.minStrongRssi || strongRec) {
-                status = Status::STRONG;
-            }
-            break;
-        case Status::STRONG:
-            freqTimeoutCtr = 0;
-            /* Downgrade to weak link if rssi falls below low threshold,
-             * or for reciprocity */
-            if(updateAvgRssi(rssi) <= params.minMidRssi || !strongRec) {
-                status = Status::WEAK;
-            }
-            break;
-        default:
-            break;
-        }
-    } else {
-        switch(status) {
-        case Status::UNKNOWN:
+        /* A link is created as weak if received often with low rssi,
+         * or for reciprocity */
+        } else if(rssi >= params.minWeakRssi || weakRec) {
             freqTimeoutCtr += params.unknownNeighborIncrement;
-            if(rssi >= params.minStrongRssi || strongRec) {
-                status = Status::STRONG;
+            if(freqTimeoutCtr >= params.unknownNeighborThreshold || weakRec) {
+                status = Status::WEAK;
                 resetAvgRssi(rssi);
                 freqTimeoutCtr = 0;
             }
-            break;
-        case Status::STRONG:
-            freqTimeoutCtr = 0;
-            updateAvgRssi(rssi);
-            break;
-        default:
-            break;
+        } else freqTimeoutCtr = max(0, freqTimeoutCtr - params.unknownNeighborDecrement);
+        break;
+    case Status::WEAK:
+        freqTimeoutCtr = 0;
+        /* Upgrade to strong link if rssi rises above high threshold,
+         * or for reciprocity */
+        if(updateAvgRssi(rssi) >= params.minStrongRssi || strongRec) {
+            status = Status::STRONG;
         }
+        break;
+    case Status::STRONG:
+        freqTimeoutCtr = 0;
+        /* Downgrade to weak link if rssi falls below low threshold,
+         * or for reciprocity */
+        if(updateAvgRssi(rssi) <= params.minMidRssi || !strongRec) {
+            status = Status::WEAK;
+        }
+        break;
+    default:
+        break;
     }
 }
 
