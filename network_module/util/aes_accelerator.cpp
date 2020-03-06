@@ -1,4 +1,4 @@
-#include "aes.h"
+#include "aes_accelerator.h"
 #include <miosix.h>
 #include <stdio.h>
 
@@ -10,14 +10,17 @@ AESAccelerator& AESAccelerator::instance() {
 }
 
 void AESAccelerator::aes128_setKey(const void *key) {
+#ifdef _MIOSIX
     auto *kp = reinterpret_cast<const unsigned int*>(key);
     AES->KEYHA = kp[0];
     AES->KEYHA = kp[1];
     AES->KEYHA = kp[2];
     AES->KEYHA = kp[3];
+#endif
 }
 
 void AESAccelerator::aes128_computeLastRoundKey(void *lrk, const void *key) {
+#ifdef _MIOSIX
     //Encrypt first, read last round key from keybuffer
     unsigned char buffer[16] = {0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0};
     aes128_setKey(key);
@@ -28,15 +31,19 @@ void AESAccelerator::aes128_computeLastRoundKey(void *lrk, const void *key) {
     kp[1] = AES->KEYLA;
     kp[2] = AES->KEYLA;
     kp[3] = AES->KEYLA;
+#endif
 }
 
 void AESAccelerator::aes128_clearKey() {
+#ifdef _MIOSIX
     for(int i=0; i<4; i++) {
         AES->KEYHA = 0;
     }
+#endif
 }
 
 void AESAccelerator::processBlock(void *dst, const void *src) {
+#ifdef _MIOSIX
     auto *sp = reinterpret_cast<const unsigned int*>(src);
     AES->DATA = sp[0];
     AES->DATA = sp[1];
@@ -46,14 +53,17 @@ void AESAccelerator::processBlock(void *dst, const void *src) {
     AES->CMD = AES_CMD_START;
     while(AES->STATUS & AES_STATUS_RUNNING) ;
 
+
     auto *dp = reinterpret_cast<unsigned int*>(dst);
     dp[0] = AES->DATA;
     dp[1] = AES->DATA;
     dp[2] = AES->DATA;
     dp[3] = AES->DATA;
+#endif
 }
 
 AESAccelerator::AESAccelerator() {
+#ifdef _MIOSIX
     {
         miosix::FastInterruptDisableLock lock;
         CMU->HFCORECLKEN0 |= CMU_HFCORECLKEN0_AES;
@@ -64,6 +74,7 @@ AESAccelerator::AESAccelerator() {
     // before encryption/decryption.
     AES->CTRL |= AES_CTRL_KEYBUFEN;
     AES->CTRL |= AES_CTRL_BYTEORDER;
+#endif
 }
 
 }

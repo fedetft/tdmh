@@ -1,12 +1,12 @@
 #pragma once
 #include <miosix.h>
-#include <stdio.h>
 
 namespace mxnet {
 
 class AESAccelerator {
 public:
     static AESAccelerator& instance();
+    static const int AESBlockSize = 16;
 
     AESAccelerator(const AESAccelerator&) = delete;
     AESAccelerator& operator=(const AESAccelerator&) = delete;
@@ -17,16 +17,24 @@ public:
 
     void aes128_clearKey();
 
-    /* Encrypt/decrypt a single block. Expect all buffers to be 16 bytes long. */
+    /* Encrypt a single block. Expect buffer to be 16 bytes long.
+     * Call setKey before encrypting a block.
+     */
     void aes128_ecbEncrypt(void *ctx, const void *ptx) {
+#ifdef _MIOSIX
         AES->CTRL &= ~AES_CTRL_DECRYPT;
         processBlock(ctx, ptx);
+#endif
     }
+    /* Decrypt a single block. Expect buffer to be 16 bytes long.
+     * Call setKey with the last round key before decrypting a block.
+     */
     void aes128_ecbDecrypt(void *ptx, const void *ctx) {
+#ifdef _MIOSIX
         AES->CTRL |= AES_CTRL_DECRYPT;
         processBlock(ptx, ctx);
+#endif
     }
-
 
 private:
     AESAccelerator();
