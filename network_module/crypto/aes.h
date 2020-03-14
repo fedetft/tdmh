@@ -39,14 +39,16 @@ public:
     void ecbDecrypt(void *ptx, const void *ctx, unsigned int length = 16);
 
     /* Counter mode uses the same primitive for encryption and decryption.
-     * Expect length to be a multiple of 16 bytes. */
+     * If length is not a multiple of 16 bytes, encrypt the last partial block
+     * discarding part of the encrypted counter.
+     * */
     void ctrXcrypt(const IV& iv, void *dst, const void *src, unsigned int length);
 
 private:
     const unsigned int AESBlockSize = 16;
 
     /* Mutex to access the AESAccelerator, must be locked before setting the key
-     * and unlocked after all blocks are processed that used such key. */
+     * and unlocked after all blocks are processed that use such key. */
 #ifdef _MIOSIX
     static miosix::Mutex aesMutex;
 #else
@@ -55,8 +57,12 @@ private:
 
     AESAccelerator& aesAcc = AESAccelerator::instance();
 
-    /* XOR 16 bytes */
-    void xorBlock(void *dst, const void *op1, const void *op2);
+    void xorBytes(unsigned char *dst, const unsigned char *op1, const unsigned char *op2,
+                                                                    unsigned int length) {
+        for (unsigned i=0; i<length; i++) {
+            dst[i] = op1[i] ^ op2[i];
+        }
+    }
 
     unsigned char key[16];
     unsigned char lrk[16];

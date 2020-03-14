@@ -8,7 +8,7 @@ using namespace std;
 namespace mxnet {
 
 void Aes::ecbEncrypt(void *ctx, const void *ptx, unsigned int length) {
-    if(length % AESBlockSize != 0)
+    if((length & (unsigned int)0xf) != 0)
         throw range_error("Aes::ecbEncrypt : buffer size is not a multiple of cipher block size.");
 
     unsigned char *cp = reinterpret_cast<unsigned char*>(ctx);
@@ -28,7 +28,7 @@ void Aes::ecbEncrypt(void *ctx, const void *ptx, unsigned int length) {
 }
 
 void Aes::ecbDecrypt(void *ptx, const void *ctx, unsigned int length) {
-    if(length % AESBlockSize != 0)
+    if((length & (unsigned int)0xf) != 0)
         throw range_error("Aes::ecbDecrypt : buffer size is not a multiple of cipher block size.");
 
     unsigned char *pp = reinterpret_cast<unsigned char*>(ptx);
@@ -48,8 +48,8 @@ void Aes::ecbDecrypt(void *ptx, const void *ctx, unsigned int length) {
 }
 
 void Aes::ctrXcrypt(const IV& iv, void *dst, const void *src, unsigned int length) {
-    if(length % AESBlockSize != 0)
-        throw range_error("Aes::ctrXcrypt : buffer size is not a multiple of cipher block size.");
+    unsigned dataLength = length;
+    unsigned short blockLength;
 
     unsigned char *dp = reinterpret_cast<unsigned char*>(dst);
     const unsigned char *sp = reinterpret_cast<const unsigned char*>(src);
@@ -63,23 +63,19 @@ void Aes::ctrXcrypt(const IV& iv, void *dst, const void *src, unsigned int lengt
 #endif
         aesAcc.aes128_setKey(key);
         IV ctr(iv);
-        // NOTE: this can be improved by removing the last useless ctr increment
-        for(unsigned i=0; i<length; i+= AESBlockSize) {
+
+        unsigned i=0;
+        while(dataLength > 0) {
+            blockLength = std::min(dataLength, AESBlockSize);
             aesAcc.aes128_ecbEncrypt(buffer, ctr.getData());
-            xorBlock(&dp[i], buffer, &sp[i]);
+            xorBytes(&dp[i], buffer, &sp[i], blockLength);
             ++ctr; //prefix operator is more efficient
+            i+=blockLength;
+            dataLength -= blockLength;
         }
     }
     memset(buffer, 0, AESBlockSize);
 }
 
-void Aes::xorBlock(void *dst, const void *op1, const void *op2) {
-    unsigned int *dp = reinterpret_cast<unsigned int*>(dst);
-    const unsigned int *o1 = reinterpret_cast<const unsigned int*>(op1);
-    const unsigned int *o2 = reinterpret_cast<const unsigned int*>(op2);
-    for (unsigned i=0; i<AESBlockSize/sizeof(unsigned int); i++) {
-        dp[i] = o1[i] ^ o2[i];
-    }
-}
 
 } //namespace mxnet
