@@ -7,8 +7,6 @@ class AesGcm {
 public:
     AesGcm(const void *key) : aes(key) , iv(iv) {
         unsigned char zero[16] = {0};
-
-        memcpy(this->key, key, 16);
         aes.ecbEncrypt(H, zero);
     }
 
@@ -19,10 +17,8 @@ public:
 
     void rekey(const void *key) {
         unsigned char zero[16] = {0};
-
-        memcpy(this->key, key, 16);
-        aes.rekey(key);
         aes.ecbEncrypt(H, zero);
+        aes.rekey(key);
     }
 
     void setIV(unsigned long slotNumber);
@@ -42,24 +38,6 @@ public:
         p[0] = (unsigned long long) authLength;
         p[1] = (unsigned long long) cryptLength;
     }
-
-    /* Start GCM:
-     *  - compute E(iv)
-     *  - digest slotInfo block
-     */
-    void start();
-
-    /* Digest authLength bytes at auth */
-    void processAuthData(const unsigned char *auth);
-
-    /* Encrypt cryptLength bytes and digest ciphertext */
-    void encryptAndProcessData(unsigned char *ctx, const unsigned char *ptx);
-
-    /* Decrypt cryptLength bytes and digest ciphertext */
-    void decryptAndProcessData(unsigned char *ptx, const unsigned char *ctx);
-
-    /* Digest length info and compute tag */
-    void finish();
 
     /* get current value of tag */
     void getTag(void *tag) {
@@ -92,6 +70,25 @@ public:
 
 private:
 
+    /* Start GCM:
+     *  - compute E(iv)
+     *  - digest slotInfo block
+     */
+    void start();
+
+    /* Digest authLength bytes at auth */
+    void processAuthData(const unsigned char *auth);
+
+    /* Encrypt cryptLength bytes and digest ciphertext */
+    void encryptAndProcessData(unsigned char *ctx, const unsigned char *ptx);
+
+    /* Decrypt cryptLength bytes and digest ciphertext */
+    void decryptAndProcessData(unsigned char *ptx, const unsigned char *ctx);
+
+    /* Digest length info and compute tag */
+    void finish();
+
+
     /* Multiplication by H in GF(2^128) */
     void multH(void *dst, const void *src);
 
@@ -99,6 +96,24 @@ private:
                                                                     unsigned int length) {
         for (unsigned i=0; i<length; i++) {
             dst[i] = op1[i] ^ op2[i];
+        }
+    }
+
+    unsigned int make_mask(unsigned int bit) {
+        unsigned int mask = bit;
+        for(int i=0; i<32; i++) {
+           mask |= mask >> 1;
+        }
+        return mask;
+    }
+
+    void rightShift(unsigned int buf[4]) {
+        unsigned int carry = 0;
+        unsigned int carry_next;
+        for(int i=0; i<4; i++) {
+            carry_next = (buf[i] & (1>>31)) << 31;
+            buf[i] = (buf[i] | carry) >> 1;
+            carry = carry_next;
         }
     }
 
@@ -119,12 +134,13 @@ private:
     unsigned authLength;
     unsigned cryptLength;
 
-
-    unsigned char key[16];
-
     /* Value H for multiplication in finite field.
      * GCM standard prescribes H to be equal to the value zero encrypted with the key */
     unsigned char H[16];
+
+    /* Field polynomial */
+    static constexpr unsigned int R[4] = {0x87, 0, 0, 0};
+
     /* initial IV value */
     IV iv;
 
