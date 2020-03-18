@@ -59,14 +59,6 @@ public:
                           unsigned int cryptLength, const void *auth,
                           unsigned int authLength);
 
-    /* Compute authentication tag using:
-     *  - the slotInfo block
-     *  - authLength bytes at auth
-     * 
-     * */
-    void computeTag(void *tag, const void *auth, unsigned int authLength);
-
-    void verify(const void *tag, const void *auth, unsigned int authLength);
 
 private:
 

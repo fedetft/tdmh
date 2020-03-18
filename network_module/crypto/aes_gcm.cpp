@@ -12,8 +12,8 @@ void AesGcm::encryptAndComputeTag(void *tag, void *ctx, const void *ptx,
 
     setLengthInfo(authLength, cryptLength);
     start();
-    processAuthData(ap);
-    encryptAndProcessData(cp, pp);
+    if (authLength != 0) processAuthData(ap);
+    if (cryptLength != 0) encryptAndProcessData(cp, pp);
     finish();
     getTag(tag);
 }
@@ -30,8 +30,8 @@ bool AesGcm::verifyAndDecrypt(const void *tag, void *ptx, const void *ctx,
 
     setLengthInfo(authLength, cryptLength);
     start();
-    processAuthData(ap);
-    decryptAndProcessData(pp, cp);
+    if (authLength != 0) processAuthData(ap);
+    if (cryptLength != 0) decryptAndProcessData(pp, cp);
     finish();
     getTag(buffer);
     bool result = true;
