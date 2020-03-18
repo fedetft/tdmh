@@ -36,10 +36,15 @@
 #include <limits>
 #include <stdexcept>
 #include <functional>
+#include "../crypto/initialization_vector.h"
+#include "../crypto/aes_gcm.h"
+
+using namespace std;
 
 namespace mxnet {
 
 const int panHeaderSize = 5; //panHeader size is 5 bytes
+const int tagSize = 16; //size in bytes of authentication tag
 
 class PacketOverflowException : public std::range_error {
 public:
@@ -65,26 +70,35 @@ public:
  */
 class Packet {
 public:
-    Packet() : dataSize(0), dataStart(0) {}
+    Packet() : dataSize(0), dataStart(0), reservedSize(0) {}
 
     void clear() {
         dataSize = 0;
         dataStart = 0;
+        reservedSize = 0;
     }
 
     void put(const void* data, unsigned int size);
 
     void get(void* data, unsigned int size);
 
+    void reserveTag() { reservedSize += tagSize; }
+
     /** 
      * When reading a packet, ignore "size" bytes
      */
     void discard(unsigned int size);
+
+    void discardTag() {
+        if(dataSize < tagSize)
+            throw range_error("Packet::verifyAndDecrypt: size error");
+        dataSize -= tagSize;
+    }
     
     /**
      * \return true if there are no bytes for Packet::get()
      */
-    bool empty() const { return dataSize == dataStart; }
+    bool empty() const { return dataSize + reservedSize == dataStart; }
 
     /** 
      * \return how many bytes are stored in the packet and are available
@@ -96,7 +110,7 @@ public:
      * \return the free space left in the packet, which is the number of bytes
      * available for Packet::put()
      */
-    unsigned int available() const { return (maxSize() - dataSize); }
+    unsigned int available() const { return (maxSize() - dataSize - reservedSize); }
 
     /** 
      * \return the maximum number of bytes a Packet can contain
@@ -126,6 +140,39 @@ public:
     miosix::RecvResult recv(MACContext& ctx, long long tExpected,
                             std::function<bool (const Packet& p, miosix::RecvResult r)> pred,
                             miosix::Transceiver::Correct = miosix::Transceiver::Correct::CORR);
+
+    void encryptAndPutTag(AesGcm& gcm) {
+        gcm.encryptAndComputeTag(packet.data()+dataSize, packet.data(),
+                                               packet.data(), dataSize, NULL, 0);
+        dataSize += reservedSize;
+        reservedSize = 0;
+    }
+
+    void putTag(AesGcm& gcm) {
+        gcm.encryptAndComputeTag(packet.data()+dataSize, NULL, NULL, 0,
+                                               packet.data(), dataSize);
+        dataSize += reservedSize;
+        reservedSize = 0;
+    }
+
+    bool verifyAndDecrypt(AesGcm& gcm) {
+        if(dataSize < tagSize)
+            throw range_error("Packet::verifyAndDecrypt: size error");
+        bool valid = gcm.verifyAndDecrypt(packet.data() + dataSize - tagSize,
+                            packet.data(), packet.data(), dataSize - tagSize, NULL, 0);
+        discardTag();
+        return valid;
+    }
+
+    bool verify(AesGcm& gcm) {
+        if(dataSize < tagSize)
+            throw range_error("Packet::verifyAndDecrypt: size error");
+        bool valid = gcm.verifyAndDecrypt(packet.data() + dataSize - tagSize,
+                           NULL, NULL, 0, packet.data(), dataSize - tagSize);
+        discardTag();
+        return valid;
+    }
+
 
     /*
      * The operator[] can be used to get the value of a given byte in the packet
@@ -179,6 +226,7 @@ private:
     static_assert(MediumAccessController::maxPktSize <= std::numeric_limits<unsigned char>::max(), "");
     unsigned char dataSize;
     unsigned char dataStart;
+    unsigned char reservedSize;
 };
 
 } /* namespace mxnet */
