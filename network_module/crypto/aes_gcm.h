@@ -5,7 +5,7 @@
 namespace mxnet {
 class AesGcm {
 public:
-    AesGcm(const void *key) : aes(key) , iv(iv) {
+    AesGcm(const void *key, IV& iv) : aes(key) , iv(iv) {
         unsigned char zero[16] = {0};
         aes.ecbEncrypt(H, zero);
     }
