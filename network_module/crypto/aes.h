@@ -1,4 +1,5 @@
 #pragma once
+#include <mutex>
 #include "../util/aes_accelerator.h"
 #include "initialization_vector.h"
 

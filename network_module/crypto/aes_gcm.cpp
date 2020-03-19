@@ -2,6 +2,8 @@
 #include "initialization_vector.h"
 
 namespace mxnet {
+/* Field polynomial */
+constexpr unsigned int AesGcm::R[4];
 
 void AesGcm::encryptAndComputeTag(void *tag, void *ctx, const void *ptx,
                                   unsigned int cryptLength, const void *auth,
