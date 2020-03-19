@@ -1,6 +1,7 @@
 #include "aes_accelerator.h"
 #include <miosix.h>
 #include <stdio.h>
+#include "tiny_aes_c.h"
 
 namespace mxnet {
 
@@ -16,6 +17,8 @@ void AESAccelerator::aes128_setKey(const void *key) {
     AES->KEYHA = kp[1];
     AES->KEYHA = kp[2];
     AES->KEYHA = kp[3];
+#else
+    memcpy(this->key, key, 16);
 #endif
 }
 
@@ -39,6 +42,8 @@ void AESAccelerator::aes128_clearKey() {
     for(int i=0; i<4; i++) {
         AES->KEYHA = 0;
     }
+#else
+    memset(key, 0, 16);
 #endif
 }
 
