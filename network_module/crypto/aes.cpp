@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <mutex>
 #include "aes.h"
 #include "../util/aes_accelerator.h"
 #include "initialization_vector.h"
@@ -6,6 +7,11 @@
 using namespace std;
 
 namespace mxnet {
+#ifdef _MIOSIX
+miosix::Mutex Aes::aesMutex;
+#else
+std::mutex Aes::aesMutex;
+#endif
 
 void Aes::ecbEncrypt(void *ctx, const void *ptx, unsigned int length) {
     if((length & (unsigned int)0xf) != 0)
