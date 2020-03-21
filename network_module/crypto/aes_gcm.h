@@ -30,10 +30,16 @@ public:
         p[1] = slotNumber;
     }
 
+#ifdef UNITTEST
+    void setSlotInfo(unsigned char data[16]) {
+        memcpy(slotInfo, data, 16);
+    }
+#endif
+
     void setLengthInfo(unsigned authLength, unsigned cryptLength) {
         // authenticated-only data length must include the slotInfo block
-        this->authLength = authLength + GCMBlockSize;
-        this->cryptLength = cryptLength;
+        this->authLength = (authLength + GCMBlockSize)*sizeof(unsigned char);
+        this->cryptLength = cryptLength*sizeof(unsigned char);
 
         auto p = reinterpret_cast<unsigned long long*>(lengthInfo);
         p[0] = (unsigned long long) authLength;
