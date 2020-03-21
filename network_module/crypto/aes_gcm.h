@@ -31,7 +31,8 @@ public:
     }
 
     void setLengthInfo(unsigned authLength, unsigned cryptLength) {
-        this->authLength = authLength;
+        // authenticated-only data length must include the slotInfo block
+        this->authLength = authLength + GCMBlockSize;
         this->cryptLength = cryptLength;
 
         auto p = reinterpret_cast<unsigned long long*>(lengthInfo);
