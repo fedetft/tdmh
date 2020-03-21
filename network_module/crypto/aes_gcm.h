@@ -37,13 +37,13 @@ public:
 #endif
 
     void setLengthInfo(unsigned authLength, unsigned cryptLength) {
-        // authenticated-only data length must include the slotInfo block
-        this->authLength = (authLength + GCMBlockSize)*sizeof(unsigned char);
-        this->cryptLength = cryptLength*sizeof(unsigned char);
+        this->authLength = authLength;
+        this->cryptLength = cryptLength;
 
+        // authenticated-only data length must include the slotInfo block
         auto p = reinterpret_cast<unsigned long long*>(lengthInfo);
-        p[0] = (unsigned long long) authLength;
-        p[1] = (unsigned long long) cryptLength;
+        p[0] = (unsigned long long) 8*(authLength + GCMBlockSize);
+        p[1] = (unsigned long long) 8*cryptLength;
     }
 
     /* get current value of tag */
