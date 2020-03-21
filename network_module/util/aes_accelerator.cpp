@@ -1,7 +1,12 @@
 #include "aes_accelerator.h"
 #include <miosix.h>
 #include <stdio.h>
+#ifndef _MIOSIX
 #include "tiny_aes_c.h"
+#endif
+#ifdef UNITTEST
+#include <cstring>
+#endif
 
 namespace mxnet {
 
