@@ -71,6 +71,8 @@ void RootNode::activity()
         //of type cStackCleanupException. Squelch these
         if(string(typeid(e).name()).find("cStackCleanupException")==string::npos)
             cerr<<"\nException thrown: "<<e.what()<<endl;
+        //TODO: perform clean shutdown when simulation stops
+        exit(0);
         quit.store(true);
         t->join();
         throw;
