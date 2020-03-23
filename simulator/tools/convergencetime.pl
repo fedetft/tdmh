@@ -65,11 +65,11 @@ while(<$elog>)
 			$end=-1;
 			print "wrong topology after convergence @ $t\n" if($verbose);
 		}
-	} elsif(/n1:\[T\] hop=\d+ ets=\d+ ats=\d+ e=\d+ u=\d+ w=50000 Mts=\d+ rssi=\d+/) {
-		# Topology colletion starts when clock synchronization receiver window becomes
-		# less than the threshold value. In the simulator clock skew/drift is not
-		# simulated so the receiver window always becomes 50000 after the sync error
-		# standard deviation is estimated the first time.
+	} elsif(/n1:\[T\] hop=\d+ NT=\d+ ets=\d+ ats=\d+ e=0/) {
+		# Topology colletion starts when clock synchronization error is less
+		# than the configured threshold. In the simulator clock skew/drift is
+		# not simulated so the error always becomes 0 after the sync error
+		# skew is estimated the first time.
 		$flag=1 if($flag==0);
 	}
 }

@@ -27,9 +27,11 @@
 
 #pragma once
 
-#define MASTERNODE true
-
 namespace mxnet {
+
+//less understandable but short messages, useful when bandwidth is at limit
+const bool COMPRESSED_DBG = false;
+    
 //prints info if receiving a packet
 const bool ENABLE_PKT_INFO_DBG = false;
 
@@ -39,41 +41,56 @@ const bool ENABLE_PKT_DUMP_DBG = false;
 //prints the exception if any while using the radio
 const bool ENABLE_RADIO_EXCEPTION_DBG = true;
 
-//prints the topology downlink phase debug info
-const bool ENABLE_TIMESYNC_DL_INFO_DBG = MASTERNODE;
+//prints the timesync downlink phase debug info
+const bool ENABLE_TIMESYNC_DL_INFO_DBG = true;
 
-//prints the topology downlink phase errors
+//prints the timesync downlink phase errors
 const bool ENABLE_TIMESYNC_ERROR_DBG = true;
 
 //prints the roundtrip subphase debug info
-const bool ENABLE_ROUNDTRIP_INFO_DBG = true;
+const bool ENABLE_ROUNDTRIP_INFO_DBG = false;
 
 //prints the roundtrip subphase errors
-const bool ENABLE_ROUNDTRIP_ERROR_DBG = true;
+const bool ENABLE_ROUNDTRIP_ERROR_DBG = false;
 
-//prints the uplink phase debug info
-const bool ENABLE_UPLINK_INFO_DBG = MASTERNODE;
+//prints lightweight uplink message info
+const bool ENABLE_UPLINK_DBG = true;
 
 //prints the uplink phase debug verbose info
 const bool ENABLE_UPLINK_VERB_DBG = false;
 
-//prints the uplink phase errors
-const bool ENABLE_UPLINK_ERROR_DBG = true;
+//print every bitmask received by the master
+const bool ENABLE_TOPOLOGY_BITMASK_DBG = true;
 
-//prints the topology context debug info
+//prints the topology map at each uplink phase
 const bool ENABLE_TOPOLOGY_INFO_DBG = true;
 
 //prints the slot number, if packets received and RSSI
 const bool ENABLE_TOPOLOGY_SHORT_SUMMARY = false;
 
+//prints the uplink phase debug info
+const bool ENABLE_UPLINK_DYN_INFO_DBG = true;
+
+//prints the uplink phase debug verbose info
+const bool ENABLE_UPLINK_DYN_VERB_DBG = true;
+
+//prints the topology map at each uplink phase
+const bool ENABLE_TOPOLOGY_DYN_INFO_DBG = false;
+
+//prints the slot number, if packets received and RSSI
+const bool ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY = false;
+
 //prints the stream context debug info
 const bool ENABLE_STREAM_INFO_DBG = true;
 
-//prints information on stream status in the master node
-const bool ENABLE_STREAM_LIST_INFO_DBG = true;
+//prints summary information on scheduling in the master node
+const bool SCHEDULER_SUMMARY_DBG = true;
 
-//prints the schedule computation info in the master node
-const bool ENABLE_SCHEDULE_COMP_INFO_DBG = false;
+//prints detailed information on scheduling in the master node
+const bool SCHEDULER_DETAILED_DBG = false;
+
+//lightweight prints for schedule distribution
+const bool ENABLE_SCHEDULE_DIST_DBG = true;
 
 //prints the schedule distribution info in the master node
 const bool ENABLE_SCHEDULE_DIST_MAS_INFO_DBG = false;
@@ -82,10 +99,14 @@ const bool ENABLE_SCHEDULE_DIST_MAS_INFO_DBG = false;
 const bool ENABLE_SCHEDULE_DIST_DYN_INFO_DBG = false;
 
 //prints the data phase debug info
-const bool ENABLE_DATA_INFO_DBG = MASTERNODE;
+const bool ENABLE_DATA_INFO_DBG = true;
 
 //prints the data phase errors
 const bool ENABLE_DATA_ERROR_DBG = true;
+
+//prints the Stream Manager info messages
+const bool ENABLE_STREAM_MGR_INFO_DBG = true;
+
 
 #ifdef _MIOSIX
 #define DEBUG_MESSAGES_IN_SEPARATE_THREAD
@@ -104,5 +125,11 @@ void print_dbg(const char *fmt, ...);
  */
 void throwLogicError(const char *fmt, ...);
 
+/**
+ * Throw runtime error with format string, limited to 128 characters
+ */
+void throwRuntimeError(const char *fmt, ...);
+
 }
+
 

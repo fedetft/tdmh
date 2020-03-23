@@ -136,6 +136,17 @@ public:
     void scheduleChanged(std::set<std::pair<unsigned char,unsigned char>>&& usedLinks,
             std::set<std::pair<unsigned char, unsigned char>>&& newLinksCausingReschedule);
 
+#ifndef _MIOSIX
+    /**
+     * Only used for DBG prints in the simulator
+     */
+    GRAPH_TYPE getGraph()
+    {
+        std::unique_lock<std::mutex> lck(graph_mutex);
+        return graph;
+    }
+#endif
+    
 #ifdef UNITTEST
     /** Manually add an edge to the graph
      *  NOTE: to be used for debugging only */
