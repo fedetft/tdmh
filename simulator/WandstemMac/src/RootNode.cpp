@@ -39,6 +39,7 @@ void RootNode::activity()
 {
     using namespace miosix;
     print_dbg("Master node\n");
+    bool useWeakTopologies=true;
     const NetworkConfiguration config(
             hops,            //maxHops
             nodes,           //maxNodes
@@ -48,7 +49,7 @@ void RootNode::activity()
             5,             //txPower
             2450,          //baseFrequency
             10000000000,   //clockSyncPeriod
-            maxForwardedTopologiesFromMaxNumNodes(nodes), //maxForwardedTopologies
+            guaranteedTopologies(nodes,useWeakTopologies), //guaranteedTopologies
             1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
@@ -58,7 +59,7 @@ void RootNode::activity()
             -90,           //minWeakNeighborRSSI
             3,             //maxMissedTimesyncs
             true,          //channelSpatialReuse
-            true           //useWeakTopologies
+            useWeakTopologies //useWeakTopologies
     );
     MasterMediumAccessController controller(Transceiver::instance(), config);
 

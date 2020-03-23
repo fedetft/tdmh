@@ -65,19 +65,19 @@ public:
     int stream;
 };
 
-inline int maxForwardedTopologiesFromMaxNumNodes(int maxNumNodes)
+inline int guaranteedTopologies(int maxNumNodes, bool useWeakTopologies)
 {
     /*
      * Dynamic Uplink allocation implemented
      * the parameter topologySMERatio configures the fraction of uplink packet
      * reserved for topology messages
-     * UplinkMessagePkt                 { hop, assignee }   2
-     * NeighborTable                    { bitmask }         maxNumNodes/8
-     * number of forwarded topologies (NeighborMessage::serialize) 1
-     * vector<ForwardedNeighborMessage> { nodeId, bitmask } maxForwardedTopologies*(1+maxNumNodes/8)
+     * UplinkMessagePkt   { hop, assignee, numTopology, numSME } : 4
+     * NeighborTable      { bitmask }                            : bitmaskSize
+     * TopologyElement(s) { nodeId, bitmask } * n                : (1+bitmaskSize) * n
      */
+    int bitmaskSize = useWeakTopologies ? maxNumNodes/4 : maxNumNodes/8;
     const float topologySMERatio = 0.5;
-    int packetCapacity = (125 - 2 - maxNumNodes/8 - 1) / (1 + maxNumNodes/8);
+    int packetCapacity = (125 - 4 - bitmaskSize) / (1 + bitmaskSize);
     return std::min<int>(packetCapacity * topologySMERatio, maxNumNodes - 2);
 }
 
@@ -127,6 +127,7 @@ void masterNode(void*)
     printStackRange("MAC (master)");
     try {
         printf("Master node\n");
+        bool useWeakTopologies=true;
         const NetworkConfiguration config(
             maxHops,       //maxHops
             maxNodes,      //maxNodes
@@ -136,7 +137,7 @@ void masterNode(void*)
             5,             //txPower
             2450,          //baseFrequency
             10000000000,   //clockSyncPeriod
-            maxForwardedTopologiesFromMaxNumNodes(maxNodes), //maxForwardedTopologies
+            guaranteedTopologies(maxNodes,useWeakTopologies), //guaranteedTopologies
             1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
@@ -146,9 +147,9 @@ void masterNode(void*)
             -95,           //minWeakNeighborRSSI
             4,             //maxMissedTimesyncs
             true,          //channelSpatialReuse
-            true           //useWeakTopologies
+            useWeakTopologies //useWeakTopologies
         );
-        printf("Starting TDMH with maxForwardedTopologies=%d\n", maxForwardedTopologiesFromMaxNumNodes(maxNodes));
+        printf("Starting TDMH with guaranteedTopologies=%d\n", guaranteedTopologies(maxNodes,useWeakTopologies));
         MasterMediumAccessController controller(Transceiver::instance(), config);
         tdmh = &controller;
         controller.run();
@@ -169,6 +170,7 @@ void dynamicNode(void* argv)
         printf("Dynamic node %d",arg->id);
         if(arg->hop) printf(" forced hop %d",arg->hop);
         printf("\n");
+        bool useWeakTopologies=true;
         const NetworkConfiguration config(
             maxHops,       //maxHops
             maxNodes,      //maxNodes
@@ -178,7 +180,7 @@ void dynamicNode(void* argv)
             5,             //txPower
             2450,          //baseFrequency
             10000000000,   //clockSyncPeriod
-            maxForwardedTopologiesFromMaxNumNodes(maxNodes), //maxForwardedTopologies
+            guaranteedTopologies(maxNodes,useWeakTopologies), //guaranteedTopologies
             1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
@@ -188,9 +190,9 @@ void dynamicNode(void* argv)
             -95,           //minWeakNeighborRSSI
             4,             //maxMissedTimesyncs
             true,          //channelSpatialReuse
-            true           //useWeakTopologies
+            useWeakTopologies //useWeakTopologies
         );
-        printf("Starting TDMH with maxForwardedTopologies=%d\n", maxForwardedTopologiesFromMaxNumNodes(maxNodes));
+        printf("Starting TDMH with guaranteedTopologies=%d\n", guaranteedTopologies(maxNodes,useWeakTopologies));
         DynamicMediumAccessController controller(Transceiver::instance(), config);
         {
             Lock<FastMutex> l(m);

@@ -54,19 +54,19 @@ private:
     static const int coroutineStack=32*1024;
 };
 
-inline int maxForwardedTopologiesFromMaxNumNodes(int maxNumNodes)
+inline int guaranteedTopologies(int maxNumNodes, bool useWeakTopologies)
 {
     /*
      * Dynamic Uplink allocation implemented
      * the parameter topologySMERatio configures the fraction of uplink packet
      * reserved for topology messages
-     * UplinkMessagePkt                 { hop, assignee }   2
-     * NeighborTable                    { bitmask }         maxNumNodes/8
-     * number of forwarded topologies (NeighborMessage::serialize) 1
-     * vector<ForwardedNeighborMessage> { nodeId, bitmask } maxForwardedTopologies*(1+maxNumNodes/8)
+     * UplinkMessagePkt   { hop, assignee, numTopology, numSME } : 4
+     * NeighborTable      { bitmask }                            : bitmaskSize
+     * TopologyElement(s) { nodeId, bitmask } * n                : (1+bitmaskSize) * n
      */
+    int bitmaskSize = useWeakTopologies ? maxNumNodes/4 : maxNumNodes/8;
     const float topologySMERatio = 0.5;
-    int packetCapacity = (125 - 2 - maxNumNodes/8 - 1) / (1 + maxNumNodes/8);
+    int packetCapacity = (125 - 4 - bitmaskSize) / (1 + bitmaskSize);
     return std::min<int>(packetCapacity * topologySMERatio, maxNumNodes - 2);
 }
 
