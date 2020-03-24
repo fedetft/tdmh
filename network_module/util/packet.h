@@ -71,7 +71,6 @@ public:
 class Packet {
 public:
     Packet() : dataSize(0), dataStart(0), reservedSize(0) {}
-
     void clear() {
         dataSize = 0;
         dataStart = 0;
@@ -142,6 +141,8 @@ public:
                             miosix::Transceiver::Correct = miosix::Transceiver::Correct::CORR);
 
     void encryptAndPutTag(AesGcm& gcm) {
+        if(reservedSize < tagSize)
+            throw range_error("Packet::verifyAndDecrypt: size error");
         gcm.encryptAndComputeTag(packet.data()+dataSize, packet.data(),
                                                packet.data(), dataSize, NULL, 0);
         dataSize += reservedSize;
@@ -149,6 +150,8 @@ public:
     }
 
     void putTag(AesGcm& gcm) {
+        if(reservedSize < tagSize)
+            throw range_error("Packet::verifyAndDecrypt: size error");
         gcm.encryptAndComputeTag(packet.data()+dataSize, NULL, NULL, 0,
                                                packet.data(), dataSize);
         dataSize += reservedSize;
