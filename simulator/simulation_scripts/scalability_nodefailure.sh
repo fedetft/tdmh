@@ -24,8 +24,8 @@ cd -
 # The perl scripts to measure convergence time rely on certain print_dbg,
 # so to make the experiment reproducible, use the known good print_dbg
 # settings
-cmp debug_settings.h ../../network_module/debug_settings.h || \
-        cp debug_settings.h ../../network_module
+cmp debug_settings.h ../../network_module/util/debug_settings.h || \
+        cp debug_settings.h ../../network_module/util
 
 # Compile the omnet++ simulator
 cd ../WandstemMac || fail
