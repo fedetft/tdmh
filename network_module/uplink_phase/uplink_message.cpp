@@ -241,7 +241,7 @@ bool ReceiveUplinkMessage::checkTopologiesAndSMEs(const NetworkConfiguration& co
     /* Validate numTopologies and numSME in UplinkHeader
        by trying to extract from an example packet the same number of topologies and SME */
     const int maxPackets = config.getNumUplinkPackets();
-    int remainingBytes = packet.size();
+    int remainingBytes = getFirstUplinkPacketCapacity(config);
     int numPackets = 1;
     // Validate topologies in packets
     int remainingTopologies = tempHeader.numTopology;
