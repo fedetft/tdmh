@@ -25,6 +25,8 @@ simple RootNode
         int address;
         int nodes;
         int hops;
+        // Whether the root node shall open the server to accept incoming streams
+        bool open_stream = default(true);
         @display("i=block/wtx");
     gates:
         inout wireless[];

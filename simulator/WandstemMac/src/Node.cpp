@@ -87,12 +87,12 @@ try {
     
     thread *t = nullptr;
     try {
-        t = new thread(&Node::application, this);
+        if(openStream) t = new thread(&Node::application, this);
         controller.run();
-        t->join();
+        if(t) t->join();
     } catch(DisconnectException&) {
         print_dbg("===> Stopping @ %lld (disconnectTime %lld)\n",getTime(),disconnectTime);
-        t->join();
+        if(t) t->join();
         // Here we wait forever because terminating the node would cause errors on sendAt
         // targeted to the terminated node
         while(true) delete receive();

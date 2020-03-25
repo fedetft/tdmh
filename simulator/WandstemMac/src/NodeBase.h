@@ -47,6 +47,7 @@ protected:
     unsigned char address;
     unsigned short nodes;
     unsigned short hops;
+    bool openStream;
     virtual void initialize();
 
 private:

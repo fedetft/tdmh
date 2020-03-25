@@ -28,6 +28,8 @@ simple Node
         // These allow to simulate nodes joining/node failure
         int connect_time = default(0);
         int disconnect_time = default(9223372036854775807); //numeric_limits<long long>::max()
+        // Whether a node shall only join the network or also open a stream towards the master
+        bool open_stream = default(true);
         @display("i=block/wrxtx");
     gates:
         inout wireless[];

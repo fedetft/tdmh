@@ -97,7 +97,7 @@ hex_topology_experiment   8 128 2 200 "../results_scalability_networkformation/h
 hex_topology_experiment  16 128 2 200 "../results_scalability_networkformation/hex_128.txt"
 hex_topology_experiment  32 128 3 200 "../results_scalability_networkformation/hex_128.txt"
 hex_topology_experiment  64 128 5 400 "../results_scalability_networkformation/hex_128.txt"
-hex_topology_experiment 128 128 7 400 "../results_scalability_networkformation/hex_128.txt"
+hex_topology_experiment 128 128 7 800 "../results_scalability_networkformation/hex_128.txt"
 
 rm -f "../results_scalability_networkformation/hex_64.txt"
 hex_topology_experiment   2  64 1 100 "../results_scalability_networkformation/hex_64.txt"
@@ -134,7 +134,7 @@ rhex_topology_experiment   8 128 2 200 "../results_scalability_networkformation/
 rhex_topology_experiment  16 128 2 200 "../results_scalability_networkformation/rhex_128.txt"
 rhex_topology_experiment  32 128 3 200 "../results_scalability_networkformation/rhex_128.txt"
 rhex_topology_experiment  64 128 5 400 "../results_scalability_networkformation/rhex_128.txt"
-rhex_topology_experiment 128 128 7 400 "../results_scalability_networkformation/rhex_128.txt"
+rhex_topology_experiment 128 128 7 800 "../results_scalability_networkformation/rhex_128.txt"
 
 rm -f "../results_scalability_networkformation/rhex_64.txt"
 rhex_topology_experiment   2  64 1 100 "../results_scalability_networkformation/rhex_64.txt"

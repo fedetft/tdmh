@@ -64,9 +64,12 @@ void RootNode::activity()
     MasterMediumAccessController controller(Transceiver::instance(), config);
 
     tdmh = &controller;
-    auto *t = new thread(&RootNode::application, this);
+    thread *t = nullptr;
     try {
+        if(openStream) t = new thread(&RootNode::application, this);
         controller.run();
+        quit.store(true);
+        if(t) t->join();
     } catch(exception& e) {
         //Note: omnet++ seems to terminate coroutines with an exception
         //of type cStackCleanupException. Squelch these
@@ -75,16 +78,14 @@ void RootNode::activity()
         //TODO: perform clean shutdown when simulation stops
         exit(0);
         quit.store(true);
-        t->join();
+        if(t) t->join();
         throw;
     } catch(...) {
         quit.store(true);
-        t->join();
+        if(t) t->join();
         cerr<<"\nUnnamed exception thrown"<<endl;
         throw;
     }
-    quit.store(true);
-    t->join();
 }
 
 void RootNode::application() {

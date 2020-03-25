@@ -56,6 +56,7 @@ void printHeader(ostream& os, string name, int n, int maxn, int h, ConnectData c
 	  <<"    parameters:\n"
 	  <<"        n*.nodes = "<<maxn<<";\n"
 	  <<"        n*.hops = "<<h<<";\n"
+	  <<"        n*.open_stream = false;\n"
 	  <<"    submodules:\n"
 	  <<"        n0: RootNode {\n"
 	  <<"            address = 0;\n"
