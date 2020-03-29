@@ -22,6 +22,7 @@ public:
         return *this;
     }
 
+    /* 128-bit increment (modulo 2^128) */
     IV& operator++();
     IV operator++(int);
 
