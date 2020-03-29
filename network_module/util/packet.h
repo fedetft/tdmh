@@ -143,8 +143,12 @@ public:
     void encryptAndPutTag(AesGcm& gcm) {
         if(reservedSize < tagSize)
             throw range_error("Packet::verifyAndDecrypt: size error");
-        gcm.encryptAndComputeTag(packet.data()+dataSize, packet.data(),
-                                               packet.data(), dataSize, NULL, 0);
+        gcm.encryptAndComputeTag(
+                packet.data() + dataSize,   // put tag at the end of the packet (tag)
+                packet.data() + 5,          // skip panHeader (ctx)
+                packet.data() + 5,          // skip panHeader (ptx)
+                dataSize - 5,               // exclude panHeader bytes (cryptLength)
+                NULL, 0);                   // no additional data
         dataSize += reservedSize;
         reservedSize = 0;
     }
@@ -152,8 +156,11 @@ public:
     void putTag(AesGcm& gcm) {
         if(reservedSize < tagSize)
             throw range_error("Packet::verifyAndDecrypt: size error");
-        gcm.encryptAndComputeTag(packet.data()+dataSize, NULL, NULL, 0,
-                                               packet.data(), dataSize);
+        gcm.encryptAndComputeTag(
+                packet.data() + dataSize,   // put tag at the end of the packet (tag)
+                NULL, NULL, 0,              // no data to encrypt
+                packet.data() + 5,          // skip panHeader (auth)
+                dataSize - 5);              // exclude panHeader bytes (authLength)
         dataSize += reservedSize;
         reservedSize = 0;
     }
@@ -161,8 +168,12 @@ public:
     bool verifyAndDecrypt(AesGcm& gcm) {
         if(dataSize < tagSize)
             throw range_error("Packet::verifyAndDecrypt: size error");
-        bool valid = gcm.verifyAndDecrypt(packet.data() + dataSize - tagSize,
-                            packet.data(), packet.data(), dataSize - tagSize, NULL, 0);
+        bool valid = gcm.verifyAndDecrypt(
+                packet.data() + dataSize - tagSize, // tag
+                packet.data() + 5,      // skip panHeader (ptx)
+                packet.data() + 5,      // skip panHeader (ctx)
+                dataSize - tagSize - 5, // exclude panHeader and tag bytes (cryptLength) 
+                NULL, 0);               // no additional data
         discardTag();
         return valid;
     }
@@ -170,8 +181,11 @@ public:
     bool verify(AesGcm& gcm) {
         if(dataSize < tagSize)
             throw range_error("Packet::verifyAndDecrypt: size error");
-        bool valid = gcm.verifyAndDecrypt(packet.data() + dataSize - tagSize,
-                           NULL, NULL, 0, packet.data(), dataSize - tagSize);
+        bool valid = gcm.verifyAndDecrypt(
+                packet.data() + dataSize - tagSize, // tag
+                NULL, NULL, 0,          // no data to decrypt
+                packet.data() + 5,      // skip panHeader bytes (auth)
+                dataSize - tagSize - 5);// exclude panHeader and tag bytes (authLength)
         discardTag();
         return valid;
     }
