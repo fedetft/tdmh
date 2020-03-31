@@ -2,8 +2,6 @@
 #include "initialization_vector.h"
 
 namespace mxnet {
-/* Field polynomial */
-constexpr unsigned int AesGcm::R[4];
 
 void AesGcm::encryptAndComputeTag(void *tag, void *ctx, const void *ptx,
                                   unsigned int cryptLength, const void *auth,
@@ -110,33 +108,30 @@ void AesGcm::finish() {
 }
 
 void AesGcm::multH(void *dst, const void *src) {
-    unsigned int *dp = reinterpret_cast<unsigned int*>(dst);
-    const unsigned int *sp = reinterpret_cast<const unsigned int*>(src);
-    const unsigned int *hp = reinterpret_cast<const unsigned int*>(H);
+    /* Field polynomial */
+    const unsigned char R = 0xe1;
+    unsigned short bitSelect, byteSelect;
+    unsigned char mask, bit;
+    unsigned char v[16];
+    unsigned char z[16];
 
-    unsigned short bitSelect, intSelect;
-    unsigned int mask, bit;
-    unsigned int z[4] = {0};
-    unsigned int v[4];
-
-    memcpy(v, sp, 16);
+    memset(z, 0, 16);
+    memcpy(v, src, 16);
     for(unsigned i=0; i<128; i++) {
-        bitSelect = i & 0x1f; // i % 32
-        intSelect = i & 0xe0; // i / 32
-        bit = (hp[intSelect] << bitSelect) & 1;
+        bitSelect = i % 8;
+        byteSelect = i / 8;
+        bit = (H[byteSelect] >> (7-bitSelect)) & 1;
         mask = make_mask(bit);
-        for(int j=0; j<4; j++) {
-            z[i] ^= (mask & v[i]);
+        for(int j=0; j<16; j++) {
+            z[j] ^= (mask & v[j]);
         }
 
-        bit = v[0] & (1>>31);
+        bit = v[15] & 0x01;
         mask = make_mask(bit);
         rightShift(v);
-        for(int j=0; j<4; j++) {
-            v[j] ^= (mask & R[j]);
-        }
+        v[0] ^= (mask & R);
     }
-    memcpy(dp, z, 16);
+    memcpy(dst, z, 16);
 }
 
 } //namespace mxnet
