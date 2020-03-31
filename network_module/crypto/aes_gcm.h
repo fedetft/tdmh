@@ -8,6 +8,7 @@ public:
     AesGcm(const void *key, IV& iv) : aes(key) , iv(iv) {
         unsigned char zero[16] = {0};
         aes.ecbEncrypt(H, zero);
+        memset(lengthInfo, 0, 16);
     }
 
     /* reset all info except key and key-dependent data */
@@ -41,9 +42,10 @@ public:
         this->cryptLength = cryptLength;
 
         // authenticated-only data length must include the slotInfo block
-        auto p = reinterpret_cast<unsigned long long*>(lengthInfo);
-        p[0] = (unsigned long long) 8*(authLength + GCMBlockSize);
-        p[1] = (unsigned long long) 8*cryptLength;
+        auto p = reinterpret_cast<uint16_t*>(lengthInfo);
+        p[3] = reverseShortBytes((uint16_t) 8*(authLength + GCMBlockSize));
+        p[7] = reverseShortBytes((uint16_t) 8*cryptLength);
+
     }
 
     /* get current value of tag */
@@ -114,6 +116,10 @@ private:
             buf[i] = (buf[i] >> 1) | carry;
             carry = carry_next;
         }
+    }
+
+    unsigned short reverseShortBytes(unsigned short n) {
+        return ((n & 0xff00) >> 8 ) | ((n & 0x00ff) << 8) ;
     }
 
     const unsigned int GCMBlockSize = 16;
