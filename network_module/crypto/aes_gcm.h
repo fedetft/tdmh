@@ -98,20 +98,20 @@ private:
         }
     }
 
-    unsigned int make_mask(unsigned int bit) {
-        unsigned int mask = bit;
-        for(int i=0; i<32; i++) {
-           mask |= mask >> 1;
+    unsigned char make_mask(unsigned char bit) {
+        unsigned char mask = bit;
+        for(int i=0; i<8; i++) {
+           mask |= mask << 1;
         }
         return mask;
     }
 
-    void rightShift(unsigned int buf[4]) {
-        unsigned int carry = 0;
-        unsigned int carry_next;
-        for(int i=0; i<4; i++) {
-            carry_next = (buf[i] & (1>>31)) << 31;
-            buf[i] = (buf[i] | carry) >> 1;
+    void rightShift(unsigned char buf[16]) {
+        unsigned char carry = 0;
+        unsigned char carry_next;
+        for(int i=0; i<16; i++) {
+            carry_next = (buf[i] & 0x01) << 7;
+            buf[i] = (buf[i] >> 1) | carry;
             carry = carry_next;
         }
     }
@@ -137,8 +137,6 @@ private:
      * GCM standard prescribes H to be equal to the value zero encrypted with the key */
     unsigned char H[16];
 
-    /* Field polynomial */
-    static constexpr unsigned int R[4] = {0x87, 0, 0, 0};
 
     /* initial IV value */
     IV iv;
