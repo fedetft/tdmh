@@ -9,11 +9,17 @@ public:
         unsigned char zero[16] = {0};
         aes.ecbEncrypt(H, zero);
         memset(lengthInfo, 0, 16);
+        memset(fistEctr, 0, 16);
+        memset(workingTag, 0, 16);
+        memset(slotInfo, 0, 16);
     }
 
     /* reset all info except key and key-dependent data */
     void reset() {
-        //reset iv, slotInfo, length, ectr,
+        memset(lengthInfo, 0, 16);
+        memset(fistEctr, 0, 16);
+        memset(workingTag, 0, 16);
+        memset(slotInfo, 0, 16);
     }
 
     void rekey(const void *key) {
