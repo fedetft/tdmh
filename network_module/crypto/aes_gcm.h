@@ -3,8 +3,35 @@
 #include "initialization_vector.h"
 
 namespace mxnet {
+
+/**
+ * Implementation of authenticated encryption/decryption using AES block cipher in
+ * Galois/Counter Mode of operation (GCM), NIST SP 800-38D :
+ * https://csrc.nist.gov/publications/detail/sp/800-38d/final
+ *
+ * Usage for authenticated encryption/decryption
+ *  - setIV
+ *  - setSlotInfo
+ *  - encryptAndComputeTag / verifyAndDecrypt
+ *
+ * NOTE (1): this implementation presents a small difference with respect to the standard's
+ * prescriptions. The standard prescribes support for an IV of variable length, which is
+ * then expanded into a 128-bit value to use with counter mode, called J0, via
+ * Galois Field multiplication. Because this operation is expensive, we instead compute
+ * J0 directly by encrypting the slotNumber with the GCM key. Thus this code refers to
+ * the standard-defined value J0 as IV.
+ *
+ * NOTE (2): to avoid replay attacks, out message authentication always includes implicit
+ * information about the time when the message is being sent. This information is uniquely
+ * identified by the pair <slotNumber, masterIndex> and encoded into the slotInfo block,
+ * which is always authenticated together with the buffers.
+ *
+ */
 class AesGcm {
 public:
+    /**
+     * Constructor. Initializes key-dependent data and IV
+     * */
     AesGcm(const void *key, IV& iv) : aes(key) , iv(iv) {
         unsigned char zero[16] = {0};
         aes.ecbEncrypt(H, zero);
@@ -14,7 +41,9 @@ public:
         memset(slotInfo, 0, 16);
     }
 
-    /* reset all info except key and key-dependent data */
+    /**
+     * Reset all info except key and key-dependent data
+     * */
     void reset() {
         memset(lengthInfo, 0, 16);
         memset(fistEctr, 0, 16);
@@ -22,6 +51,10 @@ public:
         memset(slotInfo, 0, 16);
     }
 
+    /**
+     * Change key and key-derived information (H)
+     * \param key a buffer of 16 bytes containing the new key
+     */
     void rekey(const void *key) {
         unsigned char zero[16] = {0};
         aes.ecbEncrypt(H, zero);
@@ -31,6 +64,12 @@ public:
     void setIV(unsigned long slotNumber);
     void setIV(IV iv) { this->iv = iv; }
 
+    /**
+     * Set the information uniquely identifying the time at which the message will be sent.
+     * This information is always implicitly authenticated.
+     * \param slotNumber the incremental number that uniquely identifies the time slot since network start
+     *  \param masterIndex the incremental number that identifies the current master key in the hash chain mechanism
+     */
     void setSlotInfo(unsigned long long slotNumber, unsigned long long masterIndex) {
         auto p = reinterpret_cast<unsigned long long*>(slotInfo);
         p[0] = masterIndex;
@@ -38,11 +77,69 @@ public:
     }
 
 #ifdef UNITTEST
+    /**
+     * Set the slotInfo block directly. Only used for testing.
+     * */
     void setSlotInfo(unsigned char data[16]) {
         memcpy(slotInfo, data, 16);
     }
 #endif
 
+    /**
+     * Get current value of the tag being computed.
+     * \param tag a buffer of at least 16 free bytes where the value of the tag is written
+     */
+    void getTag(void *tag) {
+        memcpy(tag, workingTag, GCMBlockSize);
+    }
+
+    /**
+     * Run GCM authenticated encryption.
+     * Encrypt cryptLength bytes of data at ptx, write to ctx
+     * Encrypt with AES in counter mode.
+     * Compute authentication tag using:
+     *  - the slotInfo block
+     *  - authLength bytes at auth
+     *  - cryptLength bytes at ctx
+     * 
+     * \param tag a buffer of at least 16 free bytes where the value of the tag is written
+     * \param ctx a buffer where cryptLength bytes of ciphertext are written
+     * \param ptx a buffer where cryptLength bytes of plaintext are read 
+     * \param cryptLength length in bytes of data to encrypt. Can have any non negative value
+     * \param auth a buffer where authLength bytes of additional data are read
+     * \param authLength length in bytes of additional data to authenticate. Can have any non negative value
+     * */
+    void encryptAndComputeTag(void *tag, void *ctx, const void *ptx,
+                              unsigned int cryptLength, const void *auth,
+                              unsigned int authLength);
+
+    /**
+     * Run GCM authenticated decryption and verification.
+     * Decrypt cryptLength bytes of data at ctx, write to ptx
+     * Decrypt with AES in counter mode.
+     * Compute authentication tag using:
+     *  - the slotInfo block
+     *  - authLength bytes at auth
+     *  - cryptLength bytes at ctx
+     * 
+     * \param tag a buffer of length 16 bytes containing the tag to verify
+     * \param ptx a buffer where cryptLength bytes of plaintext are written 
+     * \param ctx a buffer where cryptLength bytes of ciphertext are read
+     * \param cryptLength length in bytes of data to decrypt. Can have any non negative value
+     * \param auth a buffer where authLength bytes of additional data are read
+     * \param authLength length in bytes of additional data to authenticate. Can have any non negative value
+     * @return true if verification is data is authentic, false otherwise
+     * */
+    bool verifyAndDecrypt(const void *tag, void *ptx, const void *ctx,
+                          unsigned int cryptLength, const void *auth,
+                          unsigned int authLength);
+
+
+private:
+
+    /**
+     * Save lengths of authenticated and encrypted data and initialize lengthInfo block
+     * */
     void setLengthInfo(unsigned authLength, unsigned cryptLength) {
         this->authLength = authLength;
         this->cryptLength = cryptLength;
@@ -53,29 +150,6 @@ public:
         p[7] = reverseShortBytes((uint16_t) 8*cryptLength);
 
     }
-
-    /* get current value of tag */
-    void getTag(void *tag) {
-        memcpy(tag, workingTag, GCMBlockSize);
-    }
-
-    /* Encrypt cryptLength bytes of data at ptx, write to ctx
-     * Compute authentication tag using:
-     *  - the slotInfo block
-     *  - authLength bytes at auth
-     *  - the computed ciphertext at ctx
-     * 
-     * */
-    void encryptAndComputeTag(void *tag, void *ctx, const void *ptx,
-                              unsigned int cryptLength, const void *auth,
-                              unsigned int authLength);
-
-    bool verifyAndDecrypt(const void *tag, void *ptx, const void *ctx,
-                          unsigned int cryptLength, const void *auth,
-                          unsigned int authLength);
-
-
-private:
 
     /* Start GCM:
      *  - compute E(iv)
