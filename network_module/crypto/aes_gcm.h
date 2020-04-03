@@ -36,7 +36,7 @@ public:
         unsigned char zero[16] = {0};
         aes.ecbEncrypt(H, zero);
         memset(lengthInfo, 0, 16);
-        memset(fistEctr, 0, 16);
+        memset(firstEctr, 0, 16);
         memset(workingTag, 0, 16);
         memset(slotInfo, 0, 16);
     }
@@ -46,7 +46,7 @@ public:
      * */
     void reset() {
         memset(lengthInfo, 0, 16);
-        memset(fistEctr, 0, 16);
+        memset(firstEctr, 0, 16);
         memset(workingTag, 0, 16);
         memset(slotInfo, 0, 16);
     }
@@ -61,7 +61,19 @@ public:
         aes.rekey(key);
     }
 
-    void setIV(unsigned long slotNumber);
+    /**
+     * Set IV for counter mode as AES_Encrypt(key, slotNumber)
+     * */
+    void setIV(unsigned long slotNumber) {
+        unsigned char slot[16] = {0};
+        auto s = reinterpret_cast<unsigned long*>(slot);
+        s[1] = slotNumber;
+        unsigned char ivData[16];
+        aes.ecbEncrypt(ivData, slot);
+
+        iv = IV(ivData);
+    }
+
     void setIV(IV iv) { this->iv = iv; }
 
     /**
