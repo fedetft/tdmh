@@ -142,7 +142,10 @@ public:
 
     void encryptAndPutTag(AesGcm& gcm) {
         if(reservedSize < tagSize)
-            throw range_error("Packet::verifyAndDecrypt: size error");
+            throw range_error("Packet::encryptAndPutTag: size error");
+        if(MediumAccessController::maxPktSize - dataSize < tagSize)
+            throw range_error("Packet::encryptAndPutTag: Overflow");
+
         gcm.encryptAndComputeTag(
                 packet.data() + dataSize,   // put tag at the end of the packet (tag)
                 packet.data() + 5,          // skip panHeader (ctx)
@@ -155,7 +158,10 @@ public:
 
     void putTag(AesGcm& gcm) {
         if(reservedSize < tagSize)
-            throw range_error("Packet::verifyAndDecrypt: size error");
+            throw range_error("Packet::putTag: size error");
+        if(MediumAccessController::maxPktSize - dataSize < tagSize)
+            throw range_error("Packet::putTag: Overflow");
+
         gcm.encryptAndComputeTag(
                 packet.data() + dataSize,   // put tag at the end of the packet (tag)
                 NULL, NULL, 0,              // no data to encrypt
@@ -180,7 +186,7 @@ public:
 
     bool verify(AesGcm& gcm) {
         if(dataSize < tagSize)
-            throw range_error("Packet::verifyAndDecrypt: size error");
+            throw range_error("Packet::verify: size error");
         bool valid = gcm.verifyAndDecrypt(
                 packet.data() + dataSize - tagSize, // tag
                 NULL, NULL, 0,          // no data to decrypt
