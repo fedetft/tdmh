@@ -68,7 +68,11 @@ try {
             -90,           //minWeakNeighborRSSI
             3,             //maxMissedTimesyncs
             true,          //channelSpatialReuse
-            useWeakTopologies //useWeakTopologies
+            useWeakTopologies, //useWeakTopologies
+            true,          //authenticateControlMessages
+            false,         //encryptControlMessages
+            true,          //authenticateDataMessages
+            true           //encryptDataMessages
     );
     DynamicMediumAccessController controller(Transceiver::instance(), config);
     tdmh = &controller;
