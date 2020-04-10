@@ -59,7 +59,11 @@ void RootNode::activity()
             -90,           //minWeakNeighborRSSI
             3,             //maxMissedTimesyncs
             true,          //channelSpatialReuse
-            useWeakTopologies //useWeakTopologies
+            useWeakTopologies, //useWeakTopologies
+            true,          //authenticateControlMessages
+            false,         //encryptControlMessages
+            true,          //authenticateDataMessages
+            true           //encryptDataMessages
     );
     MasterMediumAccessController controller(Transceiver::instance(), config);
 

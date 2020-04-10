@@ -106,6 +106,8 @@ public:
             short minNeighborRSSI, short minWeakNeighborRSSI,
             unsigned char maxMissedTimesyncs,
             bool channelSpatialReuse, bool useWeakTopologies,
+            bool authenticateControlMessages, bool encryptControlMessages,
+            bool authenticateDataMessages, bool encryptDataMessages,
             ControlSuperframeStructure controlSuperframe=ControlSuperframeStructure());
 
     /**
@@ -302,6 +304,36 @@ public:
         return useWeakTopologies;
     }
 
+    /**
+     * @return true if control messages are authenticated
+     */
+    bool getAuthenticateControlMessages() const {
+        return authenticateControlMessages;
+    }
+
+    /**
+     * @return true if control messages are authenticated and encrypted
+     */
+    bool getEncryptControlMessages() const {
+        return encryptControlMessages;
+    }
+
+    /**
+     * @return true if data messages are authenticated
+     */
+    bool getAuthenticateDataMessages() const {
+        return authenticateDataMessages;
+    }
+
+    /**
+     * @return true if data messages are authenticated and encrypted
+     */
+    bool getEncryptDataMessages() const {
+        return encryptDataMessages;
+    }
+
+
+
 private:
     /**
      * Validates the times configured
@@ -331,6 +363,11 @@ private:
     const short minWeakNeighborRSSI;
     const bool channelSpatialReuse;
     const bool useWeakTopologies;
+    const bool authenticateControlMessages;
+    const bool encryptControlMessages;
+    const bool authenticateDataMessages;
+    const bool encryptDataMessages;
+
     const ControlSuperframeStructure controlSuperframe;
     const unsigned long long controlSuperframeDuration;
 

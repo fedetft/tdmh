@@ -70,7 +70,10 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
         unsigned short maxRoundsWeakLinkBecomesDead, 
         short minNeighborRSSI, short minWeakNeighborRSSI,
         unsigned char maxMissedTimesyncs, bool channelSpatialReuse,
-        bool useWeakTopologies, ControlSuperframeStructure controlSuperframe) :
+        bool useWeakTopologies,
+        bool authenticateControlMessages, bool encryptControlMessages,
+        bool authenticateDataMessages, bool encryptDataMessages,
+        ControlSuperframeStructure controlSuperframe) :
     maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)),
     numUplinkPerSuperframe(controlSuperframe.countUplinkSlots()), numDownlinkPerSuperframe(controlSuperframe.countDownlinkSlots()),
     staticNetworkId(networkId), staticHop(staticHop), maxNodes(maxNodes),
@@ -82,7 +85,12 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
     maxRoundsWeakLinkBecomesDead(maxRoundsWeakLinkBecomesDead),
     minNeighborRSSI(minNeighborRSSI), minWeakNeighborRSSI(minWeakNeighborRSSI),
     channelSpatialReuse(channelSpatialReuse),
-    useWeakTopologies(useWeakTopologies), controlSuperframe(controlSuperframe),
+    useWeakTopologies(useWeakTopologies),
+    authenticateControlMessages(authenticateControlMessages | encryptControlMessages),
+    encryptControlMessages(encryptControlMessages),
+    authenticateDataMessages(authenticateDataMessages | encryptDataMessages),
+    encryptDataMessages(encryptDataMessages),
+    controlSuperframe(controlSuperframe),
     controlSuperframeDuration(tileDuration * controlSuperframe.size()),
     numSuperframesPerClockSync(clockSyncPeriod / controlSuperframeDuration) {
     validate();
