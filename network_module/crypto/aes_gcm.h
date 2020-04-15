@@ -64,29 +64,17 @@ public:
     /**
      * Set IV for counter mode as AES_Encrypt(key, slotNumber)
      * */
-    void setIV(unsigned long slotNumber) {
-        unsigned char slot[16] = {0};
-        auto s = reinterpret_cast<unsigned long*>(slot);
-        s[1] = slotNumber;
+    void setIV(unsigned int tileOrFrameNumber, unsigned int sequenceNumber,
+                                                    unsigned long long masterIndex) {
+#ifndef UNITTEST
+        setSlotInfo(tileOrFrameNumber, sequenceNumber, masterIndex);
+#endif
         unsigned char ivData[16];
-        aes.ecbEncrypt(ivData, slot);
-
+        aes.ecbEncrypt(ivData, slotInfo);
         iv = IV(ivData);
     }
 
     void setIV(IV iv) { this->iv = iv; }
-
-    /**
-     * Set the information uniquely identifying the time at which the message will be sent.
-     * This information is always implicitly authenticated.
-     * \param slotNumber the incremental number that uniquely identifies the time slot since network start
-     *  \param masterIndex the incremental number that identifies the current master key in the hash chain mechanism
-     */
-    void setSlotInfo(unsigned long long slotNumber, unsigned long long masterIndex) {
-        auto p = reinterpret_cast<unsigned long long*>(slotInfo);
-        p[0] = masterIndex;
-        p[1] = slotNumber;
-    }
 
 #ifdef UNITTEST
     /**
@@ -148,6 +136,23 @@ public:
 
 
 private:
+
+    /**
+     * Set the information uniquely identifying the time at which the message will be sent.
+     * This information is always implicitly authenticated.
+     * Different messages types can use these numbers with different semantics.
+     * \param tileOrFrameNumber sequential number identifying the tile or frame, used to identify the time at which the message is sent
+     * \param sequenceNumber addictional number to ensure slotInfo unicity, in case the tileOrFrameNumber is not sufficient to uniquely identify a message
+     * \param masterIndex the incremental number that identifies the current master key in the hash chain rekeying mechanism
+     */
+    void setSlotInfo(unsigned int tileOrFrameNumber, unsigned int sequenceNumber, 
+                                                        unsigned long long masterIndex) {
+        auto ip = reinterpret_cast<unsigned int *>(slotInfo);
+        ip[0] = tileOrFrameNumber;
+        ip[1] = sequenceNumber;
+        auto lp = reinterpret_cast<unsigned long long*>(slotInfo);
+        lp[1] = masterIndex;
+    }
 
     /**
      * Save lengths of authenticated and encrypted data and initialize lengthInfo block
