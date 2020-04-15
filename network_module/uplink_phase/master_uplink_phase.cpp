@@ -52,17 +52,18 @@ void MasterUplinkPhase::execute(long long slotStart)
     // Consume elements from the SME queue
     streamColl->receiveSMEs(smeQueue);
     
+    #ifndef _MIOSIX
     if(ENABLE_TOPOLOGY_INFO_DBG)
     {
-        #ifdef _MIOSIX
-        static_assert(false,"ENABLE_TOPOLOGY_INFO_DBG can be used only in the simulator");
-        #endif
         auto graph=topology.getGraph();
         print_dbg("[U] Current topology @%lld:\n",
             NetworkTime::fromLocalTime(slotStart).get());
         for(auto it : graph.getEdges())
             print_dbg("[%d - %d]\n", it.first, it.second);
     }
+    #else
+    static_assert(ENABLE_TOPOLOGY_INFO_DBG==false,"ENABLE_TOPOLOGY_INFO_DBG can be used only in the simulator");
+    #endif
 }
 
 void MasterUplinkPhase::sendMyUplink(long long slotStart)
