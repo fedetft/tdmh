@@ -3,6 +3,7 @@
 #include "aes.h"
 #include "../util/aes_accelerator.h"
 #include "initialization_vector.h"
+#include "crypto_utils.h"
 
 using namespace std;
 

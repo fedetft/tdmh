@@ -190,13 +190,6 @@ private:
     /* Multiplication by H in GF(2^128) */
     void multH(void *dst, const void *src);
 
-    void xorBytes(unsigned char *dst, const unsigned char *op1, const unsigned char *op2,
-                                                                    unsigned int length) {
-        for (unsigned i=0; i<length; i++) {
-            dst[i] = op1[i] ^ op2[i];
-        }
-    }
-
     unsigned char make_mask(unsigned char bit) {
         unsigned char mask = bit;
         for(int i=0; i<8; i++) {
