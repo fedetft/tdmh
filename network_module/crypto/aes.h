@@ -58,13 +58,6 @@ private:
 
     AESAccelerator& aesAcc = AESAccelerator::instance();
 
-    void xorBytes(unsigned char *dst, const unsigned char *op1, const unsigned char *op2,
-                                                                    unsigned int length) {
-        for (unsigned i=0; i<length; i++) {
-            dst[i] = op1[i] ^ op2[i];
-        }
-    }
-
     unsigned char key[16];
     unsigned char lrk[16];
 

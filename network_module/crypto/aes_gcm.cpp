@@ -1,5 +1,6 @@
 #include "aes_gcm.h"
 #include "initialization_vector.h"
+#include "crypto_utils.h"
 
 namespace mxnet {
 
