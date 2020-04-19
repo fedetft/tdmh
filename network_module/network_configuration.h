@@ -27,6 +27,8 @@
 
 #pragma once
 
+#define CRYPTO
+
 namespace mxnet {
 
 /**
@@ -106,8 +108,10 @@ public:
             short minNeighborRSSI, short minWeakNeighborRSSI,
             unsigned char maxMissedTimesyncs,
             bool channelSpatialReuse, bool useWeakTopologies,
+#ifdef CRYPTO
             bool authenticateControlMessages, bool encryptControlMessages,
             bool authenticateDataMessages, bool encryptDataMessages,
+#endif
             ControlSuperframeStructure controlSuperframe=ControlSuperframeStructure());
 
     /**
@@ -363,10 +367,12 @@ private:
     const short minWeakNeighborRSSI;
     const bool channelSpatialReuse;
     const bool useWeakTopologies;
+#ifdef CRYPTO
     const bool authenticateControlMessages;
     const bool encryptControlMessages;
     const bool authenticateDataMessages;
     const bool encryptDataMessages;
+#endif
 
     const ControlSuperframeStructure controlSuperframe;
     const unsigned long long controlSuperframeDuration;

@@ -147,11 +147,14 @@ void masterNode(void*)
             -95,           //minWeakNeighborRSSI
             4,             //maxMissedTimesyncs
             true,          //channelSpatialReuse
-            useWeakTopologies,          //useWeakTopologies
+            useWeakTopologies          //useWeakTopologies
+#ifdef CRYPTO
+            ,
             true,          //authenticateControlMessages
             false,         //encryptControlMessages
             true,          //authenticateDataMessages
             true           //encryptDataMessages
+#endif
         );
         printf("Starting TDMH with guaranteedTopologies=%d\n", guaranteedTopologies(maxNodes,useWeakTopologies));
         MasterMediumAccessController controller(Transceiver::instance(), config);
@@ -194,11 +197,14 @@ void dynamicNode(void* argv)
             -95,           //minWeakNeighborRSSI
             4,             //maxMissedTimesyncs
             true,          //channelSpatialReuse
-            useWeakTopologies,          //useWeakTopologies
+            useWeakTopologies          //useWeakTopologies
+#ifdef CRYPTO
+            ,
             true,          //authenticateControlMessages
             false,         //encryptControlMessages
             true,          //authenticateDataMessages
             true           //encryptDataMessages
+#endif
         );
         printf("Starting TDMH with guaranteedTopologies=%d\n", guaranteedTopologies(maxNodes,useWeakTopologies));
         DynamicMediumAccessController controller(Transceiver::instance(), config);
