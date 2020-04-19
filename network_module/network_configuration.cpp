@@ -71,8 +71,10 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
         short minNeighborRSSI, short minWeakNeighborRSSI,
         unsigned char maxMissedTimesyncs, bool channelSpatialReuse,
         bool useWeakTopologies,
+#ifdef CRYPTO
         bool authenticateControlMessages, bool encryptControlMessages,
         bool authenticateDataMessages, bool encryptDataMessages,
+#endif
         ControlSuperframeStructure controlSuperframe) :
     maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)),
     numUplinkPerSuperframe(controlSuperframe.countUplinkSlots()), numDownlinkPerSuperframe(controlSuperframe.countDownlinkSlots()),
@@ -86,10 +88,12 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
     minNeighborRSSI(minNeighborRSSI), minWeakNeighborRSSI(minWeakNeighborRSSI),
     channelSpatialReuse(channelSpatialReuse),
     useWeakTopologies(useWeakTopologies),
+#ifdef CRYPTO
     authenticateControlMessages(authenticateControlMessages | encryptControlMessages),
     encryptControlMessages(encryptControlMessages),
     authenticateDataMessages(authenticateDataMessages | encryptDataMessages),
     encryptDataMessages(encryptDataMessages),
+#endif
     controlSuperframe(controlSuperframe),
     controlSuperframeDuration(tileDuration * controlSuperframe.size()),
     numSuperframesPerClockSync(clockSyncPeriod / controlSuperframeDuration) {
