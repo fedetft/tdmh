@@ -32,6 +32,18 @@ namespace mxnet {
 class AesGcm {
 public:
     /**
+     * Constructor with blank IV. Use 0 as IV.
+     * */
+    AesGcm(const void *key) : aes(key) {
+        unsigned char zero[16] = {0};
+        aes.ecbEncrypt(H, zero);
+        memset(lengthInfo, 0, 16);
+        memset(firstEctr, 0, 16);
+        memset(workingTag, 0, 16);
+        memset(slotInfo, 0, 16);
+    }
+
+    /**
      * Constructor. Initializes key-dependent data and IV
      * */
     AesGcm(const void *key, IV& iv) : aes(key) , iv(iv) {
