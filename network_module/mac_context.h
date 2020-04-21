@@ -302,7 +302,7 @@ public:
     /**
      * Actually rotate the master key with the last precomuted value.
      */
-    void applyRekeyign() { 
+    void applyRekeying() { 
         masterIndex++;
         memcpy(masterKey, newMasterKey, 16);
     }
