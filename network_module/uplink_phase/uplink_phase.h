@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "../network_configuration.h"
 #include "../mac_phase.h"
 #include "../mac_context.h"
 #include "../downlink_phase/timesync/networktime.h"
@@ -77,6 +78,19 @@ public:
     static const int transmissionInterval = 1000000; //1ms
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
     
+#ifdef CRYPTO
+    void precomputeRekeying() {
+        hash.reset();
+        hash.digestBlock(newUplinkKey, ctx.getMasterKey());
+    }
+
+    void applyRekeying() { 
+        memcpy(uplinkKey, newUplinkKey, 16);
+    }
+
+    AesGcm& getUplinkGCM() { return gcm; }
+#endif
+
 protected:
     UplinkPhase(MACContext& ctx, StreamManager* const streamMgr) :
             MACPhase(ctx),
@@ -86,7 +100,15 @@ protected:
             nextNode(nodesCount - 1),
             myNeighborTable(ctx.getNetworkConfig(),
                             ctx.getNetworkId(),
-                            ctx.getHop()) {}
+                            ctx.getHop()) {
+#ifdef CRYPTO
+        /* Initialize the uplink key and GCM from current master key */
+        hash.reset();
+        hash.digestBlock(newUplinkKey, ctx.getMasterKey());
+        memcpy(uplinkKey, newUplinkKey, 16);
+        gcm.rekey(uplinkKey);
+#endif
+    }
     
 
     /**
@@ -112,6 +134,19 @@ protected:
     UpdatableQueue<unsigned char,TopologyElement> topologyQueue;
     UpdatableQueue<SMEKey,StreamManagementElement> smeQueue;
     NeighborTable myNeighborTable;
+
+#ifdef CRYPTO
+    unsigned char uplinkKey[16];
+    unsigned char newUplinkKey[16];
+    /* Value for this constant is arbitrary and is NOT secret */
+    const unsigned char uplinkDerivationIv[16] = {
+                0x55, 0x70, 0x4c, 0x69, 0x6e, 0x6b, 0x49, 0x76,
+                0x55, 0x70, 0x4c, 0x69, 0x6e, 0x6b, 0x49, 0x76
+        };
+    MPHash hash = MPHash(uplinkDerivationIv);
+    AesGcm gcm = AesGcm(uplinkKey);
+#endif
+
 };
 
 } // namespace mxnet
