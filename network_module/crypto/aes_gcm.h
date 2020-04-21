@@ -5,8 +5,8 @@
 namespace mxnet {
 
 /**
- * Implementation of authenticated encryption/decryption using AES block cipher in
- * Galois/Counter Mode of operation (GCM), NIST SP 800-38D :
+ * Implementation of authenticated encryption/decryption using AES block cipher
+ * in Galois/Counter Mode of operation (GCM), NIST SP 800-38D :
  * https://csrc.nist.gov/publications/detail/sp/800-38d/final
  *
  * Usage for authenticated encryption/decryption
@@ -14,17 +14,19 @@ namespace mxnet {
  *  - setSlotInfo
  *  - encryptAndComputeTag / verifyAndDecrypt
  *
- * NOTE (1): this implementation presents a small difference with respect to the standard's
- * prescriptions. The standard prescribes support for an IV of variable length, which is
- * then expanded into a 128-bit value to use with counter mode, called J0, via
- * Galois Field multiplication. Because this operation is expensive, we instead compute
- * J0 directly by encrypting the slotNumber with the GCM key. Thus this code refers to
- * the standard-defined value J0 as IV.
+ * NOTE (1): this implementation presents a small difference with respect to
+ * the standard's prescriptions. The standard prescribes support for an IV of
+ * variable length, which is then expanded into a 128-bit value to use with
+ * counter mode, called J0, via Galois Field multiplication. Because this
+ * operation is expensive, we instead compute J0 directly by encrypting the
+ * slotInfo block with the GCM key. Thus this code refers to the
+ * standard-defined value J0 as IV.
  *
- * NOTE (2): to avoid replay attacks, out message authentication always includes implicit
- * information about the time when the message is being sent. This information is uniquely
- * identified by the pair <slotNumber, masterIndex> and encoded into the slotInfo block,
- * which is always authenticated together with the buffers.
+ * NOTE (2): to avoid replay attacks, our message authentication always
+ * includes implicit information about the time when the message is being sent.
+ * This information is uniquely identified by the tuple
+ * <tileOrFrameNumber, sequenceNumber, masterIndex> and encoded into the
+ * slotInfo block, which is always authenticated together with the buffers.
  *
  */
 class AesGcm {
