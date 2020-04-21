@@ -56,6 +56,9 @@ MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiv
                 running(false)
 {
     calculateDurations();
+#ifdef CRYPTO
+    loadMasterKey();
+#endif
 }
 
 void MACContext::calculateDurations() {

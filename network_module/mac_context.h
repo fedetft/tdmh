@@ -37,6 +37,10 @@
 #include <functional>
 #include <stdexcept>
 #include <utility>
+// For cryptography
+#ifdef CRYPTO
+#include "crypto/hash.h"
+#endif
 // For thread synchronization
 #ifdef _MIOSIX
 #include <miosix.h>
@@ -286,6 +290,65 @@ public:
 
     virtual void beginScheduling() {};
 
+#ifdef CRYPTO
+    /**
+     * Compute next value for master key, without applying it yet.
+     */
+    void precomputeRekeying() {
+        hash.reset();
+        hash.digestBlock(newMasterKey, masterKey);
+    }
+
+    /**
+     * Actually rotate the master key with the last precomuted value.
+     */
+    void applyRekeyign() { 
+        masterIndex++;
+        memcpy(masterKey, newMasterKey, 16);
+    }
+
+    /** 
+     * @return a pointer to the 16-byte buffer containing the current master key
+     */
+    void* getMasterKey() { return masterKey; }
+
+    /**
+     * @return the current value of the hash chain master index
+     */
+    unsigned long long getMasterIndex() { return masterIndex; }
+
+    /* TODO: change these functions to make masterIndex and rekeying persistent
+     * across reboot */
+    /**
+     * Called only upon construction (at reboot).
+     * Load last Master Key and Index from persistent memory (TODO)
+     */
+    void loadMasterKey() {
+        masterIndex = 0;
+    }
+
+    /**
+     * Called upon resync.
+     * Advance hash chain to derive new master key from last known master key.
+     * \param newIndex current updated master key index. Cannot decrese in time.
+     * @return true if newIndex has acceptable value (masterIndex did not decrease).
+     *
+     */
+    bool resyncMasterKey(unsigned long long newIndex) {
+        if (newIndex < masterIndex) return false;
+
+        for (unsigned long long i = masterIndex ; i < newIndex; i++) {
+            hash.reset();
+            hash.digestBlock(masterKey, masterKey);
+        }
+        // Copy new master key for consistency with normal rekeying behavior
+        memcpy(newMasterKey, masterKey, 16);
+        masterIndex = newIndex;
+        return true;
+    }
+
+#endif
+
 protected:
     MACContext(const MediumAccessController& mac,
                miosix::Transceiver& transceiver,
@@ -323,6 +386,26 @@ private:
     unsigned sendErrors;
     unsigned rcvTotal;
     unsigned rcvErrors;
+
+#ifdef CRYPTO
+
+    unsigned long long masterIndex;
+    /**
+     * Value of the first master key. This value is SECRET and hardcoding it
+     * is meant as a temporary solution.
+     */
+    unsigned char masterKey[16] = {
+                0x4d, 0x69, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74,
+                0x4d, 0x69, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74
+        };
+    unsigned char newMasterKey[16];
+    /* Value for this constant is arbitrary and is NOT secret */
+    const unsigned char masterRotationIv[16] = {
+                0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x49, 0x56,
+                0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x49, 0x56
+        };
+    MPHash hash = MPHash(masterRotationIv);
+#endif
 
     volatile bool running;
     const bool sleepDeep=false; //TODO: make it configurable
