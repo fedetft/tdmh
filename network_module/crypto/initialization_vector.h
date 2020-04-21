@@ -5,6 +5,13 @@ namespace mxnet {
 
 class IV {
 public:
+    /**
+     * Default constructor: IV = 0
+     */
+    IV() {
+        memset(this->data, 0, 16);
+    }
+
     IV(const void *data) {
         memcpy(this->data, data, 16);
     }
