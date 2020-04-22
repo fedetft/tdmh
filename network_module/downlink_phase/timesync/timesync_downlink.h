@@ -107,18 +107,48 @@ public:
 
     void advance(long long slotStart) override;
 
+#ifdef CRYPTO
+    void precomputeRekeying() {
+        hash.reset();
+        hash.digestBlock(newTimesyncKey, ctx.getMasterKey());
+    }
+
+    void applyRekeying() { 
+        memcpy(timesyncKey, newTimesyncKey, 16);
+    }
+#endif
+
 protected:
     TimesyncDownlink(MACContext& ctx, MacroStatus initStatus, unsigned receivingWindow) :
             MACPhase(ctx),
             networkConfig(ctx.getNetworkConfig()),
             internalStatus(initStatus),
-            receiverWindow(receivingWindow), error(0) {}
+            receiverWindow(receivingWindow), error(0) {
+#ifdef CRYPTO
+        initializeCryptoKey();
+#endif
+    }
     
     TimesyncDownlink(MACContext& ctx, MacroStatus initStatus) :
             MACPhase(ctx),
             networkConfig(ctx.getNetworkConfig()),
             internalStatus(initStatus),
-            receiverWindow(networkConfig.getMaxAdmittedRcvWindow()), error(0) {}
+            receiverWindow(networkConfig.getMaxAdmittedRcvWindow()), error(0) {
+#ifdef CRYPTO
+        initializeCryptoKey();
+#endif
+    }
+
+
+#ifdef CRYPTO
+    void initializeCryptoKey() {
+        /* Initialize the uplink key and GCM from current master key */
+        hash.reset();
+        hash.digestBlock(newTimesyncKey, ctx.getMasterKey());
+        memcpy(timesyncKey, newTimesyncKey, 16);
+        gcm.rekey(timesyncKey);
+    }
+#endif
 
     virtual void next()=0;
     virtual long long correct(long long int uncorrected)=0;
@@ -129,6 +159,18 @@ protected:
     unsigned receiverWindow;
     long long error;
     unsigned int packetCounter;
+
+#ifdef CRYPTO
+    unsigned char timesyncKey[16];
+    unsigned char newTimesyncKey[16];
+    /* Value for this constant is arbitrary and is NOT secret */
+    const unsigned char timesyncDerivationIv[16] = {
+                0x54, 0x69, 0x4d, 0x65, 0x53, 0x79, 0x4e, 0x63,
+                0x74, 0x49, 0x6d, 0x45, 0x73, 0x59, 0x6e, 0x43
+        };
+    MPHash hash = MPHash(timesyncDerivationIv);
+    AesGcm gcm = AesGcm(timesyncKey);
+#endif
 };
 
 }

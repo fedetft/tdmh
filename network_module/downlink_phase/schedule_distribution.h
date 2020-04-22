@@ -62,13 +62,31 @@ public:
      */
     void resync() override {}
 
+#ifdef CRYPTO
+    void precomputeRekeying() {
+        hash.reset();
+        hash.digestBlock(newDownlinkKey, ctx.getMasterKey());
+    }
+
+    void applyRekeying() { 
+        memcpy(downlinkKey, newDownlinkKey, 16);
+    }
+#endif
 
 protected:
     ScheduleDownlinkPhase(MACContext& ctx) : MACPhase(ctx),
                                              rebroadcastInterval(computeRebroadcastInterval(ctx.getNetworkConfig())),
                                              panId(ctx.getNetworkConfig().getPanId()),
                                              streamMgr(ctx.getStreamManager()),
-                                             dataPhase(ctx.getDataPhase()) {}
+                                             dataPhase(ctx.getDataPhase()) {
+#ifdef CRYPTO
+        /* Initialize the uplink key and GCM from current master key */
+        hash.reset();
+        hash.digestBlock(newDownlinkKey, ctx.getMasterKey());
+        memcpy(downlinkKey, newDownlinkKey, 16);
+        gcm.rekey(downlinkKey);
+#endif
+    }
 
     /**
      * Convert the explicit schedule to an implicit one
@@ -155,6 +173,18 @@ protected:
 
     // Pointer to DataPhase, used to apply distributed schedule
     DataPhase* const dataPhase;
+
+#ifdef CRYPTO
+    unsigned char downlinkKey[16];
+    unsigned char newDownlinkKey[16];
+    /* Value for this constant is arbitrary and is NOT secret */
+    const unsigned char downlinkDerivationIv[16] = {
+                0x44, 0x6f, 0x57, 0x6e, 0x4c, 0x69, 0x4e, 0x6b,
+                0x64, 0x4f, 0x77, 0x4e, 0x6c, 0x49, 0x6e, 0x4b
+        };
+    MPHash hash = MPHash(downlinkDerivationIv);
+    AesGcm gcm = AesGcm(downlinkKey);
+#endif
 };
 
 }
