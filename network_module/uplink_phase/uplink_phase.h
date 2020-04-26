@@ -144,7 +144,7 @@ protected:
                 0x55, 0x70, 0x4c, 0x69, 0x6e, 0x6b, 0x49, 0x76
         };
     MPHash hash = MPHash(uplinkDerivationIv);
-    AesGcm gcm = AesGcm(uplinkKey);
+    AesGcm gcm;
 #endif
 
 };
