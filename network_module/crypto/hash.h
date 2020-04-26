@@ -11,12 +11,29 @@ namespace mxnet {
 class MPHash {
 public:
     /**
+     * Default constructor: use IV=0
+     */
+    MPHash() : next_aes({0}) {
+        memset(iv, 0, 16);
+        memset(next_aes_key, 0, 16);
+    }
+
+    /**
      * Constructor
      * \param iv the init vector used in Miyaguchi-Preneel scheme
      */
     MPHash(const unsigned char iv[16]) : next_aes(iv) {
         memcpy(this->iv, iv, 16);
         memcpy(this->next_aes_key, iv, 16);
+    }
+
+    /**
+     * Change IV and reset
+     * \param iv the new init vector in Miyaguchi-Preneel scheme
+     */
+    void setIv(const unsigned char iv[16]) {
+        memcpy(this->iv, iv, 16);
+        reset();
     }
 
     /**
@@ -33,7 +50,7 @@ public:
      * \param data pointer to a buffer containing the data to hash
      * \param length the number of bytes of data to be hashed
      */
-    void digest(void *hash, const void *data, unsigned length);
+    //void digest(void *hash, const void *data, unsigned length);
 
     /**
      * Digest 16 bytes of data 
