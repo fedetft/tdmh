@@ -142,7 +142,7 @@ protected:
 
 #ifdef CRYPTO
     void initializeCryptoKey() {
-        /* Initialize the uplink key and GCM from current master key */
+        /* Initialize the timesync key and GCM from current master key */
         hash.reset();
         hash.digestBlock(newTimesyncKey, ctx.getMasterKey());
         memcpy(timesyncKey, newTimesyncKey, 16);
@@ -169,7 +169,7 @@ protected:
                 0x74, 0x49, 0x6d, 0x45, 0x73, 0x59, 0x6e, 0x43
         };
     MPHash hash = MPHash(timesyncDerivationIv);
-    AesGcm gcm = AesGcm(timesyncKey);
+    AesGcm gcm;
 #endif
 };
 

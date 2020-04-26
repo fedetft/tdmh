@@ -80,7 +80,7 @@ protected:
                                              streamMgr(ctx.getStreamManager()),
                                              dataPhase(ctx.getDataPhase()) {
 #ifdef CRYPTO
-        /* Initialize the uplink key and GCM from current master key */
+        /* Initialize the downlink key and GCM from current master key */
         hash.reset();
         hash.digestBlock(newDownlinkKey, ctx.getMasterKey());
         memcpy(downlinkKey, newDownlinkKey, 16);
@@ -183,7 +183,7 @@ protected:
                 0x64, 0x4f, 0x77, 0x4e, 0x6c, 0x49, 0x6e, 0x4b
         };
     MPHash hash = MPHash(downlinkDerivationIv);
-    AesGcm gcm = AesGcm(downlinkKey);
+    AesGcm gcm;
 #endif
 };
 
