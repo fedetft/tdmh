@@ -7,6 +7,21 @@ namespace mxnet {
 
 class Aes {
 public:
+    /**
+     * Default constructor: key=0
+     */
+    Aes() {
+        memset(this->key, 0, 16);
+        {
+#ifdef _MIOSIX
+            miosix::Lock<miosix::Mutex> lock(aesMutex);
+#else
+            std::unique_lock<std::mutex> lock(aesMutex);
+#endif
+            aesAcc.aes128_computeLastRoundKey(lrk, key);
+        }
+    }
+
     Aes(const void *key) {
         memcpy(this->key, key, 16);
         {
