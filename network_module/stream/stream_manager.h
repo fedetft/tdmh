@@ -33,6 +33,12 @@
 #include "stream.h"
 #include "../scheduler/schedule_element.h"
 #include "../util/updatable_queue.h"
+// For cryptography
+#ifdef CRYPTO
+#include "../crypto/hash.h"
+#include "../crypto/aes_gcm.h"
+#include <queue>
+#endif
 // For thread synchronization
 #ifdef _MIOSIX
 #include <miosix.h>
@@ -146,6 +152,33 @@ public:
     // Used by Stream, Server, enqueues an SME to be sent on the network
     void enqueueSME(StreamManagementElement sme);
 
+#ifdef CRYPTO
+    /**
+     * Stream keys are derived from the master key as: 
+     *      Hash(masterKey||streamId)
+     * The master key represents the first block to be digested by the
+     * Hash, which uses the same IV for all stream keys. Therefore, the
+     * intermediate value of the first block digested, ie:
+     *      Hash(masterKey)
+     * is common among all stream keys created from the same master key.
+     * The secondBlock is used as IV for a new MPHash object, which will be
+     * used to digest the second part of the data, ie: the streamId.
+     * We have this value precomputed at the creation of the StreamManager
+     * by MACContext, by calling initHash once.
+     */
+    void initHash(const unsigned char masterKey[16]) {
+        unsigned char nextIv[16];
+        firstBlockStreamHash.digestBlock(nextIv, masterKey);
+        secondBlockStreamHash.setIv(nextIv);
+        memset(nextIv, 0, 16);
+    }
+    void startRekeying(const unsigned char masterKey[16]);
+
+    void continueRekeying();
+    
+    void applyRekeying();
+#endif
+
 private:
 
     /**
@@ -211,6 +244,48 @@ private:
     std::vector<bool> clientPorts;
     /* UpdatableQueue of SME to send to the network to reach the master node */
     UpdatableQueue<SMEKey, StreamManagementElement> smeQueue;
+
+#ifdef CRYPTO
+    /**
+     * IV for the Miyaguchi-Preneel Hash used for deriving stream keys from master key.
+     * Value for this constant is arbitrary and is NOT secret.
+     */
+    const unsigned char streamKeyRotationIv[16] = {
+                0x73, 0x54, 0x72, 0x45, 0x61, 0x4d, 0x6d, 0x41,
+                0x6e, 0x61, 0x47, 0x65, 0x72, 0x49, 0x76, 0x30
+        };
+    MPHash firstBlockStreamHash = MPHash(streamKeyRotationIv);
+    /**
+     * Stream keys are derived from the master key as: 
+     *      Hash(masterKey||streamId)
+     * The master key represents the first block to be digested by the
+     * Hash, which uses the same IV for all stream keys. Therefore, the
+     * intermediate value of the first block digested, ie:
+     *      Hash(masterKey)
+     * is common among all stream keys created from the same master key.
+     * The secondBlock is used as IV for a new MPHash object, which will be
+     * used to digest the second part of the data, ie: the streamId.
+     * When rekeying, the next value for this IV is also precomputed and applied.
+     * */
+    MPHash secondBlockStreamHash;
+    MPHash secondBlockStreamHash_next;
+    unsigned char nextIv[16] = {0};
+
+    bool rekeyingInProgress = false;
+    // TODO: tweak this value
+    const unsigned int maxHashesPerSlot = 5;
+    /* Sets of streams needed for handling cuncurrency between rekeying process
+     * and applications modifying streams map:
+     * At the beginning of the rekeying process, a snapshot of the currently
+     * existing streams is taken. This queue is scanned during rekeying and its
+     * elements are removed from the snapshot.
+     * Because applications can create new streams with connect while rekeying
+     * is in progress, such new streams will be added to the snapshot, waiting
+     * to be rekeyed.
+     * */
+    std::queue<StreamId> rekeyingSnapshot;
+#endif
+
     /* Thread synchronization */
 #ifdef _MIOSIX
     // Mutex to protect access to shared Stream/Server maps

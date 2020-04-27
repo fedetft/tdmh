@@ -58,6 +58,9 @@ MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiv
     calculateDurations();
 #ifdef CRYPTO
     loadMasterKey();
+    if(networkConfig.getAuthenticateDataMessages()) {
+        streamMgr.initHash(masterKey);
+    }
 #endif
 }
 
