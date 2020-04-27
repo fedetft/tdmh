@@ -138,7 +138,10 @@ protected:
 #ifdef CRYPTO
     unsigned char uplinkKey[16];
     unsigned char newUplinkKey[16];
-    /* Value for this constant is arbitrary and is NOT secret */
+    /**
+     * IV for the Miyaguchi-Preneel Hash used for deriving uplink key from
+     * master key.
+     * Value for this constant is arbitrary and is NOT secret */
     const unsigned char uplinkDerivationIv[16] = {
                 0x55, 0x70, 0x4c, 0x69, 0x6e, 0x6b, 0x49, 0x76,
                 0x55, 0x70, 0x4c, 0x69, 0x6e, 0x6b, 0x49, 0x76

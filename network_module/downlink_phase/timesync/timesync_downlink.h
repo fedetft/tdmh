@@ -163,7 +163,10 @@ protected:
 #ifdef CRYPTO
     unsigned char timesyncKey[16];
     unsigned char newTimesyncKey[16];
-    /* Value for this constant is arbitrary and is NOT secret */
+    /**
+     * IV for the Miyaguchi-Preneel Hash used for deriving timesync key from
+     * master key.
+     * Value for this constant is arbitrary and is NOT secret */
     const unsigned char timesyncDerivationIv[16] = {
                 0x54, 0x69, 0x4d, 0x65, 0x53, 0x79, 0x4e, 0x63,
                 0x74, 0x49, 0x6d, 0x45, 0x73, 0x59, 0x6e, 0x43

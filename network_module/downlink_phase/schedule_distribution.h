@@ -177,7 +177,11 @@ protected:
 #ifdef CRYPTO
     unsigned char downlinkKey[16];
     unsigned char newDownlinkKey[16];
-    /* Value for this constant is arbitrary and is NOT secret */
+    /**
+     * IV for the Miyaguchi-Preneel Hash used for deriving downlink key from
+     * master key.
+     * Value for this constant is arbitrary and is NOT secret.
+     */
     const unsigned char downlinkDerivationIv[16] = {
                 0x44, 0x6f, 0x57, 0x6e, 0x4c, 0x69, 0x4e, 0x6b,
                 0x64, 0x4f, 0x77, 0x4e, 0x6c, 0x49, 0x6e, 0x4b

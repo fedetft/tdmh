@@ -399,12 +399,16 @@ private:
                 0x4d, 0x69, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74
         };
     unsigned char newMasterKey[16];
-    /* Value for this constant is arbitrary and is NOT secret */
+    /**
+     * IV for the Miyaguchi-Preneel Hash used for rotating the master key.
+     * Value for this constant is arbitrary and is NOT secret.
+     */
     const unsigned char masterRotationIv[16] = {
                 0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x49, 0x56,
                 0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x49, 0x56
         };
     MPHash hash = MPHash(masterRotationIv);
+
 #endif
 
     volatile bool running;
