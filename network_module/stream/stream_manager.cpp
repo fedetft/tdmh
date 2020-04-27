@@ -485,14 +485,35 @@ void StreamManager::freeClientPort(unsigned char port) {
 
 std::pair<int,REF_PTR_STREAM> StreamManager::addStream(StreamInfo streamInfo) {
     int fd = fdcounter++;
-#ifdef _MIOSIX
-    miosix::intrusive_ref_ptr<Stream> stream(new Stream(config, fd, streamInfo));
-#else
-    std::shared_ptr<Stream> stream(new Stream(config, fd, streamInfo));
-#endif
+    REF_PTR_STREAM stream;
     StreamId streamId = streamInfo.getStreamId();
+
+#ifdef CRYPTO
+    if (config.getAuthenticateDataMessages()) {
+        /* Compute stream Key */
+        unsigned char streamIdBlock[16] = {0};
+        unsigned char key[16];
+        memcpy(streamIdBlock, &streamId, sizeof(StreamId));
+        secondBlockStreamHash.reset();
+        secondBlockStreamHash.digestBlock(key, streamIdBlock);
+        stream = REF_PTR_STREAM (new Stream(config, fd, streamInfo, key));
+    } else {
+        stream = REF_PTR_STREAM (new Stream(config, fd, streamInfo));
+    }
+
+#else // #ifdef CRYPTO
+    stream = REF_PTR_STREAM (new Stream(config, fd, streamInfo));;
+#endif // #ifdef CRYPTO
+
     streams[streamId] = stream;
     fdt[fd] = stream;
+
+#ifdef CRYPTO
+    if(config.getAuthenticateDataMessages() && rekeyingInProgress) {
+        rekeyingSnapshot.push(streamId);
+    }
+#endif
+
     return std::make_pair(fd,stream);
 }
 
@@ -594,5 +615,89 @@ void StreamManager::printServerStatus(StreamId id, StreamStatus status) {
     }
     printf("\n");
 }
+
+#ifdef CRYPTO
+void StreamManager::startRekeying(const unsigned char masterKey[16]) {
+    if (config.getAuthenticateDataMessages()) {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        rekeyingInProgress = true;
+
+        firstBlockStreamHash.digestBlock(nextIv, masterKey);
+        secondBlockStreamHash_next.setIv(nextIv);
+
+        for (auto& s: streams) {
+            rekeyingSnapshot.push(s.first);
+        }
+    }
+}
+
+void StreamManager::continueRekeying() {
+    if (config.getAuthenticateDataMessages()) {
+        unsigned i=0;
+        while (i < maxHashesPerSlot && !rekeyingSnapshot.empty()) {
+            // take one from snapshot, rekey it, add it to done, remove from snapshot
+            StreamId id = rekeyingSnapshot.front();
+            rekeyingSnapshot.pop();
+            {
+#ifdef _MIOSIX
+                miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+                std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+                /* precompute rekeying for this stream */
+                auto it = streams.find(id);
+                if (it != streams.end()) {
+                    unsigned char streamIdBlock[16] = {0};
+                    unsigned char newKey[16];
+                    memcpy(streamIdBlock, &id, sizeof(StreamId));
+                    secondBlockStreamHash_next.reset();
+                    secondBlockStreamHash_next.digestBlock(newKey, streamIdBlock);
+
+                    it->second->setNewKey(newKey);
+                    i++; 
+                }
+            }
+        }
+    }
+}
+
+void StreamManager::applyRekeying() {
+    if (config.getAuthenticateDataMessages()) {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        /* keep rekeying one last time, in case applications have added new streams
+         * that are still in need to be rekeyed */
+        while (!rekeyingSnapshot.empty()) {
+            // take one from snapshot, rekey it, add it to done, remove from snapshot
+            StreamId id = rekeyingSnapshot.front();
+            rekeyingSnapshot.pop();
+            /* precompute rekeying for this stream */
+            auto it = streams.find(id);
+            if (it != streams.end()) {
+                unsigned char streamIdBlock[16] = {0};
+                unsigned char newKey[16];
+                memcpy(streamIdBlock, &id, sizeof(StreamId));
+                secondBlockStreamHash_next.reset();
+                secondBlockStreamHash_next.digestBlock(newKey, streamIdBlock);
+
+                it->second->setNewKey(newKey);
+            }
+        }
+        /* at this point, all streams have had their new key computed and set */
+        for (auto& s: streams) {
+            s.second->applyNewKey();
+        }
+        secondBlockStreamHash.setIv(nextIv);
+        rekeyingInProgress = false;
+    }
+}
+#endif // #ifdef CRYPTO
 
 } /* namespace mxnet */
