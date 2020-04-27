@@ -27,9 +27,14 @@
 
 #pragma once
 
+#include "../network_configuration.h"
 #include "../tdmh.h"
 #include "../util/packet.h"
 #include "stream_management_element.h"
+#ifdef CRYPTO
+#include "../crypto/hash.h"
+#include "../crypto/aes_gcm.h"
+#endif
 #include <list>
 #ifdef _MIOSIX
 #include <miosix.h>
@@ -192,6 +197,17 @@ protected:
  */
 class Stream : public Endpoint {
 public:
+#ifdef CRYPTO
+    Stream(const NetworkConfiguration& config,
+           int fd, StreamInfo info, const unsigned char key[16]) :
+                                    Endpoint(config, fd, info),
+                                    panId(config.getPanId()) {
+        updateRedundancy();
+        memcpy(newKey, key, 16);
+        gcm.rekey(newKey);
+    }
+#endif
+
     Stream(const NetworkConfiguration& config,
            int fd, StreamInfo info) : Endpoint(config, fd, info),
                                       panId(config.getPanId()) {
@@ -256,6 +272,19 @@ public:
     // Returns true if the Stream class can be deleted
     bool desync() override;
 
+#ifdef CRYPTO
+    void setNewKey(const unsigned char newKey[16]) {
+        memcpy(this->newKey, newKey, 16);
+    }
+
+    void applyNewKey() { 
+        gcm.rekey(newKey);
+    }
+
+    AesGcm& getGCM() { return gcm; }
+#endif
+
+
 private:
     const unsigned short panId;
 
@@ -276,6 +305,11 @@ private:
     bool nextTxPacketReady = false;
     Packet rxPacketShared;
     Packet nextTxPacket;
+
+#ifdef CRYPTO
+    unsigned char newKey[16] = {0};
+    AesGcm gcm;
+#endif
 
     /* Thread synchronization */
 #ifdef _MIOSIX
