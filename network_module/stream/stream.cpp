@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "stream.h"
+#include "../network_configuration.h"
 #include "../mac_context.h"
 #include "../util/debug_settings.h"
 #include <algorithm>
@@ -76,6 +77,9 @@ int Stream::write(const void* data, int size) {
     try {
         StreamId id = info.getStreamId();
         nextTxPacket.clear();
+#ifdef CRYPTO
+        if (authData) nextTxPacket.reserveTag();
+#endif
         // Put panHeader to distinguish TDMH packets from other 802.15.4 packets
         nextTxPacket.putPanHeader(panId);
         // Put streamId to distinguish TDMH packets of this streams

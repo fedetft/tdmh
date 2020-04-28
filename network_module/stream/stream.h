@@ -198,19 +198,19 @@ protected:
 class Stream : public Endpoint {
 public:
 #ifdef CRYPTO
-    Stream(const NetworkConfiguration& config,
-           int fd, StreamInfo info, const unsigned char key[16]) :
-                                    Endpoint(config, fd, info),
-                                    panId(config.getPanId()) {
+    Stream(const NetworkConfiguration& config, int fd, StreamInfo info,
+                                                 const unsigned char key[16]) :
+            Endpoint(config, fd, info), panId(config.getPanId()),
+            authData(config.getAuthenticateDataMessages()) 
+    {
         updateRedundancy();
         memcpy(newKey, key, 16);
         gcm.rekey(newKey);
     }
 #endif
-
     Stream(const NetworkConfiguration& config,
            int fd, StreamInfo info) : Endpoint(config, fd, info),
-                                      panId(config.getPanId()) {
+                                      panId(config.getPanId()), authData(false) {
         updateRedundancy();
     }
 
@@ -305,6 +305,8 @@ private:
     bool nextTxPacketReady = false;
     Packet rxPacketShared;
     Packet nextTxPacket;
+
+    const bool authData;
 
 #ifdef CRYPTO
     unsigned char newKey[16] = {0};
