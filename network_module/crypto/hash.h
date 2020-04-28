@@ -13,7 +13,7 @@ public:
     /**
      * Default constructor: use IV=0
      */
-    MPHash() : next_aes({0}) {
+    MPHash() : next_aes() {
         memset(iv, 0, 16);
         memset(next_aes_key, 0, 16);
     }
