@@ -11,7 +11,6 @@ namespace mxnet {
  *
  * Usage for authenticated encryption/decryption
  *  - setIV
- *  - setSlotInfo
  *  - encryptAndComputeTag / verifyAndDecrypt
  *
  * NOTE (1): this implementation presents a small difference with respect to
