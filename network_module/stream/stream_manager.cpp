@@ -617,6 +617,19 @@ void StreamManager::printServerStatus(StreamId id, StreamStatus status) {
 }
 
 #ifdef CRYPTO
+AesGcm& StreamManager::getStreamGCM(StreamId id) {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+    std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+    auto it = streams.find(id);
+    if(it == streams.end()) {
+        printf("BUG: Stream not present in StreamManager!\n");
+    }
+    return it->second->getGCM();
+}
+
 void StreamManager::startRekeying(const unsigned char masterKey[16]) {
     if (config.getAuthenticateDataMessages()) {
 #ifdef _MIOSIX
