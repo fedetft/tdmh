@@ -308,6 +308,7 @@ public:
         return useWeakTopologies;
     }
 
+#ifdef CRYPTO
     /**
      * @return true if control messages are authenticated
      */
@@ -335,7 +336,7 @@ public:
     bool getEncryptDataMessages() const {
         return encryptDataMessages;
     }
-
+#endif // #ifdef CRYPTO
 
 
 private:
