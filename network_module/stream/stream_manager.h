@@ -153,6 +153,9 @@ public:
     void enqueueSME(StreamManagementElement sme);
 
 #ifdef CRYPTO
+
+    AesGcm& getStreamGCM(StreamId id);
+
     /**
      * Stream keys are derived from the master key as: 
      *      Hash(masterKey||streamId)
@@ -177,6 +180,7 @@ public:
     void continueRekeying();
     
     void applyRekeying();
+
 #endif
 
 private:
