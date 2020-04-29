@@ -81,11 +81,12 @@ public:
 #ifdef CRYPTO
     void precomputeRekeying() {
         hash.reset();
-        hash.digestBlock(newUplinkKey, ctx.getMasterKey());
+        hash.digestBlock(newUplinkKey, ctx.getNextMasterKey());
     }
 
     void applyRekeying() { 
         memcpy(uplinkKey, newUplinkKey, 16);
+        gcm.rekey(uplinkKey);
     }
 
     AesGcm& getUplinkGCM() { return gcm; }

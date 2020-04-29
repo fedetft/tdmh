@@ -312,6 +312,12 @@ public:
      */
     void* getMasterKey() { return masterKey; }
 
+    /** 
+     * Called during rekeying to compute new key for phases and streams
+     * @return a pointer to the 16-byte buffer containing the next master key.
+     */
+    void* getNextMasterKey() { return newMasterKey; }
+
     /**
      * @return the current value of the hash chain master index
      */

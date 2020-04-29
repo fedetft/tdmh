@@ -110,11 +110,12 @@ public:
 #ifdef CRYPTO
     void precomputeRekeying() {
         hash.reset();
-        hash.digestBlock(newTimesyncKey, ctx.getMasterKey());
+        hash.digestBlock(newTimesyncKey, ctx.getNextMasterKey());
     }
 
     void applyRekeying() { 
         memcpy(timesyncKey, newTimesyncKey, 16);
+        gcm.rekey(timesyncKey);
     }
 #endif
 
