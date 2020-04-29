@@ -34,8 +34,8 @@ DynamicMACContext::DynamicMACContext(const MediumAccessController& mac, miosix::
     MACContext(mac, transceiver, config) {
     timesync = new DynamicTimesyncDownlink(*this);
     data = new DataPhase(*this, *getStreamManager());
-    scheduleDistribution = new DynamicScheduleDownlinkPhase(*this);
     uplink = new DynamicUplinkPhase(*this, getStreamManager());
+    scheduleDistribution = new DynamicScheduleDownlinkPhase(*this);
 };
 
 } /* namespace mxnet */
