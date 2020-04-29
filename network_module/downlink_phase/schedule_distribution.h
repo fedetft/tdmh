@@ -29,6 +29,10 @@
 
 #include "../mac_phase.h"
 #include "../mac_context.h"
+#ifdef CRYPTO
+#include "../uplink_phase/uplink_phase.h"
+#include "timesync/timesync_downlink.h"
+#endif
 #include "../scheduler/schedule_element.h"
 #include "../util/debug_settings.h"
 
@@ -63,13 +67,30 @@ public:
     void resync() override {}
 
 #ifdef CRYPTO
-    void precomputeRekeying() {
+    void startRekeying() {
+        ctx.precomputeRekeying();
+        timesyncPhase->precomputeRekeying();
+        uplinkPhase->precomputeRekeying();
+        streamMgr->startRekeying(ctx.getNextMasterKey());
+
+        //downlink:
         hash.reset();
-        hash.digestBlock(newDownlinkKey, ctx.getMasterKey());
+        hash.digestBlock(newDownlinkKey, ctx.getNextMasterKey());
+    }
+
+    void continueRekeying() {
+        streamMgr->continueRekeying();
     }
 
     void applyRekeying() { 
+        ctx.applyRekeying();
+        timesyncPhase->applyRekeying();
+        uplinkPhase->applyRekeying();
+        streamMgr->applyRekeying();
+
+        //downlink:
         memcpy(downlinkKey, newDownlinkKey, 16);
+        gcm.rekey(downlinkKey);
     }
 #endif
 
@@ -78,15 +99,19 @@ protected:
                                              rebroadcastInterval(computeRebroadcastInterval(ctx.getNetworkConfig())),
                                              panId(ctx.getNetworkConfig().getPanId()),
                                              streamMgr(ctx.getStreamManager()),
-                                             dataPhase(ctx.getDataPhase()) {
+                                             dataPhase(ctx.getDataPhase())
 #ifdef CRYPTO
+                                             , uplinkPhase(ctx.getUplink()),
+                                             timesyncPhase(ctx.getTimesync()) {
         /* Initialize the downlink key and GCM from current master key */
         hash.reset();
         hash.digestBlock(newDownlinkKey, ctx.getMasterKey());
         memcpy(downlinkKey, newDownlinkKey, 16);
         gcm.rekey(downlinkKey);
-#endif
     }
+#else
+    {}
+#endif
 
     /**
      * Convert the explicit schedule to an implicit one
@@ -164,7 +189,6 @@ protected:
      * number of the pair will be set to zero and used as counter by
      * the dataphase */
     std::map<StreamId, std::pair<unsigned char, unsigned char>> forwardedStreamCtr;
-
     // Constant value from NetworkConfiguration
     const unsigned short panId;
 
@@ -175,6 +199,13 @@ protected:
     DataPhase* const dataPhase;
 
 #ifdef CRYPTO
+    // Pointer to UplinkPhase, used for rekeying
+    UplinkPhase* const uplinkPhase;
+
+    // Pointer to Timesync, used for rekeying
+    TimesyncDownlink* const timesyncPhase;
+
+
     unsigned char downlinkKey[16];
     unsigned char newDownlinkKey[16];
     /**
