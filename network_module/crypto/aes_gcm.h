@@ -81,9 +81,9 @@ public:
      * \param key a buffer of 16 bytes containing the new key
      */
     void rekey(const void *key) {
+        aes.rekey(key);
         unsigned char zero[16] = {0};
         aes.ecbEncrypt(H, zero);
-        aes.rekey(key);
     }
 
     /**
@@ -244,8 +244,9 @@ private:
     Aes aes;
 
     /* Block containing implicit information to be authenticated, not included in packet:
+     *  - tileOrFrameNumber
+     *  - sequenceNumber
      *  - masterIndex
-     *  - slotNumber
      *  */
     unsigned char slotInfo[16];
 
