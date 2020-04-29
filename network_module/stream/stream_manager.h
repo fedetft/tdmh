@@ -175,7 +175,7 @@ public:
         secondBlockStreamHash.setIv(nextIv);
         memset(nextIv, 0, 16);
     }
-    void startRekeying(const unsigned char masterKey[16]);
+    void startRekeying(const void* masterKey);
 
     void continueRekeying();
     
