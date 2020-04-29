@@ -99,8 +99,6 @@ public:
         iv = IV(ivData);
     }
 
-    void setIV(IV iv) { this->iv = iv; }
-
 #ifdef UNITTEST
     /**
      * Set the slotInfo block directly. Only used for testing.
@@ -108,6 +106,11 @@ public:
     void setSlotInfo(unsigned char data[16]) {
         memcpy(slotInfo, data, 16);
     }
+
+    /**
+     * Set the IV directly. Only used for testing.
+     */
+    void setIV(IV iv) { this->iv = iv; }
 #endif
 
     /**
