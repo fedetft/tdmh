@@ -630,7 +630,7 @@ AesGcm& StreamManager::getStreamGCM(StreamId id) {
     return it->second->getGCM();
 }
 
-void StreamManager::startRekeying(const unsigned char masterKey[16]) {
+void StreamManager::startRekeying(const void* masterKey) {
     if (config.getAuthenticateDataMessages()) {
 #ifdef _MIOSIX
         miosix::Lock<miosix::FastMutex> lck(map_mutex);
