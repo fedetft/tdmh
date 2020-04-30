@@ -618,6 +618,8 @@ void StreamManager::printServerStatus(StreamId id, StreamStatus status) {
 
 #ifdef CRYPTO
 AesGcm& StreamManager::getStreamGCM(StreamId id) {
+    REF_PTR_STREAM stream;
+
 #ifdef _MIOSIX
     miosix::Lock<miosix::FastMutex> lck(map_mutex);
 #else
@@ -627,6 +629,7 @@ AesGcm& StreamManager::getStreamGCM(StreamId id) {
     if(it == streams.end()) {
         printf("BUG: Stream not present in StreamManager!\n");
     }
+    stream = it->second;
     return it->second->getGCM();
 }
 
@@ -670,6 +673,7 @@ void StreamManager::continueRekeying() {
                     secondBlockStreamHash_next.reset();
                     secondBlockStreamHash_next.digestBlock(newKey, streamIdBlock);
 
+                    REF_PTR_STREAM stream = it->second;
                     it->second->setNewKey(newKey);
                     i++; 
                 }
@@ -700,11 +704,13 @@ void StreamManager::applyRekeying() {
                 secondBlockStreamHash_next.reset();
                 secondBlockStreamHash_next.digestBlock(newKey, streamIdBlock);
 
+                REF_PTR_STREAM stream = it->second;
                 it->second->setNewKey(newKey);
             }
         }
         /* at this point, all streams have had their new key computed and set */
         for (auto& s: streams) {
+            REF_PTR_STREAM stream = s.second;
             s.second->applyNewKey();
         }
         secondBlockStreamHash.setIv(nextIv);
