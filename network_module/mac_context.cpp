@@ -193,13 +193,11 @@ void MACContext::run()
             }
             currentNextDeadline += downlinkSlotDuration;
             dataSlots = numDataSlotInDownlinkTile;
-            /* DataPhase needs track of current tile slot */
             data->advanceBy(downlink_slots);
         } else {
             uplink->run(currentNextDeadline);
             currentNextDeadline += uplinkSlotDuration;
             dataSlots = numDataSlotInUplinkTile;
-            /* DataPhase needs track of current tile slot */
             data->advanceBy(uplink_slots);
         }
 
