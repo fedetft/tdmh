@@ -113,6 +113,7 @@ public:
             print_dbg("[D] Schedule ID:%lu, StartTile:%lu activated late at tile:%2u\n",
                       newId, newActivationTile, currentTile);
         }
+        dataSuperframeNumber = 0;
     }
     /* Called from ScheduleDownlinkPhase class to check if the schedule is up to date */
     unsigned long getScheduleID() {
@@ -121,11 +122,16 @@ public:
 
 private:
     void incrementSlot(unsigned int n = 1) {
-        // Make sure that tileSlot is always in range {0;scheduleSlots}
-        if(scheduleSlots != 0)
+        /* Make sure that slotIndex is always in range {0;scheduleSlots}
+         * and increment the dataSuperframeNumber 
+         */
+        if(scheduleSlots != 0) {
+            unsigned short oldSlotIndex = slotIndex;
             slotIndex = (slotIndex + n) % scheduleSlots;
-        else
+            if (slotIndex <= oldSlotIndex) dataSuperframeNumber++;
+        } else {
             slotIndex = 0;
+        }
     }
     // Check streamId inside packet without extracting it
     bool checkStreamId(Packet pkt, StreamId streamId);
@@ -158,6 +164,10 @@ private:
     unsigned long scheduleSlots = 0;
     std::vector<ExplicitScheduleElement> currentSchedule;
 
+    /* sequential number of data superframe, counting since the current schedule
+     * has been applied */
+    unsigned int dataSuperframeNumber = 0;
+
     /* Structure used to keep count of redundancy groups of streams that this
      * node is scheduled to forward to others. 
      * For each stream being forwarded, the second number of the pair is the
@@ -165,6 +175,8 @@ private:
      * number of the pair is used as counter and reset after each redundancy
      * group ends */
     std::map<StreamId, std::pair<unsigned char, unsigned char>> bufCtr;
+
+
 };
 
 }
