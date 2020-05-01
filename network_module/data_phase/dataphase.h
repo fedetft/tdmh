@@ -106,7 +106,7 @@ public:
         }
         else {
             // Calculate current slotIndex for a late schedule
-            // (0 + tileDelay * slotsInTile), with tileDelay < scheduleSize
+            // (0 + tileDelay * slotsInTile)
             unsigned int tileDelay = currentTile - newActivationTile;
             incrementSlot(tileDelay * ctx.getSlotsInTileCount());
             print_dbg("[D] Schedule ID:%lu, StartTile:%lu activated late at tile:%2u\n",
@@ -125,7 +125,7 @@ private:
          */
         if(scheduleSlots != 0) {
             slotIndex += n;
-            if (slotIndex >= scheduleSlots) {
+            while (slotIndex >= scheduleSlots) {
                 slotIndex -= scheduleSlots;
                 dataSuperframeNumber++;
             }
