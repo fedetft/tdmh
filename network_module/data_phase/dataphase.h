@@ -122,13 +122,15 @@ public:
 
 private:
     void incrementSlot(unsigned int n = 1) {
-        /* Make sure that slotIndex is always in range {0;scheduleSlots}
+        /* Make sure that slotIndex is always in range {0;scheduleSlots-1}
          * and increment the dataSuperframeNumber 
          */
         if(scheduleSlots != 0) {
-            unsigned short oldSlotIndex = slotIndex;
-            slotIndex = (slotIndex + n) % scheduleSlots;
-            if (slotIndex <= oldSlotIndex) dataSuperframeNumber++;
+            slotIndex += n;
+            if (slotIndex >= scheduleSlots) {
+                slotIndex -= scheduleSlots;
+                dataSuperframeNumber++;
+            }
         } else {
             slotIndex = 0;
         }
@@ -158,7 +160,7 @@ private:
 
     // Reference to Stream class, to get packets from stream buffers
     StreamManager& stream;
-    unsigned short slotIndex = 0;
+    unsigned long slotIndex = 0;
     unsigned long scheduleID = 0;
     unsigned long scheduleTiles = 0;
     unsigned long scheduleSlots = 0;
