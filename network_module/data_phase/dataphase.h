@@ -51,12 +51,12 @@ public:
 
     /* Called during data slots, it does the schedule playback,
        in fact, it executes the action written in the explicit schedule slot
-       corresponding to the current tile slot */
+       corresponding to the current slotIndex */
     virtual void execute(long long slotStart) override;
     /* Called instead of DataPhase::execute() when the node
-       is not synchronized, to keep track with the current tile slot */
+       is not synchronized, to keep track with the current slotIndex */
     virtual void advance(long long slotStart) override;
-    /* Called after Downlink and Uplink phases to update the tileSlot counter */
+    /* Called after Downlink and Uplink phases to update the slotIndex counter */
     void advanceBy(unsigned int slots) {
         incrementSlot(slots);
     }
@@ -99,21 +99,19 @@ public:
         setScheduleID(newId);
         setScheduleTiles(newScheduleTiles);
         slotIndex = 0;
+        dataSuperframeNumber = 0;
         if(newActivationTile == currentTile) {
             print_dbg("[D] Schedule ID:%lu, StartTile:%lu activated at tile:%2u\n",
                       newId, newActivationTile, currentTile);
         }
         else {
-            // Calculate current tileslot for a late schedule
-            // NOTE: tileSlot MUST be at the beginning of a tile
-            // (0 + scheduleTile * slotsInTile), with scheduleTile < scheduleSize
-            unsigned int scheduleTile = currentTile - newActivationTile;
-            unsigned int slotsInTile = ctx.getSlotsInTileCount();
-            incrementSlot(scheduleTile * slotsInTile);
+            // Calculate current slotIndex for a late schedule
+            // (0 + tileDelay * slotsInTile), with tileDelay < scheduleSize
+            unsigned int tileDelay = currentTile - newActivationTile;
+            incrementSlot(tileDelay * ctx.getSlotsInTileCount());
             print_dbg("[D] Schedule ID:%lu, StartTile:%lu activated late at tile:%2u\n",
                       newId, newActivationTile, currentTile);
         }
-        dataSuperframeNumber = 0;
     }
     /* Called from ScheduleDownlinkPhase class to check if the schedule is up to date */
     unsigned long getScheduleID() {
