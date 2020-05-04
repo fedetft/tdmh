@@ -99,7 +99,7 @@ public:
         setScheduleID(newId);
         setScheduleTiles(newScheduleTiles);
         slotIndex = 0;
-        dataSuperframeNumber = 0;
+        dataSuperframeNumber = 1;
         if(newActivationTile == currentTile) {
             print_dbg("[D] Schedule ID:%lu, StartTile:%lu activated at tile:%2u\n",
                       newId, newActivationTile, currentTile);
@@ -168,7 +168,7 @@ private:
 
     /* sequential number of data superframe, counting since the current schedule
      * has been applied */
-    unsigned int dataSuperframeNumber = 0;
+    unsigned int dataSuperframeNumber = 1;
 
     /* Structure used to keep count of redundancy groups of streams that this
      * node is scheduled to forward to others. 
