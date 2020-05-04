@@ -125,6 +125,8 @@ private:
          */
         if(scheduleSlots != 0) {
             slotIndex += n;
+            //Reset sequence numbers across data superframes
+            if(slotIndex >= scheduleSlots) stream.resetSequenceNumbers();
             while (slotIndex >= scheduleSlots) {
                 slotIndex -= scheduleSlots;
                 dataSuperframeNumber++;
