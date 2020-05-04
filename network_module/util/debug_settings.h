@@ -107,6 +107,9 @@ const bool ENABLE_DATA_ERROR_DBG = true;
 //prints the Stream Manager info messages
 const bool ENABLE_STREAM_MGR_INFO_DBG = true;
 
+//prints packet synchronization numbers in dataphase
+const bool ENABLE_CRYPTO_DATA_DBG = true;
+
 
 #ifdef _MIOSIX
 #define DEBUG_MESSAGES_IN_SEPARATE_THREAD
