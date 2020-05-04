@@ -336,6 +336,7 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
             // NOTE: Update stream parameters,
             // they may have changed after negotiation with server
             stream->addedStream(element.getParams());
+            stream->resetSequenceNumber();
             // Remove streamId from removedStreams
             removedStreams.erase(std::remove(removedStreams.begin(),
                                              removedStreams.end(),
@@ -462,6 +463,38 @@ void StreamManager::enqueueSME(StreamManagementElement sme) {
         std::unique_lock<std::mutex> lck(sme_mutex);
 #endif
         smeQueue.enqueue(key, sme);
+    }
+}
+
+void StreamManager::resetSequenceNumbers() {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+    std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+
+    for(auto& s : streams) {
+        REF_PTR_STREAM stream = s.second;
+        stream->resetSequenceNumber();
+    }
+}
+
+unsigned long StreamManager::getSequenceNumber(StreamId id) {
+    REF_PTR_STREAM stream;
+
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+    std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+
+    auto it = streams.find(id);
+    if(it == streams.end()) {
+        print_dbg("BUG: stream does not exist!\n");
+        return 0;
+    } else {
+        stream = it->second;
+        return stream->getSequenceNumber();
     }
 }
 
