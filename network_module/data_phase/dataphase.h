@@ -43,6 +43,7 @@ namespace mxnet {
 class DataPhase : public MACPhase {
 public:
     DataPhase(MACContext& ctx, StreamManager& str) : MACPhase(ctx),
+                                                     config(ctx.getNetworkConfig()),
                                                      panId(ctx.getNetworkConfig().getPanId()),
                                                      myId(ctx.getNetworkId()),
                                                      stream(str), bufCtr() {};
@@ -153,6 +154,8 @@ private:
     bool lastTransmission(StreamId id);
     void resetBufCtr(StreamId id);
 
+    const NetworkConfiguration& config;
+
     /* Constant value from NetworkConfiguration */
     const unsigned short panId;
     /* NetworkId of this node */
@@ -177,8 +180,6 @@ private:
      * number of the pair is used as counter and reset after each redundancy
      * group ends */
     std::map<StreamId, std::pair<unsigned char, unsigned char>> bufCtr;
-
-
 };
 
 }

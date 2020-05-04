@@ -28,6 +28,10 @@
 #include "dataphase.h"
 #include "../util/debug_settings.h"
 #include <unistd.h>
+#ifdef CRYPTO
+#include "../crypto/initialization_vector.h"
+#include "../crypto/aes_gcm.h"
+#endif
 
 using namespace std;
 using namespace miosix;
@@ -110,7 +114,29 @@ void DataPhase::sleep(long long slotStart) {
 
 void DataPhase::sendFromStream(long long slotStart, StreamId id) {
     Packet pkt;
-    bool pktReady = stream.sendPacket(id, pkt);
+    bool pktReady;
+
+#ifdef CRYPTO
+    if (config.getAuthenticateDataMessages()) {
+        AesGcm& gcm = stream.getStreamGCM(id);
+        unsigned int seqNo = stream.getSequenceNumber(id);
+        if (ENABLE_CRYPTO_DATA_DBG)
+            print_dbg("[D] sendFromStream: FrameNumber = %d, seqNo = %d, mIndex = %d\n",
+                      dataSuperframeNumber, seqNo, ctx.getMasterIndex());
+        gcm.setIV(dataSuperframeNumber, seqNo, ctx.getMasterIndex());
+
+        pktReady = stream.sendPacket(id, pkt);
+
+        if(config.getEncryptDataMessages()) pkt.encryptAndPutTag(gcm);
+        else pkt.putTag(gcm);
+    } else {
+        pktReady = stream.sendPacket(id, pkt);
+    }
+#else
+    pktReady = stream.sendPacket(id, pkt);
+#endif
+
+
     if(pktReady) {
         ctx.configureTransceiver(ctx.getTransceiverConfig());
         pkt.send(ctx, slotStart);
@@ -132,6 +158,28 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     auto rcvResult = pkt.recv(ctx, slotStart);
     ctx.transceiverIdle();
+
+#ifdef CRYPTO
+    if (config.getAuthenticateDataMessages()) {
+        AesGcm& gcm = stream.getStreamGCM(id);
+        if (ENABLE_CRYPTO_DATA_DBG)
+            print_dbg("[D] receiveToStream: FrameNumber = %d, seqNo = %d, mIndex = %d\n",
+                      dataSuperframeNumber, stream.getSequenceNumber(id),
+                      ctx.getMasterIndex());
+        gcm.setIV(dataSuperframeNumber, stream.getSequenceNumber(id),
+                  ctx.getMasterIndex());
+        bool valid;
+        if (config.getEncryptDataMessages()) valid = pkt.verifyAndDecrypt(gcm);
+        else valid = pkt.verify(gcm);
+
+        // make sure to miss invalid packets: empty packet will fail panHeader check
+        if (!valid) {
+            if (ENABLE_CRYPTO_DATA_DBG) print_dbg("[D] receiveToStream: verify failed\n");
+            pkt.clear();
+        }
+    }
+#endif
+
     bool periodEnd = false;
     if(rcvResult.error == RecvResult::ErrorCode::OK &&
        pkt.checkPanHeader(panId) == true &&
