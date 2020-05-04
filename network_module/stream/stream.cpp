@@ -156,8 +156,10 @@ bool Stream::sendPacket(Packet& data) {
     // for the first time of the current period.
     if(txCount == 0)
         updateTxPacket();
-    if(++txCount >= redundancyCount)
+    if(++txCount >= redundancyCount) {
         txCount = 0;
+        seqNo++;
+    }
     // Copy the txPacket to the DataPhase
     if(txPacketReady)
         data = txPacket;
@@ -467,6 +469,7 @@ bool Stream::updateRxPacket() {
     if(++rxCount >= redundancyCount) {
         // Reset received packet counter
         rxCount = 0;
+        seqNo++;
         {
             // Lock mutex for shared access with application thread
 #ifdef _MIOSIX
