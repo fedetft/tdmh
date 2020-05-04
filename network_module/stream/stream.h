@@ -267,6 +267,12 @@ public:
         rxCount = 0;
     }
 
+    void resetSequenceNumber() {
+        seqNo = 1;
+    }
+
+    unsigned long getSequenceNumber() { return seqNo; }
+
     // Called by StreamManager when the Timesync desynchronizes, used to
     // close the stream system-side in certain conditions
     // Returns true if the Stream class can be deleted
@@ -307,6 +313,8 @@ private:
     Packet nextTxPacket;
 
     const bool authData;
+
+    unsigned long seqNo = 1;
 
 #ifdef CRYPTO
     unsigned char newKey[16] = {0};
