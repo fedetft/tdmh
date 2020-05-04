@@ -152,6 +152,18 @@ public:
     // Used by Stream, Server, enqueues an SME to be sent on the network
     void enqueueSME(StreamManagementElement sme);
 
+    /**
+     * Reset sequence numbers of all known streams.
+     * Called by dataphase at the start of a new data superframe.
+     */
+    void resetSequenceNumbers();
+
+    /**
+     * Get the current sequence number of a stream.
+     * Called by dataphase to use the sequence number for crypto.
+     */
+    unsigned long getSequenceNumber(StreamId id);
+
 #ifdef CRYPTO
 
     AesGcm& getStreamGCM(StreamId id);
