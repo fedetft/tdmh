@@ -151,7 +151,8 @@ public:
                 packet.data() + 5,          // skip panHeader (ctx)
                 packet.data() + 5,          // skip panHeader (ptx)
                 dataSize - 5,               // exclude panHeader bytes (cryptLength)
-                NULL, 0);                   // no additional data
+                packet.data(),              // authenticate panHeader (auth)
+                5);                         // panHeader size (authLength)
         dataSize += reservedSize;
         reservedSize = 0;
     }
@@ -165,8 +166,8 @@ public:
         gcm.encryptAndComputeTag(
                 packet.data() + dataSize,   // put tag at the end of the packet (tag)
                 NULL, NULL, 0,              // no data to encrypt
-                packet.data() + 5,          // skip panHeader (auth)
-                dataSize - 5);              // exclude panHeader bytes (authLength)
+                packet.data(),              // authenticate entire packet (auth)
+                dataSize);                  // authLength
         dataSize += reservedSize;
         reservedSize = 0;
     }
@@ -179,7 +180,8 @@ public:
                 packet.data() + 5,      // skip panHeader (ptx)
                 packet.data() + 5,      // skip panHeader (ctx)
                 dataSize - tagSize - 5, // exclude panHeader and tag bytes (cryptLength) 
-                NULL, 0);               // no additional data
+                packet.data(),          // authenticate panHeader (auth)
+                5);                     // panHeader size (authLength)
         discardTag();
         return valid;
     }
@@ -190,8 +192,8 @@ public:
         bool valid = gcm.verifyAndDecrypt(
                 packet.data() + dataSize - tagSize, // tag
                 NULL, NULL, 0,          // no data to decrypt
-                packet.data() + 5,      // skip panHeader bytes (auth)
-                dataSize - tagSize - 5);// exclude panHeader and tag bytes (authLength)
+                packet.data(),          // authenticate entire packet (auth)
+                dataSize - tagSize);    // exclude tag bytes (authLength)
         discardTag();
         return valid;
     }
