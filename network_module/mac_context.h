@@ -321,7 +321,7 @@ public:
     /**
      * @return the current value of the hash chain master index
      */
-    unsigned long long getMasterIndex() { return masterIndex; }
+    unsigned int getMasterIndex() { return masterIndex; }
 
     /* TODO: change these functions to make masterIndex and rekeying persistent
      * across reboot */
@@ -340,10 +340,10 @@ public:
      * @return true if newIndex has acceptable value (masterIndex did not decrease).
      *
      */
-    bool resyncMasterKey(unsigned long long newIndex) {
+    bool resyncMasterKey(unsigned int newIndex) {
         if (newIndex < masterIndex) return false;
 
-        for (unsigned long long i = masterIndex ; i < newIndex; i++) {
+        for (unsigned int i = masterIndex ; i < newIndex; i++) {
             hash.reset();
             hash.digestBlock(masterKey, masterKey);
         }
@@ -395,7 +395,7 @@ private:
 
 #ifdef CRYPTO
 
-    unsigned long long masterIndex;
+    unsigned int masterIndex;
     /**
      * Value of the first master key. This value is SECRET and hardcoding it
      * is meant as a temporary solution.
