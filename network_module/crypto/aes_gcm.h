@@ -89,8 +89,8 @@ public:
     /**
      * Set IV for counter mode as AES_Encrypt(key, slotNumber)
      * */
-    void setIV(unsigned int tileOrFrameNumber, unsigned int sequenceNumber,
-                                                    unsigned long long masterIndex) {
+    void setIV(unsigned int tileOrFrameNumber,
+            unsigned long long sequenceNumber, unsigned int masterIndex) {
 #ifndef UNITTEST
         setSlotInfo(tileOrFrameNumber, sequenceNumber, masterIndex);
 #endif
@@ -173,13 +173,13 @@ private:
      * \param sequenceNumber addictional number to ensure slotInfo unicity, in case the tileOrFrameNumber is not sufficient to uniquely identify a message
      * \param masterIndex the incremental number that identifies the current master key in the hash chain rekeying mechanism
      */
-    void setSlotInfo(unsigned int tileOrFrameNumber, unsigned int sequenceNumber, 
-                                                        unsigned long long masterIndex) {
+    void setSlotInfo(unsigned int tileOrFrameNumber,
+            unsigned long long sequenceNumber, unsigned int masterIndex) {
         auto ip = reinterpret_cast<unsigned int *>(slotInfo);
-        ip[0] = tileOrFrameNumber;
-        ip[1] = sequenceNumber;
-        auto lp = reinterpret_cast<unsigned long long*>(slotInfo);
-        lp[1] = masterIndex;
+        ip[0] = masterIndex;
+        ip[1] = tileOrFrameNumber;
+        auto lp = reinterpret_cast<unsigned long long*>(&slotInfo[8]);
+        lp[0] = sequenceNumber;
     }
 
     /**
