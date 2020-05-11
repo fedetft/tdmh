@@ -64,6 +64,16 @@ protected:
     
     bool isSyncPacket(const Packet& packet, miosix::RecvResult r, bool synchronized) {
         auto panId = networkConfig.getPanId();
+        unsigned int packetSize = syncPacketSize;
+#ifdef CRYPTO
+        /**
+         * HACK: this is ugly, but needed because TimesyncDownlink::syncPacketSize
+         * must be known at compile time
+         * If crypto is on, but we are not authenticating timesync packets, decrease 
+         * expected packet size by the size of the authentication tag.
+         */
+        if (!ctx.getNetworkConfig().getAuthenticateControlMessages()) packetSize -= 16;
+#endif
         // Since when resyncing we only have one chance to select our hop
         // be less conservative than the rest of the MAC in the RSSI threshold.
         // The value has been selected as three sigma of the CC2520 RSSI standard
@@ -72,7 +82,7 @@ protected:
         // Ignore low RSSI packets if not syncronyzed
         if(synchronized == false && r.rssi<networkConfig.getMinNeighborRSSI()-rssidelta)
             return false;
-        if((r.timestampValid && packet.size() == syncPacketSize
+        if((r.timestampValid && packet.size() == packetSize
             && packet[0] == 0x46 && packet[1] == 0x08
             && packet[3] == static_cast<unsigned char>(panId >> 8)
             && packet[4] == static_cast<unsigned char>(panId & 0xff)
