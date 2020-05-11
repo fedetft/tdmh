@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include "../../network_configuration.h"
 #include "../../mac_phase.h"
 #include "../../mac_context.h"
 #include "interfaces-impl/transceiver.h"
@@ -48,7 +49,12 @@ public:
         return phaseStartupTime + hops * rebroadcastInterval;
     }
     static const int phaseStartupTime = 450000;
+#ifdef CRYPTO
+    // add 4 bytes for masterIndex and 16 bytes for authentication tag
+    static const unsigned int syncPacketSize = 11 + 4 + 16;
+#else
     static const unsigned int syncPacketSize = 11;
+#endif
     static const int rebroadcastInterval = (syncPacketSize+8)*32000 + 536000; //32us per-byte + 536us total delta
 
     /**
