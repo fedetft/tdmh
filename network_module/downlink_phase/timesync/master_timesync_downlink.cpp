@@ -25,6 +25,7 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
+#include "../../network_configuration.h"
 #include "master_timesync_downlink.h"
 #include "networktime.h"
 #include "../../util/debug_settings.h"
@@ -47,12 +48,26 @@ MasterTimesyncDownlink::MasterTimesyncDownlink(MACContext& ctx) : TimesyncDownli
             0,0,0,0                                   //32bit timesync packet counter for absolute network time
     };
     packet.put(&timesyncPkt, sizeof(timesyncPkt));
+
+#ifdef CRYPTO
+    unsigned int index = ctx.getMasterIndex();
+    packet.put(&index, sizeof(index));
+#endif
 }
 
 void MasterTimesyncDownlink::execute(long long slotStart)
 {
     next();
     ctx.configureTransceiver(ctx.getTransceiverConfig());
+
+#ifdef CRYPTO
+    setPacketMasterIndex();
+    if (ctx.getNetworkConfig().getAuthenticateControlMessages()) {
+        packet.reserveTag();
+        packet.putTag(gcm);
+    }
+#endif
+
     //Sending synchronization start packet
     packet.send(ctx, slotframeTime);
     ctx.transceiverIdle();
@@ -60,6 +75,12 @@ void MasterTimesyncDownlink::execute(long long slotStart)
         auto nt = NetworkTime::fromLocalTime(slotStart);
         print_dbg("[T] ST=%lld NT=%lld\n", slotframeTime, nt.get());
     }
+
+#ifdef CRYPTO
+    if (ctx.getNetworkConfig().getAuthenticateControlMessages()) {
+        packet.discardTag();
+    }
+#endif
     
 #ifdef _MIOSIX
     unsigned int stackSize = MemoryProfiling::getStackSize();
