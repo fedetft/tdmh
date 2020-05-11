@@ -78,6 +78,12 @@ protected:
         packetCounter++;
         *reinterpret_cast<unsigned int*>(&packet[7]) = packetCounter;
     }
+
+    void setPacketMasterIndex() {
+        unsigned int index = ctx.getMasterIndex();
+        *reinterpret_cast<unsigned int*>(&packet[11]) = index;
+
+    }
     
     void next() override;
     long long correct(long long int uncorrected) override;
