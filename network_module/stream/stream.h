@@ -271,7 +271,7 @@ public:
         seqNo = 1;
     }
 
-    unsigned long getSequenceNumber() { return seqNo; }
+    unsigned long long getSequenceNumber() { return seqNo; }
 
     // Called by StreamManager when the Timesync desynchronizes, used to
     // close the stream system-side in certain conditions
@@ -314,7 +314,7 @@ private:
 
     const bool authData;
 
-    unsigned long seqNo = 1;
+    unsigned long long seqNo = 1;
 
 #ifdef CRYPTO
     unsigned char newKey[16] = {0};

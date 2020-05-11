@@ -162,7 +162,7 @@ public:
      * Get the current sequence number of a stream.
      * Called by dataphase to use the sequence number for crypto.
      */
-    unsigned long getSequenceNumber(StreamId id);
+    unsigned long long getSequenceNumber(StreamId id);
 
 #ifdef CRYPTO
 
