@@ -479,7 +479,7 @@ void StreamManager::resetSequenceNumbers() {
     }
 }
 
-unsigned long StreamManager::getSequenceNumber(StreamId id) {
+unsigned long long StreamManager::getSequenceNumber(StreamId id) {
     REF_PTR_STREAM stream;
 
 #ifdef _MIOSIX
