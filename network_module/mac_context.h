@@ -296,7 +296,7 @@ public:
      */
     void precomputeRekeying() {
         hash.reset();
-        hash.digestBlock(newMasterKey, masterKey);
+        hash.digestBlock(nextMasterKey, masterKey);
     }
 
     /**
@@ -304,7 +304,7 @@ public:
      */
     void applyRekeying() { 
         masterIndex++;
-        memcpy(masterKey, newMasterKey, 16);
+        memcpy(masterKey, nextMasterKey, 16);
     }
 
     /** 
@@ -316,7 +316,7 @@ public:
      * Called during rekeying to compute new key for phases and streams
      * @return a pointer to the 16-byte buffer containing the next master key.
      */
-    void* getNextMasterKey() { return newMasterKey; }
+    void* getNextMasterKey() { return nextMasterKey; }
 
     /**
      * @return the current value of the hash chain master index
@@ -351,7 +351,7 @@ protected:
                 0x4d, 0x69, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74,
                 0x4d, 0x69, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74
         };
-    unsigned char newMasterKey[16];
+    unsigned char nextMasterKey[16];
     /**
      * IV for the Miyaguchi-Preneel Hash used for rotating the master key.
      * Value for this constant is arbitrary and is NOT secret.
