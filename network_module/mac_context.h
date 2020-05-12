@@ -294,7 +294,7 @@ public:
     /**
      * Compute next value for master key, without applying it yet.
      */
-    void precomputeRekeying() {
+    void startRekeying() {
         hash.reset();
         hash.digestBlock(nextMasterKey, masterKey);
     }

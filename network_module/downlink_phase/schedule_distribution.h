@@ -68,9 +68,9 @@ public:
 
 #ifdef CRYPTO
     void startRekeying() {
-        ctx.precomputeRekeying();
-        timesyncPhase->precomputeRekeying();
-        uplinkPhase->precomputeRekeying();
+        ctx.startRekeying();
+        timesyncPhase->startRekeying();
+        uplinkPhase->startRekeying();
         streamMgr->startRekeying(ctx.getNextMasterKey());
 
         //downlink:

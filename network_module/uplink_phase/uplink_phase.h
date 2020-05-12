@@ -79,7 +79,7 @@ public:
     static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
     
 #ifdef CRYPTO
-    void precomputeRekeying() {
+    void startRekeying() {
         hash.reset();
         hash.digestBlock(newUplinkKey, ctx.getNextMasterKey());
     }
