@@ -362,6 +362,29 @@ protected:
     
     void calculateDurations();
 
+#ifdef CRYPTO
+    unsigned int masterIndex;
+    /**
+     * Value of the first master key. This value is SECRET and hardcoding it
+     * is meant as a temporary solution.
+     */
+    unsigned char masterKey[16] = {
+                0x4d, 0x69, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74,
+                0x4d, 0x69, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74
+        };
+    unsigned char newMasterKey[16];
+    /**
+     * IV for the Miyaguchi-Preneel Hash used for rotating the master key.
+     * Value for this constant is arbitrary and is NOT secret.
+     */
+    const unsigned char masterRotationIv[16] = {
+                0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x49, 0x56,
+                0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x49, 0x56
+        };
+    MPHash hash = MPHash(masterRotationIv);
+#endif
+
+
     TimesyncDownlink* timesync = nullptr;
     UplinkPhase* uplink = nullptr;
     ScheduleDownlinkPhase* scheduleDistribution = nullptr;
@@ -371,6 +394,7 @@ protected:
     unsigned long long downlinkSlotDuration;
     unsigned long long uplinkSlotDuration;
     unsigned long long tileSlackTime;
+
 private:
 
     unsigned char hop;
@@ -392,30 +416,6 @@ private:
     unsigned sendErrors;
     unsigned rcvTotal;
     unsigned rcvErrors;
-
-#ifdef CRYPTO
-
-    unsigned int masterIndex;
-    /**
-     * Value of the first master key. This value is SECRET and hardcoding it
-     * is meant as a temporary solution.
-     */
-    unsigned char masterKey[16] = {
-                0x4d, 0x69, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74,
-                0x4d, 0x69, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74
-        };
-    unsigned char newMasterKey[16];
-    /**
-     * IV for the Miyaguchi-Preneel Hash used for rotating the master key.
-     * Value for this constant is arbitrary and is NOT secret.
-     */
-    const unsigned char masterRotationIv[16] = {
-                0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x49, 0x56,
-                0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x49, 0x56
-        };
-    MPHash hash = MPHash(masterRotationIv);
-
-#endif
 
     volatile bool running;
     const bool sleepDeep=false; //TODO: make it configurable
