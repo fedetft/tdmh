@@ -56,6 +56,29 @@ public:
 private:
     ContextStatus status = DISCONNECTED;
 
+#ifdef CRYPTO
+    /**
+     * Called upon resync.
+     * Advance hash chain to derive new master key from last known master key.
+     * \param newIndex current updated master key index. Cannot decrese in time.
+     * @return true if newIndex has acceptable value (masterIndex did not decrease).
+     *
+     */
+    bool attemptResync(unsigned int newIndex) {
+        if (newIndex < masterIndex) return false;
+
+        for (unsigned int i = masterIndex ; i < newIndex; i++) {
+            hash.reset();
+            hash.digestBlock(masterKey, masterKey);
+        }
+        // Copy new master key for consistency with normal rekeying behavior
+        memcpy(newMasterKey, masterKey, 16);
+        masterIndex = newIndex;
+        return true;
+    }
+
+#endif
+
 };
 
 } /* namespace mxnet */
