@@ -27,13 +27,13 @@
 
 #pragma once
 
+#include "network_configuration.h"
 #include "mac_context.h"
 #include "downlink_phase/timesync/dynamic_timesync_downlink.h"
 #include "downlink_phase/dynamic_schedule_distribution.h"
 #include "uplink_phase/dynamic_uplink_phase.h"
 
 namespace mxnet {
-
 class DynamicMACContext : public MACContext {
 public:
     DynamicMACContext(const MediumAccessController& mac,
@@ -41,6 +41,21 @@ public:
                       const NetworkConfiguration& config);
     DynamicMACContext() = delete;
     virtual ~DynamicMACContext() {};
+
+#ifdef CRYPTO
+    enum ContextStatus {
+        DISCONNECTED,
+        MASTER_UNTRUSTED,
+        CONNECTED,
+        REKEYING_UNTRUSTED,
+        REKEYING
+    };
+
+#endif
+
+private:
+    ContextStatus status = DISCONNECTED;
+
 };
 
 } /* namespace mxnet */
