@@ -72,7 +72,7 @@ private:
             hash.digestBlock(masterKey, masterKey);
         }
         // Copy new master key for consistency with normal rekeying behavior
-        memcpy(newMasterKey, masterKey, 16);
+        memcpy(nextMasterKey, masterKey, 16);
         masterIndex = newIndex;
         return true;
     }
