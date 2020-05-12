@@ -114,7 +114,7 @@ public:
     void advance(long long slotStart) override;
 
 #ifdef CRYPTO
-    void precomputeRekeying() {
+    void startRekeying() {
         hash.reset();
         hash.digestBlock(newTimesyncKey, ctx.getNextMasterKey());
     }

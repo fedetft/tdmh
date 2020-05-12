@@ -61,7 +61,7 @@ public:
         smeQueue.clear();
         myNeighborTable.clear(ctx.getHop());
 #ifdef CRYPTO
-        precomputeRekeying();
+        startRekeying();
         applyRekeying();
 #endif
     };
