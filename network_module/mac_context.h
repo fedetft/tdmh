@@ -297,13 +297,14 @@ public:
     void startRekeying() {
         hash.reset();
         hash.digestBlock(nextMasterKey, masterKey);
+        nextMasterIndex = masterIndex + 1;
     }
 
     /**
      * Actually rotate the master key with the last precomuted value.
      */
     void applyRekeying() { 
-        masterIndex++;
+        masterIndex = nextMasterIndex;
         memcpy(masterKey, nextMasterKey, 16);
     }
 
@@ -343,6 +344,7 @@ protected:
 
 #ifdef CRYPTO
     unsigned int masterIndex;
+    unsigned int nextMasterIndex;
     /**
      * Value of the first master key. This value is SECRET and hardcoding it
      * is meant as a temporary solution.
