@@ -54,9 +54,20 @@ public:
 #endif
 
 private:
+#ifdef CRYPTO
+
     ContextStatus status = DISCONNECTED;
 
-#ifdef CRYPTO
+    /**
+     * Temporary values for master key and index.
+     * These values are computed and used, but not yet committed. Committing them
+     * consists in copying these values to masterKey and masterIndex. Committing
+     * sets the context status to CONNECTED, meaning we have reached a point where the
+     * master index advancement is completely verified.
+     */
+    unsigned char tempMasterKey[16];
+    unsigned int tempMasterIndex;
+
     /**
      * Called upon resync.
      * Advance hash chain to derive new master key from last known master key.
@@ -65,16 +76,95 @@ private:
      *
      */
     bool attemptResync(unsigned int newIndex) {
+        if (status != DISCONNECTED) return false;
         if (newIndex < masterIndex) return false;
 
+        memcpy(tempMasterKey, masterKey, 16);
         for (unsigned int i = masterIndex ; i < newIndex; i++) {
             hash.reset();
-            hash.digestBlock(masterKey, masterKey);
+            hash.digestBlock(tempMasterKey, tempMasterKey);
         }
-        // Copy new master key for consistency with normal rekeying behavior
-        memcpy(nextMasterKey, masterKey, 16);
-        masterIndex = newIndex;
+        tempMasterIndex = newIndex;
+        status = MASTER_UNTRUSTED;
         return true;
+    }
+
+    bool advanceResync(unsigned int newIndex) {
+        if (status != MASTER_UNTRUSTED && status != CONNECTED) {
+            // error: reset
+            status = DISCONNECTED;
+            return false;
+        }
+        if (newIndex < masterIndex) return false;
+
+        if (status == CONNECTED) {
+            /**
+             * A master index change while we are connected can happen: 
+             * - if the master has rebooted one or multiple times, or
+             * - if resync has just happened, while the network was rekeying
+             * However, the index+key change must only be committed after
+             * packet verification, by calling commitResync
+             */
+            status = MASTER_UNTRUSTED;
+            memcpy(tempMasterKey, masterKey, 16);
+        }
+        for (unsigned int i = tempMasterIndex ; i < newIndex; i++) {
+            hash.reset();
+            hash.digestBlock(tempMasterKey, tempMasterKey);
+        }
+        tempMasterIndex = newIndex;
+        return true;
+    }
+
+    void rollbackResync() {
+        status = DISCONNECTED;
+    }
+
+    void commitResync() {
+        if (status != MASTER_UNTRUSTED) {
+            // error: reset
+            status = DISCONNECTED;
+            return;
+        }
+        memcpy(masterKey, tempMasterKey, 16);
+        masterIndex = tempMasterIndex;
+        status = CONNECTED;
+    }
+
+    void desync() {
+        status = DISCONNECTED;
+    }
+
+    /**
+     * Compute next value for master key, without applying it yet.
+     */
+    void startRekeying() {
+        if (status == MASTER_UNTRUSTED) {
+            hash.reset();
+            hash.digestBlock(nextMasterKey, tempMasterKey);
+            nextMasterIndex = tempMasterIndex + 1;
+            status = REKEYING_UNTRUSTED;
+        } else if (status == CONNECTED) {
+            hash.reset();
+            hash.digestBlock(nextMasterKey, masterKey);
+            nextMasterIndex = masterIndex + 1;
+            status = REKEYING;
+        }
+    }
+
+    /**
+     * Actually rotate the master key with the last precomuted value.
+     */
+    void applyRekeying() { 
+        if (status == REKEYING_UNTRUSTED) {
+            tempMasterIndex = nextMasterIndex;
+            memcpy(tempMasterKey, nextMasterKey, 16);
+            status = MASTER_UNTRUSTED;
+        } else if (status == REKEYING) {
+            masterIndex = nextMasterIndex;
+            memcpy(masterKey, nextMasterKey, 16);
+            status = CONNECTED;
+        }
     }
 
 #endif
