@@ -45,12 +45,34 @@ void DynamicKeyManager::applyRekeying() {
 }
 
 void* DynamicKeyManager::getMasterKey() {
+    switch (status) {
+        case KeyManagerStatus::MASTER_UNTRUSTED: return tempMasterKey;
+        case KeyManagerStatus::REKEYING_UNTRUSTED: return tempMasterKey;
+        case KeyManagerStatus::CONNECTED: return masterKey;
+        case KeyManagerStatus::REKEYING: return masterKey;
+        case KeyManagerStatus::ADVANCING: return tempMasterKey;
+        default: assert(false);
+    }
 }
 
 void* DynamicKeyManager::getNextMasterKey() {
+    switch (status) {
+        case KeyManagerStatus::REKEYING_UNTRUSTED: return tempMasterKey;
+        case KeyManagerStatus::REKEYING: return masterKey;
+        default: assert(false);
+    }
 }
 
 unsigned int DynamicKeyManager::getMasterIndex() {
+    switch (status) {
+        case KeyManagerStatus::DISCONNECTED: return masterIndex;
+        case KeyManagerStatus::MASTER_UNTRUSTED: return tempMasterIndex;
+        case KeyManagerStatus::REKEYING_UNTRUSTED: return tempMasterIndex;
+        case KeyManagerStatus::CONNECTED: return masterIndex;
+        case KeyManagerStatus::REKEYING: return masterIndex;
+        case KeyManagerStatus::ADVANCING: return tempMasterIndex;
+        default: assert(false);
+    }
 }
 
 bool DynamicKeyManager::attemptResync(unsigned int newIndex) {
