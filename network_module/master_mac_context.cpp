@@ -28,6 +28,10 @@
 
 #include "master_mac_context.h"
 #include "data_phase/dataphase.h"
+#include "network_configuration.h"
+#ifdef CRYPTO
+#include "crypto/key_management/master_key_manager.h"
+#endif
 
 namespace mxnet {
 MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
@@ -42,6 +46,13 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
     uplink = new MasterUplinkPhase(*this, getStreamManager(), scheduleComputation);
     data = new DataPhase(*this, *getStreamManager());
     scheduleDistribution = new MasterScheduleDownlinkPhase(*this, scheduleComputation);
+
+#ifdef CRYPTO
+    keyMgr = new MasterKeyManager();
+    if(getNetworkConfig().getAuthenticateDataMessages()) {
+        streamMgr.initHash((unsigned char*)keyMgr->getNextMasterKey());
+    }
+#endif
 };
 
 } /* namespace mxnet */

@@ -69,28 +69,14 @@ public:
 #ifdef CRYPTO
     void startRekeying() {
         ctx.startRekeying();
-        timesyncPhase->startRekeying();
-        uplinkPhase->startRekeying();
-        streamMgr->startRekeying(ctx.getNextMasterKey());
-
-        //downlink:
-        hash.reset();
-        hash.digestBlock(newDownlinkKey, ctx.getNextMasterKey());
     }
 
     void continueRekeying() {
-        streamMgr->continueRekeying();
+        ctx.continueRekeying();
     }
 
     void applyRekeying() { 
         ctx.applyRekeying();
-        timesyncPhase->applyRekeying();
-        uplinkPhase->applyRekeying();
-        streamMgr->applyRekeying();
-
-        //downlink:
-        memcpy(downlinkKey, newDownlinkKey, 16);
-        gcm.rekey(downlinkKey);
     }
 #endif
 

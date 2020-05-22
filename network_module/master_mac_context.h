@@ -46,7 +46,6 @@ public:
     void beginScheduling() {
       scheduleComputation.beginScheduling();
     };
-
 private:
     ScheduleComputation scheduleComputation;
 };
