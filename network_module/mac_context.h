@@ -37,9 +37,8 @@
 #include <functional>
 #include <stdexcept>
 #include <utility>
-// For cryptography
 #ifdef CRYPTO
-#include "crypto/hash.h"
+#include "crypto/key_management/key_manager.h"
 #endif
 // For thread synchronization
 #ifdef _MIOSIX
@@ -291,47 +290,21 @@ public:
     virtual void beginScheduling() {};
 
 #ifdef CRYPTO
-    /**
-     * Compute next value for master key, without applying it yet.
-     */
-    void startRekeying() {
-        hash.reset();
-        hash.digestBlock(nextMasterKey, masterKey);
-        nextMasterIndex = masterIndex + 1;
+
+    virtual KeyManager* getKeyManager() { return keyMgr; }
+
+    virtual void startRekeying() {
+        keyMgr->startRekeying();
+        streamMgr.startRekeying(keyMgr->getNextMasterKey());
     }
 
-    /**
-     * Actually rotate the master key with the last precomuted value.
-     */
-    void applyRekeying() { 
-        masterIndex = nextMasterIndex;
-        memcpy(masterKey, nextMasterKey, 16);
+    virtual void continueRekeying() {
+        streamMgr.continueRekeying();
     }
 
-    /** 
-     * @return a pointer to the 16-byte buffer containing the current master key
-     */
-    void* getMasterKey() { return masterKey; }
-
-    /** 
-     * Called during rekeying to compute new key for phases and streams
-     * @return a pointer to the 16-byte buffer containing the next master key.
-     */
-    void* getNextMasterKey() { return nextMasterKey; }
-
-    /**
-     * @return the current value of the hash chain master index
-     */
-    unsigned int getMasterIndex() { return masterIndex; }
-
-    /* TODO: change these functions to make masterIndex and rekeying persistent
-     * across reboot */
-    /**
-     * Called only upon construction (at reboot).
-     * Load last Master Key and Index from persistent memory (TODO)
-     */
-    void loadMasterKey() {
-        masterIndex = 0;
+    virtual void applyRekeying() {
+        keyMgr->applyRekeying();
+        streamMgr.applyRekeying();
     }
 #endif
 
@@ -342,34 +315,15 @@ protected:
     
     void calculateDurations();
 
-#ifdef CRYPTO
-    unsigned int masterIndex;
-    unsigned int nextMasterIndex;
-    /**
-     * Value of the first master key. This value is SECRET and hardcoding it
-     * is meant as a temporary solution.
-     */
-    unsigned char masterKey[16] = {
-                0x4d, 0x69, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74,
-                0x4d, 0x69, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74
-        };
-    unsigned char nextMasterKey[16];
-    /**
-     * IV for the Miyaguchi-Preneel Hash used for rotating the master key.
-     * Value for this constant is arbitrary and is NOT secret.
-     */
-    const unsigned char masterRotationIv[16] = {
-                0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x49, 0x56,
-                0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x49, 0x56
-        };
-    MPHash hash = MPHash(masterRotationIv);
-#endif
-
-
     TimesyncDownlink* timesync = nullptr;
     UplinkPhase* uplink = nullptr;
     ScheduleDownlinkPhase* scheduleDistribution = nullptr;
     DataPhase* data = nullptr;
+
+    StreamManager streamMgr;
+#ifdef CRYPTO
+    KeyManager* keyMgr = nullptr;
+#endif
 
     unsigned long long dataSlotDuration;
     unsigned long long downlinkSlotDuration;
@@ -386,7 +340,6 @@ private:
     miosix::Transceiver& transceiver;
     miosix::PowerManager& pm;
     ControlSuperframeStructure controlSuperframe;
-    StreamManager streamMgr;
 
     unsigned numSlotInTile;
     unsigned numDataSlotInDownlinkTile;

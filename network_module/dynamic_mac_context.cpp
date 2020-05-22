@@ -28,6 +28,10 @@
 
 #include "dynamic_mac_context.h"
 #include "data_phase/dataphase.h"
+#include "network_configuration.h"
+#ifdef CRYPTO
+#include "crypto/key_management/dynamic_key_manager.h"
+#endif
 
 namespace mxnet {
 DynamicMACContext::DynamicMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
@@ -36,6 +40,13 @@ DynamicMACContext::DynamicMACContext(const MediumAccessController& mac, miosix::
     data = new DataPhase(*this, *getStreamManager());
     uplink = new DynamicUplinkPhase(*this, getStreamManager());
     scheduleDistribution = new DynamicScheduleDownlinkPhase(*this);
+
+#ifdef CRYPTO
+    keyMgr = new DynamicKeyManager();
+    if(getNetworkConfig().getAuthenticateDataMessages()) {
+        streamMgr.initHash((unsigned char*)keyMgr->getNextMasterKey());
+    }
+#endif
 };
 
 } /* namespace mxnet */

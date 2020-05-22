@@ -45,23 +45,20 @@ MACContext::~MACContext() {
     delete uplink;
     delete scheduleDistribution;
     delete data;
+#ifdef CRYPTO
+    delete keyMgr;
+#endif
 }
     
 MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiver, const NetworkConfiguration& config) :
+                streamMgr(config,networkId),
                 mac(mac), transceiverConfig(config.getBaseFrequency(), config.getTxPower(), true, false),
                 networkConfig(config), networkId(config.getStaticNetworkId()), transceiver(transceiver),
                 pm(miosix::PowerManager::instance()), controlSuperframe(networkConfig.getControlSuperframeStructure()),
-                streamMgr(config,networkId),
                 sendTotal(0), sendErrors(0), rcvTotal(0), rcvErrors(0),
                 running(false)
 {
     calculateDurations();
-#ifdef CRYPTO
-    loadMasterKey();
-    if(networkConfig.getAuthenticateDataMessages()) {
-        streamMgr.initHash(masterKey);
-    }
-#endif
 }
 
 void MACContext::calculateDurations() {

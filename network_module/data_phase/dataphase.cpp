@@ -122,8 +122,8 @@ void DataPhase::sendFromStream(long long slotStart, StreamId id) {
         unsigned int seqNo = stream.getSequenceNumber(id);
         if (ENABLE_CRYPTO_DATA_DBG)
             print_dbg("[D] sendFromStream: FrameNumber = %d, seqNo = %d, mIndex = %d\n",
-                      dataSuperframeNumber, seqNo, ctx.getMasterIndex());
-        gcm.setIV(dataSuperframeNumber, seqNo, ctx.getMasterIndex());
+                      dataSuperframeNumber, seqNo, ctx.getKeyManager()->getMasterIndex());
+        gcm.setIV(dataSuperframeNumber, seqNo, ctx.getKeyManager()->getMasterIndex());
 
         pktReady = stream.sendPacket(id, pkt);
 
@@ -165,9 +165,9 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
         if (ENABLE_CRYPTO_DATA_DBG)
             print_dbg("[D] receiveToStream: FrameNumber = %d, seqNo = %d, mIndex = %d\n",
                       dataSuperframeNumber, stream.getSequenceNumber(id),
-                      ctx.getMasterIndex());
+                      ctx.getKeyManager()->getMasterIndex());
         gcm.setIV(dataSuperframeNumber, stream.getSequenceNumber(id),
-                  ctx.getMasterIndex());
+                  ctx.getKeyManager()->getMasterIndex());
         bool valid;
         if (config.getEncryptDataMessages()) valid = pkt.verifyAndDecrypt(gcm);
         else valid = pkt.verify(gcm);

@@ -50,7 +50,7 @@ MasterTimesyncDownlink::MasterTimesyncDownlink(MACContext& ctx) : TimesyncDownli
     packet.put(&timesyncPkt, sizeof(timesyncPkt));
 
 #ifdef CRYPTO
-    unsigned int index = ctx.getMasterIndex();
+    unsigned int index = ctx.getKeyManager()->getMasterIndex();
     packet.put(&index, sizeof(index));
 #endif
 }

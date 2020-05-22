@@ -80,7 +80,7 @@ protected:
     }
 
     void setPacketMasterIndex() {
-        unsigned int index = ctx.getMasterIndex();
+        unsigned int index = ctx.getKeyManager()->getMasterIndex();
         *reinterpret_cast<unsigned int*>(&packet[11]) = index;
 
     }
