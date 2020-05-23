@@ -93,16 +93,6 @@ protected:
     unsigned int nextMasterIndex;
 
     /**
-     * Temporary values for master key and index.
-     * These values are computed and used, but not yet committed. Committing
-     * them consists in copying these values to masterKey and masterIndex.
-     * Committing sets the context status to CONNECTED, meaning we have reached
-     * a point where the master index advancement is completely verified.
-     */
-    unsigned char tempMasterKey[16];
-    unsigned int tempMasterIndex;
-
-    /**
      * Value of the first master key. This value is SECRET and hardcoding it
      * is meant as a temporary solution.
      */

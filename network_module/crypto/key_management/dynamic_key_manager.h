@@ -64,6 +64,15 @@ public:
     void desync() override;
 
 private:
+    /**
+     * Temporary values for master key and index.
+     * These values are computed and used, but not yet committed. Committing
+     * them consists in copying these values to masterKey and masterIndex.
+     * Committing sets the context status to CONNECTED, meaning we have reached
+     * a point where the master index advancement is completely verified.
+     */
+    unsigned char tempMasterKey[16];
+    unsigned int tempMasterIndex;
 };
 
 } //namespace mxnet
