@@ -64,4 +64,41 @@ private:
     unsigned char next_aes_key[16]; // key of next_aes
 };
 
+class SingleBlockMPHash {
+public:
+    /**
+     * Default constructor: use IV=0
+     */
+    SingleBlockMPHash() {
+        memset(iv, 0, 16);
+    }
+
+    /**
+     * Constructor
+     * \param iv the init vector used in Miyaguchi-Preneel scheme
+     */
+    SingleBlockMPHash(const unsigned char iv[16]) : aes(iv) {
+        memcpy(this->iv, iv, 16);
+    }
+
+    /**
+     * Change IV and reset
+     * \param iv the new init vector in Miyaguchi-Preneel scheme
+     */
+    void setIv(const unsigned char iv[16]) {
+        memcpy(this->iv, iv, 16);
+        aes.rekey(iv);
+    }
+
+    /**
+     * Digest 16 bytes of data 
+     * \param hash pointer to a buffer of at least 16 free bytes where the digest will be written
+     * \param data pointer to a buffer containing the data to hash
+     */
+    void digestBlock(void *hash, const void *data);
+private:
+    unsigned char iv[16]; // used as AES key when digesting data blocks
+    Aes aes;  // aes to use for processing a single data block
+};
+
 } //namespace mxnet
