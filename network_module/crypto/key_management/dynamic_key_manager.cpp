@@ -16,6 +16,11 @@ void DynamicKeyManager::startRekeying() {
         nextMasterIndex = masterIndex + 1;
         status = REKEYING;
     }
+
+    uplinkHash.digestBlock(nextUplinkKey, nextMasterKey);
+    downlinkHash.digestBlock(nextDownlinkKey, nextMasterKey);
+    timesyncHash.digestBlock(nextTimesyncKey, nextMasterKey);
+
 }
 
 /**
@@ -31,6 +36,9 @@ void DynamicKeyManager::applyRekeying() {
         memcpy(masterKey, nextMasterKey, 16);
         status = CONNECTED;
     }
+    uplinkGCM.rekey(nextUplinkKey);
+    downlinkGCM.rekey(nextDownlinkKey);
+    timesyncGCM.rekey(nextTimesyncKey);
 }
 
 void* DynamicKeyManager::getMasterKey() {
@@ -74,6 +82,14 @@ bool DynamicKeyManager::attemptResync(unsigned int newIndex) {
     }
     tempMasterIndex = newIndex;
     status = MASTER_UNTRUSTED;
+
+    uplinkHash.digestBlock(uplinkKey, tempMasterKey);
+    downlinkHash.digestBlock(downlinkKey, tempMasterKey);
+    timesyncHash.digestBlock(timesyncKey, tempMasterKey);
+    uplinkGCM.rekey(uplinkKey);
+    downlinkGCM.rekey(downlinkKey);
+    timesyncGCM.rekey(timesyncKey);
+
     return true;
 }
 
@@ -86,6 +102,14 @@ void DynamicKeyManager::advanceResync() {
 
     masterHash.digestBlock(tempMasterKey, tempMasterKey);
     tempMasterIndex++;
+
+    uplinkHash.digestBlock(uplinkKey, tempMasterKey);
+    downlinkHash.digestBlock(downlinkKey, tempMasterKey);
+    timesyncHash.digestBlock(timesyncKey, tempMasterKey);
+    uplinkGCM.rekey(uplinkKey);
+    downlinkGCM.rekey(downlinkKey);
+    timesyncGCM.rekey(timesyncKey);
+
 }
 
 void DynamicKeyManager::rollbackResync() {
@@ -110,11 +134,20 @@ void DynamicKeyManager::attemptAdvance() {
      * - if the master has rebooted, or
      * - if resync has just happened, while the network was rekeying
      * However, the index+key change must only be committed after
-     * packet verification, by calling commitAdvance()
+     * packet verification, by calling commitAdvance().
+     *
+     * State ADVANCING is intended to be used ephimerally in a single timesync
+     * slot, by calling either commitAdvance or rollbackAdvance after packet
+     * verification, to go back to state CONNECTED. Because only the timesync
+     * phase will be executed while in state ADVANCING, we only derive the
+     * timesync key here.
      */
     masterHash.digestBlock(tempMasterKey, masterKey);
     status = ADVANCING;
     tempMasterIndex = masterIndex + 1;
+
+    timesyncHash.digestBlock(timesyncKey, tempMasterKey);
+    timesyncGCM.rekey(timesyncKey);
 }
 
 void DynamicKeyManager::commitAdvance() {
@@ -122,6 +155,14 @@ void DynamicKeyManager::commitAdvance() {
     memcpy(masterKey, tempMasterKey, 16);
     masterIndex = tempMasterIndex;
     status = CONNECTED;
+
+    /**
+     * Compute phase keys. Timesync has already been computed.
+     */
+    uplinkHash.digestBlock(uplinkKey, masterKey);
+    downlinkHash.digestBlock(downlinkKey, masterKey);
+    uplinkGCM.rekey(uplinkKey);
+    downlinkGCM.rekey(downlinkKey);
 }
 
 void DynamicKeyManager::rollbackAdvance() {
@@ -129,6 +170,10 @@ void DynamicKeyManager::rollbackAdvance() {
     // rollback to the values of masterKey and masterIndex: no other action needed
     // except for state change
     status = CONNECTED;
+
+    /* restore last valid timesync key */
+    timesyncHash.digestBlock(timesyncKey, masterKey);
+    timesyncGCM.rekey(timesyncKey);
 }
 
 void DynamicKeyManager::desync() {
