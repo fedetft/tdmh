@@ -2,15 +2,6 @@
 
 namespace mxnet {
 
-AesGcm& MasterKeyManager::getUplinkGCM() {
-}
-
-AesGcm& MasterKeyManager::getTimesyncGCM() {
-}
-
-AesGcm& MasterKeyManager::getScheduleDistributionGCM() {
-}
-
 void MasterKeyManager::startRekeying() {
 }
 

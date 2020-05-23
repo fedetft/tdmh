@@ -3,15 +3,6 @@
 
 namespace mxnet {
 
-AesGcm& DynamicKeyManager::getUplinkGCM() {
-}
-
-AesGcm& DynamicKeyManager::getTimesyncGCM() {
-}
-
-AesGcm& DynamicKeyManager::getScheduleDistributionGCM() {
-}
-
 /**
  * Compute next value for master key, without applying it yet.
  */

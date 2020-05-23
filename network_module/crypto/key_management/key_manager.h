@@ -22,11 +22,9 @@ public:
 
     KeyManagerStatus getStatus() { return status; }
 
-    virtual AesGcm& getUplinkGCM() = 0;
-
-    virtual AesGcm& getTimesyncGCM() = 0;
-
-    virtual AesGcm& getScheduleDistributionGCM() = 0;
+    AesGcm& getUplinkGCM() { return uplinkGCM; }
+    AesGcm& getTimesyncGCM() { return timesyncGCM; }
+    AesGcm& getScheduleDistributionGCM() { return downlinkGCM; }
 
     /**
      * Compute next value for master key, without applying it yet.
