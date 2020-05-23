@@ -60,10 +60,6 @@ public:
         topologyQueue.clear();
         smeQueue.clear();
         myNeighborTable.clear(ctx.getHop());
-#ifdef CRYPTO
-        startRekeying();
-        applyRekeying();
-#endif
     };
 
     /**
