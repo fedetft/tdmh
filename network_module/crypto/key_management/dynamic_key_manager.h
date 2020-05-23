@@ -9,12 +9,6 @@ public:
         loadMasterKey();
     }
 
-    AesGcm& getUplinkGCM() override;
-
-    AesGcm& getTimesyncGCM() override;
-
-    AesGcm& getScheduleDistributionGCM() override;
-
     /**
      * Compute next value for master key, without applying it yet.
      */
@@ -73,6 +67,7 @@ private:
      */
     unsigned char tempMasterKey[16];
     unsigned int tempMasterIndex;
+
 };
 
 } //namespace mxnet
