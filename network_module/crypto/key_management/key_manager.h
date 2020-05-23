@@ -110,6 +110,60 @@ protected:
                 0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x49, 0x56
         };
     SingleBlockMPHash masterHash = SingleBlockMPHash(masterRotationIv);
+
+    /*
+     * Timesync: key, next key, current valid GCM, hash for
+     * key derivation
+     */
+    unsigned char timesyncKey[16];
+    unsigned char nextTimesyncKey[16];
+    /**
+     * IV for the Miyaguchi-Preneel Hash used for deriving timesync key from
+     * master key.
+     * Value for this constant is arbitrary and is NOT secret */
+    const unsigned char timesyncDerivationIv[16] = {
+                0x54, 0x69, 0x4d, 0x65, 0x53, 0x79, 0x4e, 0x63,
+                0x74, 0x49, 0x6d, 0x45, 0x73, 0x59, 0x6e, 0x43
+        };
+    SingleBlockMPHash timesyncHash = SingleBlockMPHash(timesyncDerivationIv);
+    AesGcm timesyncGCM;
+
+    /*
+     * ScheduleDistribution: key, next key, current valid GCM, hash for
+     * key derivation
+     */
+    unsigned char downlinkKey[16];
+    unsigned char nextDownlinkKey[16];
+    /**
+     * IV for the Miyaguchi-Preneel Hash used for deriving downlink key from
+     * master key.
+     * Value for this constant is arbitrary and is NOT secret.
+     */
+    const unsigned char downlinkDerivationIv[16] = {
+                0x44, 0x6f, 0x57, 0x6e, 0x4c, 0x69, 0x4e, 0x6b,
+                0x64, 0x4f, 0x77, 0x4e, 0x6c, 0x49, 0x6e, 0x4b
+        };
+    SingleBlockMPHash downlinkHash = SingleBlockMPHash(downlinkDerivationIv);
+    AesGcm downlinkGCM;
+
+    /*
+     * Uplink: key, next key, current valid GCM, hash for
+     * key derivation
+     */
+    unsigned char uplinkKey[16];
+    unsigned char nextUplinkKey[16];
+    /**
+     * IV for the Miyaguchi-Preneel Hash used for deriving uplink key from
+     * master key.
+     * Value for this constant is arbitrary and is NOT secret */
+    const unsigned char uplinkDerivationIv[16] = {
+                0x55, 0x70, 0x4c, 0x69, 0x6e, 0x6b, 0x49, 0x76,
+                0x55, 0x70, 0x4c, 0x69, 0x6e, 0x6b, 0x49, 0x76
+        };
+    SingleBlockMPHash uplinkHash = SingleBlockMPHash(uplinkDerivationIv);
+    AesGcm uplinkGCM;
+
+
 };
 
 } //namespace mxnet

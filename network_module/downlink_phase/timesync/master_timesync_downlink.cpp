@@ -64,7 +64,7 @@ void MasterTimesyncDownlink::execute(long long slotStart)
     setPacketMasterIndex();
     if (ctx.getNetworkConfig().getAuthenticateControlMessages()) {
         packet.reserveTag();
-        packet.putTag(gcm);
+        packet.putTag(ctx.getKeyManager()->getTimesyncGCM());
     }
 #endif
 

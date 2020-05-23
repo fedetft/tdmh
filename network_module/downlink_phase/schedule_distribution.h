@@ -85,19 +85,7 @@ protected:
                                              rebroadcastInterval(computeRebroadcastInterval(ctx.getNetworkConfig())),
                                              panId(ctx.getNetworkConfig().getPanId()),
                                              streamMgr(ctx.getStreamManager()),
-                                             dataPhase(ctx.getDataPhase())
-#ifdef CRYPTO
-                                             , uplinkPhase(ctx.getUplink()),
-                                             timesyncPhase(ctx.getTimesync()) {
-        /* Initialize the downlink key and GCM from current master key */
-        hash.reset();
-        hash.digestBlock(newDownlinkKey, ctx.getMasterKey());
-        memcpy(downlinkKey, newDownlinkKey, 16);
-        gcm.rekey(downlinkKey);
-    }
-#else
-    {}
-#endif
+                                             dataPhase(ctx.getDataPhase()) {}
 
     /**
      * Convert the explicit schedule to an implicit one
@@ -183,29 +171,6 @@ protected:
 
     // Pointer to DataPhase, used to apply distributed schedule
     DataPhase* const dataPhase;
-
-#ifdef CRYPTO
-    // Pointer to UplinkPhase, used for rekeying
-    UplinkPhase* const uplinkPhase;
-
-    // Pointer to Timesync, used for rekeying
-    TimesyncDownlink* const timesyncPhase;
-
-
-    unsigned char downlinkKey[16];
-    unsigned char newDownlinkKey[16];
-    /**
-     * IV for the Miyaguchi-Preneel Hash used for deriving downlink key from
-     * master key.
-     * Value for this constant is arbitrary and is NOT secret.
-     */
-    const unsigned char downlinkDerivationIv[16] = {
-                0x44, 0x6f, 0x57, 0x6e, 0x4c, 0x69, 0x4e, 0x6b,
-                0x64, 0x4f, 0x77, 0x4e, 0x6c, 0x49, 0x6e, 0x4b
-        };
-    MPHash hash = MPHash(downlinkDerivationIv);
-    AesGcm gcm;
-#endif
 };
 
 }
