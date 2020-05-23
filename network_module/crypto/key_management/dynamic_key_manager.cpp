@@ -17,13 +17,11 @@ AesGcm& DynamicKeyManager::getScheduleDistributionGCM() {
  */
 void DynamicKeyManager::startRekeying() {
     if (status == MASTER_UNTRUSTED) {
-        hash.reset();
-        hash.digestBlock(nextMasterKey, tempMasterKey);
+        masterHash.digestBlock(nextMasterKey, tempMasterKey);
         nextMasterIndex = tempMasterIndex + 1;
         status = REKEYING_UNTRUSTED;
     } else if (status == CONNECTED) {
-        hash.reset();
-        hash.digestBlock(nextMasterKey, masterKey);
+        masterHash.digestBlock(nextMasterKey, masterKey);
         nextMasterIndex = masterIndex + 1;
         status = REKEYING;
     }
@@ -81,8 +79,7 @@ bool DynamicKeyManager::attemptResync(unsigned int newIndex) {
 
     memcpy(tempMasterKey, masterKey, 16);
     for (unsigned int i = masterIndex ; i < newIndex; i++) {
-        hash.reset();
-        hash.digestBlock(tempMasterKey, tempMasterKey);
+        masterHash.digestBlock(tempMasterKey, tempMasterKey);
     }
     tempMasterIndex = newIndex;
     status = MASTER_UNTRUSTED;
@@ -96,8 +93,7 @@ void DynamicKeyManager::advanceResync() {
         return;
     }
 
-    hash.reset();
-    hash.digestBlock(tempMasterKey, tempMasterKey);
+    masterHash.digestBlock(tempMasterKey, tempMasterKey);
     tempMasterIndex++;
 }
 
@@ -125,8 +121,7 @@ void DynamicKeyManager::attemptAdvance() {
      * However, the index+key change must only be committed after
      * packet verification, by calling commitAdvance()
      */
-    hash.reset();
-    hash.digestBlock(tempMasterKey, masterKey);
+    masterHash.digestBlock(tempMasterKey, masterKey);
     status = ADVANCING;
     tempMasterIndex = masterIndex + 1;
 }
