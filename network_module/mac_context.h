@@ -320,6 +320,13 @@ protected:
     ScheduleDownlinkPhase* scheduleDistribution = nullptr;
     DataPhase* data = nullptr;
 
+    unsigned char hop;
+    const MediumAccessController& mac;
+    const miosix::TransceiverConfiguration transceiverConfig;
+    const NetworkConfiguration& networkConfig;
+    unsigned short networkId;
+    miosix::Transceiver& transceiver;
+    miosix::PowerManager& pm;
     StreamManager streamMgr;
 #ifdef CRYPTO
     KeyManager* keyMgr = nullptr;
@@ -332,13 +339,6 @@ protected:
 
 private:
 
-    unsigned char hop;
-    const MediumAccessController& mac;
-    const miosix::TransceiverConfiguration transceiverConfig;
-    const NetworkConfiguration& networkConfig;
-    unsigned short networkId;
-    miosix::Transceiver& transceiver;
-    miosix::PowerManager& pm;
     ControlSuperframeStructure controlSuperframe;
 
     unsigned numSlotInTile;
