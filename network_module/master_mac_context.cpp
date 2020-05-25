@@ -42,14 +42,13 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
         this->getDataSlotsInDownlinkTileCount(),
         this->getDataSlotsInUplinkTileCount())
 {
+#ifdef CRYPTO
+    keyMgr = new MasterKeyManager();
+#endif
     timesync = new MasterTimesyncDownlink(*this);
     uplink = new MasterUplinkPhase(*this, getStreamManager(), scheduleComputation);
     data = new DataPhase(*this, *getStreamManager());
     scheduleDistribution = new MasterScheduleDownlinkPhase(*this, scheduleComputation);
-
-#ifdef CRYPTO
-    keyMgr = new MasterKeyManager();
-#endif
 };
 
 } /* namespace mxnet */
