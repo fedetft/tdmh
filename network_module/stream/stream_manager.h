@@ -168,25 +168,6 @@ public:
 
     AesGcm& getStreamGCM(StreamId id);
 
-    /**
-     * Stream keys are derived from the master key as: 
-     *      Hash(masterKey||streamId)
-     * The master key represents the first block to be digested by the
-     * Hash, which uses the same IV for all stream keys. Therefore, the
-     * intermediate value of the first block digested, ie:
-     *      Hash(masterKey)
-     * is common among all stream keys created from the same master key.
-     * The secondBlock is used as IV for a new MPHash object, which will be
-     * used to digest the second part of the data, ie: the streamId.
-     * We have this value precomputed at the creation of the StreamManager
-     * by MACContext, by calling initHash once.
-     */
-    void initHash(const unsigned char masterKey[16]) {
-        unsigned char nextIv[16];
-        firstBlockStreamHash.digestBlock(nextIv, masterKey);
-        secondBlockStreamHash.setIv(nextIv);
-        memset(nextIv, 0, 16);
-    }
     void startRekeying(const void* masterKey);
 
     void continueRekeying();
