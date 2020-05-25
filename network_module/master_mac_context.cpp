@@ -49,9 +49,6 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
 
 #ifdef CRYPTO
     keyMgr = new MasterKeyManager();
-    if(getNetworkConfig().getAuthenticateDataMessages()) {
-        streamMgr.initHash((unsigned char*)keyMgr->getNextMasterKey());
-    }
 #endif
 };
 

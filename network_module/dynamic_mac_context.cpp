@@ -43,9 +43,6 @@ DynamicMACContext::DynamicMACContext(const MediumAccessController& mac, miosix::
 
 #ifdef CRYPTO
     keyMgr = new DynamicKeyManager();
-    if(getNetworkConfig().getAuthenticateDataMessages()) {
-        streamMgr.initHash((unsigned char*)keyMgr->getNextMasterKey());
-    }
 #endif
 };
 
