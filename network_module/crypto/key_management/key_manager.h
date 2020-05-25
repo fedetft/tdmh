@@ -59,6 +59,14 @@ public:
      */
     void loadMasterKey() {
         masterIndex = 0;
+
+        // Initialize phase GCMs
+        uplinkHash.digestBlock(uplinkKey, masterKey);
+        downlinkHash.digestBlock(downlinkKey, masterKey);
+        timesyncHash.digestBlock(timesyncKey, masterKey);
+        uplinkGCM.rekey(uplinkKey);
+        downlinkGCM.rekey(downlinkKey);
+        timesyncGCM.rekey(timesyncKey);
     }
 
     /**
