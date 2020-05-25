@@ -1,3 +1,5 @@
+#include <cassert>
+#include <cstdio>
 #include "dynamic_key_manager.h"
 #include "../hash.h"
 
@@ -15,7 +17,10 @@ void DynamicKeyManager::startRekeying() {
         masterHash.digestBlock(nextMasterKey, masterKey);
         nextMasterIndex = masterIndex + 1;
         status = REKEYING;
-    } else assert(false, "DynamicKeyManager: unexpected call to startRekeying");
+    } else {
+        printf("DynamicKeyManager: unexpected call to startRekeying");
+        assert(false);
+    }
 
     uplinkHash.digestBlock(nextUplinkKey, nextMasterKey);
     downlinkHash.digestBlock(nextDownlinkKey, nextMasterKey);
@@ -35,7 +40,10 @@ void DynamicKeyManager::applyRekeying() {
         masterIndex = nextMasterIndex;
         memcpy(masterKey, nextMasterKey, 16);
         status = CONNECTED;
-    } else assert(false, "DynamicKeyManager: unexpected call to applyRekeying");
+    } else {
+        printf("DynamicKeyManager: unexpected call to applyRekeying\n");
+        assert(false);
+    }
     uplinkGCM.rekey(nextUplinkKey);
     downlinkGCM.rekey(nextDownlinkKey);
     timesyncGCM.rekey(nextTimesyncKey);
@@ -48,7 +56,10 @@ void* DynamicKeyManager::getMasterKey() {
         case KeyManagerStatus::CONNECTED: return masterKey;
         case KeyManagerStatus::REKEYING: return masterKey;
         case KeyManagerStatus::ADVANCING: return tempMasterKey;
-        default: assert(false, "DynamicKeyManager: unexpected call to getMasterKey");
+        default: {
+            printf("DynamicKeyManager: unexpected call to getMasterKey\n");
+            assert(false);
+        }
     }
 }
 
@@ -56,7 +67,10 @@ void* DynamicKeyManager::getNextMasterKey() {
     switch (status) {
         case KeyManagerStatus::REKEYING_UNTRUSTED: return tempMasterKey;
         case KeyManagerStatus::REKEYING: return masterKey;
-        default: assert(false, "DynamicKeyManager: unexpected call to getNextMasterKey");
+        default: {
+            printf("DynamicKeyManager: unexpected call to getNextMasterKey\n");
+            assert(false);
+        }
     }
 }
 

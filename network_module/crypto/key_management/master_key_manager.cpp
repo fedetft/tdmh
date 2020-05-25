@@ -1,11 +1,13 @@
 #include "master_key_manager.h"
 #include <cassert>
+#include <cstdio>
 
 namespace mxnet {
 
 void MasterKeyManager::startRekeying() {
     if (status != CONNECTED) {
-        assert(false, "MasterKeyManager: unexpected call to startRekeying");
+        printf("MasterKeyManager: unexpected call to startRekeying\n");
+        assert(false);
     }
     masterHash.digestBlock(nextMasterKey, masterKey);
     nextMasterIndex = masterIndex + 1;
@@ -18,7 +20,8 @@ void MasterKeyManager::startRekeying() {
 
 void MasterKeyManager::applyRekeying() {
     if (status != REKEYING) {
-        assert(false, "MasterKeyManager: unexpected call to applyRekeying");
+        printf("MasterKeyManager: unexpected call to applyRekeying\n");
+        assert(false);
     }
     masterIndex = nextMasterIndex;
     memcpy(masterKey, nextMasterKey, 16);
@@ -30,20 +33,35 @@ void MasterKeyManager::applyRekeying() {
 }
 
 void* MasterKeyManager::getMasterKey() {
-    case KeyManagerStatus::CONNECTED: return masterKey;
-    case KeyManagerStatus::REKEYING: return masterKey;
-    default: assert(false, "MasterKeyManager: unexpected call to getMasterKey");
+    switch (status) {
+        case KeyManagerStatus::CONNECTED: return masterKey;
+        case KeyManagerStatus::REKEYING: return masterKey;
+        default: {
+            printf("MasterKeyManager: unexpected call to getMasterKey\n");
+            assert(false);
+        }
+    }
 }
 
 void* MasterKeyManager::getNextMasterKey() {
-    case KeyManagerStatus::REKEYING: return nextMasterKey;
-    default: assert(false, "MasterKeyManager: unexpected call to getNextMasterKey");
+    switch (status) {
+        case KeyManagerStatus::REKEYING: return nextMasterKey;
+        default: {
+            printf("MasterKeyManager: unexpected call to getNextMasterKey\n");
+            assert(false);
+        }
+    }
 }
 
 unsigned int MasterKeyManager::getMasterIndex() {
-    case KeyManagerStatus::CONNECTED: return masterIndex;
-    case KeyManagerStatus::REKEYING: return masterIndex;
-    default: assert(false, "MasterKeyManager: unexpected call to getMasterIndex");
+    switch (status) {
+        case KeyManagerStatus::CONNECTED: return masterIndex;
+        case KeyManagerStatus::REKEYING: return masterIndex;
+        default: {
+            printf("MasterKeyManager: unexpected call to getMasterIndex\n");
+            assert(false);
+        }
+    }
 }
 
 } //namespace mxnet
