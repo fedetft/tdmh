@@ -110,6 +110,9 @@ const bool ENABLE_STREAM_MGR_INFO_DBG = true;
 //prints packet synchronization numbers in dataphase
 const bool ENABLE_CRYPTO_DATA_DBG = true;
 
+//prints packet synchronization numbers and verify errors in timesync
+const bool ENABLE_CRYPTO_TIMESYNC_DBG = true;
+
 
 #ifdef _MIOSIX
 #define DEBUG_MESSAGES_IN_SEPARATE_THREAD
