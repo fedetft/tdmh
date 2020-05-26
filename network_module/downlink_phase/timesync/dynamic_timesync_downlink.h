@@ -31,6 +31,7 @@
 #include "controller/flopsync2.h"
 #include "controller/synchronizer.h"
 #include "interfaces-impl/virtual_clock.h"
+#include "interfaces-impl/transceiver.h"
 #include "kernel/timeconversion.h"
 #include "../../util/packet.h"
 #include <limits>
@@ -109,12 +110,14 @@ protected:
      * Since the node is synchronized, it performs the step in the FLOPSYNC-2 controller
      */
     void periodicSync();
+    void doPeriodicSync(long long correctedStart, miosix::RecvResult rcvResult, Packet pkt);
 
     /**
      * Since the node is not synchronizes, it listens to the channel for an undefined time
      * to reinitialize the FLOPSYNC-2 controller
      */
     void resyncTime();
+    void doResyncTime(miosix::RecvResult rcvResult, Packet pkt);
 
     /**
      * Resets the data calculated by and useful for the controller

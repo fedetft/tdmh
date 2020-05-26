@@ -30,6 +30,7 @@
 #include "networktime.h"
 #include "../../util/debug_settings.h"
 #include "../../mac_context.h"
+#include "../../crypto/aes_gcm.h"
 
 using namespace miosix;
 
@@ -64,7 +65,10 @@ void MasterTimesyncDownlink::execute(long long slotStart)
     setPacketMasterIndex();
     if (ctx.getNetworkConfig().getAuthenticateControlMessages()) {
         packet.reserveTag();
-        packet.putTag(ctx.getKeyManager()->getTimesyncGCM());
+        AesGcm& gcm = ctx.getKeyManager()->getTimesyncGCM();
+        /* Sequence number is always set to 1 in timesync messages.  */
+        gcm.setIV(ctx.getCurrentTile(slotStart), 1, ctx.getKeyManager()->getMasterIndex());
+        packet.putTag(gcm);
     }
 #endif
 
