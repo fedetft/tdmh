@@ -31,6 +31,10 @@
 #include "../../data_phase/dataphase.h"
 #include "../../util/debug_settings.h"
 #include <cassert>
+#ifdef CRYPTO
+#include "../../crypto/key_management/key_manager.h"
+#include "../../crypto/aes_gcm.h"
+#endif
 
 using namespace miosix;
 
@@ -62,33 +66,100 @@ void DynamicTimesyncDownlink::periodicSync() {
         measuredFrameStart = correct(rcvResult.timestamp);
         rebroadcast(pkt, measuredFrameStart);
         ctx.transceiverIdle();
-        // TODO: make a struct containing the packetCounter
-        packetCounter++;
-        auto newPacketCounter = *reinterpret_cast<unsigned int*>(&pkt[7]);
-        if(newPacketCounter != packetCounter)
-            print_dbg("[T] Received wrong packetCounter=%d (should be %d)", newPacketCounter, packetCounter);
 
-        error = rcvResult.timestamp - computedFrameStart;
-        std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->computeCorrection(error);
-        missedPackets = 0;
-        clockCorrection = clockCorrectionReceiverWindow.first;
-        receiverWindow = clockCorrectionReceiverWindow.second;
-        internalStatus = IN_SYNC;
-        updateVt();
-        if (ENABLE_TIMESYNC_DL_INFO_DBG) {            
-            auto nt = NetworkTime::fromLocalTime(getSlotframeStart());
-            print_dbg("[T] hop=%u NT=%lld ets=%lld ats=%lld e=%lld u=%d w=%d rssi=%d\n",
-                      pkt[2],
-                      nt.get(),
-                      correctedStart,
-                      rcvResult.timestamp,
-                      error,
-                      clockCorrection,
-                      receiverWindow,
-                      rcvResult.rssi);
+#ifdef CRYPTO
+
+        unsigned currentMI = ctx.getKeyManager()->getMasterIndex();
+        unsigned int mI = *reinterpret_cast<unsigned int*>(&pkt[11]);
+
+        bool indexValid;
+        if (mI < currentMI) {
+            indexValid = false;
+        } else if (mI > currentMI+1) {
+            // An advancement of more than 1 in masterIndex is not accepted
+            indexValid = false;
+        } else if (mI == currentMI+1) {
+            KeyManagerStatus s = ctx.getKeyManager()->getStatus();
+            if (s == CONNECTED)
+                ctx.getKeyManager()->attemptAdvance();
+            else if (s == MASTER_UNTRUSTED) {
+                ctx.getKeyManager()->advanceResync();
+            }
+            indexValid = true;
+        } else {
+            // currentMI == mI
+            indexValid = true;
         }
+
+        bool verified = true;
+        if(networkConfig.getAuthenticateControlMessages()) {
+            /**
+             * in order to authenticate the timesync packet, we set the
+             * hop value to zero, as the master only sends and authenticates
+             * packets with hop = 0.
+             * the correct hop value is saved and restored later for the only
+             * purpose of printing debug information.
+             */
+            unsigned char hop = pkt[2];
+            pkt[2] = 0;
+
+            AesGcm& gcm = ctx.getKeyManager()->getTimesyncGCM();
+            /**
+             * Note: the first argument of setIV is supposed to be set to the
+             * current tileNumber, which can be computed directly from the
+             * slotframeStart in timesync.
+             * Sequence number is always set to 1 in timesync messages.
+             * Here we getMasterIndex again because it is possible that is was
+             * changed by attempAdvance() or advanceResync().
+             */
+            gcm.setIV(ctx.getCurrentTile(getSlotframeStart()), 1,
+                    ctx.getKeyManager()->getMasterIndex());
+            verified = pkt.verify(gcm);
+            pkt[2] = hop;
+        }
+
+        KeyManagerStatus s = ctx.getKeyManager()->getStatus();
+        if(indexValid && verified) {
+            if (s == ADVANCING) ctx.getKeyManager()->commitAdvance();
+            doPeriodicSync(correctedStart, rcvResult, pkt);
+        } else {
+            if (s == ADVANCING) ctx.getKeyManager()->rollbackAdvance();
+            missedPacket();
+        }
+#else //ifdef CRYPTO
+        doPeriodicSync(correctedStart, rcvResult, pkt);
+#endif //ifdef CRYPTO
     }
     greenLed::low();
+}
+
+void DynamicTimesyncDownlink::doPeriodicSync(long long correctedStart,
+                                    miosix::RecvResult rcvResult, Packet pkt) {
+    // TODO: make a struct containing the packetCounter
+    packetCounter++;
+    auto newPacketCounter = *reinterpret_cast<unsigned int*>(&pkt[7]);
+    if(newPacketCounter != packetCounter)
+        print_dbg("[T] Received wrong packetCounter=%d (should be %d)", newPacketCounter, packetCounter);
+
+    error = rcvResult.timestamp - computedFrameStart;
+    std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->computeCorrection(error);
+    missedPackets = 0;
+    clockCorrection = clockCorrectionReceiverWindow.first;
+    receiverWindow = clockCorrectionReceiverWindow.second;
+    internalStatus = IN_SYNC;
+    updateVt();
+    if (ENABLE_TIMESYNC_DL_INFO_DBG) {
+        auto nt = NetworkTime::fromLocalTime(getSlotframeStart());
+        print_dbg("[T] hop=%u NT=%lld ets=%lld ats=%lld e=%lld u=%d w=%d rssi=%d\n",
+                  pkt[2],
+                  nt.get(),
+                  correctedStart,
+                  rcvResult.timestamp,
+                  error,
+                  clockCorrection,
+                  receiverWindow,
+                  rcvResult.rssi);
+    }
 }
 
 void DynamicTimesyncDownlink::resyncTime() {
@@ -122,8 +193,61 @@ void DynamicTimesyncDownlink::resyncTime() {
     measuredFrameStart = correct(rcvResult.timestamp);
     rebroadcast(pkt, measuredFrameStart);
     ctx.transceiverIdle();
-
     ctx.setHop(pkt[2]);
+#ifdef CRYPTO
+    // get masterIndex from packet, attempt to resync. Commit resync if packet
+    // is valid, otherwise rollback.
+    unsigned int mI = *reinterpret_cast<unsigned int*>(&pkt[11]);
+    bool indexValid = ctx.getKeyManager()->attemptResync(mI);
+    bool verified = true;
+    if(networkConfig.getAuthenticateControlMessages()) {
+        /**
+         * In order to authenticate the timesync packet, we set the
+         * hop value to zero, as the master only sends and authenticates
+         * packets with hop = 0.
+         * The correct hop value is saved and restored later for the only
+         * purpose of printing debug information.
+         */
+        unsigned char hop = pkt[2];
+        pkt[2] = 0;
+
+        AesGcm& gcm = ctx.getKeyManager()->getTimesyncGCM();
+        /**
+         * Note: the first argument of setIV is supposed to be set to the
+         * current tileNumber. Because we are in the process of performing
+         * resync, the tileNumber should be computed from the timing
+         * information just received.
+         * The same logic applies to the value of masterIndex.
+         * Sequence number is always set to 1 in timesync messages.
+         */
+        gcm.setIV(ctx.getCurrentTile(getSlotframeStart()), 1, mI);
+        verified = pkt.verify(gcm);
+        pkt[2] = hop;
+    }
+    if(indexValid && verified) {
+        /**
+         * If the packet is valid and the masterIndex is acceptable, we perform
+         * usual timesync operations and we commit the resync.
+         */
+        doResyncTime(rcvResult, pkt);
+        ctx.getKeyManager()->commitResync();
+    } else {
+        /**
+         * If packet verification fails, or if the received masterIndex is
+         * lower than the last valid one, the timesync message is not valid
+         * and resync operation is aborted.
+         */
+        missedPacket();
+        ctx.getKeyManager()->rollbackResync();
+    }
+
+#else //ifdef CRYPTO
+    // Accept all messages if cryptography is disabled
+    doResyncTime(rcvResult, pkt);
+#endif //ifdef CRYPTO
+}
+
+void DynamicTimesyncDownlink::doResyncTime(miosix::RecvResult rcvResult, Packet pkt) {
     auto slotframeStart = getSlotframeStart();
 
     // NOTE: call resetMAC to clear the status of all the MAC components after resync
@@ -239,6 +363,9 @@ void DynamicTimesyncDownlink::resyncMAC() {
 }
 
 void DynamicTimesyncDownlink::desyncMAC() {
+#ifdef CRYPTO
+    ctx.getKeyManager()->desync();
+#endif
     ctx.getUplink()->desync();
     ctx.getScheduleDistribution()->desync();
     ctx.getDataPhase()->desync();
