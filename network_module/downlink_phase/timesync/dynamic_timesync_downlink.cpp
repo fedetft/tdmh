@@ -112,9 +112,16 @@ void DynamicTimesyncDownlink::periodicSync() {
              * Here we getMasterIndex again because it is possible that is was
              * changed by attempAdvance() or advanceResync().
              */
-            gcm.setIV(ctx.getCurrentTile(getSlotframeStart()), 1,
-                    ctx.getKeyManager()->getMasterIndex());
+            unsigned int tile = ctx.getCurrentTile(getSlotframeStart());
+            unsigned long long seqNo = 1;
+            unsigned int mI = ctx.getKeyManager()->getMasterIndex();
+            if (ENABLE_CRYPTO_TIMESYNC_DBG)
+                print_dbg("[T] Verifying timesync: tile=%d, seqNo=%d, mI=%d\n",
+                          tile, seqNo, mI);
+            gcm.setIV(tile, seqNo, mI);
             verified = pkt.verify(gcm);
+            if(ENABLE_CRYPTO_TIMESYNC_DBG)
+                if(!verified) print_dbg("[T] periodicSync: verify failed!\n");
             pkt[2] = hop;
         }
 
@@ -220,8 +227,15 @@ void DynamicTimesyncDownlink::resyncTime() {
          * The same logic applies to the value of masterIndex.
          * Sequence number is always set to 1 in timesync messages.
          */
-        gcm.setIV(ctx.getCurrentTile(getSlotframeStart()), 1, mI);
+        unsigned int tile = ctx.getCurrentTile(getSlotframeStart());
+        unsigned long long seqNo = 1;
+        if (ENABLE_CRYPTO_TIMESYNC_DBG)
+            print_dbg("[T] Verifying timesync: tile=%d, seqNo=%d, mI=%d\n",
+                      tile, seqNo, mI);
+        gcm.setIV(tile, seqNo, mI);
         verified = pkt.verify(gcm);
+        if(ENABLE_CRYPTO_TIMESYNC_DBG)
+            if(!verified) print_dbg("[T] resyncTime: verify failed!\n");
         pkt[2] = hop;
     }
     if(indexValid && verified) {

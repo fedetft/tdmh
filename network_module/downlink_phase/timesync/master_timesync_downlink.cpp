@@ -66,8 +66,13 @@ void MasterTimesyncDownlink::execute(long long slotStart)
     if (ctx.getNetworkConfig().getAuthenticateControlMessages()) {
         packet.reserveTag();
         AesGcm& gcm = ctx.getKeyManager()->getTimesyncGCM();
+        unsigned int tile = ctx.getCurrentTile(slotStart);
         /* Sequence number is always set to 1 in timesync messages.  */
-        gcm.setIV(ctx.getCurrentTile(slotStart), 1, ctx.getKeyManager()->getMasterIndex());
+        unsigned long long seqNo = 1;
+        unsigned int mI = ctx.getKeyManager()->getMasterIndex();
+        if (ENABLE_CRYPTO_TIMESYNC_DBG)
+            print_dbg("[T] Authenticating timesync: tile=%d, seqNo=%d, mI=%d\n", tile, seqNo, mI);
+        gcm.setIV(tile, seqNo, mI);
         packet.putTag(gcm);
     }
 #endif
