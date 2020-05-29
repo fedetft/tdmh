@@ -18,7 +18,7 @@ void DynamicKeyManager::startRekeying() {
         nextMasterIndex = masterIndex + 1;
         status = REKEYING;
     } else {
-        printf("DynamicKeyManager: unexpected call to startRekeying");
+        printf("DynamicKeyManager: unexpected call to startRekeying\n");
         assert(false);
     }
 
@@ -181,8 +181,7 @@ void DynamicKeyManager::commitAdvance() {
 
 void DynamicKeyManager::rollbackAdvance() {
     if (status != ADVANCING) return;
-    // rollback to the values of masterKey and masterIndex: no other action needed
-    // except for state change
+    // rollback to the values of masterKey and masterIndex 
     status = CONNECTED;
 
     /* restore last valid timesync key */
