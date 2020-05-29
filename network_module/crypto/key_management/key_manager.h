@@ -16,7 +16,10 @@ enum KeyManagerStatus {
 class KeyManager {
 public:
     KeyManager() = delete;
-    KeyManager(KeyManagerStatus status) { this->status = status; }
+    explicit KeyManager(KeyManagerStatus status) {
+        this->status = status;
+        loadMasterKey();
+    }
 
     virtual ~KeyManager() {}
 
@@ -93,7 +96,7 @@ public:
     virtual void desync() {}
 protected:
 
-    KeyManagerStatus status = DISCONNECTED;
+    KeyManagerStatus status;
 
     unsigned int masterIndex;
     unsigned int nextMasterIndex;
