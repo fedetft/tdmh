@@ -65,8 +65,8 @@ void* DynamicKeyManager::getMasterKey() {
 
 void* DynamicKeyManager::getNextMasterKey() {
     switch (status) {
-        case KeyManagerStatus::REKEYING_UNTRUSTED: return tempMasterKey;
-        case KeyManagerStatus::REKEYING: return masterKey;
+        case KeyManagerStatus::REKEYING_UNTRUSTED: return nextMasterKey;
+        case KeyManagerStatus::REKEYING: return nextMasterKey;
         default: {
             printf("DynamicKeyManager: unexpected call to getNextMasterKey\n");
             assert(false);
