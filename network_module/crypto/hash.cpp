@@ -16,8 +16,8 @@ void MPHash::digestBlock(void *hash, const void *data) {
 void SingleBlockMPHash::digestBlock(void *hash, const void *data) {
     unsigned char buffer[16];
     aes.ecbEncrypt(buffer, data);
-    xorBytes(hash, iv, buffer, 16);
-    xorBytes(hash, hash, data, 16);
+    xorBytes(buffer, iv, buffer, 16);
+    xorBytes(hash, buffer, data, 16);
     memset(buffer, 0, 16);
 }
 } // namespace mxnet
