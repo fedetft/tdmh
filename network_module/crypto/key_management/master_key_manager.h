@@ -4,9 +4,7 @@
 namespace mxnet {
 class MasterKeyManager : public KeyManager {
 public:
-    MasterKeyManager() : KeyManager(KeyManagerStatus::CONNECTED) {
-        loadMasterKey();
-    }
+    MasterKeyManager() : KeyManager(KeyManagerStatus::CONNECTED) {}
 
     /**
      * Compute next value for master key, without applying it yet.

@@ -5,9 +5,7 @@ namespace mxnet {
 
 class DynamicKeyManager : public KeyManager {
 public:
-    DynamicKeyManager() : KeyManager(KeyManagerStatus::DISCONNECTED) {
-        loadMasterKey();
-    }
+    DynamicKeyManager() : KeyManager(KeyManagerStatus::DISCONNECTED) {}
 
     /**
      * Compute next value for master key, without applying it yet.
