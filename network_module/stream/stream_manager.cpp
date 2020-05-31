@@ -527,7 +527,6 @@ std::pair<int,REF_PTR_STREAM> StreamManager::addStream(StreamInfo streamInfo) {
         unsigned char streamIdBlock[16] = {0};
         unsigned char key[16];
         memcpy(streamIdBlock, &streamId, sizeof(StreamId));
-        secondBlockStreamHash.reset();
         secondBlockStreamHash.digestBlock(key, streamIdBlock);
         stream = REF_PTR_STREAM (new Stream(config, fd, streamInfo, key));
     } else {
@@ -703,7 +702,6 @@ void StreamManager::continueRekeying() {
                     unsigned char streamIdBlock[16] = {0};
                     unsigned char newKey[16];
                     memcpy(streamIdBlock, &id, sizeof(StreamId));
-                    secondBlockStreamHash_next.reset();
                     secondBlockStreamHash_next.digestBlock(newKey, streamIdBlock);
 
                     REF_PTR_STREAM stream = it->second;
@@ -734,7 +732,6 @@ void StreamManager::applyRekeying() {
                 unsigned char streamIdBlock[16] = {0};
                 unsigned char newKey[16];
                 memcpy(streamIdBlock, &id, sizeof(StreamId));
-                secondBlockStreamHash_next.reset();
                 secondBlockStreamHash_next.digestBlock(newKey, streamIdBlock);
 
                 REF_PTR_STREAM stream = it->second;
