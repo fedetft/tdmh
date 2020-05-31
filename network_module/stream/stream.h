@@ -207,12 +207,20 @@ public:
         memcpy(newKey, key, 16);
         gcm.rekey(newKey);
     }
-#endif
-    Stream(const NetworkConfiguration& config,
-           int fd, StreamInfo info) : Endpoint(config, fd, info),
-                                      panId(config.getPanId()), authData(false) {
+
+    Stream(const NetworkConfiguration& config, int fd, StreamInfo info) :
+            Endpoint(config, fd, info), panId(config.getPanId()),
+            authData(config.getAuthenticateDataMessages()) 
+    {
         updateRedundancy();
     }
+#else
+    Stream(const NetworkConfiguration& config, int fd, StreamInfo info) :
+            Endpoint(config, fd, info), panId(config.getPanId())
+    {
+        updateRedundancy();
+    }
+#endif
 
     // Called by StreamManager after creation,
     // used to send CONNECT SME and wait for addedStream()
@@ -312,11 +320,11 @@ private:
     Packet rxPacketShared;
     Packet nextTxPacket;
 
-    const bool authData;
 
     unsigned long long seqNo = 1;
 
 #ifdef CRYPTO
+    const bool authData;
     unsigned char newKey[16] = {0};
     AesGcm gcm;
 #endif
