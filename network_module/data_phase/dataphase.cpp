@@ -118,17 +118,23 @@ void DataPhase::sendFromStream(long long slotStart, StreamId id) {
 
 #ifdef CRYPTO
     if (config.getAuthenticateDataMessages()) {
-        AesGcm& gcm = stream.getStreamGCM(id);
         unsigned int seqNo = stream.getSequenceNumber(id);
-        if (ENABLE_CRYPTO_DATA_DBG)
-            print_dbg("[D] sendFromStream: FrameNumber = %d, seqNo = %d, mIndex = %d\n",
-                      dataSuperframeNumber, seqNo, ctx.getKeyManager()->getMasterIndex());
-        gcm.setIV(dataSuperframeNumber, seqNo, ctx.getKeyManager()->getMasterIndex());
-
+        /**
+         * NOTE: sendPacket must be called after getSequenceNumber, because
+         * sendPacket advances the sequence numbers too.
+         */
         pktReady = stream.sendPacket(id, pkt);
+        if (pktReady) {
+            AesGcm& gcm = stream.getStreamGCM(id);
 
-        if(config.getEncryptDataMessages()) pkt.encryptAndPutTag(gcm);
-        else pkt.putTag(gcm);
+            if (ENABLE_CRYPTO_DATA_DBG)
+                print_dbg("[D] sendFromStream: FrameNumber = %d, seqNo = %d, mIndex = %d\n",
+                          dataSuperframeNumber, seqNo, ctx.getKeyManager()->getMasterIndex());
+            gcm.setIV(dataSuperframeNumber, seqNo, ctx.getKeyManager()->getMasterIndex());
+
+            if (config.getEncryptDataMessages()) pkt.encryptAndPutTag(gcm);
+            else pkt.putTag(gcm);
+        }
     } else {
         pktReady = stream.sendPacket(id, pkt);
     }
@@ -159,31 +165,31 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
     auto rcvResult = pkt.recv(ctx, slotStart);
     ctx.transceiverIdle();
 
-#ifdef CRYPTO
-    if (config.getAuthenticateDataMessages()) {
-        AesGcm& gcm = stream.getStreamGCM(id);
-        if (ENABLE_CRYPTO_DATA_DBG)
-            print_dbg("[D] receiveToStream: FrameNumber = %d, seqNo = %d, mIndex = %d\n",
-                      dataSuperframeNumber, stream.getSequenceNumber(id),
-                      ctx.getKeyManager()->getMasterIndex());
-        gcm.setIV(dataSuperframeNumber, stream.getSequenceNumber(id),
-                  ctx.getKeyManager()->getMasterIndex());
-        bool valid;
-        if (config.getEncryptDataMessages()) valid = pkt.verifyAndDecrypt(gcm);
-        else valid = pkt.verify(gcm);
-
-        // make sure to miss invalid packets: empty packet will fail panHeader check
-        if (!valid) {
-            if (ENABLE_CRYPTO_DATA_DBG) print_dbg("[D] receiveToStream: verify failed\n");
-            pkt.clear();
-        }
-    }
-#endif
-
     bool periodEnd = false;
-    if(rcvResult.error == RecvResult::ErrorCode::OK &&
-       pkt.checkPanHeader(panId) == true &&
-       checkStreamId(pkt, id) == true) {
+    bool valid = true;
+    if(rcvResult.error == RecvResult::ErrorCode::OK && pkt.checkPanHeader(panId) == true) {
+#ifdef CRYPTO
+        if (config.getAuthenticateDataMessages()) {
+            AesGcm& gcm = stream.getStreamGCM(id);
+            if (ENABLE_CRYPTO_DATA_DBG)
+                print_dbg("[D] receiveToStream: FrameNumber = %d, seqNo = %d, mIndex = %d\n",
+                          dataSuperframeNumber, stream.getSequenceNumber(id),
+                          ctx.getKeyManager()->getMasterIndex());
+            gcm.setIV(dataSuperframeNumber, stream.getSequenceNumber(id),
+                      ctx.getKeyManager()->getMasterIndex());
+            if (config.getEncryptDataMessages()) valid &= pkt.verifyAndDecrypt(gcm);
+            else valid &= pkt.verify(gcm);
+
+            if (ENABLE_CRYPTO_DATA_DBG)
+                if (!valid) print_dbg("[D] receiveToStream: verify failed\n");
+        }
+#endif
+        valid &= checkStreamId(pkt, id);
+    } else {
+        valid = false;
+    }
+
+    if (valid) {
         periodEnd = stream.receivePacket(id, pkt);
         if(ENABLE_DATA_INFO_DBG) {
             auto nt = NetworkTime::fromLocalTime(slotStart);
@@ -192,9 +198,8 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
             else
                 print_dbg("[D] r (%d,%d) NT=%lld\n", id.src, id.dst, nt.get());
         }
-    }
-    // Avoid overwriting valid data
-    else {
+    } else {
+        // Avoid overwriting valid data
         periodEnd = stream.missPacket(id);
         if(ENABLE_DATA_ERROR_DBG) {
             auto nt = NetworkTime::fromLocalTime(slotStart);
