@@ -251,7 +251,7 @@ private:
                 0x73, 0x54, 0x72, 0x45, 0x61, 0x4d, 0x6d, 0x41,
                 0x6e, 0x61, 0x47, 0x65, 0x72, 0x49, 0x76, 0x30
         };
-    MPHash firstBlockStreamHash = MPHash(streamKeyRotationIv);
+    SingleBlockMPHash firstBlockStreamHash = SingleBlockMPHash(streamKeyRotationIv);
     /**
      * Stream keys are derived from the master key as: 
      *      Hash(masterKey||streamId)
@@ -264,8 +264,8 @@ private:
      * used to digest the second part of the data, ie: the streamId.
      * When rekeying, the next value for this IV is also precomputed and applied.
      * */
-    MPHash secondBlockStreamHash;
-    MPHash secondBlockStreamHash_next;
+    SingleBlockMPHash secondBlockStreamHash;
+    SingleBlockMPHash secondBlockStreamHash_next;
     unsigned char nextIv[16] = {0};
 
     bool rekeyingInProgress = false;
