@@ -660,6 +660,7 @@ AesGcm& StreamManager::getStreamGCM(StreamId id) {
     auto it = streams.find(id);
     if(it == streams.end()) {
         printf("BUG: Stream not present in StreamManager!\n");
+        return emptyGCM;
     }
     stream = it->second;
     return it->second->getGCM();
