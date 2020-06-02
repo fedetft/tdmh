@@ -281,6 +281,10 @@ private:
      * to be rekeyed.
      * */
     std::queue<StreamId> rekeyingSnapshot;
+
+    /* Return this GCM to dataphase for safety in case dataphase asks for the GCM
+     * of a stream that does not exist */
+    AesGcm emptyGCM;
 #endif
 
     /* Thread synchronization */
