@@ -37,7 +37,7 @@ namespace mxnet {
 DynamicMACContext::DynamicMACContext(const MediumAccessController& mac, miosix::Transceiver& transceiver, const NetworkConfiguration& config) :
     MACContext(mac, transceiver, config) {
 #ifdef CRYPTO
-    keyMgr = new DynamicKeyManager();
+    keyMgr = new DynamicKeyManager(*getStreamManager());
 #endif
     timesync = new DynamicTimesyncDownlink(*this);
     data = new DataPhase(*this, *getStreamManager());

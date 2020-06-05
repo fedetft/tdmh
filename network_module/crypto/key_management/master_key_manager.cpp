@@ -16,6 +16,12 @@ void MasterKeyManager::startRekeying() {
     uplinkHash.digestBlock(nextUplinkKey, nextMasterKey);
     downlinkHash.digestBlock(nextDownlinkKey, nextMasterKey);
     timesyncHash.digestBlock(nextTimesyncKey, nextMasterKey);
+
+    /* Also prepare the stream manager for rekeying */
+    unsigned char nextIv[16];
+    firstBlockStreamHash.digestBlock(nextIv, nextMasterKey);
+    streamMgr.setSecondBlockHash(nextIv);
+    memset(nextIv, 0, 16);
 }
 
 void MasterKeyManager::applyRekeying() {

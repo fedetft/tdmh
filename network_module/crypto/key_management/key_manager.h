@@ -1,6 +1,7 @@
 #pragma once
 #include "../aes_gcm.h"
 #include "../hash.h"
+#include "../../stream/stream_manager.h"
 
 namespace mxnet {
 
@@ -16,7 +17,8 @@ enum KeyManagerStatus {
 class KeyManager {
 public:
     KeyManager() = delete;
-    explicit KeyManager(KeyManagerStatus status) {
+    explicit KeyManager(StreamManager& streamMgr, KeyManagerStatus status) :
+                                                        streamMgr(streamMgr) {
         this->status = status;
         loadMasterKey();
     }
@@ -96,6 +98,8 @@ public:
     virtual void desync() {}
 protected:
 
+    StreamManager& streamMgr;
+
     KeyManagerStatus status;
 
     unsigned int masterIndex;
@@ -171,6 +175,16 @@ protected:
         };
     SingleBlockMPHash uplinkHash = SingleBlockMPHash(uplinkDerivationIv);
     AesGcm uplinkGCM;
+    /**
+     * IV for the Miyaguchi-Preneel Hash used for deriving stream keys from
+     * master key.
+     * Value for this constant is arbitrary and is NOT secret.
+     */
+    const unsigned char streamKeyRotationIv[16] = {
+                0x73, 0x54, 0x72, 0x45, 0x61, 0x4d, 0x6d, 0x41,
+                0x6e, 0x61, 0x47, 0x65, 0x72, 0x49, 0x76, 0x30
+        };
+    SingleBlockMPHash firstBlockStreamHash = SingleBlockMPHash(streamKeyRotationIv);
 
 
 };

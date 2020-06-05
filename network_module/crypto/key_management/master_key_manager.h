@@ -1,10 +1,12 @@
 #pragma once
 #include "key_manager.h"
+#include "../../stream/stream_manager.h"
 
 namespace mxnet {
 class MasterKeyManager : public KeyManager {
 public:
-    MasterKeyManager() : KeyManager(KeyManagerStatus::CONNECTED) {}
+    MasterKeyManager(StreamManager& streamMgr) :
+        KeyManager(streamMgr, KeyManagerStatus::CONNECTED) {}
 
     /**
      * Compute next value for master key, without applying it yet.

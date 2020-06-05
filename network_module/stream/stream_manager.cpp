@@ -380,7 +380,9 @@ void StreamManager::setSchedule(const std::vector<ScheduleElement>& schedule) {
      * the schedule is applied and their keys will never be applied.
      * 
      */
-    //doStartRekeying();
+    if (config.getAuthenticateDataMessages()) {
+        doStartRekeying();
+    }
 #endif
 }
 
@@ -561,14 +563,14 @@ AesGcm& StreamManager::getStreamGCM(StreamId id) {
     return it->second->getGCM();
 }
 
-void StreamManager::startRekeying(const void* masterKey) {
+void StreamManager::startRekeying() {
     if (config.getAuthenticateDataMessages()) {
 #ifdef _MIOSIX
         miosix::Lock<miosix::FastMutex> lck(map_mutex);
 #else
         std::unique_lock<std::mutex> lck(map_mutex);
 #endif
-        doStartRekeying(masterKey);
+        doStartRekeying();
     }
 }
 
@@ -724,12 +726,8 @@ void StreamManager::printServerStatus(StreamId id, StreamStatus status) {
 }
 
 #ifdef CRYPTO
-void StreamManager::doStartRekeying(const void* masterKey) {
+void StreamManager::doStartRekeying() {
     rekeyingInProgress = true;
-
-    firstBlockStreamHash.digestBlock(nextIv, masterKey);
-    secondBlockStreamHash_next.setIv(nextIv);
-
     rekeyingSnapshot = nextScheduleStreams;
 }
 
@@ -745,7 +743,7 @@ void StreamManager::doContinueRekeying() {
             unsigned char streamIdBlock[16] = {0};
             unsigned char newKey[16];
             memcpy(streamIdBlock, &id, sizeof(StreamId));
-            secondBlockStreamHash_next.digestBlock(newKey, streamIdBlock);
+            secondBlockStreamHash.digestBlock(newKey, streamIdBlock);
 
             REF_PTR_STREAM stream = it->second;
             it->second->setNewKey(newKey);
@@ -767,7 +765,7 @@ void StreamManager::doApplyRekeying() {
             unsigned char streamIdBlock[16] = {0};
             unsigned char newKey[16];
             memcpy(streamIdBlock, &id, sizeof(StreamId));
-            secondBlockStreamHash_next.digestBlock(newKey, streamIdBlock);
+            secondBlockStreamHash.digestBlock(newKey, streamIdBlock);
 
             REF_PTR_STREAM stream = it->second;
             it->second->setNewKey(newKey);
@@ -778,7 +776,6 @@ void StreamManager::doApplyRekeying() {
         REF_PTR_STREAM stream = s.second;
         s.second->applyNewKey();
     }
-    secondBlockStreamHash.setIv(nextIv);
     rekeyingInProgress = false;
 }
 #endif // #ifdef CRYPTO

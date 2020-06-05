@@ -17,6 +17,12 @@ void DynamicKeyManager::startRekeying() {
         masterHash.digestBlock(nextMasterKey, masterKey);
         nextMasterIndex = masterIndex + 1;
         status = REKEYING;
+
+        /* Also prepare the stream manager for rekeying */
+        unsigned char nextIv[16];
+        firstBlockStreamHash.digestBlock(nextIv, nextMasterKey);
+        streamMgr.setSecondBlockHash(nextIv);
+        memset(nextIv, 0, 16);
     } else {
         printf("DynamicKeyManager: unexpected call to startRekeying\n");
         assert(false);
