@@ -136,10 +136,13 @@ public:
     // Return true if we have data to send
     bool sendPacket(StreamId id, Packet& data);
 
-    // Used by the DataPhase to apply a received schedule
+    // Used by ScheduleDistribution to prepare for schedule application
+    void setSchedule(const std::vector<ScheduleElement>& schedule);
+
+    // Used by ScheduleDistribution to apply a received schedule
     void applySchedule(const std::vector<ScheduleElement>& schedule);
 
-    // Used by the DataPhase to apply received info elements
+    // Used by ScheduleDistribution to apply received info elements
     void applyInfoElements(const std::vector<InfoElement>& infos);
 
     // Used by DynamicUplinkPhase, gets SMEs to send on the network
@@ -242,7 +245,33 @@ private:
     /* UpdatableQueue of SME to send to the network to reach the master node */
     UpdatableQueue<SMEKey, StreamManagementElement> smeQueue;
 
+    /**
+     * Set of streams present in the last schedule but not in the next one. These
+     * streams will be removed from the map when the next schedule is applied.
+     */
+    std::vector<StreamId> streamsToRemove;
+    /**
+     * Set of streams present in the schedule that is currently being applied. A copy
+     * of this structure is taken when starting rekeying, in order to rekey only the
+     * streams that don't need to be deleted. This is not only a matter of avoiding
+     * unnecessary computations, but also needed to comply to real time constraints.
+     * The schedule activation tile is computed by reserving a number of downlink tiles
+     * for schedule distribution and rekeying, and this number is sized on the maximum
+     * number of streams a node will need to rekey. Therefore, if many streams are rekeyed
+     * that were present in the previous schedule but not in the next one, therefore not
+     * accounted for when the activation tile was decided, the time necessary to compute
+     * all keys will exceed the given time, resulting in real time contraint violations.
+     */
+    std::queue<StreamId> nextScheduleStreams;
+
 #ifdef CRYPTO
+
+    void doStartRekeying(const void* masterKey);
+
+    void doContinueRekeying();
+
+    void doApplyRekeying();
+
     /**
      * IV for the Miyaguchi-Preneel Hash used for deriving stream keys from master key.
      * Value for this constant is arbitrary and is NOT secret.

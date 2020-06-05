@@ -140,6 +140,7 @@ void ScheduleDownlinkPhase::applySchedule(long long slotStart)
                              header.getActivationTile(), currentTile);
     
     // Apply schedule to StreamManager
+    streamMgr->setSchedule(schedule);
     streamMgr->applySchedule(schedule);
     
     //NOTE: after we apply the schedule, we need to leave the time for connect() to return

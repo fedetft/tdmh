@@ -309,42 +309,40 @@ bool StreamManager::sendPacket(StreamId id, Packet& data) {
     return stream->sendPacket(data);
 }
 
-void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) {
-    // Lock map_mutex to access the shared Stream/Server map
+void StreamManager::setSchedule(const std::vector<ScheduleElement>& schedule) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::FastMutex> lck(map_mutex);
 #else
     std::unique_lock<std::mutex> lck(map_mutex);
 #endif
-    // Create vector containing StreamId of all streams in map
-    // We will remove from this vector the streams present in the schedule,
-    // To get the remaining streams present in map but not in schedule.
-    std::vector<StreamId> removedStreams;
+    /**
+     * Start computing the vector of old streams that will be removed at
+     * schedule application.
+     */
+    streamsToRemove.clear();
     for (auto it=streams.begin(); it!=streams.end(); ++it)
-        removedStreams.push_back(it->first);
+        streamsToRemove.push_back(it->first);
 
-    // Iterate over new schedule
+    nextScheduleStreams = std::queue<StreamId>();
     for(auto& element : schedule) {
         StreamId streamId = element.getStreamId();
+
+        nextScheduleStreams.push(streamId);
+
         // NOTE: Ignore streams of which we are not source or destination 
         if(streamId.src != myId && streamId.dst != myId)
             continue;
         auto streamit = streams.find(streamId);
-        // If stream in schedule is present in map, call addedStream()
         if(streamit != streams.end()) {
-            auto stream = streamit->second;
-            // NOTE: Update stream parameters,
-            // they may have changed after negotiation with server
-            stream->addedStream(element.getParams());
-            stream->resetSequenceNumber();
-            // Remove streamId from removedStreams
-            removedStreams.erase(std::remove(removedStreams.begin(),
-                                             removedStreams.end(),
+            streamsToRemove.erase(std::remove(streamsToRemove.begin(),
+                                             streamsToRemove.end(),
                                              streamit->first),
-                                 removedStreams.end());
-        }
-        // If stream in schedule is not present in map
-        else {
+                                 streamsToRemove.end());
+        } else {
+            /**
+             * Adding streams that were not present in the previous schedule,
+             * which is not being applied yet.
+             */
             StreamParameters params = element.getParams();
             StreamId serverId = streamId.getServerId();
             unsigned char port = serverId.dstPort;
@@ -373,18 +371,65 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
             }
         }
     }
+#ifdef CRYPTO
+    /**
+     * If crypto is on, we start rekeying AFTER adding the new streams from
+     * the received schedule. This way doStartRekeying will compute a 
+     * rekeyingSnapshot containing all old and new streams and will compute
+     * new keys for all of them. Some of these streams will be deleted when
+     * the schedule is applied and their keys will never be applied.
+     * 
+     */
+    //doStartRekeying();
+#endif
+}
+
+void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) {
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+    std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+
+    for(auto& element : schedule) {
+        StreamId streamId = element.getStreamId();
+        // NOTE: Ignore streams of which we are not source or destination 
+        if(streamId.src != myId && streamId.dst != myId)
+            continue;
+        auto streamit = streams.find(streamId);
+        /**
+         * Here we handle streams that were already present in the previous
+         * schedule, but are changing status or parameters.
+         */
+        if(streamit != streams.end()) {
+            auto stream = streamit->second;
+            // NOTE: Update stream parameters,
+            // they may have changed after negotiation with server
+            stream->addedStream(element.getParams());
+            stream->resetSequenceNumber();
+        }
+    }
     // If stream present in map and not in schedule, call removedStream()
-    for(auto& streamId : removedStreams) {
+    for(auto& streamId : streamsToRemove) {
         // If return value is true, we can delete the Stream class
         if(streams[streamId]->removedStream())
             removeStream(streamId);
     }
+    streamsToRemove.clear();
+
     // Reset redundancy counters to avoid errors
     // NOTE: this measure works by assuming that when a new schedule begins
     // all redundancy counters should be set to zero
     for(auto& stream : streams) {
-        stream.second->resetCounters();
+        REF_PTR_STREAM s = stream.second;
+        s->resetCounters();
     }
+
+#ifdef CRYPTO
+    if(config.getAuthenticateDataMessages()) {
+        doApplyRekeying();
+    }
+#endif
 }
 
 void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
@@ -498,6 +543,58 @@ unsigned long long StreamManager::getSequenceNumber(StreamId id) {
     }
 }
 
+#ifdef CRYPTO
+AesGcm& StreamManager::getStreamGCM(StreamId id) {
+    REF_PTR_STREAM stream;
+
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+    std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+    auto it = streams.find(id);
+    if(it == streams.end()) {
+        printf("BUG: Stream not present in StreamManager!\n");
+        return emptyGCM;
+    }
+    stream = it->second;
+    return it->second->getGCM();
+}
+
+void StreamManager::startRekeying(const void* masterKey) {
+    if (config.getAuthenticateDataMessages()) {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        doStartRekeying(masterKey);
+    }
+}
+
+void StreamManager::continueRekeying() {
+    if (config.getAuthenticateDataMessages()) {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        doContinueRekeying();
+    }
+}
+
+void StreamManager::applyRekeying() {
+    if (config.getAuthenticateDataMessages()) {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
+        doApplyRekeying();
+    }
+}
+#endif //ifdef CRYPTO
+
 int StreamManager::allocateClientPort() {
     for(unsigned int i = 0; i < maxPorts; i++) {
         if(clientPorts[i] == false) {
@@ -518,33 +615,11 @@ void StreamManager::freeClientPort(unsigned char port) {
 
 std::pair<int,REF_PTR_STREAM> StreamManager::addStream(StreamInfo streamInfo) {
     int fd = fdcounter++;
-    REF_PTR_STREAM stream;
+    REF_PTR_STREAM stream = REF_PTR_STREAM (new Stream(config, fd, streamInfo)); 
     StreamId streamId = streamInfo.getStreamId();
-
-#ifdef CRYPTO
-    if (config.getAuthenticateDataMessages()) {
-        /* Compute stream Key */
-        unsigned char streamIdBlock[16] = {0};
-        unsigned char key[16];
-        memcpy(streamIdBlock, &streamId, sizeof(StreamId));
-        secondBlockStreamHash.digestBlock(key, streamIdBlock);
-        stream = REF_PTR_STREAM (new Stream(config, fd, streamInfo, key));
-    } else {
-        stream = REF_PTR_STREAM (new Stream(config, fd, streamInfo));
-    }
-
-#else // #ifdef CRYPTO
-    stream = REF_PTR_STREAM (new Stream(config, fd, streamInfo));;
-#endif // #ifdef CRYPTO
 
     streams[streamId] = stream;
     fdt[fd] = stream;
-
-#ifdef CRYPTO
-    if(config.getAuthenticateDataMessages() && rekeyingInProgress) {
-        rekeyingSnapshot.push(streamId);
-    }
-#endif
 
     return std::make_pair(fd,stream);
 }
@@ -649,104 +724,62 @@ void StreamManager::printServerStatus(StreamId id, StreamStatus status) {
 }
 
 #ifdef CRYPTO
-AesGcm& StreamManager::getStreamGCM(StreamId id) {
-    REF_PTR_STREAM stream;
+void StreamManager::doStartRekeying(const void* masterKey) {
+    rekeyingInProgress = true;
 
-#ifdef _MIOSIX
-    miosix::Lock<miosix::FastMutex> lck(map_mutex);
-#else
-    std::unique_lock<std::mutex> lck(map_mutex);
-#endif
-    auto it = streams.find(id);
-    if(it == streams.end()) {
-        printf("BUG: Stream not present in StreamManager!\n");
-        return emptyGCM;
-    }
-    stream = it->second;
-    return it->second->getGCM();
+    firstBlockStreamHash.digestBlock(nextIv, masterKey);
+    secondBlockStreamHash_next.setIv(nextIv);
+
+    rekeyingSnapshot = nextScheduleStreams;
 }
 
-void StreamManager::startRekeying(const void* masterKey) {
-    if (config.getAuthenticateDataMessages()) {
-#ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
-#else
-        std::unique_lock<std::mutex> lck(map_mutex);
-#endif
-        rekeyingInProgress = true;
+void StreamManager::doContinueRekeying() {
+    unsigned i=0;
+    while (i < maxHashesPerSlot && !rekeyingSnapshot.empty()) {
+        // take one from snapshot, rekey it, add it to done, remove from snapshot
+        StreamId id = rekeyingSnapshot.front();
+        rekeyingSnapshot.pop();
+        /* precompute rekeying for this stream */
+        auto it = streams.find(id);
+        if (it != streams.end()) {
+            unsigned char streamIdBlock[16] = {0};
+            unsigned char newKey[16];
+            memcpy(streamIdBlock, &id, sizeof(StreamId));
+            secondBlockStreamHash_next.digestBlock(newKey, streamIdBlock);
 
-        firstBlockStreamHash.digestBlock(nextIv, masterKey);
-        secondBlockStreamHash_next.setIv(nextIv);
-
-        for (auto& s: streams) {
-            rekeyingSnapshot.push(s.first);
+            REF_PTR_STREAM stream = it->second;
+            it->second->setNewKey(newKey);
+            i++; 
         }
     }
 }
 
-void StreamManager::continueRekeying() {
-    if (config.getAuthenticateDataMessages()) {
-        unsigned i=0;
-        while (i < maxHashesPerSlot && !rekeyingSnapshot.empty()) {
-            // take one from snapshot, rekey it, add it to done, remove from snapshot
-            StreamId id = rekeyingSnapshot.front();
-            rekeyingSnapshot.pop();
-            {
-#ifdef _MIOSIX
-                miosix::Lock<miosix::FastMutex> lck(map_mutex);
-#else
-                std::unique_lock<std::mutex> lck(map_mutex);
-#endif
-                /* precompute rekeying for this stream */
-                auto it = streams.find(id);
-                if (it != streams.end()) {
-                    unsigned char streamIdBlock[16] = {0};
-                    unsigned char newKey[16];
-                    memcpy(streamIdBlock, &id, sizeof(StreamId));
-                    secondBlockStreamHash_next.digestBlock(newKey, streamIdBlock);
+void StreamManager::doApplyRekeying() {
+    /* keep rekeying one last time, in case applications have added new streams
+     * that are still in need to be rekeyed */
+    while (!rekeyingSnapshot.empty()) {
+        // take one from snapshot, rekey it, add it to done, remove from snapshot
+        StreamId id = rekeyingSnapshot.front();
+        rekeyingSnapshot.pop();
+        /* precompute rekeying for this stream */
+        auto it = streams.find(id);
+        if (it != streams.end()) {
+            unsigned char streamIdBlock[16] = {0};
+            unsigned char newKey[16];
+            memcpy(streamIdBlock, &id, sizeof(StreamId));
+            secondBlockStreamHash_next.digestBlock(newKey, streamIdBlock);
 
-                    REF_PTR_STREAM stream = it->second;
-                    it->second->setNewKey(newKey);
-                    i++; 
-                }
-            }
+            REF_PTR_STREAM stream = it->second;
+            it->second->setNewKey(newKey);
         }
     }
-}
-
-void StreamManager::applyRekeying() {
-    if (config.getAuthenticateDataMessages()) {
-#ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
-#else
-        std::unique_lock<std::mutex> lck(map_mutex);
-#endif
-        /* keep rekeying one last time, in case applications have added new streams
-         * that are still in need to be rekeyed */
-        while (!rekeyingSnapshot.empty()) {
-            // take one from snapshot, rekey it, add it to done, remove from snapshot
-            StreamId id = rekeyingSnapshot.front();
-            rekeyingSnapshot.pop();
-            /* precompute rekeying for this stream */
-            auto it = streams.find(id);
-            if (it != streams.end()) {
-                unsigned char streamIdBlock[16] = {0};
-                unsigned char newKey[16];
-                memcpy(streamIdBlock, &id, sizeof(StreamId));
-                secondBlockStreamHash_next.digestBlock(newKey, streamIdBlock);
-
-                REF_PTR_STREAM stream = it->second;
-                it->second->setNewKey(newKey);
-            }
-        }
-        /* at this point, all streams have had their new key computed and set */
-        for (auto& s: streams) {
-            REF_PTR_STREAM stream = s.second;
-            s.second->applyNewKey();
-        }
-        secondBlockStreamHash.setIv(nextIv);
-        rekeyingInProgress = false;
+    /* at this point, all streams have had their new key computed and set */
+    for (auto& s: streams) {
+        REF_PTR_STREAM stream = s.second;
+        s.second->applyNewKey();
     }
+    secondBlockStreamHash.setIv(nextIv);
+    rekeyingInProgress = false;
 }
 #endif // #ifdef CRYPTO
 
