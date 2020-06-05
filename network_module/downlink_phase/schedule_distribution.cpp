@@ -139,9 +139,15 @@ void ScheduleDownlinkPhase::applySchedule(long long slotStart)
                              schId, header.getScheduleTiles(),
                              header.getActivationTile(), currentTile);
     
+#ifdef CRYPTO
+    startRekeying();
+#endif
     // Apply schedule to StreamManager
     streamMgr->setSchedule(schedule);
     streamMgr->applySchedule(schedule);
+#ifdef CRYPTO
+    applyRekeying();
+#endif
     
     //NOTE: after we apply the schedule, we need to leave the time for connect() to return
     //in applications, and for them to call write(), otherwise the first transmission

@@ -43,7 +43,7 @@ MasterMACContext::MasterMACContext(const MediumAccessController& mac, miosix::Tr
         this->getDataSlotsInUplinkTileCount())
 {
 #ifdef CRYPTO
-    keyMgr = new MasterKeyManager();
+    keyMgr = new MasterKeyManager(*getStreamManager());
 #endif
     timesync = new MasterTimesyncDownlink(*this);
     uplink = new MasterUplinkPhase(*this, getStreamManager(), scheduleComputation);

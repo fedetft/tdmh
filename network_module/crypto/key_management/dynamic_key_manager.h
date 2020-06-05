@@ -1,11 +1,13 @@
 #pragma once
 #include "key_manager.h"
+#include "../../stream/stream_manager.h"
 
 namespace mxnet {
 
 class DynamicKeyManager : public KeyManager {
 public:
-    DynamicKeyManager() : KeyManager(KeyManagerStatus::DISCONNECTED) {}
+    DynamicKeyManager(StreamManager& streamMgr) :
+        KeyManager(streamMgr, KeyManagerStatus::DISCONNECTED) {}
 
     /**
      * Compute next value for master key, without applying it yet.

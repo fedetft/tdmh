@@ -295,7 +295,6 @@ public:
 
     virtual void startRekeying() {
         keyMgr->startRekeying();
-        streamMgr.startRekeying(keyMgr->getNextMasterKey());
     }
 
     virtual void continueRekeying() {
@@ -304,7 +303,6 @@ public:
 
     virtual void applyRekeying() {
         keyMgr->applyRekeying();
-        streamMgr.applyRekeying();
     }
 #endif
 
