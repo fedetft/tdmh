@@ -218,6 +218,17 @@ public:
      */
     void applyRekeying();
 
+    /**
+     * Called by KeyManager when connecting, to inform the StreamManager that no streams
+     * or servers should be opened or accepted.
+     */
+    void untrustMaster() { masterTrusted = false; }
+
+    /**
+     * Called by KeyManager when connecting, to inform the StreamManager that streams
+     * and servers can now be opened and accepted.
+     */
+    void trustMaster() { masterTrusted = true; }
 #endif
 
 private:
@@ -304,6 +315,8 @@ private:
      * all keys will exceed the given time, resulting in real time contraint violations.
      */
     std::queue<StreamId> nextScheduleStreams;
+
+    bool masterTrusted = true;
 
 #ifdef CRYPTO
 

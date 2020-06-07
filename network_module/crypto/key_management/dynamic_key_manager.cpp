@@ -102,6 +102,7 @@ bool DynamicKeyManager::attemptResync(unsigned int newIndex) {
     }
     tempMasterIndex = newIndex;
     status = MASTER_UNTRUSTED;
+    streamMgr.untrustMaster();
 
     uplinkHash.digestBlock(uplinkKey, tempMasterKey);
     downlinkHash.digestBlock(downlinkKey, tempMasterKey);
@@ -134,17 +135,20 @@ void DynamicKeyManager::advanceResync() {
 
 void DynamicKeyManager::rollbackResync() {
     status = DISCONNECTED;
+    streamMgr.untrustMaster();
 }
 
 void DynamicKeyManager::commitResync() {
     if (status != MASTER_UNTRUSTED) {
         // error: reset
         status = DISCONNECTED;
+        streamMgr.untrustMaster();
         return;
     }
     memcpy(masterKey, tempMasterKey, 16);
     masterIndex = tempMasterIndex;
     status = CONNECTED;
+    streamMgr.trustMaster();
 }
 
 void DynamicKeyManager::attemptAdvance() {
@@ -197,6 +201,7 @@ void DynamicKeyManager::rollbackAdvance() {
 
 void DynamicKeyManager::desync() {
     status = DISCONNECTED;
+    streamMgr.untrustMaster();
 }
 
 } //namespace mxnet
