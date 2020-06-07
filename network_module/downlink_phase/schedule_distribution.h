@@ -66,20 +66,6 @@ public:
      */
     void resync() override {}
 
-#ifdef CRYPTO
-    void startRekeying() {
-        ctx.startRekeying();
-    }
-
-    void continueRekeying() {
-        ctx.continueRekeying();
-    }
-
-    void applyRekeying() { 
-        ctx.applyRekeying();
-    }
-#endif
-
 protected:
     ScheduleDownlinkPhase(MACContext& ctx) : MACPhase(ctx),
                                              rebroadcastInterval(computeRebroadcastInterval(ctx.getNetworkConfig())),

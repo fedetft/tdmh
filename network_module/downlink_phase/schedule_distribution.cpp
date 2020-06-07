@@ -140,13 +140,13 @@ void ScheduleDownlinkPhase::applySchedule(long long slotStart)
                              header.getActivationTile(), currentTile);
     
 #ifdef CRYPTO
-    startRekeying();
+    ctx.startRekeying();
 #endif
     // Apply schedule to StreamManager
     streamMgr->setSchedule(schedule);
     streamMgr->applySchedule(schedule);
 #ifdef CRYPTO
-    applyRekeying();
+    ctx.applyRekeying();
 #endif
     
     //NOTE: after we apply the schedule, we need to leave the time for connect() to return
