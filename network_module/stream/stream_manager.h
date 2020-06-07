@@ -136,10 +136,24 @@ public:
     // Return true if we have data to send
     bool sendPacket(StreamId id, Packet& data);
 
-    // Used by ScheduleDistribution to prepare for schedule application
+    /**
+     * Used by ScheduleDistribution to prepare for schedule application.
+     * This method is meant to be called with the same schedule as applySchedule.
+     * This method adds new streams that were not present in the previous
+     * schedule, but leaves existing streams untouched. When crypto is on,
+     * it prepares data structures needed for rekeying operations.
+     */
     void setSchedule(const std::vector<ScheduleElement>& schedule);
 
-    // Used by ScheduleDistribution to apply a received schedule
+    /**
+     * Used by ScheduleDistribution to apply a received schedule.
+     * This method is meant to be called with the same schedule as setSchedule.
+     * This method applies changes to existing streams where the new schedule
+     * differs, while also deleting old streams that are no longer present in the
+     * new schedule. When crypto is on, it applies new keys to all streams. Such
+     * keys are meant to be precomputed before applying the schedule, by calling
+     * continueRekeying() the appropriate number of times.
+     */
     void applySchedule(const std::vector<ScheduleElement>& schedule);
 
     // Used by ScheduleDistribution to apply received info elements
@@ -184,14 +198,24 @@ public:
      * The secondBlock is used as IV for a new MPHash object, which will be
      * used to digest the second part of the data, ie: the streamId.
      * */
-    void setSecondBlockHash(const void* nextIV) {
+    void setSecondBlockHash(const unsigned char nextIv[16]) {
         secondBlockStreamHash.setIv(nextIv);
     }
 
+    /**
+     * Called directly by ScheduleDistribution phase when a schedule is resent unchanged.
+     */
     void startRekeying();
 
+    /**
+     * Called directly by ScheduleDistribution phase in downlink tiles reserved for
+     * rekeying.
+     */
     void continueRekeying();
     
+    /**
+     * Called directly by ScheduleDistribution phase when a schedule is resent unchanged.
+     */
     void applyRekeying();
 
 #endif
@@ -303,20 +327,21 @@ private:
      * used to digest the second part of the data, ie: the streamId.
      * */
     SingleBlockMPHash secondBlockStreamHash;
-    unsigned char nextIv[16] = {0};
 
     bool rekeyingInProgress = false;
     // TODO: tweak this value
     const unsigned int maxHashesPerSlot = 5;
-    /* Sets of streams needed for handling cuncurrency between rekeying process
-     * and applications modifying streams map:
-     * At the beginning of the rekeying process, a snapshot of the currently
-     * existing streams is taken. This queue is scanned during rekeying and its
-     * elements are removed from the snapshot.
-     * Because applications can create new streams with connect while rekeying
-     * is in progress, such new streams will be added to the snapshot, waiting
-     * to be rekeyed.
-     * */
+
+    /**
+     * Set of streams that need rekeying. At the beginning of the rekeying process,
+     * the snapshot is taken by copying nextScheduleStreams. If this happens while
+     * setting up a new schedule, such set is computed by setSchedule. If the rekeying
+     * is happening without schedule change, it means the user (ScheduleDistribution)
+     * is calling startRekeying() directly, and the snapshot will be identical to the
+     * one computed when the schedule was first received.
+     * Elements of the snapshot are gradually removed as continueRekeying() is called
+     * to rekey streams. The rekeying process finishes once this queue is empty.
+     */
     std::queue<StreamId> rekeyingSnapshot;
 
     /* Return this GCM to dataphase for safety in case dataphase asks for the GCM
