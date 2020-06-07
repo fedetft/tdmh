@@ -374,10 +374,9 @@ void StreamManager::setSchedule(const std::vector<ScheduleElement>& schedule) {
 #ifdef CRYPTO
     /**
      * If crypto is on, we start rekeying AFTER adding the new streams from
-     * the received schedule. This way doStartRekeying will compute a 
-     * rekeyingSnapshot containing all old and new streams and will compute
-     * new keys for all of them. Some of these streams will be deleted when
-     * the schedule is applied and their keys will never be applied.
+     * the received schedule. This way doStartRekeying will copy the value of
+     * rekeyingSnapshot containing new streams only, and doContinueRekeying
+     * will compute new keys for all of them.
      * 
      */
     if (config.getAuthenticateDataMessages()) {
@@ -408,7 +407,6 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
             // NOTE: Update stream parameters,
             // they may have changed after negotiation with server
             stream->addedStream(element.getParams());
-            stream->resetSequenceNumber();
         }
     }
     // If stream present in map and not in schedule, call removedStream()
@@ -419,12 +417,13 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
     }
     streamsToRemove.clear();
 
-    // Reset redundancy counters to avoid errors
+    // Reset redundancy counters and sequence numbers to avoid errors
     // NOTE: this measure works by assuming that when a new schedule begins
     // all redundancy counters should be set to zero
     for(auto& stream : streams) {
         REF_PTR_STREAM s = stream.second;
         s->resetCounters();
+        s->resetSequenceNumber();
     }
 
 #ifdef CRYPTO
@@ -734,7 +733,6 @@ void StreamManager::doStartRekeying() {
 void StreamManager::doContinueRekeying() {
     unsigned i=0;
     while (i < maxHashesPerSlot && !rekeyingSnapshot.empty()) {
-        // take one from snapshot, rekey it, add it to done, remove from snapshot
         StreamId id = rekeyingSnapshot.front();
         rekeyingSnapshot.pop();
         /* precompute rekeying for this stream */
@@ -753,10 +751,7 @@ void StreamManager::doContinueRekeying() {
 }
 
 void StreamManager::doApplyRekeying() {
-    /* keep rekeying one last time, in case applications have added new streams
-     * that are still in need to be rekeyed */
     while (!rekeyingSnapshot.empty()) {
-        // take one from snapshot, rekey it, add it to done, remove from snapshot
         StreamId id = rekeyingSnapshot.front();
         rekeyingSnapshot.pop();
         /* precompute rekeying for this stream */
@@ -771,7 +766,7 @@ void StreamManager::doApplyRekeying() {
             it->second->setNewKey(newKey);
         }
     }
-    /* at this point, all streams have had their new key computed and set */
+    /* at this point, all streams have had their new key computed */
     for (auto& s: streams) {
         REF_PTR_STREAM stream = s.second;
         s.second->applyNewKey();
