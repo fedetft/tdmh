@@ -74,7 +74,8 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
                 unsigned int currentTile = ctx.getCurrentTile(slotStart);
                 if(currentTile >= header.getActivationTile())
                 {
-                    applySchedule(slotStart);
+                    setNewSchedule(slotStart);
+                    applyNewSchedule(slotStart);
                     schedule_comp.scheduleSentAndApplied();
                     status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
                     //No packet sent in this downlink slot
@@ -90,7 +91,8 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
             unsigned int currentTile = ctx.getCurrentTile(slotStart);
             if(currentTile >= header.getActivationTile())
             {
-                applySchedule(slotStart);
+                setNewSchedule(slotStart);
+                applyNewSchedule(slotStart);
                 schedule_comp.scheduleSentAndApplied();
                 status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
                 //No packet sent in this downlink slot
