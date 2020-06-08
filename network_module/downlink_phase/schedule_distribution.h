@@ -80,11 +80,15 @@ protected:
      */
     std::vector<ExplicitScheduleElement> expandSchedule(unsigned char nodeID);
 
+    void setNewSchedule(long long slotStart);
+    void setSameSchedule(long long slotStart);
+
     /**
      * Apply the explicit schedule to the rest of the MAC
      * \param slotStart downlink slot start time
      */
-    void applySchedule(long long slotStart);
+    void applyNewSchedule(long long slotStart);
+    void applySameSchedule(long long slotStart);
     
 #ifndef _MIOSIX
     /**

@@ -292,18 +292,6 @@ public:
 #ifdef CRYPTO
 
     virtual KeyManager* getKeyManager() { return keyMgr; }
-
-    virtual void startRekeying() {
-        keyMgr->startRekeying();
-    }
-
-    virtual void continueRekeying() {
-        streamMgr.continueRekeying();
-    }
-
-    virtual void applyRekeying() {
-        keyMgr->applyRekeying();
-    }
 #endif
 
 protected:

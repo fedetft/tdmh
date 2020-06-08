@@ -116,8 +116,29 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule( unsi
     return result;
 }
 
-void ScheduleDownlinkPhase::applySchedule(long long slotStart)
-{
+void ScheduleDownlinkPhase::setNewSchedule(long long slotStart) {
+#ifdef CRYPTO
+    if (ENABLE_CRYPTO_REKEYING_DBG) {
+        unsigned int currentTile = ctx.getCurrentTile(slotStart);
+        print_dbg("[SD] start rekeying at tile %d\n", currentTile);
+    }
+    ctx.getKeyManager()->startRekeying();
+#endif
+    streamMgr->setSchedule(schedule);
+}
+
+void ScheduleDownlinkPhase::setSameSchedule(long long slotStart) {
+#ifdef CRYPTO
+    if (ENABLE_CRYPTO_REKEYING_DBG) {
+        unsigned int currentTile = ctx.getCurrentTile(slotStart);
+        print_dbg("[SD] start rekeying at tile %d\n", currentTile);
+    }
+    ctx.getKeyManager()->startRekeying();
+    streamMgr->startRekeying();
+#endif
+}
+
+void ScheduleDownlinkPhase::applyNewSchedule(long long slotStart) {
     int schId = header.getScheduleID();
     unsigned int currentTile = ctx.getCurrentTile(slotStart);
     
@@ -126,7 +147,7 @@ void ScheduleDownlinkPhase::applySchedule(long long slotStart)
     
     auto myID = ctx.getNetworkId();
     auto explicitSchedule = expandSchedule(myID);
-    
+   
     if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) {
         print_dbg("[SD] Calculated explicit schedule n.%2lu, tiles:%d, slots:%d\n",
                     schId, header.getScheduleTiles(), explicitSchedule.size());
@@ -139,14 +160,34 @@ void ScheduleDownlinkPhase::applySchedule(long long slotStart)
                              schId, header.getScheduleTiles(),
                              header.getActivationTile(), currentTile);
     
-#ifdef CRYPTO
-    ctx.startRekeying();
-#endif
-    // Apply schedule to StreamManager
-    streamMgr->setSchedule(schedule);
     streamMgr->applySchedule(schedule);
 #ifdef CRYPTO
-    ctx.applyRekeying();
+    ctx.getKeyManager()->applyRekeying();
+#endif
+    
+    //NOTE: after we apply the schedule, we need to leave the time for connect() to return
+    //in applications, and for them to call write(), otherwise the first transmission
+    //fails due to no packet being available. If checkTimeSetSchedule returns immediately,
+    //the code im MacContext will start executing the first slot of the data phase so early
+    //that the stream in the first slot following the downlink phase does not have enough
+    //time to do so.
+    //Thus, we wait till a little before the end of the downlink slot.
+    auto rwa=MediumAccessController::receivingNodeWakeupAdvance + ctx.getNetworkConfig().getMaxAdmittedRcvWindow();
+    auto swa=MediumAccessController::sendingNodeWakeupAdvance;
+    const int downlinkEndAdvance = MediumAccessController::downlinkToDataphaseSlack + std::max(rwa,swa);
+    ctx.sleepUntil(slotStart + ctx.getDownlinkSlotDuration() - downlinkEndAdvance);
+}
+
+void ScheduleDownlinkPhase::applySameSchedule(long long slotStart) {
+    int schId = header.getScheduleID();
+    unsigned int currentTile = ctx.getCurrentTile(slotStart);
+    
+    if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG || ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
+        print_dbg("[SD] Activating schedule n.%2lu at tile n.%u\n", schId, currentTile);
+    
+#ifdef CRYPTO
+    streamMgr->applyRekeying();
+    ctx.getKeyManager()->applyRekeying();
 #endif
     
     //NOTE: after we apply the schedule, we need to leave the time for connect() to return

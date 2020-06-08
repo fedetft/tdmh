@@ -46,7 +46,8 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart)
         {
             if(isScheduleComplete())
             {
-                applySchedule(slotStart);
+                setNewSchedule(slotStart);
+                applyNewSchedule(slotStart);
                 if(ENABLE_SCHEDULE_DIST_DBG)
                     print_dbg("[SD] full schedule %s\n",scheduleStatusAsString().c_str());
                 status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
@@ -144,7 +145,8 @@ void DynamicScheduleDownlinkPhase::advance(long long slotStart)
         {
             if(isScheduleComplete())
             {
-                applySchedule(slotStart);
+                setNewSchedule(slotStart);
+                applyNewSchedule(slotStart);
                 if(ENABLE_SCHEDULE_DIST_DBG)
                     print_dbg("[SD] full schedule %s\n",scheduleStatusAsString().c_str());
                 status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
