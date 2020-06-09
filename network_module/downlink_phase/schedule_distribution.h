@@ -130,8 +130,8 @@ protected:
     {
         APPLIED_SCHEDULE,
         SENDING_SCHEDULE,
-        AWAITING_ACTIVATION,
-        INCOMPLETE_SCHEDULE
+        INCOMPLETE_SCHEDULE,
+        REKEYING
     };
     
     const int rebroadcastInterval;
@@ -143,6 +143,10 @@ protected:
     ScheduleHeader header;
     // Copy of last computed/received schedule
     std::vector<ScheduleElement> schedule;
+
+    // Number of schedule distribution slots need to distribute the schedule
+    unsigned int sendingRounds;
+    unsigned int currentSendingRound;
 
     /* Structure used to keep count of redundancy groups of streams that this
      * node is scheduled to forward to others. This info will be moved to 
