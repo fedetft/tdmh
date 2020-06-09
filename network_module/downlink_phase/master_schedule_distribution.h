@@ -53,6 +53,8 @@ private:
     void getScheduleAndComputeActivation(long long slotStart);
     
     unsigned int getActivationTile(unsigned int currentTile, unsigned int numPackets);
+
+    unsigned int getNumDownlinksForRekeying();
     
     void sendSchedulePkt(long long slotstart);
     

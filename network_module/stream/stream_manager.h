@@ -229,6 +229,8 @@ public:
      * and servers can now be opened and accepted.
      */
     void trustMaster() { masterTrusted = true; }
+
+    const unsigned int getMaxHashesPerSlot() const { return maxHashesPerSlot; }
 #endif
 
 private:

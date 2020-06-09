@@ -1,4 +1,4 @@
-/***************************************************************************
+/**************************************************************************
  *   Copyright (C) 2018-2019 by Federico Amedeo Izzo and Federico Terraneo *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -190,6 +190,7 @@ unsigned int MasterScheduleDownlinkPhase::getActivationTile(unsigned int current
     // as the schedule has "holes" for the downlink and uplink, which are of
     // different number of slots.
     unsigned int numDownlinks = scheduleRepetitions * numPackets;
+    numDownlinks += getNumDownlinksForRekeying();
     
     // The first tile that we consider is currentTile + 1 because in
     // currentTile no packet is sent
@@ -268,6 +269,29 @@ unsigned int MasterScheduleDownlinkPhase::getActivationTile(unsigned int current
     }
     
     return activationTile;
+}
+
+unsigned int MasterScheduleDownlinkPhase::getNumDownlinksForRekeying() {
+#ifdef CRYPTO
+    // Compute the worst case: max number of streams that any node must rekey
+    std::vector<unsigned int> streamsPerNode;
+    streamsPerNode.resize(ctx.getNetworkConfig().getMaxNodes());
+    std::fill(streamsPerNode.begin(), streamsPerNode.end(), 0);
+    for (auto e : schedule) {
+        streamsPerNode[e.getSrc()]++;
+        streamsPerNode[e.getDst()]++;
+    }
+
+    unsigned int maxStreams = 0;
+    for (auto n : streamsPerNode) {
+        if (n > maxStreams) maxStreams = n;
+    }
+
+    // Leave enough downlink slots for all streams to be rekeyed
+    return align(maxStreams, streamMgr->getMaxHashesPerSlot())/maxStreams;
+#else
+    return 1;
+#endif
 }
 
 void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart)
