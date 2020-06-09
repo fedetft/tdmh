@@ -60,8 +60,10 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
         }
         case ScheduleDownlinkStatus::SENDING_SCHEDULE:
         {
-            if(header.getRepetition() < scheduleRepetitions)
-            {
+            if(currentSendingRound >= sendingRounds) {
+                setNewSchedule(slotStart);
+                status = ScheduleDownlinkStatus::REKEYING;
+            } else {
                 sendSchedulePkt(slotStart);
                 header.incrementPacketCounter();
                 if(header.getCurrentPacket() >= header.getTotalPacket())
@@ -70,34 +72,24 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
                     header.resetPacketCounter();
                     header.incrementRepetition();
                 }
-            } else {
-                unsigned int currentTile = ctx.getCurrentTile(slotStart);
-                if(currentTile >= header.getActivationTile())
-                {
-                    setNewSchedule(slotStart);
-                    applyNewSchedule(slotStart);
-                    schedule_comp.scheduleSentAndApplied();
-                    status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
-                    //No packet sent in this downlink slot
-                } else {
-                    if(streamColl->getNumInfo() != 0) sendInfoPkt(slotStart);
-                    status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
-                }
             }
+            currentSendingRound++;
             break;
         }
-        case ScheduleDownlinkStatus::AWAITING_ACTIVATION:
+        case ScheduleDownlinkStatus::REKEYING:
         {
             unsigned int currentTile = ctx.getCurrentTile(slotStart);
             if(currentTile >= header.getActivationTile())
             {
-                setNewSchedule(slotStart);
                 applyNewSchedule(slotStart);
                 schedule_comp.scheduleSentAndApplied();
                 status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
                 //No packet sent in this downlink slot
             } else {
-                if(streamColl->getNumInfo() != 0) sendInfoPkt(slotStart);
+                // Keep rekeying streams if needed
+                streamMgr->continueRekeying();
+                // We don't send any info elements here, as the dynamic nodes are busy
+                // rekeying too
             }
             break;
         }
@@ -114,7 +106,11 @@ void MasterScheduleDownlinkPhase::getScheduleAndComputeActivation(long long slot
     unsigned int currentTile = ctx.getCurrentTile(slotStart);
     //NOTE: An empty schedule still requires 1 packet to send the scheduleHeader
     unsigned int numPackets = std::max<unsigned int>(1,(schedule.size()+packetCapacity-1) / packetCapacity);
-    
+
+    //Initialize sendingRounds
+    sendingRounds = numPackets * scheduleRepetitions;
+    currentSendingRound = 0;
+
     // Get the earliest tile when we can activate the schedule, not considering
     // that it must be aligned to the end of the previous schedule, if there is one
     unsigned int activationTile = getActivationTile(currentTile, numPackets);
