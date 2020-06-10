@@ -46,6 +46,11 @@ public:
     void desync() override;
 
 private:
+    /**
+     * return true if actions of rekeying or activation were taken in this tile, meaning
+     * that we must not listen for packets in this tile.
+     */
+    bool handleActivationAndRekeying(long long slotStart);
     
     bool recvPkt(long long slotStart, Packet& pkt);
     
@@ -72,6 +77,12 @@ private:
     std::vector<unsigned char> received;
     
     int incompleteScheduleCounter = 0;
+
+    // Header of schedule being received
+    ScheduleHeader newHeader;
+
+    // ScheduleID of schedule that is being replaced
+    unsigned int lastScheduleID;
 };
 
 }

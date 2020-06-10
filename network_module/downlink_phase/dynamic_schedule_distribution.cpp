@@ -37,30 +37,9 @@ namespace mxnet {
 
 void DynamicScheduleDownlinkPhase::execute(long long slotStart)
 {
-    // Handle the special case of the tile activation slot where we shouldn't
-    // waste time listening for packets
-    if(status == ScheduleDownlinkStatus::SENDING_SCHEDULE)
-    {
-        unsigned int currentTile = ctx.getCurrentTile(slotStart);
-        if(currentTile >= header.getActivationTile())
-        {
-            if(isScheduleComplete())
-            {
-                setNewSchedule(slotStart);
-                applyNewSchedule(slotStart);
-                if(ENABLE_SCHEDULE_DIST_DBG)
-                    print_dbg("[SD] full schedule %s\n",scheduleStatusAsString().c_str());
-                status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
-            } else {
-                resetAndDisableSchedule(slotStart);
-                status = ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE;
-            }
-            //Not receiving packet in this downlink slot
-//             print_dbg("! %lld +\n",getTime()-slotStart);
-            return;
-        }
-    }
-    
+    bool shouldNotListen = handleActivationAndRekeying(slotStart);
+    if(shouldNotListen) return;
+
     Packet pkt;
     // Receive the schedule packet
     if(recvPkt(slotStart, pkt))
@@ -68,12 +47,11 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart)
         // Parse the schedule packet
         SchedulePacket spkt(panId);
         spkt.deserialize(pkt);
-        ScheduleHeader newHeader = spkt.getHeader();
+        newHeader = spkt.getHeader();
         if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
             printHeader(newHeader);
         if(newHeader.isSchedulePacket() &&
-           newHeader.getActivationTile()<=ctx.getCurrentTile(slotStart))
-        {
+           newHeader.getActivationTile()<=ctx.getCurrentTile(slotStart)) {
             if(ENABLE_SCHEDULE_DIST_DBG)
                 print_dbg("[SD] BUG: schedule activation tile in the past\n");
         }
@@ -83,9 +61,7 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart)
         {
             case ScheduleDownlinkStatus::APPLIED_SCHEDULE:
             {
-                if(newHeader.isSchedulePacket() &&
-                   newHeader.getScheduleID() != header.getScheduleID())
-                {
+                if(newHeader.isSchedulePacket()) {
                     initSchedule(spkt);
                     status = ScheduleDownlinkStatus::SENDING_SCHEDULE;
                 } else applyInfoElements(spkt);
@@ -93,27 +69,22 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart)
             }
             case ScheduleDownlinkStatus::SENDING_SCHEDULE:
             {
-                // NOTE: activation slot already taken care of before
-                // receiving packet
-                if(newHeader.isSchedulePacket())
-                {
-                    if(newHeader.getScheduleID() != header.getScheduleID())
-                    {
+                /* NOTE: checks for exiting this state are taken care of
+                 * before trying to receive packets */
+                if(newHeader.isSchedulePacket()) {
+                    if(newHeader.getScheduleID() != header.getScheduleID()) {
                         initSchedule(spkt);
-                    } else appendToSchedule(spkt);
-                } else applyInfoElements(spkt);
+                    } else {
+                        appendToSchedule(spkt);
+                        currentSendingRound++;
+                    }
+                }
                 break;
             }
             case ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE:
             {
-                if(newHeader.isSchedulePacket())
-                {
-                    if(newHeader.getScheduleID() != header.getScheduleID())
-                    {
-                        initSchedule(spkt);
-                    } else {
-                        appendToSchedule(spkt,true); //Activation tile differs
-                    }
+                if(newHeader.isSchedulePacket()) {
+                    initSchedule(spkt);
                     status = ScheduleDownlinkStatus::SENDING_SCHEDULE;
                 } else {
                     applyInfoElements(spkt);
@@ -127,35 +98,19 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart)
     } else {
         
         //No packet received
-        if(status == ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE)
+        if(status == ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE) {
             handleIncompleteSchedule();
+        } else if (status == ScheduleDownlinkStatus::SENDING_SCHEDULE) {
+            /* Increment counter even if the packet was missed. */
+            currentSendingRound++;
+        }
     }
 //     print_dbg("! %lld\n",getTime()-slotStart);
 }
 
 void DynamicScheduleDownlinkPhase::advance(long long slotStart)
 {
-    // If a schedule has been sent, it's time to apply it don't delay, apply
-    // it if complete, or reset and disable if incomplete even if the clock
-    // sync error is too high to send/receive packets
-    if(status == ScheduleDownlinkStatus::SENDING_SCHEDULE)
-    {
-        unsigned int currentTile = ctx.getCurrentTile(slotStart);
-        if(currentTile >= header.getActivationTile())
-        {
-            if(isScheduleComplete())
-            {
-                setNewSchedule(slotStart);
-                applyNewSchedule(slotStart);
-                if(ENABLE_SCHEDULE_DIST_DBG)
-                    print_dbg("[SD] full schedule %s\n",scheduleStatusAsString().c_str());
-                status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
-            } else {
-                resetAndDisableSchedule(slotStart);
-                status = ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE;
-            }
-        }
-    }
+    handleActivationAndRekeying(slotStart);
 }
 
 void DynamicScheduleDownlinkPhase::desync()
@@ -172,6 +127,64 @@ void DynamicScheduleDownlinkPhase::desync()
     status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
 }
 
+bool DynamicScheduleDownlinkPhase::handleActivationAndRekeying(long long slotStart)
+{
+    /**
+     * Handle slots in which we don't need to receive packets: rekeying slots
+     * and activation tile
+     */
+    bool ret = false;
+    if(status == ScheduleDownlinkStatus::SENDING_SCHEDULE) {
+        /* Check if we are ready so stop listening and start rekeying. If not,
+         * do nothing here and try to receive a packet. */
+        if(currentSendingRound >= sendingRounds) {
+            if(isScheduleComplete()) {
+                setNewSchedule(slotStart);
+                if(ENABLE_SCHEDULE_DIST_DBG)
+                    print_dbg("[SD] full schedule %s\n",scheduleStatusAsString().c_str());
+            } else {
+#ifdef CRYPTO
+                /* If the schedule received is incomplete, we still have to
+                 * perform rekeying on the key manager to take care of the
+                 * phase keys */
+                ctx.getKeyManager()->startRekeying();
+                if (ENABLE_CRYPTO_REKEYING_DBG) {
+                    unsigned int currentTile = ctx.getCurrentTile(slotStart);
+                    print_dbg("[SD] N=%d start rekeying at tile %d\n",
+                              myId, currentTile);
+                }
+#endif
+                resetAndDisableSchedule(slotStart);
+            }
+            status = ScheduleDownlinkStatus::REKEYING;
+            ret = true;
+        }
+    } else if (status == ScheduleDownlinkStatus::REKEYING) {
+        unsigned int currentTile = ctx.getCurrentTile(slotStart);
+        if(currentTile >= header.getActivationTile()) {
+            if(isScheduleComplete()) {
+                applyNewSchedule(slotStart);
+                status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
+            } else {
+#ifdef CRYPTO
+                if (ENABLE_CRYPTO_REKEYING_DBG) {
+                    print_dbg("[SD] N=%d apply rekeying at tile %d\n",
+                              myId, currentTile);
+                }
+                ctx.getKeyManager()->applyRekeying();
+#endif
+                status = ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE;
+            }
+        } else {
+#ifdef CRYPTO
+            if(isScheduleComplete()) streamMgr->continueRekeying();
+#endif
+        }
+        /* We never listen while in this state */
+        ret = true;
+    }
+    return ret;
+}
 bool DynamicScheduleDownlinkPhase::recvPkt(long long slotStart, Packet& pkt)
 {
 #if FLOOD_TYPE == 0
@@ -248,6 +261,8 @@ void DynamicScheduleDownlinkPhase::initSchedule(SchedulePacket& spkt)
     if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
         print_dbg("[SD] Node:%d New schedule received!\n", myId);
 
+    // Save last schedule ID
+    lastScheduleID = header.getScheduleID();
     // Replace old schedule header and elements
     header = spkt.getHeader();
     schedule = spkt.getElements();
@@ -256,6 +271,16 @@ void DynamicScheduleDownlinkPhase::initSchedule(SchedulePacket& spkt)
     received.resize(header.getTotalPacket(), 0);
     // Set current packet as received
     received.at(header.getCurrentPacket()) = 1;
+
+    /**
+     * Initialize sendingRounds counter info.
+     * If the first schedule packet received is not the first that was sent,
+     * we have to count the number of packets that were lost initially and
+     * skip ahead in the counter.
+     */
+    sendingRounds = header.getTotalPacket() * scheduleRepetitions;
+    currentSendingRound = 1 + header.getRepetition() * scheduleRepetitions
+                            + header.getCurrentPacket();
 }
 
 void DynamicScheduleDownlinkPhase::appendToSchedule(SchedulePacket& spkt, bool beginResend)
