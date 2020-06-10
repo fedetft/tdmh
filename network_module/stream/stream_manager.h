@@ -48,6 +48,7 @@
 #include <memory>
 #endif
 #include <map>
+#include <set>
 #include <queue>
 
 namespace mxnet {
@@ -316,7 +317,7 @@ private:
      * accounted for when the activation tile was decided, the time necessary to compute
      * all keys will exceed the given time, resulting in real time contraint violations.
      */
-    std::queue<StreamId> nextScheduleStreams;
+    std::set<StreamId> nextScheduleStreams;
 
     bool masterTrusted = true;
 

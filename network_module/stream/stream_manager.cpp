@@ -323,15 +323,15 @@ void StreamManager::setSchedule(const std::vector<ScheduleElement>& schedule) {
     for (auto it=streams.begin(); it!=streams.end(); ++it)
         streamsToRemove.push_back(it->first);
 
-    nextScheduleStreams = std::queue<StreamId>();
+    nextScheduleStreams.clear();
     for(auto& element : schedule) {
         StreamId streamId = element.getStreamId();
-
-        nextScheduleStreams.push(streamId);
-
         // NOTE: Ignore streams of which we are not source or destination 
         if(streamId.src != myId && streamId.dst != myId)
             continue;
+
+        nextScheduleStreams.insert(streamId);
+
         auto streamit = streams.find(streamId);
         if(streamit != streams.end()) {
             streamsToRemove.erase(std::remove(streamsToRemove.begin(),
@@ -731,7 +731,10 @@ void StreamManager::doStartRekeying() {
                   myId);
     }
     rekeyingInProgress = true;
-    rekeyingSnapshot = nextScheduleStreams;
+    rekeyingSnapshot = std::queue<StreamId>();
+    for (auto s : nextScheduleStreams) {
+        rekeyingSnapshot.push(s);
+    }
 }
 
 void StreamManager::doContinueRekeying() {
