@@ -278,13 +278,14 @@ unsigned int MasterScheduleDownlinkPhase::getNumDownlinksForRekeying() {
         streamsPerNode[e.getDst()]++;
     }
 
-    unsigned int maxStreams = 0;
+    unsigned int maxStreams = 1;
     for (auto n : streamsPerNode) {
         if (n > maxStreams) maxStreams = n;
     }
 
     // Leave enough downlink slots for all streams to be rekeyed
-    return align(maxStreams, streamMgr->getMaxHashesPerSlot())/maxStreams;
+    unsigned int hashesPerSlot = streamMgr->getMaxHashesPerSlot();
+    return align(maxStreams, hashesPerSlot) / hashesPerSlot;
 #else
     return 1;
 #endif
