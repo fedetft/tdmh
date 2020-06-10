@@ -727,7 +727,8 @@ void StreamManager::printServerStatus(StreamId id, StreamStatus status) {
 #ifdef CRYPTO
 void StreamManager::doStartRekeying() {
     if (rekeyingInProgress) {
-        print_dbg("BUG: call to doStartRekeying while rekeying is still in progress\n");
+        print_dbg("N=%d BUG: call to doStartRekeying while rekeying is still in progress\n",
+                  myId);
     }
     rekeyingInProgress = true;
     rekeyingSnapshot = nextScheduleStreams;
@@ -735,7 +736,8 @@ void StreamManager::doStartRekeying() {
 
 void StreamManager::doContinueRekeying() {
     if (!rekeyingInProgress) {
-        print_dbg("BUG: call to doContinueRekeying without starting rekeying first\n");
+        print_dbg("N=%d BUG: call to doContinueRekeying without starting rekeying first\n",
+                  myId);
     }
     unsigned i=0;
     while (i < maxHashesPerSlot && !rekeyingSnapshot.empty()) {
@@ -758,10 +760,11 @@ void StreamManager::doContinueRekeying() {
 
 void StreamManager::doApplyRekeying() {
     if (!rekeyingInProgress) {
-        print_dbg("BUG: call to doApplyRekeying without starting rekeying first\n");
+        print_dbg("N=%d BUG: call to doApplyRekeying without starting rekeying first\n",
+                  myId);
     }
     while (!rekeyingSnapshot.empty()) {
-        print_dbg("[SM] doApplyRekeying: unexpected streams left\n");
+        print_dbg("[SM] N=%d doApplyRekeying: unexpected streams left\n", myId);
         StreamId id = rekeyingSnapshot.front();
         rekeyingSnapshot.pop();
         /* precompute rekeying for this stream */
