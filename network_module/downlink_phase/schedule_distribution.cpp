@@ -119,8 +119,9 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule( unsi
 void ScheduleDownlinkPhase::setNewSchedule(long long slotStart) {
 #ifdef CRYPTO
     if (ENABLE_CRYPTO_REKEYING_DBG) {
+        auto myID = ctx.getNetworkId();
         unsigned int currentTile = ctx.getCurrentTile(slotStart);
-        print_dbg("[SD] start rekeying at tile %d\n", currentTile);
+        print_dbg("[SD] N=%d start rekeying at tile %d\n", myID, currentTile);
     }
     ctx.getKeyManager()->startRekeying();
 #endif
@@ -130,8 +131,9 @@ void ScheduleDownlinkPhase::setNewSchedule(long long slotStart) {
 void ScheduleDownlinkPhase::setSameSchedule(long long slotStart) {
 #ifdef CRYPTO
     if (ENABLE_CRYPTO_REKEYING_DBG) {
+        auto myID = ctx.getNetworkId();
         unsigned int currentTile = ctx.getCurrentTile(slotStart);
-        print_dbg("[SD] start rekeying at tile %d\n", currentTile);
+        print_dbg("[SD] N=%d start rekeying at tile %d\n", myID, currentTile);
     }
     ctx.getKeyManager()->startRekeying();
     streamMgr->startRekeying();
