@@ -68,7 +68,6 @@ void DynamicTimesyncDownlink::periodicSync() {
         ctx.transceiverIdle();
 
 #ifdef CRYPTO
-
         unsigned currentMI = ctx.getKeyManager()->getMasterIndex();
         unsigned int mI = *reinterpret_cast<unsigned int*>(&pkt[11]);
 
@@ -293,6 +292,7 @@ void DynamicTimesyncDownlink::doResyncTime(miosix::RecvResult rcvResult, Packet 
 
 inline void DynamicTimesyncDownlink::execute(long long slotStart)
 {
+
     //the argument is ignored, since this is the time source class.
     next();
     ctx.configureTransceiver(ctx.getTransceiverConfig());
