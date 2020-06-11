@@ -62,7 +62,13 @@ public:
         incrementSlot(slots);
     }
     static unsigned long long getDuration() {
+#ifdef CRYPTO
+        // 330 us measured for encryption and authentication of maximum size data packet
+        // TODO: make configurable on maxDataPktSize
+        long long processingTime=1500000 + 2*330000;
+#else
         long long processingTime=1500000; //TODO: benchmark
+#endif
         return align(MACContext::radioTime(MediumAccessController::maxDataPktSize)+processingTime,1000000LL);
     }
     /**

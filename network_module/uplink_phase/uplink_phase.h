@@ -59,7 +59,12 @@ public:
      */
     static unsigned long long getDuration(unsigned char numUplinkPackets)
     {
-        return (packetArrivalAndProcessingTime + transmissionInterval) * numUplinkPackets;
+        unsigned long long duration = (packetArrivalAndProcessingTime + transmissionInterval) * numUplinkPackets;
+#ifdef CRYPTO
+        //NOTE: assuming maxControlPktSize is equal to maxDataPktSize == 125
+        duration += 330000 * (1 + numUplinkPackets);
+#endif
+        return duration;
     }
 
     /**

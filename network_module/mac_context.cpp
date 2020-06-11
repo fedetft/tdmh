@@ -86,6 +86,19 @@ void MACContext::calculateDurations() {
     assert(downlinkSlotDuration + numDataSlotInDownlinkTile * dataSlotDuration ==
            uplinkSlotDuration   + numDataSlotInUplinkTile   * dataSlotDuration);
     tileSlackTime = tileDuration - (uplinkSlotDuration + numDataSlotInUplinkTile * dataSlotDuration);
+    printf("\
+            Uplink slot duration: %lld\n\
+            Schedule distribution slot duration: %lld\n\
+            Timesync slot duration (unaligned): %lld\n\
+            Downlink slot duration: %lld\n\
+            Data slot duration (unaligned): %lld\n\
+            Number of dataslots in uplink tile: %d\n\
+            Number of dataslots in downlink tile: %d\n\
+            Tile slack time: %lld\n",
+            uplinkSlotDuration, scheduleDownlinkDuration,
+            timesyncDownlinkDuration, downlinkSlotDuration,
+            dataSlotDuration, numDataSlotInUplinkTile,
+            numDataSlotInDownlinkTile, tileSlackTime);
 }
 
 void MACContext::sendAt(const void* pkt, int size, long long ns) {

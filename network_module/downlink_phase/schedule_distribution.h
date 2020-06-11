@@ -56,9 +56,14 @@ public:
      */
     static unsigned long long getDuration(const NetworkConfiguration& networkConfig)
     {
-        return   MediumAccessController::receivingNodeWakeupAdvance
+        unsigned long long duration = MediumAccessController::receivingNodeWakeupAdvance
                + networkConfig.getMaxAdmittedRcvWindow() * 2
                + networkConfig.getMaxHops() * computeRebroadcastInterval(networkConfig);
+#ifdef CRYPTO
+        //NOTE: assuming maxControlPktSize is equal to maxDataPktSize == 125
+        duration += 2 * 330000;
+#endif
+        return duration;
     }
     
     /**
