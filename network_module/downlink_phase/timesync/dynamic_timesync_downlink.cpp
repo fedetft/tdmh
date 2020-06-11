@@ -218,6 +218,15 @@ void DynamicTimesyncDownlink::resyncTime() {
         unsigned char hop = pkt[2];
         pkt[2] = 0;
 
+        /* NOTE: to get the current tile, we need to initialize the
+         * NetworkTime. If packet verification fails, we will go back to being
+         * desynchronized, so it will not be a problem to have an incorrect
+         * value for NetworkTime. */
+        auto slotframeStart = getSlotframeStart();
+        packetCounter = *reinterpret_cast<unsigned int*>(&pkt[7]);
+        NetworkTime::setLocalNodeToNetworkTimeOffset(packetCounter *
+                         networkConfig.getClockSyncPeriod() - slotframeStart);
+
         AesGcm& gcm = ctx.getKeyManager()->getTimesyncGCM();
         /**
          * Note: the first argument of setIV is supposed to be set to the
