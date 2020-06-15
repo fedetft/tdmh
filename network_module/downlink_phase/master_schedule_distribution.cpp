@@ -32,6 +32,9 @@
 #include "../util/debug_settings.h"
 #include "../util/align.h"
 #include "timesync/networktime.h"
+#include "../stream/stream_parameters.h"
+#include <vector>
+#include <set>
 
 using namespace miosix;
 
@@ -273,19 +276,30 @@ unsigned int MasterScheduleDownlinkPhase::getNumDownlinksForRekeying() {
     std::vector<unsigned int> streamsPerNode;
     streamsPerNode.resize(ctx.getNetworkConfig().getMaxNodes());
     std::fill(streamsPerNode.begin(), streamsPerNode.end(), 0);
+
+    std::set<StreamId> streams;
     for (auto e : schedule) {
-        streamsPerNode[e.getSrc()]++;
-        streamsPerNode[e.getDst()]++;
+        StreamId id = e.getStreamInfo().getStreamId();
+        /* If we have already counted this stream, do nothing. Otherwise count it
+         * for both endpoints */
+        auto it = streams.find(id);
+        if(it == streams.end()) {
+            streamsPerNode[e.getSrc()]++;
+            streamsPerNode[e.getDst()]++;
+            streams.insert(id);
+        }
     }
 
+    /* Take the maximum of streamPerNode vector */
     unsigned int maxStreams = 1;
     for (auto n : streamsPerNode) {
         if (n > maxStreams) maxStreams = n;
     }
 
-    // Leave enough downlink slots for all streams to be rekeyed
+    // Leave enough downlink slots for all streams to be rekeyed. Always
+    // leave at least one slot to change state.
     unsigned int hashesPerSlot = streamMgr->getMaxHashesPerSlot();
-    return align(maxStreams, hashesPerSlot) / hashesPerSlot;
+    return 1 + align(maxStreams, hashesPerSlot) / hashesPerSlot;
 #else
     return 1;
 #endif
