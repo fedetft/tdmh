@@ -187,6 +187,7 @@ bool DynamicScheduleDownlinkPhase::handleActivationAndRekeying(long long slotSta
 }
 bool DynamicScheduleDownlinkPhase::recvPkt(long long slotStart, Packet& pkt)
 {
+    bool received;
 #if FLOOD_TYPE == 0
     auto arrivalTime = slotStart + (ctx.getHop() - 1) * rebroadcastInterval;
     ctx.configureTransceiver(ctx.getTransceiverConfig());
@@ -201,9 +202,8 @@ bool DynamicScheduleDownlinkPhase::recvPkt(long long slotStart, Packet& pkt)
             pkt.send(ctx, rcvResult.timestamp + rebroadcastInterval);
             ctx.transceiverIdle();
         }
-        return true;
-    }
-    return false;
+        received = true;
+    } else received = false;
 #elif FLOOD_TYPE == 1
     Packet tempPkt;
     ctx.configureTransceiver(ctx.getTransceiverConfig());
@@ -230,10 +230,33 @@ bool DynamicScheduleDownlinkPhase::recvPkt(long long slotStart, Packet& pkt)
         
     }
     ctx.transceiverIdle();
-    return receivedAtLeastOnce;
+    received = receivedAtLeastOnce;
 #else
 #error
-#endif
+#endif //FLOOD_TYPE
+
+#ifdef CRYPTO
+    if(ctx.getNetworkConfig().getAuthenticateControlMessages()) {
+        if(received) {
+            AesGcm& gcm = ctx.getKeyManager()->getScheduleDistributionGCM();
+            unsigned int tileNumber = ctx.getCurrentTile(slotStart);
+            unsigned int seqNo = 1;
+            unsigned int masterIndex = ctx.getKeyManager()->getMasterIndex();
+            if(ENABLE_CRYPTO_DOWNLINK_DBG)
+                print_dbg("[SD] Verifying downlink: tile=%d, seqNo=%d, mI=%d\n",
+                          tileNumber, seqNo, masterIndex);
+            gcm.setIV(tileNumber, seqNo, masterIndex);
+            if(ctx.getNetworkConfig().getEncryptControlMessages()) {
+                received = pkt.verifyAndDecrypt(gcm);
+            } else {
+                received = pkt.verify(gcm);
+            }
+            if(ENABLE_CRYPTO_DOWNLINK_DBG)
+                if(!received) print_dbg("[SD] verify failed!\n");
+        }
+    }
+#endif // ifdef CRYPTO
+    return received;
 }
 
 void DynamicScheduleDownlinkPhase::applyInfoElements(SchedulePacket& spkt)
