@@ -326,6 +326,11 @@ void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart)
     for(auto& info : infos) spkt.putInfoElement(info);
 
     Packet pkt;
+#ifdef CRYPTO
+    if(ctx.getNetworkConfig().getAuthenticateControlMessages()) {
+        pkt.reserveTag();
+    }
+#endif
     spkt.serialize(pkt);
     // Send schedule downlink packet
     sendPkt(slotStart,pkt);
@@ -345,6 +350,11 @@ void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart)
     for(auto& info : infos) spkt.putInfoElement(info);
 
     Packet pkt;
+#ifdef CRYPTO
+    if(ctx.getNetworkConfig().getAuthenticateControlMessages()) {
+        pkt.reserveTag();
+    }
+#endif
     spkt.serialize(pkt);
     // Send schedule downlink packet
     sendPkt(slotStart,pkt);
@@ -354,6 +364,24 @@ void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart)
 
 void MasterScheduleDownlinkPhase::sendPkt(long long slotStart, Packet& pkt)
 {
+#ifdef CRYPTO
+    if(ctx.getNetworkConfig().getAuthenticateControlMessages()) {
+        AesGcm& gcm = ctx.getKeyManager()->getScheduleDistributionGCM();
+        unsigned int tileNumber = ctx.getCurrentTile(slotStart);
+        unsigned int seqNo = 1;
+        unsigned int masterIndex = ctx.getKeyManager()->getMasterIndex();
+        if(ENABLE_CRYPTO_DOWNLINK_DBG)
+            print_dbg("[SD] Authenticating downlink: tile=%d, seqNo=%d, mI=%d\n",
+                      tileNumber, seqNo, masterIndex);
+        gcm.setIV(tileNumber, seqNo, masterIndex);
+        if(ctx.getNetworkConfig().getEncryptControlMessages()) {
+            pkt.encryptAndPutTag(gcm);
+        } else {
+            pkt.putTag(gcm);
+        }
+    }
+#endif
+
 #if FLOOD_TYPE == 0
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     pkt.send(ctx, slotStart);

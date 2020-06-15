@@ -78,8 +78,15 @@ std::size_t SchedulePacket::size() const {
 }
 
 unsigned int SchedulePacket::getPacketCapacity() {
+#ifdef CRYPTO
+    const unsigned int authTagSize = 16;
+    return (MediumAccessController::maxControlPktSize -
+            (authTagSize + panHeaderSize + ScheduleHeader::maxSize()))
+        / ScheduleElement::maxSize();
+#else
     return (MediumAccessController::maxControlPktSize - (panHeaderSize + ScheduleHeader::maxSize()))
         / ScheduleElement::maxSize();
+#endif
 }
 
 } /* namespace mxnet */
