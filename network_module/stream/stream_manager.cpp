@@ -95,6 +95,12 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
     // NOTE: Make sure that stream enqueues a CONNECT SME
     int error = stream->connect(this);
     if(error != 0) {
+        // NOTE: locking to call removeStream safely
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+#else
+        std::unique_lock<std::mutex> lck(map_mutex);
+#endif
         removeStream(streamId);
         return -1;
     }
@@ -252,11 +258,13 @@ void StreamManager::periodicUpdate() {
 #endif
     // Iterate over all streams
     for(auto& stream: streams) {
-        stream.second->periodicUpdate(this);
+        REF_PTR_STREAM s = stream.second;
+        s->periodicUpdate(this);
     }
     // Iterate over all servers
     for(auto& server: servers) {
-        server.second->periodicUpdate(this);
+        REF_PTR_SERVER s = server.second;
+        s->periodicUpdate(this);
     }
 }
 
