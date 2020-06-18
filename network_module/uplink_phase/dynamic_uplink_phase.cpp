@@ -32,6 +32,10 @@
 #include "uplink_message.h"
 #include <limits>
 #include <cassert>
+#ifdef CRYPTO
+#include "../crypto/key_management/key_manager.h"
+#include "../crypto/aes_gcm.h"
+#endif
 
 using namespace miosix;
 
@@ -50,6 +54,11 @@ void DynamicUplinkPhase::execute(long long slotStart)
 
 void DynamicUplinkPhase::sendMyUplink(long long slotStart)
 {
+#ifdef CRYPTO
+    KeyManager& keyManager = *(ctx.getKeyManager());
+    unsigned int masterIndex = keyManager.getMasterIndex();
+    unsigned int tileNumber = ctx.getCurrentTile(slotStart);
+#endif
     /* If we don't have a predecessor, we send an uplink message without
        SMEs or topologies with myID as assignee, to speed up the topology
        collection */
@@ -57,11 +66,20 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
         SendUplinkMessage message(ctx.getNetworkConfig(), ctx.getHop(),
                                   myNeighborTable.isBadAssignee(), ctx.getNetworkId(), //NOTE: why the network id?
                                   myNeighborTable.getMyTopologyElement(),
-                                  0, 0);
+                                  0, 0
+#ifdef CRYPTO
+                                  , keyManager.getUplinkGCM()
+#endif
+                                  );
         if(ENABLE_UPLINK_DYN_INFO_DBG)
             print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), NetworkTime::fromLocalTime(slotStart).get());
 
         ctx.configureTransceiver(ctx.getTransceiverConfig());
+#ifdef CRYPTO
+        if(ctx.getNetworkConfig().getAuthenticateControlMessages()) {
+            message.setIV(tileNumber, 1, masterIndex);
+        }
+#endif
         message.send(ctx,slotStart);
         ctx.transceiverIdle();
         if(ENABLE_UPLINK_DBG)
@@ -82,7 +100,11 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
                                   myNeighborTable.isBadAssignee(),
                                   myNeighborTable.getBestPredecessor(),
                                   myNeighborTable.getMyTopologyElement(),
-                                  topologyQueue.size(), smeQueue.size());
+                                  topologyQueue.size(), smeQueue.size()
+#ifdef CRYPTO
+                                  , keyManager.getUplinkGCM()
+#endif
+                                  );
         if(ENABLE_UPLINK_DBG) {
             if( myNeighborTable.bestPredecessorIsBad() ) {
                 print_dbg("[U] Assignee chosen is bad\n");
@@ -95,6 +117,12 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
         for(int i = 0; i < message.getNumPackets(); i++)
             {
                 message.serializeTopologiesAndSMEs(topologyQueue,smeQueue);
+#ifdef CRYPTO
+                if(ctx.getNetworkConfig().getAuthenticateControlMessages()) {
+                    unsigned int seqNo = i + 1;
+                    message.setIV(tileNumber, seqNo, masterIndex);
+                }
+#endif
                 message.send(ctx,slotStart);
                 slotStart += packetArrivalAndProcessingTime + transmissionInterval;
             }

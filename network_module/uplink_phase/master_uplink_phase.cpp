@@ -68,12 +68,26 @@ void MasterUplinkPhase::execute(long long slotStart)
 
 void MasterUplinkPhase::sendMyUplink(long long slotStart)
 {
+#ifdef CRYPTO
+    KeyManager& keyManager = *(ctx.getKeyManager());
+    unsigned int masterIndex = keyManager.getMasterIndex();
+    unsigned int tileNumber = ctx.getCurrentTile(slotStart);
+#endif
     SendUplinkMessage message(ctx.getNetworkConfig(), 0, false, ctx.getNetworkId(),
                               myNeighborTable.getMyTopologyElement(),
-                              0, 0);
+                              0, 0
+#ifdef CRYPTO
+                              , keyManager.getUplinkGCM()
+#endif
+                              );
     if(ENABLE_UPLINK_DYN_INFO_DBG)
         print_dbg("[U] N=%u -> @%llu\n", ctx.getNetworkId(), NetworkTime::fromLocalTime(slotStart).get());
 
+#ifdef CRYPTO
+    if(ctx.getNetworkConfig().getAuthenticateControlMessages()) {
+        message.setIV(tileNumber, 1, masterIndex);
+    }
+#endif
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     message.send(ctx,slotStart);
     ctx.transceiverIdle();

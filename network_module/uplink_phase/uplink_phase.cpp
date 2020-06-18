@@ -62,10 +62,41 @@ unsigned char UplinkPhase::getAndUpdateCurrentNode()
     return currentNode;
 }
 
+/**
+ * NOTE ON CRYPTOGRAPHY
+ *
+ * Uplink is the only phase in which calls to encrypt and/or authenticate
+ * packets are not done in the phase classes, but hidden in the uplink messages
+ * methods: send and recv. The reason for this is that ReceiveUplinkMessage::recv
+ * performs sanity checks on the message that can only be done once the packet
+ * has already been decrypted (if encryption was enabled). To keep some
+ * consistency, the same was done in SendUplinkMessages::send.
+ * It is important to note that this implementation difference does not
+ * translate in different behavior. Like all other packets, uplink packets are
+ * authenticated and/or encrypted if those functionalities are ON in config.
+ * The GCM object used is rekeyed in the KeyManager like all others.
+ * All packets must always been authenticated and encrypted (or verified and
+ * decrypted) AFTER calling setIV on the GCM object. In the special case of
+ * uplink, this means that we must always call send/recv after calling setIV
+ * on the Send/ReceiveUplinkMessage object.
+ * This is ugly, but many things are ugly, and there is no time in this world
+ * for beauty.
+ */
 
 void UplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode)
 {
+#ifdef CRYPTO
+    KeyManager& keyManager = *(ctx.getKeyManager());
+    AesGcm& gcm = keyManager.getUplinkGCM();
+    ReceiveUplinkMessage message(ctx.getNetworkConfig(), gcm);
+    unsigned int masterIndex = keyManager.getMasterIndex();
+    unsigned int tileNumber = ctx.getCurrentTile(slotStart);
+    if(ctx.getNetworkConfig().getAuthenticateControlMessages()) {
+        message.setIV(tileNumber, 1, masterIndex);
+    }
+#else
     ReceiveUplinkMessage message(ctx.getNetworkConfig());
+#endif
     
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     if(message.recv(ctx, slotStart))
@@ -92,6 +123,13 @@ void UplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode)
                 // do not wait for remaining packets
                 // TODO verify that packetArrivalAndProcessingTime + transmissionInterval are correct
                 slotStart += packetArrivalAndProcessingTime + transmissionInterval;
+
+#ifdef CRYPTO
+                if(ctx.getNetworkConfig().getAuthenticateControlMessages()) {
+                    unsigned int seqNo = i + 1;
+                    message.setIV(tileNumber, seqNo, masterIndex);
+                }
+#endif
                 if(message.recv(ctx, slotStart) == false) break;
                 message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
             }

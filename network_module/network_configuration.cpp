@@ -102,7 +102,7 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
 
 void NetworkConfiguration::validate() const {
     const int totAvailableBytes = getFirstUplinkPacketCapacity(*this) +
-        (numUplinkPackets - 1) * getOtherUplinkPacketCapacity();
+        (numUplinkPackets - 1) * getOtherUplinkPacketCapacity(*this);
     auto topologySize = guaranteedTopologies * TopologyElement::maxSize(
                                 getNeighborBitmaskSize(), useWeakTopologies);
     if(topologySize > totAvailableBytes) {
