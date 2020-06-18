@@ -119,6 +119,9 @@ const bool ENABLE_CRYPTO_TIMESYNC_DBG = true;
 //prints packet synchronization numbers and verify errors in schedule distribution
 const bool ENABLE_CRYPTO_DOWNLINK_DBG = true;
 
+//prints packet synchronization numbers and verify errors in uplink
+const bool ENABLE_CRYPTO_UPLINK_DBG = true;
+
 
 #ifdef _MIOSIX
 #define DEBUG_MESSAGES_IN_SEPARATE_THREAD

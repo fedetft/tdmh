@@ -29,6 +29,7 @@
 #pragma once
 
 #include "../mac_context.h"
+#include "../util/debug_settings.h"
 #include "../util/serializable_message.h"
 #include "../util/packet.h"
 #include "../util/updatable_queue.h"
@@ -58,23 +59,39 @@ struct UplinkHeader {
  * panHeader, UplinkHeader and myTopology
  */
 inline int getFirstUplinkPacketCapacity(const NetworkConfiguration& config) {
+    unsigned int capacity;
     if(config.getUseWeakTopologies()) {
-        return Packet::maxSize() - (panHeaderSize +
-                                    sizeof(UplinkHeader) +
-                                    2*config.getNeighborBitmaskSize());
+        capacity = Packet::maxSize() - (panHeaderSize +
+                                        sizeof(UplinkHeader) +
+                                        2*config.getNeighborBitmaskSize());
     } else {
-        return Packet::maxSize() - (panHeaderSize +
-                                    sizeof(UplinkHeader) +
-                                    config.getNeighborBitmaskSize());
+        capacity =  Packet::maxSize() - (panHeaderSize +
+                                        sizeof(UplinkHeader) +
+                                        config.getNeighborBitmaskSize());
     }
+#ifdef CRYPTO
+    const unsigned int tagSize = 16;
+    if(config.getAuthenticateControlMessages()) capacity -= tagSize;
+#endif
+    
+    return capacity;
 }
 
 /**
  * @return the capacity of the second and following packets of an UplinkMessage,
  * which are composed of panHeader and SmallHeader
  */
-inline int getOtherUplinkPacketCapacity() {
+inline int getOtherUplinkPacketCapacity(const NetworkConfiguration& config) {
+#ifdef CRYPTO
+    if(config.getAuthenticateControlMessages()) {
+        const unsigned int tagSize = 16;
+        return Packet::maxSize() - panHeaderSize - tagSize;
+    } else {
+        return Packet::maxSize() - panHeaderSize;
+    }
+#else
     return Packet::maxSize() - panHeaderSize;
+#endif
 }
 
 /** The UplinkMessage class represents the message used to send topologies and SMEs
@@ -97,10 +114,18 @@ inline int getOtherUplinkPacketCapacity() {
 
 class SendUplinkMessage {
 public:
+#ifdef CRYPTO
+    SendUplinkMessage(const NetworkConfiguration& config, unsigned char hop,
+                      bool badFlag, unsigned char assignee,
+                      const TopologyElement& myTopology,
+                      int availableTopologies, int availableSMEs,
+                      AesGcm& gcm);
+#else
     SendUplinkMessage(const NetworkConfiguration& config, unsigned char hop,
                       bool badFlag, unsigned char assignee,
                       const TopologyElement& myTopology,
                       int availableTopologies, int availableSMEs);
+#endif
 
     SendUplinkMessage(const SendUplinkMessage&) = delete;
     SendUplinkMessage& operator=(const SendUplinkMessage&) = delete;
@@ -122,9 +147,19 @@ public:
      * and prepares the next packet
      */
     void send(MACContext& ctx, long long sendTime) {
+#ifdef CRYPTO
+        /**
+         * NOTE: it is important that setIV is called before calling send
+         */
+        if(encrypt) packet.encryptAndPutTag(gcm);
+        else if(authenticate) packet.putTag(gcm);
+#endif
         packet.send(ctx, sendTime);
         // Prepare the next packet
         packet.clear();
+#ifdef CRYPTO
+        if(authenticate) packet.reserveTag();
+#endif
         packet.putPanHeader(panId);
     }
 
@@ -144,6 +179,19 @@ public:
         if(header.hop & 0x80) return true;
         else return false;
     }
+
+#ifdef CRYPTO
+    /**
+     * Wrapper to set IV on the uplink gcm. Needed because decryption needs to be
+     * performed before semantic checks on uplink message.
+     */
+    void setIV(unsigned int tileNo, unsigned long long seqNo, unsigned int masterIndex) {
+        if(ENABLE_CRYPTO_UPLINK_DBG)
+            print_dbg("[U] Authenticating uplink: tile=%d, seqNo=%d, mI=%d\n",
+                      tileNo, seqNo, masterIndex);
+        gcm.setIV(tileNo, seqNo, masterIndex);
+    }
+#endif
 
 private:
 
@@ -170,10 +218,28 @@ private:
        Initialized by the constructor and decremented
        every time a new SME is serialized */
     unsigned char numSMEs;
+
+#ifdef CRYPTO
+    AesGcm& gcm;
+    bool authenticate;
+    bool encrypt;
+#endif
 };
 
 class ReceiveUplinkMessage {
 public:
+#ifdef CRYPTO
+    ReceiveUplinkMessage(const NetworkConfiguration& config, AesGcm& gcm) :
+        bitsetSize(config.getNeighborBitmaskSize()),
+        maxNodes(config.getMaxNodes()),
+        weakTop(config.getUseWeakTopologies()),
+        topologySize(TopologyElement::maxSize(bitsetSize, weakTop)),
+        smeSize(StreamManagementElement::maxSize()),
+        panId(config.getPanId()),
+        topology(RuntimeBitset(maxNodes)),
+        weakTopology(RuntimeBitset(maxNodes)),
+        gcm(gcm) {}
+#else
     ReceiveUplinkMessage(const NetworkConfiguration& config) :
         bitsetSize(config.getNeighborBitmaskSize()),
         maxNodes(config.getMaxNodes()),
@@ -183,6 +249,7 @@ public:
         panId(config.getPanId()),
         topology(RuntimeBitset(maxNodes)),
         weakTopology(RuntimeBitset(maxNodes)) {}
+#endif
     ReceiveUplinkMessage(const ReceiveUplinkMessage&) = delete;
     ReceiveUplinkMessage& operator=(const ReceiveUplinkMessage&) = delete;
 
@@ -251,6 +318,19 @@ public:
         else return TopologyElement(id, topology);
     }
 
+#ifdef CRYPTO
+    /**
+     * Wrapper to set IV on the uplink gcm. Needed because decryption needs to be
+     * performed before semantic checks on uplink message.
+     */
+    void setIV(unsigned int tileNo, unsigned long long seqNo, unsigned int masterIndex) {
+        if(ENABLE_CRYPTO_UPLINK_DBG)
+            print_dbg("[U] Verifying uplink: tile=%d, seqNo=%d, mI=%d\n",
+                      tileNo, seqNo, masterIndex);
+        gcm.setIV(tileNo, seqNo, masterIndex);
+    }
+#endif
+
 private:
 
     /**
@@ -300,6 +380,12 @@ private:
     unsigned int packetTopologies = 0;
     /* Number of SMEs contained in the current packet */
     unsigned int packetSMEs = 0;
+
+#ifdef CRYPTO
+    AesGcm& gcm;
+    bool authenticate;
+    bool encrypt;
+#endif
 };
 
 } /* namespace mxnet */

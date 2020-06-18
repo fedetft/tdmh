@@ -27,6 +27,7 @@
  ***************************************************************************/
 
 #include "uplink_message.h"
+#include "../util/debug_settings.h"
 
 namespace mxnet {
 
@@ -38,13 +39,25 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
                                      unsigned char hop,
                                      bool badFlag, unsigned char assignee,
                                      const TopologyElement& myTopology,
-                                     int availableTopologies, int availableSMEs) :
+                                     int availableTopologies, int availableSMEs
+#ifdef CRYPTO
+                                     , AesGcm& gcm
+#endif
+                                     ) :
     weakTop(config.getUseWeakTopologies()),
     topologySize(TopologyElement::maxSize(config.getNeighborBitmaskSize(), weakTop)),
     smeSize(StreamManagementElement::maxSize()),
     panId(config.getPanId())
+#ifdef CRYPTO
+    , gcm(gcm),
+    authenticate(config.getAuthenticateControlMessages()),
+    encrypt(config.getEncryptControlMessages())
+#endif
 {
     computePacketAllocation(config, availableTopologies, availableSMEs);
+#ifdef CRYPTO
+    if(authenticate) packet.reserveTag();
+#endif
     packet.putPanHeader(panId);
     unsigned char hopFlag;
     if(badFlag) hopFlag = hop | 0x80;
@@ -96,7 +109,7 @@ void SendUplinkMessage::computePacketAllocation(const NetworkConfiguration& conf
     */
     {
         const int totAvailableBytes = getFirstUplinkPacketCapacity(config) +
-            (maxPackets - 1) * getOtherUplinkPacketCapacity();
+            (maxPackets - 1) * getOtherUplinkPacketCapacity(config);
         numTopologies = std::min(guaranteedTopologies, availableTopologies);
         const int remainingTopologies = availableTopologies - numTopologies;
         const int topologyBytes = numTopologies * topologySize;
@@ -120,7 +133,7 @@ void SendUplinkMessage::computePacketAllocation(const NetworkConfiguration& conf
         remainingBytes -= packetTopologies * topologySize;
         if(remainingTopologies == 0 || totPackets >= maxPackets) break;
         totPackets++;
-        remainingBytes = getOtherUplinkPacketCapacity();
+        remainingBytes = getOtherUplinkPacketCapacity(config);
     }
     /* NOTE: Handling the corner case in which after splitting in packets, we can't
        fit all the topologies */
@@ -135,7 +148,7 @@ void SendUplinkMessage::computePacketAllocation(const NetworkConfiguration& conf
         remainingBytes -= packetSMEs * smeSize;
         if(remainingSMEs == 0 || totPackets >= maxPackets) break;
         totPackets++;
-        remainingBytes = getOtherUplinkPacketCapacity();
+        remainingBytes = getOtherUplinkPacketCapacity(config);
     }
     /* NOTE: Handling the corner case in which after splitting in packets, we can't
        fit all the SMEs */
@@ -163,6 +176,17 @@ bool ReceiveUplinkMessage::recv(MACContext& ctx, long long tExpected) {
         return false;
 
     auto& config = ctx.getNetworkConfig();
+
+#ifdef CRYPTO
+    bool valid = true;
+    if(encrypt) valid = packet.verifyAndDecrypt(gcm);
+    else if(authenticate) valid = packet.verify(gcm);
+    if(!valid) {
+        if(ENABLE_CRYPTO_UPLINK_DBG) print_dbg("[U] verify failed!\n");
+        return false;
+    }
+#endif
+
     // Validate first packet
     if(receivedPackets == 0) {
         if(checkFirstPacket(config) == false) return false;
@@ -228,7 +252,8 @@ bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) 
 }
 
 bool ReceiveUplinkMessage::checkOtherPacket(const NetworkConfiguration& config) {
-    const unsigned int headerSize = Packet::maxSize() - getOtherUplinkPacketCapacity();
+    const unsigned int headerSize = Packet::maxSize()
+                                        - getOtherUplinkPacketCapacity(config);
     if(packet.size() < headerSize) return false;
     if(packet.checkPanHeader(panId) == false) return false;
     packet.removePanHeader();
@@ -268,7 +293,7 @@ bool ReceiveUplinkMessage::checkTopologiesAndSMEs(const NetworkConfiguration& co
             }
             if(remainingTopologies == 0) break;
             if(++numPackets > maxPackets) return false;
-            remainingBytes = getOtherUplinkPacketCapacity();
+            remainingBytes = getOtherUplinkPacketCapacity(config);
         } 
     }
 
@@ -297,7 +322,7 @@ bool ReceiveUplinkMessage::checkTopologiesAndSMEs(const NetworkConfiguration& co
             }
             if(remainingSMEs == 0) break;
             if(++numPackets > maxPackets) return false;
-            remainingBytes = getOtherUplinkPacketCapacity();
+            remainingBytes = getOtherUplinkPacketCapacity(config);
         }
     }
     // Check size of data in packet
