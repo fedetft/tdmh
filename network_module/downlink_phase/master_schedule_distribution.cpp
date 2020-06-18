@@ -90,7 +90,9 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
                 //No packet sent in this downlink slot
             } else {
                 // Keep rekeying streams if needed
+#ifdef CRYPTO
                 streamMgr->continueRekeying();
+#endif
                 // We don't send any info elements here, as the dynamic nodes are busy
                 // rekeying too
             }

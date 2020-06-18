@@ -79,11 +79,13 @@ protected:
         *reinterpret_cast<unsigned int*>(&packet[7]) = packetCounter;
     }
 
+#ifdef CRYPTO
     void setPacketMasterIndex() {
         unsigned int index = ctx.getKeyManager()->getMasterIndex();
         *reinterpret_cast<unsigned int*>(&packet[11]) = index;
 
     }
+#endif
     
     void next() override;
     long long correct(long long int uncorrected) override;

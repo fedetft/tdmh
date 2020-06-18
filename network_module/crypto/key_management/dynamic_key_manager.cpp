@@ -3,6 +3,8 @@
 #include "dynamic_key_manager.h"
 #include "../hash.h"
 
+#ifdef CRYPTO
+
 namespace mxnet {
 
 /**
@@ -205,3 +207,4 @@ void DynamicKeyManager::desync() {
 }
 
 } //namespace mxnet
+#endif //ifdef CRYPTO

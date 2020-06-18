@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cstdio>
 
+#ifdef CRYPTO
 namespace mxnet {
 
 void MasterKeyManager::startRekeying() {
@@ -71,3 +72,4 @@ unsigned int MasterKeyManager::getMasterIndex() {
 }
 
 } //namespace mxnet
+#endif //ifdef CRYPTO
