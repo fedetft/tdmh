@@ -238,7 +238,9 @@ public:
         panId(config.getPanId()),
         topology(RuntimeBitset(maxNodes)),
         weakTopology(RuntimeBitset(maxNodes)),
-        gcm(gcm) {}
+        gcm(gcm),
+        authenticate(config.getAuthenticateControlMessages()),
+        encrypt(config.getEncryptControlMessages()) {}
 #else
     ReceiveUplinkMessage(const NetworkConfiguration& config) :
         bitsetSize(config.getNeighborBitmaskSize()),
