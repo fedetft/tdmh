@@ -225,7 +225,7 @@ void ReceiveUplinkMessage::deserializeTopologiesAndSMEs(UpdatableQueue<unsigned 
 }
 
 bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) {
-    const unsigned int headerSize = Packet::maxSize() - getFirstUplinkPacketCapacity(config);
+    const unsigned int headerSize = panHeaderSize + sizeof(UplinkHeader);
     if(packet.size() < headerSize) return false;
     if(packet.checkPanHeader(panId) == false) return false;
     packet.removePanHeader();
@@ -252,8 +252,7 @@ bool ReceiveUplinkMessage::checkFirstPacket(const NetworkConfiguration& config) 
 }
 
 bool ReceiveUplinkMessage::checkOtherPacket(const NetworkConfiguration& config) {
-    const unsigned int headerSize = Packet::maxSize()
-                                        - getOtherUplinkPacketCapacity(config);
+    const unsigned int headerSize = panHeaderSize;
     if(packet.size() < headerSize) return false;
     if(packet.checkPanHeader(panId) == false) return false;
     packet.removePanHeader();

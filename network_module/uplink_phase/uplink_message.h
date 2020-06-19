@@ -70,7 +70,6 @@ inline int getFirstUplinkPacketCapacity(const NetworkConfiguration& config) {
                                         config.getNeighborBitmaskSize());
     }
 #ifdef CRYPTO
-    const unsigned int tagSize = 16;
     if(config.getAuthenticateControlMessages()) capacity -= tagSize;
 #endif
     
@@ -84,7 +83,6 @@ inline int getFirstUplinkPacketCapacity(const NetworkConfiguration& config) {
 inline int getOtherUplinkPacketCapacity(const NetworkConfiguration& config) {
 #ifdef CRYPTO
     if(config.getAuthenticateControlMessages()) {
-        const unsigned int tagSize = 16;
         return Packet::maxSize() - panHeaderSize - tagSize;
     } else {
         return Packet::maxSize() - panHeaderSize;
