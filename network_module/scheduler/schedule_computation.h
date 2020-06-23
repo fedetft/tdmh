@@ -149,7 +149,7 @@ private:
     
     bool reschedule();
     
-    std::set<std::pair<unsigned char,unsigned char>> computeUsedLinks() const;
+    std::set<std::pair<unsigned char,unsigned char>> computeUsedLinks(const Schedule& sched) const;
 
     void initialPrint(bool removed, bool wrote_back, bool graph_changed);
 

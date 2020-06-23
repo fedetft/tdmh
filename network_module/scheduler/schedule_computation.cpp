@@ -191,7 +191,7 @@ bool ScheduleComputation::reschedule()
     
     if(scheduleChanged)
     {
-        topology->scheduleChanged(computeUsedLinks(), std::move(newSchedule.getLinksCausingInterference()));
+        topology->scheduleChanged(computeUsedLinks(newSchedule), std::move(newSchedule.getLinksCausingInterference()));
         // Update stream_collection for printing results and notify REJECTED streams
         /* NOTE: Here we need to change the stream status in stream_collection.
         (note: we compute the changes using the snapshot and then update the StreamCollection)
@@ -218,10 +218,12 @@ bool ScheduleComputation::reschedule()
     return scheduleChanged;
 }
 
-std::set<std::pair<unsigned char,unsigned char>> ScheduleComputation::computeUsedLinks() const
+std::set<std::pair<unsigned char,unsigned char>> ScheduleComputation::computeUsedLinks(const Schedule& sched) const
 {
     std::set<std::pair<unsigned char,unsigned char>> result;
-    for(auto& se : schedule.schedule) result.insert(orderLink(se.getTx(),se.getRx()));
+    for(auto& se : sched.schedule) {
+        result.insert(orderLink(se.getTx(),se.getRx()));
+    }
     return result;
 }
 
