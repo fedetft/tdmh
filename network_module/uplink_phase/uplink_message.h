@@ -185,7 +185,7 @@ public:
      */
     void setIV(unsigned int tileNo, unsigned long long seqNo, unsigned int masterIndex) {
         if(ENABLE_CRYPTO_UPLINK_DBG)
-            print_dbg("[U] Authenticating uplink: tile=%d, seqNo=%d, mI=%d\n",
+            print_dbg("[U] Authenticating uplink: tile=%u, seqNo=%llu, mI=%u\n",
                       tileNo, seqNo, masterIndex);
         gcm.setIV(tileNo, seqNo, masterIndex);
     }
@@ -325,7 +325,7 @@ public:
      */
     void setIV(unsigned int tileNo, unsigned long long seqNo, unsigned int masterIndex) {
         if(ENABLE_CRYPTO_UPLINK_DBG)
-            print_dbg("[U] Verifying uplink: tile=%d, seqNo=%d, mI=%d\n",
+            print_dbg("[U] Verifying uplink: tile=%u, seqNo=%llu, mI=%u\n",
                       tileNo, seqNo, masterIndex);
         gcm.setIV(tileNo, seqNo, masterIndex);
     }
