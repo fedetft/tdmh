@@ -126,11 +126,12 @@ void DataPhase::sendFromStream(long long slotStart, StreamId id) {
         pktReady = stream.sendPacket(id, pkt);
         if (pktReady) {
             AesGcm& gcm = stream.getStreamGCM(id);
+            unsigned int masterIndex = ctx.getKeyManager()->getMasterIndex();
 
             if (ENABLE_CRYPTO_DATA_DBG)
-                print_dbg("[D] sendFromStream: FrameNumber = %d, seqNo = %d, mIndex = %d\n",
-                          dataSuperframeNumber, seqNo, ctx.getKeyManager()->getMasterIndex());
-            gcm.setIV(dataSuperframeNumber, seqNo, ctx.getKeyManager()->getMasterIndex());
+                print_dbg("[D] sendFromStream: FrameNumber = %u, seqNo = %llu, mIndex = %u\n",
+                          dataSuperframeNumber, seqNo, masterIndex);
+            gcm.setIV(dataSuperframeNumber, seqNo, masterIndex);
 
             if (config.getEncryptDataMessages()) pkt.encryptAndPutTag(gcm);
             else pkt.putTag(gcm);
@@ -171,12 +172,13 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
 #ifdef CRYPTO
         if (config.getAuthenticateDataMessages()) {
             AesGcm& gcm = stream.getStreamGCM(id);
+            unsigned int masterIndex = ctx.getKeyManager()->getMasterIndex();
             if (ENABLE_CRYPTO_DATA_DBG)
-                print_dbg("[D] receiveToStream: FrameNumber = %d, seqNo = %d, mIndex = %d\n",
+                print_dbg("[D] receiveToStream: FrameNumber = %u, seqNo = %llu, mIndex = %u\n",
                           dataSuperframeNumber, stream.getSequenceNumber(id),
-                          ctx.getKeyManager()->getMasterIndex());
+                          masterIndex);
             gcm.setIV(dataSuperframeNumber, stream.getSequenceNumber(id),
-                      ctx.getKeyManager()->getMasterIndex());
+                      masterIndex);
             if (config.getEncryptDataMessages()) valid &= pkt.verifyAndDecrypt(gcm);
             else valid &= pkt.verify(gcm);
 

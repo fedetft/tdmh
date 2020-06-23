@@ -116,7 +116,7 @@ void DynamicTimesyncDownlink::periodicSync() {
             unsigned long long seqNo = 1;
             unsigned int mI = ctx.getKeyManager()->getMasterIndex();
             if (ENABLE_CRYPTO_TIMESYNC_DBG)
-                print_dbg("[T] Verifying timesync: tile=%d, seqNo=%d, mI=%d\n",
+                print_dbg("[T] Verifying timesync: tile=%u, seqNo=%llu, mI=%u\n",
                           tile, seqNo, mI);
             gcm.setIV(tile, seqNo, mI);
             verified = pkt.verify(gcm);
@@ -239,7 +239,7 @@ void DynamicTimesyncDownlink::resyncTime() {
         unsigned int tile = ctx.getCurrentTile(getSlotframeStart());
         unsigned long long seqNo = 1;
         if (ENABLE_CRYPTO_TIMESYNC_DBG)
-            print_dbg("[T] Verifying timesync: tile=%d, seqNo=%d, mI=%d\n",
+            print_dbg("[T] Verifying timesync: tile=%u, seqNo=%llu, mI=%u\n",
                       tile, seqNo, mI);
         gcm.setIV(tile, seqNo, mI);
         verified = pkt.verify(gcm);
