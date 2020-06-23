@@ -71,7 +71,7 @@ void MasterTimesyncDownlink::execute(long long slotStart)
         unsigned long long seqNo = 1;
         unsigned int mI = ctx.getKeyManager()->getMasterIndex();
         if (ENABLE_CRYPTO_TIMESYNC_DBG)
-            print_dbg("[T] Authenticating timesync: tile=%d, seqNo=%d, mI=%d\n", tile, seqNo, mI);
+            print_dbg("[T] Authenticating timesync: tile=%u, seqNo=%llu, mI=%d\n", tile, seqNo, mI);
         gcm.setIV(tile, seqNo, mI);
         packet.putTag(gcm);
     }

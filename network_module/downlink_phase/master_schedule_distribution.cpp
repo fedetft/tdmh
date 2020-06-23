@@ -373,7 +373,7 @@ void MasterScheduleDownlinkPhase::sendPkt(long long slotStart, Packet& pkt)
         unsigned int seqNo = 1;
         unsigned int masterIndex = ctx.getKeyManager()->getMasterIndex();
         if(ENABLE_CRYPTO_DOWNLINK_DBG)
-            print_dbg("[SD] Authenticating downlink: tile=%d, seqNo=%d, mI=%d\n",
+            print_dbg("[SD] Authenticating downlink: tile=%u, seqNo=%llu, mI=%u\n",
                       tileNumber, seqNo, masterIndex);
         gcm.setIV(tileNumber, seqNo, masterIndex);
         if(ctx.getNetworkConfig().getEncryptControlMessages()) {
