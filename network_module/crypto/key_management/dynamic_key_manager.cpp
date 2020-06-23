@@ -11,14 +11,14 @@ namespace mxnet {
  * Compute next value for master key, without applying it yet.
  */
 void DynamicKeyManager::startRekeying() {
-    if (status == MASTER_UNTRUSTED) {
+    if (status == KeyManagerStatus::MASTER_UNTRUSTED) {
         masterHash.digestBlock(nextMasterKey, tempMasterKey);
         nextMasterIndex = tempMasterIndex + 1;
-        status = REKEYING_UNTRUSTED;
-    } else if (status == CONNECTED) {
+        status = KeyManagerStatus::REKEYING_UNTRUSTED;
+    } else if (status == KeyManagerStatus::CONNECTED) {
         masterHash.digestBlock(nextMasterKey, masterKey);
         nextMasterIndex = masterIndex + 1;
-        status = REKEYING;
+        status = KeyManagerStatus::REKEYING;
 
         /* Also prepare the stream manager for rekeying */
         unsigned char nextIv[16];
@@ -40,14 +40,14 @@ void DynamicKeyManager::startRekeying() {
  * Actually rotate the master key with the next precomputed value.
  */
 void DynamicKeyManager::applyRekeying() { 
-    if (status == REKEYING_UNTRUSTED) {
+    if (status == KeyManagerStatus::REKEYING_UNTRUSTED) {
         tempMasterIndex = nextMasterIndex;
         memcpy(tempMasterKey, nextMasterKey, 16);
-        status = MASTER_UNTRUSTED;
-    } else if (status == REKEYING) {
+        status = KeyManagerStatus::MASTER_UNTRUSTED;
+    } else if (status == KeyManagerStatus::REKEYING) {
         masterIndex = nextMasterIndex;
         memcpy(masterKey, nextMasterKey, 16);
-        status = CONNECTED;
+        status = KeyManagerStatus::CONNECTED;
     } else {
         printf("DynamicKeyManager: unexpected call to applyRekeying\n");
         assert(false);
@@ -95,7 +95,7 @@ unsigned int DynamicKeyManager::getMasterIndex() {
 }
 
 bool DynamicKeyManager::attemptResync(unsigned int newIndex) {
-    if (status != DISCONNECTED) return false;
+    if (status != KeyManagerStatus::DISCONNECTED) return false;
     if (newIndex < masterIndex) return false;
 
     memcpy(tempMasterKey, masterKey, 16);
@@ -103,7 +103,7 @@ bool DynamicKeyManager::attemptResync(unsigned int newIndex) {
         masterHash.digestBlock(tempMasterKey, tempMasterKey);
     }
     tempMasterIndex = newIndex;
-    status = MASTER_UNTRUSTED;
+    status = KeyManagerStatus::MASTER_UNTRUSTED;
     streamMgr.untrustMaster();
 
     uplinkHash.digestBlock(uplinkKey, tempMasterKey);
@@ -117,9 +117,9 @@ bool DynamicKeyManager::attemptResync(unsigned int newIndex) {
 }
 
 void DynamicKeyManager::advanceResync() {
-    if (status != MASTER_UNTRUSTED) {
+    if (status != KeyManagerStatus::MASTER_UNTRUSTED) {
         // error: reset
-        status = DISCONNECTED;
+        status = KeyManagerStatus::DISCONNECTED;
         return;
     }
 
@@ -136,25 +136,25 @@ void DynamicKeyManager::advanceResync() {
 }
 
 void DynamicKeyManager::rollbackResync() {
-    status = DISCONNECTED;
+    status = KeyManagerStatus::DISCONNECTED;
     streamMgr.untrustMaster();
 }
 
 void DynamicKeyManager::commitResync() {
-    if (status != MASTER_UNTRUSTED) {
+    if (status != KeyManagerStatus::MASTER_UNTRUSTED) {
         // error: reset
-        status = DISCONNECTED;
+        status = KeyManagerStatus::DISCONNECTED;
         streamMgr.untrustMaster();
         return;
     }
     memcpy(masterKey, tempMasterKey, 16);
     masterIndex = tempMasterIndex;
-    status = CONNECTED;
+    status = KeyManagerStatus::CONNECTED;
     streamMgr.trustMaster();
 }
 
 void DynamicKeyManager::attemptAdvance() {
-    if (status != CONNECTED) return;
+    if (status != KeyManagerStatus::CONNECTED) return;
     /**
      * A master index change while we are connected can happen: 
      * - if the master has rebooted, or
@@ -169,7 +169,7 @@ void DynamicKeyManager::attemptAdvance() {
      * timesync key here.
      */
     masterHash.digestBlock(tempMasterKey, masterKey);
-    status = ADVANCING;
+    status = KeyManagerStatus::ADVANCING;
     tempMasterIndex = masterIndex + 1;
 
     timesyncHash.digestBlock(timesyncKey, tempMasterKey);
@@ -177,10 +177,10 @@ void DynamicKeyManager::attemptAdvance() {
 }
 
 void DynamicKeyManager::commitAdvance() {
-    if (status != ADVANCING) return;
+    if (status != KeyManagerStatus::ADVANCING) return;
     memcpy(masterKey, tempMasterKey, 16);
     masterIndex = tempMasterIndex;
-    status = CONNECTED;
+    status = KeyManagerStatus::CONNECTED;
 
     /**
      * Compute phase keys. Timesync has already been computed.
@@ -192,9 +192,9 @@ void DynamicKeyManager::commitAdvance() {
 }
 
 void DynamicKeyManager::rollbackAdvance() {
-    if (status != ADVANCING) return;
+    if (status != KeyManagerStatus::ADVANCING) return;
     // rollback to the values of masterKey and masterIndex 
-    status = CONNECTED;
+    status = KeyManagerStatus::CONNECTED;
 
     /* restore last valid timesync key */
     timesyncHash.digestBlock(timesyncKey, masterKey);
@@ -202,7 +202,7 @@ void DynamicKeyManager::rollbackAdvance() {
 }
 
 void DynamicKeyManager::desync() {
-    status = DISCONNECTED;
+    status = KeyManagerStatus::DISCONNECTED;
     streamMgr.untrustMaster();
 }
 

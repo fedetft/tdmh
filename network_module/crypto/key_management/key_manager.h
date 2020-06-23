@@ -5,7 +5,7 @@
 
 namespace mxnet {
 
-enum KeyManagerStatus {
+enum class KeyManagerStatus {
     DISCONNECTED,
     MASTER_UNTRUSTED,
     REKEYING_UNTRUSTED,

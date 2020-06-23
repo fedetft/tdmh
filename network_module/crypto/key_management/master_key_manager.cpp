@@ -6,13 +6,13 @@
 namespace mxnet {
 
 void MasterKeyManager::startRekeying() {
-    if (status != CONNECTED) {
+    if (status != KeyManagerStatus::CONNECTED) {
         printf("MasterKeyManager: unexpected call to startRekeying\n");
         assert(false);
     }
     masterHash.digestBlock(nextMasterKey, masterKey);
     nextMasterIndex = masterIndex + 1;
-    status = REKEYING;
+    status = KeyManagerStatus::REKEYING;
 
     uplinkHash.digestBlock(nextUplinkKey, nextMasterKey);
     downlinkHash.digestBlock(nextDownlinkKey, nextMasterKey);
@@ -26,13 +26,13 @@ void MasterKeyManager::startRekeying() {
 }
 
 void MasterKeyManager::applyRekeying() {
-    if (status != REKEYING) {
+    if (status != KeyManagerStatus::REKEYING) {
         printf("MasterKeyManager: unexpected call to applyRekeying\n");
         assert(false);
     }
     masterIndex = nextMasterIndex;
     memcpy(masterKey, nextMasterKey, 16);
-    status = CONNECTED;
+    status = KeyManagerStatus::CONNECTED;
 
     uplinkGCM.rekey(nextUplinkKey);
     downlinkGCM.rekey(nextDownlinkKey);
