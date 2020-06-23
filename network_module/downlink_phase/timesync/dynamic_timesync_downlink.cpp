@@ -80,9 +80,9 @@ void DynamicTimesyncDownlink::periodicSync() {
             indexValid = false;
         } else if (mI == currentMI+1) {
             KeyManagerStatus s = ctx.getKeyManager()->getStatus();
-            if (s == CONNECTED)
+            if (s == KeyManagerStatus::CONNECTED)
                 ctx.getKeyManager()->attemptAdvance();
-            else if (s == MASTER_UNTRUSTED) {
+            else if (s == KeyManagerStatus::MASTER_UNTRUSTED) {
                 ctx.getKeyManager()->advanceResync();
             }
             indexValid = true;
@@ -127,10 +127,10 @@ void DynamicTimesyncDownlink::periodicSync() {
 
         KeyManagerStatus s = ctx.getKeyManager()->getStatus();
         if(indexValid && verified) {
-            if (s == ADVANCING) ctx.getKeyManager()->commitAdvance();
+            if (s == KeyManagerStatus::ADVANCING) ctx.getKeyManager()->commitAdvance();
             doPeriodicSync(correctedStart, rcvResult, pkt);
         } else {
-            if (s == ADVANCING) ctx.getKeyManager()->rollbackAdvance();
+            if (s == KeyManagerStatus::ADVANCING) ctx.getKeyManager()->rollbackAdvance();
             missedPacket();
         }
 #else //ifdef CRYPTO
