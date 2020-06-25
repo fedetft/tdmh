@@ -94,6 +94,20 @@ unsigned int DynamicKeyManager::getMasterIndex() {
     }
 }
 
+bool DynamicKeyManager::periodicUpdate() {
+    bool result;
+    if (doChallengeResponse) {
+        challengeCtr++;
+        if (challengeCtr >= challengeTimeout) {
+            challengeCtr = 0;
+            rollbackResync();
+            result = true;
+        } else result = false;
+    } else result = false;
+
+    return result;
+}
+
 bool DynamicKeyManager::attemptResync(unsigned int newIndex) {
     if (status != KeyManagerStatus::DISCONNECTED) return false;
     if (newIndex < masterIndex) return false;
