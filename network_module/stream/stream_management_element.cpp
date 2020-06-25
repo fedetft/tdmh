@@ -60,19 +60,25 @@ bool StreamManagementElement::validateInPacket(Packet& packet, unsigned int offs
     
     bool result = true;
     if(id.src>=maxNodes) result = false;
-    if(id.dst>=maxNodes) result = false;
     switch(type)
     {
         case SMEType::LISTEN:
+            if(id.dst>=maxNodes) result = false;
             if(!id.isServer()) result = false;
             break;
         case SMEType::CONNECT:
+            if(id.dst>=maxNodes) result = false;
             break;
         case SMEType::CLOSED:
+            if(id.dst>=maxNodes) result = false;
             break;
         case SMEType::RESEND_SCHEDULE:
+            if(id.dst>=maxNodes) result = false;
             if(id.src==0) result = false; //Master node can't ask resend
             if(id.dst!=0 || id.srcPort!=0 || id.dstPort!=0) result = false; //Wrong resend packet
+            break;
+        case SMEType::CHALLENGE:
+            if(id.src==0) result = false; //Master does not send challenges
             break;
         default:
             result = false;
