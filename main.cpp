@@ -153,7 +153,9 @@ void masterNode(void*)
             true,          //authenticateControlMessages
             false,         //encryptControlMessages
             true,          //authenticateDataMessages
-            true           //encryptDataMessages
+            true,          //encryptDataMessages
+            true,          //doMasterChallengeAuthentication
+            32             //masterChallengeAuthenticationTimeout
 #endif
         );
         printf("Starting TDMH with guaranteedTopologies=%d\n", guaranteedTopologies(maxNodes,useWeakTopologies));
@@ -203,7 +205,9 @@ void dynamicNode(void* argv)
             true,          //authenticateControlMessages
             false,         //encryptControlMessages
             true,          //authenticateDataMessages
-            true           //encryptDataMessages
+            true,          //encryptDataMessages
+            true,          //doMasterChallengeAuthentication
+            32             //masterChallengeAuthenticationTimeout
 #endif
         );
         printf("Starting TDMH with guaranteedTopologies=%d\n", guaranteedTopologies(maxNodes,useWeakTopologies));
