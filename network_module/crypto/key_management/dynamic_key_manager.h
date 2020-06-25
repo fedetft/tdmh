@@ -6,8 +6,11 @@ namespace mxnet {
 
 class DynamicKeyManager : public KeyManager {
 public:
-    DynamicKeyManager(StreamManager& streamMgr) :
-        KeyManager(streamMgr, KeyManagerStatus::DISCONNECTED) {}
+    DynamicKeyManager(StreamManager& streamMgr, const NetworkConfiguration& config) :
+        KeyManager(streamMgr, KeyManagerStatus::DISCONNECTED),
+        doChallengeResponse(config.getDoMasterChallengeAuthentication()),
+        challengeTimeout(config.getMasterChallengeAuthenticationTimeout())
+        {}
 
     /**
      * Compute next value for master key, without applying it yet.
@@ -67,6 +70,10 @@ private:
      */
     unsigned char tempMasterKey[16];
     unsigned int tempMasterIndex;
+
+    const bool doChallengeResponse;
+    const unsigned int challengeTimeout;
+    unsigned int challengeCtr = 0;
 
 };
 
