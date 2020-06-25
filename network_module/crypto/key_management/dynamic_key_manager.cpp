@@ -96,7 +96,7 @@ unsigned int DynamicKeyManager::getMasterIndex() {
 
 bool DynamicKeyManager::periodicUpdate() {
     bool result;
-    if (doChallengeResponse) {
+    if (doChallengeResponse && status == KeyManagerStatus::MASTER_UNTRUSTED) {
         challengeCtr++;
         if (challengeCtr >= challengeTimeout) {
             challengeCtr = 0;
