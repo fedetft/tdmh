@@ -60,6 +60,11 @@ public:
     inline void execute(long long slotStart) override;
     
     virtual long long getSlotframeStart() const override { return measuredFrameStart - (ctx.getHop() - 1) * rebroadcastInterval; }
+
+    /**
+     * Called by context to force desync
+     */
+    void forceDesync() override { desyncMAC(); }
 protected:
     void rebroadcast(const Packet& pkt, long long arrivalTs);
     

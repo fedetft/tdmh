@@ -187,6 +187,9 @@ void MACContext::run()
                 // Send a notify to the scheduler thread, to begin scheduling
                 beginScheduling();
                 scheduleDistribution->run(currentNextDeadline);
+                if(keyMgr->periodicUpdate()) {
+                    timesync->forceDesync();
+                }
             }
             currentNextDeadline += downlinkSlotDuration;
             dataSlots = numDataSlotInDownlinkTile;

@@ -113,6 +113,8 @@ public:
 
     void advance(long long slotStart) override;
 
+    virtual void forceDesync() = 0;
+
 protected:
     TimesyncDownlink(MACContext& ctx, MacroStatus initStatus, unsigned receivingWindow) :
             MACPhase(ctx),

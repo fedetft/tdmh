@@ -50,10 +50,12 @@ public:
      * Master node do not need desync since it never loses synchronization
      */
     void desync() override {}
+    void forceDesync() override {}
 
     virtual long long getSlotframeStart() const override { return slotframeTime; }
     
     void macStartHook() override;
+
 
 protected:
     /**
