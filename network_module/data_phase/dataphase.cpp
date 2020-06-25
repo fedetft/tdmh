@@ -118,7 +118,7 @@ void DataPhase::sendFromStream(long long slotStart, StreamId id) {
 
 #ifdef CRYPTO
     if (config.getAuthenticateDataMessages()) {
-        unsigned int seqNo = stream.getSequenceNumber(id);
+        unsigned long long seqNo = stream.getSequenceNumber(id);
         /**
          * NOTE: sendPacket must be called after getSequenceNumber, because
          * sendPacket advances the sequence numbers too.
