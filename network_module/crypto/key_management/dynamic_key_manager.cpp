@@ -119,6 +119,7 @@ bool DynamicKeyManager::attemptResync(unsigned int newIndex) {
     tempMasterIndex = newIndex;
     status = KeyManagerStatus::MASTER_UNTRUSTED;
     streamMgr.untrustMaster();
+    sendChallenge();
 
     uplinkHash.digestBlock(uplinkKey, tempMasterKey);
     downlinkHash.digestBlock(downlinkKey, tempMasterKey);
@@ -218,6 +219,22 @@ void DynamicKeyManager::rollbackAdvance() {
 void DynamicKeyManager::desync() {
     status = KeyManagerStatus::DISCONNECTED;
     streamMgr.untrustMaster();
+}
+
+void DynamicKeyManager::sendChallenge() {
+    /**
+     * NOTE: because we are using SMEs to send challenges, we only have space for 4 random
+     * bytes. This is not the best, and it would be a good idea in the future to implement
+     * challeges differently and send more bytes.
+     */
+    const unsigned numBytes = 4;
+    for (unsigned i=0; i<numBytes; i++) {
+        //TODO: IMPORTANT! Use a secure (P)RNG! (to be implemented)
+        chal[i] = rand() % 256;
+    }
+
+    streamMgr.enqueueSME(StreamManagementElement::makeChallengeSME(myId, chal));
+    challengeCtr = 0;
 }
 
 } //namespace mxnet

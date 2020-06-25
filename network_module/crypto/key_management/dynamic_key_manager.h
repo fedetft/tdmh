@@ -8,9 +8,13 @@ class DynamicKeyManager : public KeyManager {
 public:
     DynamicKeyManager(StreamManager& streamMgr, const NetworkConfiguration& config) :
         KeyManager(streamMgr, KeyManagerStatus::DISCONNECTED),
+        myId(config.getStaticNetworkId()),
         doChallengeResponse(config.getDoMasterChallengeAuthentication()),
         challengeTimeout(config.getMasterChallengeAuthenticationTimeout())
-        {}
+        {
+            //TODO: IMPORTANT! Use a secure (P)RNG! (to be implemented)
+            srand(myId);
+        }
 
     /**
      * Compute next value for master key, without applying it yet.
@@ -66,6 +70,13 @@ public:
     void desync() override;
 
 private:
+
+    /**
+     * Enqueue a challenge SME in the stream manager, and save it here
+     */
+    void sendChallenge();
+
+    const unsigned char myId;
     /**
      * Temporary values for master key and index.
      * These values are computed and used, but not yet committed. Committing
@@ -79,6 +90,12 @@ private:
     const bool doChallengeResponse;
     const unsigned int challengeTimeout;
     unsigned int challengeCtr = 0;
+
+    /**
+     * Last challenge sent to master. This value is only meaningful if we are
+     * in state MASTER_UNTRUSTED, waiting to check response.
+     */
+    unsigned char chal[16] = {0};
 
 };
 
