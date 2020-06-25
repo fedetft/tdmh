@@ -47,10 +47,11 @@ namespace mxnet {
 
 enum class SMEType : unsigned char
 {
-    CONNECT =0,          // Request to open a new stream
-    LISTEN =1,           // Request to open a new server
-    CLOSED =2,           // Request to close the stream or server
-    RESEND_SCHEDULE = 3  // Request to resend the schedule
+    CONNECT = 0,         // Request to open a new stream
+    LISTEN = 1,          // Request to open a new server
+    CLOSED = 2,          // Request to close the stream or server
+    RESEND_SCHEDULE = 3, // Request to resend the schedule
+    CHALLENGE = 4        // Random bytes challenge to authenticate master at resync
 };
 
 inline const char *smeTypeToString(SMEType s)
@@ -61,6 +62,7 @@ inline const char *smeTypeToString(SMEType s)
         case SMEType::LISTEN:          return "LISTEN";
         case SMEType::CLOSED:          return "CLOSED";
         case SMEType::RESEND_SCHEDULE: return "RESEND_SCHEDULE";
+        case SMEType::CHALLENGE:       return "CHALLENGE";
         default:                       return "UNKNOWN";
     }
 }
@@ -78,6 +80,7 @@ inline unsigned char smeTypeToClass(SMEType s)
         case SMEType::LISTEN:          return 0;
         case SMEType::CLOSED:          return 0;
         case SMEType::RESEND_SCHEDULE: return 1; // Class 1, schedule control
+        case SMEType::CHALLENGE:       return 2; // Class 2, crypto
         default:                       return 255;
     }
 }
@@ -137,6 +140,22 @@ public:
         StreamManagementElement result;
         result.type = SMEType::RESEND_SCHEDULE;
         result.id = StreamId(nodeId,0,0,0);
+#ifdef WITH_SME_SEQNO
+#ifdef _MIOSIX
+        result.seqNo = miosix::atomicAddExchange(&seqCounter,1);
+#else //_MIOSIX
+        result.seqNo = __atomic_add_fetch(&seqCounter,1,__ATOMIC_ACQ_REL);
+#endif //_MIOSIX
+#endif //WITH_SME_SEQNO
+        return result;
+    }
+
+    static StreamManagementElement makeChallengeSME(unsigned char nodeId,
+                                                    unsigned char chal[4]) {
+        StreamManagementElement result;
+        result.type = SMEType::CHALLENGE;
+        result.id = StreamId(nodeId, chal[0], chal[1]&0xf, chal[1]>>4);
+        result.parameters = StreamParameters::fromBytes(chal+2);
 #ifdef WITH_SME_SEQNO
 #ifdef _MIOSIX
         result.seqNo = miosix::atomicAddExchange(&seqCounter,1);
