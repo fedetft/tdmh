@@ -74,7 +74,9 @@ try {
             true,          //authenticateControlMessages
             false,         //encryptControlMessages
             true,          //authenticateDataMessages
-            true           //encryptDataMessages
+            true,          //encryptDataMessages
+            true,          //doMasterChallengeAuthentication
+            32             //masterChallengeAuthenticationTimeout
 #endif
     );
     DynamicMediumAccessController controller(Transceiver::instance(), config);

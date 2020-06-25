@@ -111,6 +111,8 @@ public:
 #ifdef CRYPTO
             bool authenticateControlMessages, bool encryptControlMessages,
             bool authenticateDataMessages, bool encryptDataMessages,
+            bool doMasterChallengeAuthentication,
+            unsigned int masterChallengeAuthenticationTimeout,
 #endif
             ControlSuperframeStructure controlSuperframe=ControlSuperframeStructure());
 
@@ -336,6 +338,21 @@ public:
     bool getEncryptDataMessages() const {
         return encryptDataMessages;
     }
+
+    /**
+     * @return true if the challenge-response mechanism for authenticating the master node at resync is being used.
+     */
+    bool getDoMasterChallengeAuthentication() const {
+        return doMasterChallengeAuthentication;
+    }
+
+    /**
+     * @return the number of schedule distribution tiles after which, if the master has not responded, master node authentication via challenge fails.
+     */
+    unsigned int getMasterChallengeAuthenticationTimeout() const {
+        return masterChallengeAuthenticationTimeout;
+    }
+
 #endif // #ifdef CRYPTO
 
 
@@ -373,6 +390,8 @@ private:
     const bool encryptControlMessages;
     const bool authenticateDataMessages;
     const bool encryptDataMessages;
+    const bool doMasterChallengeAuthentication;
+    const unsigned int masterChallengeAuthenticationTimeout;
 #endif
 
     const ControlSuperframeStructure controlSuperframe;
