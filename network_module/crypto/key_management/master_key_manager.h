@@ -33,6 +33,12 @@ public:
      */
     unsigned int getMasterIndex() override;
 
+    /**
+     * @return true if challenge timeout has run out and we should desync
+     * This never happens in master node.
+     */
+    bool periodicUpdate() override { return false; }
+
 private:
 };
 

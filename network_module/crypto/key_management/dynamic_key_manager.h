@@ -38,6 +38,11 @@ public:
     unsigned int getMasterIndex() override;
 
     /**
+     * @return true if challenge timeout has run out and we should desync
+     */
+    bool periodicUpdate() override;
+
+    /**
      * Called upon resync.
      * Advance hash chain to derive new master key from last known master key.
      * \param newIndex current updated master key index. Cannot decrese in time.

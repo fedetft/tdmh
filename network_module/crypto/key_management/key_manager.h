@@ -56,6 +56,11 @@ public:
      */
     virtual unsigned int getMasterIndex() = 0;
 
+    /**
+     * @return true if challenge timeout has run out and we should desync
+     */
+    virtual bool periodicUpdate() = 0;
+
     /* TODO: change these functions to make masterIndex and rekeying persistent
      * across reboot */
     /**
