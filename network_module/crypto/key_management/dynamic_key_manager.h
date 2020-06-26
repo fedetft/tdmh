@@ -1,6 +1,7 @@
 #pragma once
 #include "key_manager.h"
 #include "../../stream/stream_manager.h"
+#include "../../scheduler/schedule_element.h"
 
 namespace mxnet {
 
@@ -50,6 +51,7 @@ public:
      * Only used in master. Do nothing.
      */
     void enqueueChallenge(StreamManagementElement sme) override {}
+    std::vector<InfoElement> solveChallengesAndGetResponses() override {}
 
     /**
      * Called upon resync.
