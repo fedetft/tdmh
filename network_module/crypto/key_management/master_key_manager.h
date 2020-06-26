@@ -43,8 +43,17 @@ public:
 
     /**
      * Used in master node to collect challenges to solve
+     * \param sme a SME of type CHALLENGE to enqueue and solve later.
      */
     void enqueueChallenge(StreamManagementElement sme) override;
+
+    /**
+     * Used in master node to solve challenges. Called by schedule
+     * distribution phase.
+     * Solve a maximum of maxSolvesPerSlot challenges present in queue.
+     * @return a vector of InfoElements of type RESPONSE, to be sent in this slot.
+     */
+    std::vector<InfoElement> solveChallengesAndGetResponses() override;
 
 private:
     /**

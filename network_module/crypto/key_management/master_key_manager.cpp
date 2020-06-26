@@ -82,5 +82,8 @@ void MasterKeyManager::enqueueChallenge(StreamManagementElement sme) {
     challenges.enqueue(sme.getSrc(), ar);
 }
 
+std::vector<InfoElement> MasterKeyManager::solveChallengesAndGetResponses() {
+}
+
 } //namespace mxnet
 #endif //ifdef CRYPTO
