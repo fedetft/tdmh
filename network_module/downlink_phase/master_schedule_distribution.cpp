@@ -347,8 +347,18 @@ void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart)
     ScheduleHeader infoHeader(0,0,header.getScheduleID());
     spkt.setHeader(infoHeader);
 
+    unsigned int capacity = packetCapacity;
+#ifdef CRYPTO
+    // Solve challenges if needed and put them in the packet
+    if(ctx.getNetworkConfig().getDoMasterChallengeAuthentication()) {
+        auto responses = ctx.getKeyManager()->solveChallengesAndGetResponses();
+        capacity -= responses.size();
+        for(auto& r : responses) spkt.putInfoElement(r);
+    }
+#endif
+
     // Add info elements to SchedulePacketacket
-    auto infos = streamColl->dequeueInfo(packetCapacity);
+    auto infos = streamColl->dequeueInfo(capacity);
     for(auto& info : infos) spkt.putInfoElement(info);
 
     Packet pkt;
