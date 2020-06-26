@@ -47,7 +47,8 @@ enum class InfoType
 {
     SERVER_OPENED =0, // Signals that the master has accepted the new Server
     SERVER_CLOSED =1, // Signals that the master has rejected the new Server
-    STREAM_REJECT =2  // Signals that the master has rejected the new Stream
+    STREAM_REJECT =2, // Signals that the master has rejected the new Stream
+    RESPONSE      =3  // Response to a CHALLENGE SME: used to authenticate master at resync
 };
 
 struct ScheduleHeaderPkt {
@@ -189,6 +190,18 @@ public:
         content.offset = static_cast<unsigned int>(type);
     };
     InfoType getType() const { return static_cast<InfoType>(content.offset); }
+
+    static InfoElement makeResponseInfoElement(unsigned char nodeId,
+                                               unsigned char bytes[6]) {
+        InfoElement result;
+        result.id = StreamId::fromBytes(bytes);
+        result.params = StreamParameters::fromBytes(bytes+3);
+        result.content.tx = bytes[5];
+
+        result.content.rx = nodeId;
+        result.content.offset = static_cast<unsigned int>(InfoType::RESPONSE);
+        return result;
+    }
 };
 
 class SchedulePacket : public SerializableMessage {
