@@ -112,6 +112,7 @@ public:
     virtual void rollbackAdvance() {}
 
     virtual void desync() {}
+
 protected:
 
     StreamManager& streamMgr;
@@ -120,6 +121,21 @@ protected:
 
     unsigned int masterIndex;
     unsigned int nextMasterIndex;
+
+    /**
+     * Value of the secret key used for challenge-respose authentication of
+     * master node during resync. This value is SECRET and hardcoding it
+     * is meant as a temporary solution.
+     * Note that this secret is not used directly, instead it is used
+     * combined in XOR with the current master key:
+     *
+     * Response = AES_Encrypt(Key = current master key XOR challengeSecret,
+     *                        Data = Challenge)
+     */
+    unsigned char challengeSecret[16] = {
+                0x51, 0x75, 0x65, 0x53, 0x74, 0x61, 0x20, 0x45,
+                0x20, 0x62, 0x65, 0x4e, 0x7a, 0x69, 0x6e, 0x41
+        };
 
     /**
      * Value of the first master key. This value is SECRET and hardcoding it
