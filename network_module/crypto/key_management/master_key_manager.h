@@ -1,6 +1,8 @@
 #pragma once
 #include "key_manager.h"
 #include "../../stream/stream_manager.h"
+#include "../../util/updatable_queue.h"
+#include <array>
 
 namespace mxnet {
 class MasterKeyManager : public KeyManager {
@@ -39,7 +41,16 @@ public:
      */
     bool periodicUpdate() override { return false; }
 
+    /**
+     * Used in master node to collect challenges to solve
+     */
+    void enqueueChallenge(StreamManagementElement sme) override;
+
 private:
+    /**
+     * Queue mapping the nodeId of the node that sent the challenge to the challenge bytes
+     */
+    UpdatableQueue<unsigned char, std::array<unsigned char, 16>> challenges;
 };
 
 } //namespace mxnet

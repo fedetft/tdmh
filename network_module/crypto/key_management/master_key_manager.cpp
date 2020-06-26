@@ -71,5 +71,16 @@ unsigned int MasterKeyManager::getMasterIndex() {
     }
 }
 
+void MasterKeyManager::enqueueChallenge(StreamManagementElement sme) {
+    unsigned char bytes[16] = {0};
+    bytes[0] = sme.getDst();
+    bytes[1] = sme.getSrcPort() | (sme.getDstPort() << 4);
+    StreamParameters p = sme.getParams();
+    memcpy(bytes + 2, &p, sizeof(StreamParameters));
+    std::array<unsigned char, 16> ar;
+    std::copy(std::begin(bytes), std::end(bytes), std::begin(ar));
+    challenges.enqueue(sme.getSrc(), ar);
+}
+
 } //namespace mxnet
 #endif //ifdef CRYPTO
