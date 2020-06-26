@@ -27,6 +27,10 @@
 
 #pragma once
 
+#include "../network_configuration.h"
+#ifdef CRYPTO
+#include "../crypto/key_management/key_manager.h"
+#endif // ifdef CRYPTO
 // For StreamId, StreamStatus, StreamManagementElement
 #include "stream_management_element.h"
 // For InfoElement
@@ -137,7 +141,12 @@ public:
     /**
      * Receives a vector of SME from the network
      */
+#ifdef CRYPTO
+    void receiveSMEs(UpdatableQueue<SMEKey, StreamManagementElement>& smes,
+                     KeyManager& keyManager);
+#else
     void receiveSMEs(UpdatableQueue<SMEKey, StreamManagementElement>& smes);
+#endif
     /**
      * Apply changes precomputed by StreamSnaphot::getStreamChanges()
      */
