@@ -47,6 +47,11 @@ public:
     bool periodicUpdate() override;
 
     /**
+     * Only used in master. Do nothing.
+     */
+    void enqueueChallenge(StreamManagementElement sme) override {}
+
+    /**
      * Called upon resync.
      * Advance hash chain to derive new master key from last known master key.
      * \param newIndex current updated master key index. Cannot decrese in time.
