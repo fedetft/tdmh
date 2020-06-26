@@ -50,7 +50,11 @@ void MasterUplinkPhase::execute(long long slotStart)
     // Enqueue SMEs produced by the Master node itself
     streamMgr->dequeueSMEs(smeQueue);
     // Consume elements from the SME queue
+#ifdef CRYPTO
+    streamColl->receiveSMEs(smeQueue, *(ctx.getKeyManager()));
+#else
     streamColl->receiveSMEs(smeQueue);
+#endif
     
     #ifndef _MIOSIX
     if(ENABLE_TOPOLOGY_INFO_DBG)

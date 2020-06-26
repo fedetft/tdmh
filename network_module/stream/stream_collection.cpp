@@ -102,7 +102,11 @@ std::map<StreamId, StreamChange> StreamSnapshot::getStreamChanges(const std::lis
 }
 
 void StreamCollection::receiveSMEs(UpdatableQueue<SMEKey,
-                                   StreamManagementElement>& smes) {
+                                   StreamManagementElement>& smes
+#ifdef CRYPTO
+                                   , KeyManager& keyManager
+#endif
+                                   ) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::Mutex> lck(coll_mutex);
 #else
@@ -125,6 +129,11 @@ void StreamCollection::receiveSMEs(UpdatableQueue<SMEKey,
                 print_dbg("[SC] schedule resend due to RESEND_SCHEDULE sme from (%d)\n",
                             sme.getSrc());
             continue;
+        }
+        if(sme.getType() == SMEType::CHALLENGE) {
+#ifdef CRYPTO
+            keyManager.enqueueChallenge(sme);
+#endif
         }
         
         StreamId id = sme.getStreamId();
