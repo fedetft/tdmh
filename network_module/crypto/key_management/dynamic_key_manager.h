@@ -51,7 +51,11 @@ public:
      * Only used in master. Do nothing.
      */
     void enqueueChallenge(StreamManagementElement sme) override {}
-    std::vector<InfoElement> solveChallengesAndGetResponses() override {}
+    std::vector<InfoElement> solveChallengesAndGetResponses() override {
+        assert(false);
+        std::vector<InfoElement> result;
+        return result;
+    }
 
     /**
      * Called upon resync.
