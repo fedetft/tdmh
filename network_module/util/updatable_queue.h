@@ -80,6 +80,12 @@ public:
      * \return the oldest element in the queue, removing it
      */
     V dequeue();
+
+    /**
+     * \return a pair comprised of the oldest element in the queue, which is
+     * removed, and its key.
+     */
+    std::pair<K,V> dequeuePair();
     
     /**
      * Remove all elements in the queue
@@ -163,5 +169,19 @@ V UpdatableQueue<K,V>::dequeue()
     data.erase(it);
     return result;
 }
+
+template<typename K, typename V>
+std::pair<K,V> UpdatableQueue<K,V>::dequeuePair()
+{
+    if(data.empty()) throw std::runtime_error("no element in queue");
+    auto key = queue.back();
+    auto it = data.find(key);
+    auto value = std::move(it->second); //Move out and rely on RVO
+    queue.pop_back();
+    data.erase(it);
+    std::pair<K,V> result = std::pair<K,V>(key, value);
+    return result;
+}
+
 
 } // namespace mxnet
