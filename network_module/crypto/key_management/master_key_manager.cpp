@@ -1,6 +1,8 @@
-#include "master_key_manager.h"
 #include <cassert>
 #include <cstdio>
+#include "master_key_manager.h"
+#include "../aes.h"
+#include "../crypto_utils.h"
 
 #ifdef CRYPTO
 namespace mxnet {
@@ -83,6 +85,27 @@ void MasterKeyManager::enqueueChallenge(StreamManagementElement sme) {
 }
 
 std::vector<InfoElement> MasterKeyManager::solveChallengesAndGetResponses() {
+    std::vector<InfoElement> result;
+    result.reserve(maxSolvesPerSlot);
+
+    unsigned int solved = 0;
+    while (!challenges.empty() && solved < maxSolvesPerSlot) {
+        std::pair<unsigned char, std::array<unsigned char, 16>> chal;
+        chal = challenges.dequeuePair();
+
+        unsigned char key[16];
+        unsigned char response[16];
+        xorBytes(key, masterKey, challengeSecret, 16);
+        Aes aes(key);
+        aes.ecbEncrypt(response, chal.second.data());
+        memset(key, 0, 16);
+
+        InfoElement e = InfoElement::makeResponseInfoElement(chal.first, response);
+        result.push_back(e);
+        solved++;
+    }
+
+    return result;
 }
 
 } //namespace mxnet

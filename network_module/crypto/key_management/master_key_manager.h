@@ -60,6 +60,9 @@ private:
      * Queue mapping the nodeId of the node that sent the challenge to the challenge bytes
      */
     UpdatableQueue<unsigned char, std::array<unsigned char, 16>> challenges;
+
+    //TODO: tweak this value
+    const unsigned int maxSolvesPerSlot = 5;
 };
 
 } //namespace mxnet
