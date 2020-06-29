@@ -250,10 +250,13 @@ void DynamicTimesyncDownlink::resyncTime() {
     if(indexValid && verified) {
         /**
          * If the packet is valid and the masterIndex is acceptable, we perform
-         * usual timesync operations and we commit the resync.
+         * usual timesync operations. If the node is not using challenges to
+         * verify the master's identity, we also commit resync.
          */
         doResyncTime(rcvResult, pkt);
-        ctx.getKeyManager()->commitResync();
+        if(!networkConfig.getDoMasterChallengeAuthentication()) {
+            ctx.getKeyManager()->commitResync();
+        }
     } else {
         /**
          * If packet verification fails, or if the received masterIndex is
