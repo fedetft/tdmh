@@ -55,6 +55,13 @@ public:
      */
     std::vector<InfoElement> solveChallengesAndGetResponses() override;
 
+    /**
+     * Used in dynamic node to verify a challenge response.
+     * Should not be called in master node. Do nothing.
+     * \return true if the response is valid and the master should be trusted.
+     */
+    bool verifyResponse(InfoElement info) override { return false; }
+
 private:
     /**
      * Queue mapping the nodeId of the node that sent the challenge to the challenge bytes

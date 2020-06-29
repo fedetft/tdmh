@@ -2,6 +2,7 @@
 #include "../aes_gcm.h"
 #include "../hash.h"
 #include "../../stream/stream_manager.h"
+#include "../../scheduler/schedule_element.h"
 
 namespace mxnet {
 
@@ -89,6 +90,12 @@ public:
      * distribution phase.
      */
     virtual std::vector<InfoElement> solveChallengesAndGetResponses() = 0;
+
+    /**
+     * Used in dynamic node to verify a challenge response.
+     * \return true if the response is valid and the master should be trusted.
+     */
+    virtual bool verifyResponse(InfoElement info) = 0;
 
     /**
      * Called upon resync.
