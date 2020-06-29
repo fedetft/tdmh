@@ -9,6 +9,7 @@ public:
     DynamicKeyManager(StreamManager& streamMgr, const NetworkConfiguration& config) :
         KeyManager(streamMgr, KeyManagerStatus::DISCONNECTED),
         myId(config.getStaticNetworkId()),
+        sendChallenges(config.getDoMasterChallengeAuthentication()),
         doChallengeResponse(config.getDoMasterChallengeAuthentication()),
         challengeTimeout(config.getMasterChallengeAuthenticationTimeout())
         {
@@ -93,6 +94,7 @@ private:
     void sendChallenge();
 
     const unsigned char myId;
+    const bool sendChallenges;
     /**
      * Temporary values for master key and index.
      * These values are computed and used, but not yet committed. Committing
