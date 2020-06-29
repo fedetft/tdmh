@@ -97,6 +97,15 @@ unsigned int DynamicKeyManager::getMasterIndex() {
 }
 
 bool DynamicKeyManager::periodicUpdate() {
+    /**
+     * Check if a challenge verification has recently failed and reset flag and timeout
+     */
+    if (forceDesync) {
+        challengeCtr = 0;
+        forceDesync = false;
+        return true;
+    }
+
     bool result;
     if (doChallengeResponse && status == KeyManagerStatus::MASTER_UNTRUSTED) {
         challengeCtr++;
@@ -262,6 +271,12 @@ bool DynamicKeyManager::verifyResponse(InfoElement info) {
             break;
         }
     }
+
+    /**
+     * If verification fails, we set this flag in order to force the timesync to desync
+     * the MAC at the next periodicUpdate.
+     */
+    if(!valid) forceDesync = true;
 
     return valid;
 }
