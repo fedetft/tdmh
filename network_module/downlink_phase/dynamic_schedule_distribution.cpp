@@ -274,6 +274,31 @@ void DynamicScheduleDownlinkPhase::applyInfoElements(SchedulePacket& spkt)
         spkt.popElements(infos.size());
     }
 
+#ifdef CRYPTO
+    if(ctx.getNetworkConfig().getDoMasterChallengeAuthentication()) {
+        std::vector<InfoElement> newInfos;
+        InfoElement myResponse;
+        bool myResponseReceived = false;
+        for(auto i : infos) {
+            if(i.getType() != InfoType::RESPONSE) {
+                newInfos.push_back(i);
+            } else if(i.getRx() == myId) {
+                // this element is a RESPONSE to my challenge
+                myResponse = i;
+                myResponseReceived = true;
+            }
+        }
+        infos = newInfos;
+
+        if(myResponseReceived) {
+            KeyManager& keyMgr = *(ctx.getKeyManager());
+            bool valid = keyMgr.verifyResponse(myResponse);
+            if(valid) keyMgr.commitResync();
+            else keyMgr.rollbackResync();
+        }
+    }
+#endif
+
     if(!infos.empty()) streamMgr->applyInfoElements(infos);
 }
 
