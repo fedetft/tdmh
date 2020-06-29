@@ -75,10 +75,14 @@ unsigned int MasterKeyManager::getMasterIndex() {
 
 void MasterKeyManager::enqueueChallenge(StreamManagementElement sme) {
     unsigned char bytes[16] = {0};
+
+    // Manually re-deserialize bytes from SME
     bytes[0] = sme.getDst();
     bytes[1] = sme.getSrcPort() | (sme.getDstPort() << 4);
     StreamParameters p = sme.getParams();
     memcpy(bytes + 2, &p, sizeof(StreamParameters));
+
+    // Put bytes in queue
     std::array<unsigned char, 16> ar;
     std::copy(std::begin(bytes), std::end(bytes), std::begin(ar));
     challenges.enqueue(sme.getSrc(), ar);
@@ -100,6 +104,12 @@ std::vector<InfoElement> MasterKeyManager::solveChallengesAndGetResponses() {
         aes.ecbEncrypt(response, chal.second.data());
         memset(key, 0, 16);
 
+        /**
+         * NOTE: because of how the responses are constructed into
+         * InfoElements, we only actually send the first 6 bytes of response.
+         * This is not the best, and it would be a good idea in the future to
+         * implement responses differently and send more bytes.
+         */
         InfoElement e = InfoElement::makeResponseInfoElement(chal.first, response);
         result.push_back(e);
         solved++;
