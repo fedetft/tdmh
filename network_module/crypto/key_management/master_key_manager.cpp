@@ -12,6 +12,11 @@ void MasterKeyManager::startRekeying() {
         printf("MasterKeyManager: unexpected call to startRekeying\n");
         assert(false);
     }
+
+    if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
+        print_dbg("[KM] N=0 starting rekeying\n");
+    }
+
     masterHash.digestBlock(nextMasterKey, masterKey);
     nextMasterIndex = masterIndex + 1;
     status = KeyManagerStatus::REKEYING;
@@ -32,6 +37,11 @@ void MasterKeyManager::applyRekeying() {
         printf("MasterKeyManager: unexpected call to applyRekeying\n");
         assert(false);
     }
+
+    if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
+        print_dbg("[KM] N=0 applying rekeying\n");
+    }
+
     masterIndex = nextMasterIndex;
     memcpy(masterKey, nextMasterKey, 16);
     status = KeyManagerStatus::CONNECTED;
