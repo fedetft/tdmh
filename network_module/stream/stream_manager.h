@@ -229,7 +229,18 @@ public:
      * Called by KeyManager when connecting, to inform the StreamManager that streams
      * and servers can now be opened and accepted.
      */
-    void trustMaster() { masterTrusted = true; }
+    void trustMaster() {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lock(trust_mutex);
+        masterTrusted = true;
+        trust_cv.broadcast();
+#else
+        std::unique_lock<std::mutex> lock(trust_mutex);
+        masterTrusted = true;
+        trust_cv.notify_all();
+#endif
+
+    }
 
     const unsigned int getMaxHashesPerSlot() const { return maxHashesPerSlot; }
 #endif
@@ -319,7 +330,16 @@ private:
      */
     std::set<StreamId> nextScheduleStreams;
 
-    bool masterTrusted = true;
+    void waitForMasterTrusted() {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lock(trust_mutex);
+#else
+        std::unique_lock<std::mutex> lock(trust_mutex);
+#endif
+        while(!masterTrusted) {
+            trust_cv.wait(lock);
+        }
+    }
 
 #ifdef CRYPTO
 
@@ -364,6 +384,8 @@ private:
      * of a stream that does not exist */
     AesGcm emptyGCM;
 #endif
+    bool masterTrusted = true;
+
 
     /* Thread synchronization */
 #ifdef _MIOSIX
@@ -371,9 +393,16 @@ private:
     mutable miosix::FastMutex map_mutex;
     // Mutex to protect access to shared SME queue
     mutable miosix::FastMutex sme_mutex;
+
+    miosix::FastMutex trust_mutex;
+    miosix::ConditionVariable trust_cv;
+
 #else
     mutable std::mutex map_mutex;
     mutable std::mutex sme_mutex;
+
+    std::mutex trust_mutex;
+    std::condition_variable trust_cv;
 #endif
 };
 
