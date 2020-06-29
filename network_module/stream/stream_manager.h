@@ -223,7 +223,18 @@ public:
      * Called by KeyManager when connecting, to inform the StreamManager that no streams
      * or servers should be opened or accepted.
      */
-    void untrustMaster() { masterTrusted = false; }
+    void untrustMaster() {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lock(trust_mutex);
+        masterTrusted = true;
+        trust_cv.broadcast();
+#else
+        std::unique_lock<std::mutex> lock(trust_mutex);
+        masterTrusted = true;
+        trust_cv.notify_all();
+#endif
+
+    }
 
     /**
      * Called by KeyManager when connecting, to inform the StreamManager that streams
@@ -239,7 +250,6 @@ public:
         masterTrusted = true;
         trust_cv.notify_all();
 #endif
-
     }
 
     const unsigned int getMaxHashesPerSlot() const { return maxHashesPerSlot; }
