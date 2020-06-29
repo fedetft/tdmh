@@ -107,6 +107,8 @@ private:
     const unsigned int challengeTimeout;
     unsigned int challengeCtr = 0;
 
+    bool forceDesync = false;
+
     /**
      * Last challenge sent to master. This value is only meaningful if we are
      * in state MASTER_UNTRUSTED, waiting to check response.
