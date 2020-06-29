@@ -1,7 +1,6 @@
 #pragma once
 #include "key_manager.h"
 #include "../../stream/stream_manager.h"
-#include "../../scheduler/schedule_element.h"
 
 namespace mxnet {
 
@@ -56,6 +55,12 @@ public:
         std::vector<InfoElement> result;
         return result;
     }
+
+    /**
+     * Used in dynamic node to verify a challenge response.
+     * \return true if the response is valid and the master should be trusted.
+     */
+    bool verifyResponse(InfoElement info) override;
 
     /**
      * Called upon resync.

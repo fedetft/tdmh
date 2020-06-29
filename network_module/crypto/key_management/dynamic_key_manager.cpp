@@ -2,6 +2,8 @@
 #include <cstdio>
 #include "dynamic_key_manager.h"
 #include "../hash.h"
+#include "../crypto_utils.h"
+#include "../aes.h"
 
 #ifdef CRYPTO
 
@@ -219,6 +221,49 @@ void DynamicKeyManager::rollbackAdvance() {
 void DynamicKeyManager::desync() {
     status = KeyManagerStatus::DISCONNECTED;
     streamMgr.untrustMaster();
+}
+
+bool DynamicKeyManager::verifyResponse(InfoElement info) {
+    if (status != KeyManagerStatus::MASTER_UNTRUSTED) {
+        printf("DynamicKeyManager: unexpected call to verifyResponse\n");
+        assert(false);
+    }
+    if (info.getType() != InfoType::RESPONSE) return false;
+    if (info.getRx() != myId) return false;
+    unsigned char response[6];
+
+    // Manually re-deserialize bytes from InfoElement
+    response[0] = info.getSrc();
+    response[1] = info.getDst();
+    response[2] = info.getSrcPort() | (info.getDstPort() << 4);
+    StreamParameters p = info.getParams();
+    memcpy(response + 3, &p, sizeof(StreamParameters));
+    response[5] = info.getTx();
+
+    /**
+     * Compute correct answer to challenge.
+     * NOTE: this cannot be precomputed earlier, as the response depends on the value of
+     * the master key and that value can easily change between the moment the challenge is
+     * sent and the moment the master replies. This is especially true when many nodes
+     * join the network and the topology has yet to converge.
+     * We check the response right after receiving it, in the same tile the master sent it.
+     * This ensures that the master key is the same.
+     */
+
+    unsigned char key[16];
+    unsigned char solution[16];
+    xorBytes(key, tempMasterKey, challengeSecret, 16);
+    Aes aes(key);
+    aes.ecbEncrypt(solution, chal);
+    bool valid = true;
+    for (unsigned i=0; i<6; i++) {
+        if (solution[i] != response[i]) {
+            valid = false;
+            break;
+        }
+    }
+
+    return valid;
 }
 
 void DynamicKeyManager::sendChallenge() {
