@@ -42,6 +42,11 @@ public:
     bool periodicUpdate() override { return false; }
 
     /**
+     * @return true if there are challenges that need solving
+     */
+    bool challengesPresent() override { return !challenges.empty(); }
+
+    /**
      * Used in master node to collect challenges to solve
      * \param sme a SME of type CHALLENGE to enqueue and solve later.
      */

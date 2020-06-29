@@ -81,6 +81,12 @@ public:
     }
 
     /**
+     * Used in master node to check for challenges to solve.
+     * @return true if there are challenges that need solving
+     */
+    virtual bool challengesPresent() = 0;
+
+    /**
      * Used in master node to collect challenges to solve
      */
     virtual void enqueueChallenge(StreamManagementElement sme) = 0;

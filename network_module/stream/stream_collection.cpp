@@ -133,6 +133,7 @@ void StreamCollection::receiveSMEs(UpdatableQueue<SMEKey,
         if(sme.getType() == SMEType::CHALLENGE) {
 #ifdef CRYPTO
             keyManager.enqueueChallenge(sme);
+            continue;
 #endif
         }
         

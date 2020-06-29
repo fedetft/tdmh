@@ -57,7 +57,9 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
                 status = ScheduleDownlinkStatus::SENDING_SCHEDULE;
                 //No packet sent in this downlink slot
             } else {
-                if(streamColl->getNumInfo() != 0) sendInfoPkt(slotStart);
+                if(streamColl->getNumInfo() != 0 || ctx.getKeyManager()->challengesPresent()) {
+                    sendInfoPkt(slotStart);
+                }
             }
             break;
         }
