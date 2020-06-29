@@ -91,6 +91,9 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
         fd = res.first;
         stream = res.second;
     }
+    
+    waitForMasterTrusted();
+
     // Make the stream wait for a schedule
     // NOTE: Make sure that stream enqueues a CONNECT SME
     int error = stream->connect(this);
@@ -121,6 +124,9 @@ int StreamManager::write(int fd, const void* data, int size) {
         if(it == fdt.end()) return -1;
         stream = it->second;
     }
+
+    waitForMasterTrusted();
+
     return stream->write(data, size);
 }
 
@@ -137,6 +143,9 @@ int StreamManager::read(int fd, void* data, int maxSize) {
         if(it == fdt.end()) return -1;
         stream = it->second;
     }
+
+    waitForMasterTrusted();
+
     return stream->read(data, maxSize);
 }
 
@@ -208,6 +217,9 @@ int StreamManager::listen(unsigned char port, StreamParameters params) {
         fd = res.first;
         server = res.second;
     }
+
+    waitForMasterTrusted();
+
     // Make the server wait for an info element confirming LISTEN status
     int error = server->listen(this);
     if(error != 0) {
@@ -233,6 +245,9 @@ int StreamManager::accept(int serverfd) {
         if(serverit == fdt.end()) return -1;
         server = serverit->second;
     }
+
+    waitForMasterTrusted();
+
     fd = server->accept();
     {
         // Lock map_mutex to access the shared Stream map
