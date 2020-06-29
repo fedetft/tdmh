@@ -64,7 +64,11 @@ public:
     /**
      * Called by context to force desync
      */
-    void forceDesync() override { desyncMAC(); }
+    void forceDesync() override {
+        internalStatus = DESYNCHRONIZED;
+        synchronizer->reset();
+        desyncMAC();
+    }
 protected:
     void rebroadcast(const Packet& pkt, long long arrivalTs);
     
