@@ -145,7 +145,7 @@ bool DynamicKeyManager::attemptResync(unsigned int newIndex) {
 
     status = KeyManagerStatus::MASTER_UNTRUSTED;
     streamMgr.untrustMaster();
-    sendChallenge();
+    if(sendChallenges) sendChallenge();
 
     uplinkHash.digestBlock(uplinkKey, tempMasterKey);
     downlinkHash.digestBlock(downlinkKey, tempMasterKey);
