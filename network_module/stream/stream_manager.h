@@ -72,6 +72,9 @@ public:
         for (unsigned int i = 0; i < maxPorts; ++i) {
             clientPorts.push_back(false);
         }
+#ifdef CRYPTO
+        if(myId != 0 && config.getDoMasterChallengeAuthentication()) masterTrusted = false;
+#endif
     }
 
     ~StreamManager() {
@@ -226,11 +229,11 @@ public:
     void untrustMaster() {
 #ifdef _MIOSIX
         miosix::Lock<miosix::FastMutex> lock(trust_mutex);
-        masterTrusted = true;
+        masterTrusted = false;
         trust_cv.broadcast();
 #else
         std::unique_lock<std::mutex> lock(trust_mutex);
-        masterTrusted = true;
+        masterTrusted = false;
         trust_cv.notify_all();
 #endif
 
@@ -394,6 +397,7 @@ private:
      * of a stream that does not exist */
     AesGcm emptyGCM;
 #endif
+
     bool masterTrusted = true;
 
 
