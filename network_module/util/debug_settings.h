@@ -120,7 +120,7 @@ const bool ENABLE_CRYPTO_TIMESYNC_DBG = true;
 const bool ENABLE_CRYPTO_DOWNLINK_DBG = true;
 
 //prints packet synchronization numbers and verify errors in uplink
-const bool ENABLE_CRYPTO_UPLINK_DBG = true;
+const bool ENABLE_CRYPTO_UPLINK_DBG = false;
 
 
 #ifdef _MIOSIX
