@@ -120,6 +120,9 @@ bool DynamicKeyManager::periodicUpdate() {
     if (doChallengeResponse && status == KeyManagerStatus::MASTER_UNTRUSTED) {
         challengeCtr++;
         if (challengeCtr >= challengeTimeout) {
+            if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
+                print_dbg("[KM] N=%d challenge timeout\n", myId);
+            }
             challengeCtr = 0;
             rollbackResync();
             result = true;
