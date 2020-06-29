@@ -4,6 +4,7 @@
 #include "../hash.h"
 #include "../crypto_utils.h"
 #include "../aes.h"
+#include "../../util/debug_settings.h"
 
 #ifdef CRYPTO
 
@@ -32,6 +33,10 @@ void DynamicKeyManager::startRekeying() {
         assert(false);
     }
 
+    if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
+        print_dbg("[KM] N=%d starting rekeying\n", myId);
+    }
+
     uplinkHash.digestBlock(nextUplinkKey, nextMasterKey);
     downlinkHash.digestBlock(nextDownlinkKey, nextMasterKey);
     timesyncHash.digestBlock(nextTimesyncKey, nextMasterKey);
@@ -54,6 +59,11 @@ void DynamicKeyManager::applyRekeying() {
         printf("DynamicKeyManager: unexpected call to applyRekeying\n");
         assert(false);
     }
+
+    if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
+        print_dbg("[KM] N=%d applying rekeying\n", myId);
+    }
+
     uplinkGCM.rekey(nextUplinkKey);
     downlinkGCM.rekey(nextDownlinkKey);
     timesyncGCM.rekey(nextTimesyncKey);
@@ -128,6 +138,11 @@ bool DynamicKeyManager::attemptResync(unsigned int newIndex) {
         masterHash.digestBlock(tempMasterKey, tempMasterKey);
     }
     tempMasterIndex = newIndex;
+
+    if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
+        print_dbg("[KM] N=%d attempting resync\n", myId);
+    }
+
     status = KeyManagerStatus::MASTER_UNTRUSTED;
     streamMgr.untrustMaster();
     sendChallenge();
@@ -149,6 +164,10 @@ void DynamicKeyManager::advanceResync() {
         return;
     }
 
+    if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
+        print_dbg("[KM] N=%d advancing resync\n", myId);
+    }
+
     masterHash.digestBlock(tempMasterKey, tempMasterKey);
     tempMasterIndex++;
 
@@ -162,6 +181,9 @@ void DynamicKeyManager::advanceResync() {
 }
 
 void DynamicKeyManager::rollbackResync() {
+    if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
+        print_dbg("[KM] N=%d aborting resync\n", myId);
+    }
     status = KeyManagerStatus::DISCONNECTED;
     streamMgr.untrustMaster();
 }
@@ -173,6 +195,11 @@ void DynamicKeyManager::commitResync() {
         streamMgr.untrustMaster();
         return;
     }
+
+    if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
+        print_dbg("[KM] N=%d committing resync\n", myId);
+    }
+
     memcpy(masterKey, tempMasterKey, 16);
     masterIndex = tempMasterIndex;
     status = KeyManagerStatus::CONNECTED;
@@ -181,6 +208,11 @@ void DynamicKeyManager::commitResync() {
 
 void DynamicKeyManager::attemptAdvance() {
     if (status != KeyManagerStatus::CONNECTED) return;
+
+    if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
+        print_dbg("[KM] N=%d attempting advance\n", myId);
+    }
+
     /**
      * A master index change while we are connected can happen: 
      * - if the master has rebooted, or
@@ -204,6 +236,11 @@ void DynamicKeyManager::attemptAdvance() {
 
 void DynamicKeyManager::commitAdvance() {
     if (status != KeyManagerStatus::ADVANCING) return;
+
+    if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
+        print_dbg("[KM] N=%d committing advance\n", myId);
+    }
+
     memcpy(masterKey, tempMasterKey, 16);
     masterIndex = tempMasterIndex;
     status = KeyManagerStatus::CONNECTED;
@@ -219,6 +256,11 @@ void DynamicKeyManager::commitAdvance() {
 
 void DynamicKeyManager::rollbackAdvance() {
     if (status != KeyManagerStatus::ADVANCING) return;
+
+    if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
+        print_dbg("[KM] N=%d aborting advance\n", myId);
+    }
+
     // rollback to the values of masterKey and masterIndex 
     status = KeyManagerStatus::CONNECTED;
 
@@ -228,6 +270,9 @@ void DynamicKeyManager::rollbackAdvance() {
 }
 
 void DynamicKeyManager::desync() {
+    if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
+        print_dbg("[KM] N=%d desyncing\n", myId);
+    }
     status = KeyManagerStatus::DISCONNECTED;
     streamMgr.untrustMaster();
 }
