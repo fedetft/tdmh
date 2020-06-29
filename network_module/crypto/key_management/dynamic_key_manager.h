@@ -50,7 +50,13 @@ public:
     /**
      * Only used in master. Do nothing.
      */
+    bool challengesPresent() override {
+        assert(false);
+        return false;
+    }
+
     void enqueueChallenge(StreamManagementElement sme) override {}
+
     std::vector<InfoElement> solveChallengesAndGetResponses() override {
         assert(false);
         std::vector<InfoElement> result;
