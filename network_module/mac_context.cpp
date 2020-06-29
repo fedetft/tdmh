@@ -187,9 +187,11 @@ void MACContext::run()
                 // Send a notify to the scheduler thread, to begin scheduling
                 beginScheduling();
                 scheduleDistribution->run(currentNextDeadline);
+#ifdef CRYPTO
                 if(keyMgr->periodicUpdate()) {
                     timesync->forceDesync();
                 }
+#endif
             }
             currentNextDeadline += downlinkSlotDuration;
             dataSlots = numDataSlotInDownlinkTile;
