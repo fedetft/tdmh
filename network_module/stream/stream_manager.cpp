@@ -35,11 +35,11 @@ namespace mxnet {
 void StreamManager::desync() {
     std::list<StreamId> deleteList;
     {
-        // Lock map_mutex to access the shared Stream/Server map
+        // Lock stream_manager_mutex to access the shared Stream/Server map
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         // Iterate over all streams
         for(auto& pair: streams) {
@@ -71,11 +71,11 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
     StreamId streamId;
 
     {
-        // Lock map_mutex to access the shared Stream map
+        // Lock stream_manager_mutex to access the shared Stream map
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         if(!masterTrusted) return -10;
         int srcPort = allocateClientPort();
@@ -100,9 +100,9 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
     if(error != 0) {
         // NOTE: locking to call removeStream safely
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         removeStream(streamId);
         return -1;
@@ -114,11 +114,11 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
 int StreamManager::write(int fd, const void* data, int size) {
     REF_PTR_EP stream;
     {
-        // Lock map_mutex to access the shared Stream map
+        // Lock stream_manager_mutex to access the shared Stream map
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         if(!masterTrusted) return -10;
         auto it = fdt.find(fd);
@@ -132,11 +132,11 @@ int StreamManager::write(int fd, const void* data, int size) {
 int StreamManager::read(int fd, void* data, int maxSize) {
     REF_PTR_EP stream;
     {
-        // Lock map_mutex to access the shared Stream map
+        // Lock stream_manager_mutex to access the shared Stream map
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         if(!masterTrusted) return -10;
         auto it = fdt.find(fd);
@@ -150,11 +150,11 @@ int StreamManager::read(int fd, void* data, int maxSize) {
 StreamInfo StreamManager::getInfo(int fd) {
     REF_PTR_EP endpoint;
     {
-        // Lock map_mutex to access the shared Stream/Server map
+        // Lock stream_manager_mutex to access the shared Stream/Server map
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         auto it = fdt.find(fd);
         if(it == fdt.end()) return StreamInfo();
@@ -166,11 +166,11 @@ StreamInfo StreamManager::getInfo(int fd) {
 void StreamManager::close(int fd) {
     REF_PTR_EP endpoint;
     {
-        // Lock map_mutex to access the shared Stream/Server map
+        // Lock stream_manager_mutex to access the shared Stream/Server map
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         auto it = fdt.find(fd);
         if(it == fdt.end()) return;
@@ -179,11 +179,11 @@ void StreamManager::close(int fd) {
     StreamId id = endpoint->getStreamId();
     bool deleted = endpoint->close(this);
     if(deleted) {
-        // Lock map_mutex to access the shared Stream/Server map
+        // Lock stream_manager_mutex to access the shared Stream/Server map
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         if(id.isServer()) {
             unsigned char port = id.dstPort;
@@ -201,11 +201,11 @@ int StreamManager::listen(unsigned char port, StreamParameters params) {
     int fd = -1;
     REF_PTR_EP server;
     {
-        // Lock map_mutex to access the shared Server map
+        // Lock stream_manager_mutex to access the shared Server map
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         if(!masterTrusted) return -10;
         // Check if a server with these parameters is already present
@@ -232,11 +232,11 @@ int StreamManager::accept(int serverfd) {
     REF_PTR_EP server,stream;
     int fd = -1;
     {
-        // Lock map_mutex to access the shared Server map
+        // Lock stream_manager_mutex to access the shared Server map
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         if(!masterTrusted) return -10;
         auto serverit = fdt.find(serverfd);
@@ -246,11 +246,11 @@ int StreamManager::accept(int serverfd) {
 
     fd = server->accept();
     {
-        // Lock map_mutex to access the shared Stream map
+        // Lock stream_manager_mutex to access the shared Stream map
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         auto streamit = fdt.find(fd);
         if(streamit == fdt.end()) return -1;
@@ -261,11 +261,11 @@ int StreamManager::accept(int serverfd) {
 }
 
 void StreamManager::periodicUpdate() {
-    // Lock map_mutex to access the shared Stream/Server map
+    // Lock stream_manager_mutex to access the shared Stream/Server map
 #ifdef _MIOSIX
-    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+    miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-    std::unique_lock<std::mutex> lck(map_mutex);
+    std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
     // Iterate over all streams
     for(auto& stream: streams) {
@@ -282,11 +282,11 @@ void StreamManager::periodicUpdate() {
 bool StreamManager::receivePacket(StreamId id, const Packet& data) {
     REF_PTR_STREAM stream;
     {
-        // Lock map_mutex to access the shared Stream map
+        // Lock stream_manager_mutex to access the shared Stream map
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         auto streamit = streams.find(id);
         if(streamit == streams.end()) return false;
@@ -298,11 +298,11 @@ bool StreamManager::receivePacket(StreamId id, const Packet& data) {
 bool StreamManager::missPacket(StreamId id) {
     REF_PTR_STREAM stream;
     {
-        // Lock map_mutex to access the shared Stream map
+        // Lock stream_manager_mutex to access the shared Stream map
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         auto streamit = streams.find(id);
         if(streamit == streams.end()) return false;
@@ -314,11 +314,11 @@ bool StreamManager::missPacket(StreamId id) {
 bool StreamManager::sendPacket(StreamId id, Packet& data) {
     REF_PTR_STREAM stream;
     {
-        // Lock map_mutex to access the shared Stream map
+        // Lock stream_manager_mutex to access the shared Stream map
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         // Check if a stream with these parameters is not present
         auto streamit = streams.find(id);
@@ -330,9 +330,9 @@ bool StreamManager::sendPacket(StreamId id, Packet& data) {
 
 void StreamManager::setSchedule(const std::vector<ScheduleElement>& schedule) {
 #ifdef _MIOSIX
-    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+    miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-    std::unique_lock<std::mutex> lck(map_mutex);
+    std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
     /**
      * Start computing the vector of old streams that will be removed at
@@ -406,9 +406,9 @@ void StreamManager::setSchedule(const std::vector<ScheduleElement>& schedule) {
 
 void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) {
 #ifdef _MIOSIX
-    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+    miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-    std::unique_lock<std::mutex> lck(map_mutex);
+    std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
 
     for(auto& element : schedule) {
@@ -453,11 +453,11 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
 }
 
 void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
-    // Lock map_mutex to access the shared Stream/Server map
+    // Lock stream_manager_mutex to access the shared Stream/Server map
 #ifdef _MIOSIX
-    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+    miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-    std::unique_lock<std::mutex> lck(map_mutex);
+    std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
     // Iterate over info elements
     for(auto& info : infos) {
@@ -501,7 +501,7 @@ void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
 }
 
 void StreamManager::dequeueSMEs(UpdatableQueue<SMEKey,StreamManagementElement>& queue) {
-    // Lock map_mutex to access the shared SME queue
+    // Lock stream_manager_mutex to access the shared SME queue
 #ifdef _MIOSIX
     miosix::Lock<miosix::FastMutex> lck(sme_mutex);
 #else
@@ -521,7 +521,7 @@ void StreamManager::enqueueSME(StreamManagementElement sme) {
         print_dbg("Enqueueing %s, seq=%d\n", smeTypeToString(sme.getType()), sme.getSeqNo());
 #endif
     {
-        // Lock map_mutex to access the shared SME queue
+        // Lock stream_manager_mutex to access the shared SME queue
 #ifdef _MIOSIX
         miosix::Lock<miosix::FastMutex> lck(sme_mutex);
 #else
@@ -533,9 +533,9 @@ void StreamManager::enqueueSME(StreamManagementElement sme) {
 
 void StreamManager::resetSequenceNumbers() {
 #ifdef _MIOSIX
-    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+    miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-    std::unique_lock<std::mutex> lck(map_mutex);
+    std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
 
     for(auto& s : streams) {
@@ -548,9 +548,9 @@ unsigned long long StreamManager::getSequenceNumber(StreamId id) {
     REF_PTR_STREAM stream;
 
 #ifdef _MIOSIX
-    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+    miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-    std::unique_lock<std::mutex> lck(map_mutex);
+    std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
 
     auto it = streams.find(id);
@@ -568,9 +568,9 @@ AesGcm& StreamManager::getStreamGCM(StreamId id) {
     REF_PTR_STREAM stream;
 
 #ifdef _MIOSIX
-    miosix::Lock<miosix::FastMutex> lck(map_mutex);
+    miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-    std::unique_lock<std::mutex> lck(map_mutex);
+    std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
     auto it = streams.find(id);
     if(it == streams.end()) {
@@ -584,9 +584,9 @@ AesGcm& StreamManager::getStreamGCM(StreamId id) {
 void StreamManager::startRekeying() {
     if (config.getAuthenticateDataMessages()) {
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         doStartRekeying();
     }
@@ -595,9 +595,9 @@ void StreamManager::startRekeying() {
 void StreamManager::continueRekeying() {
     if (config.getAuthenticateDataMessages()) {
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         doContinueRekeying();
     }
@@ -606,9 +606,9 @@ void StreamManager::continueRekeying() {
 void StreamManager::applyRekeying() {
     if (config.getAuthenticateDataMessages()) {
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lck(map_mutex);
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lck(map_mutex);
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
         doApplyRekeying();
     }
