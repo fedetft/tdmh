@@ -69,6 +69,7 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
     int fd = -1;
     REF_PTR_EP stream;
     StreamId streamId;
+
     {
         // Lock map_mutex to access the shared Stream map
 #ifdef _MIOSIX
@@ -76,6 +77,7 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
 #else
         std::unique_lock<std::mutex> lck(map_mutex);
 #endif
+        if(!masterTrusted) return -10;
         int srcPort = allocateClientPort();
         if(srcPort == -1)
             return -1;
@@ -91,8 +93,6 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
         fd = res.first;
         stream = res.second;
     }
-    
-    waitForMasterTrusted();
 
     // Make the stream wait for a schedule
     // NOTE: Make sure that stream enqueues a CONNECT SME
@@ -120,12 +120,11 @@ int StreamManager::write(int fd, const void* data, int size) {
 #else
         std::unique_lock<std::mutex> lck(map_mutex);
 #endif
+        if(!masterTrusted) return -10;
         auto it = fdt.find(fd);
         if(it == fdt.end()) return -1;
         stream = it->second;
     }
-
-    waitForMasterTrusted();
 
     return stream->write(data, size);
 }
@@ -139,12 +138,11 @@ int StreamManager::read(int fd, void* data, int maxSize) {
 #else
         std::unique_lock<std::mutex> lck(map_mutex);
 #endif
+        if(!masterTrusted) return -10;
         auto it = fdt.find(fd);
         if(it == fdt.end()) return -1;
         stream = it->second;
     }
-
-    waitForMasterTrusted();
 
     return stream->read(data, maxSize);
 }
@@ -209,6 +207,7 @@ int StreamManager::listen(unsigned char port, StreamParameters params) {
 #else
         std::unique_lock<std::mutex> lck(map_mutex);
 #endif
+        if(!masterTrusted) return -10;
         // Check if a server with these parameters is already present
         if(servers.find(port) != servers.end()) {
             return -1;
@@ -217,8 +216,6 @@ int StreamManager::listen(unsigned char port, StreamParameters params) {
         fd = res.first;
         server = res.second;
     }
-
-    waitForMasterTrusted();
 
     // Make the server wait for an info element confirming LISTEN status
     int error = server->listen(this);
@@ -241,12 +238,11 @@ int StreamManager::accept(int serverfd) {
 #else
         std::unique_lock<std::mutex> lck(map_mutex);
 #endif
+        if(!masterTrusted) return -10;
         auto serverit = fdt.find(serverfd);
         if(serverit == fdt.end()) return -1;
         server = serverit->second;
     }
-
-    waitForMasterTrusted();
 
     fd = server->accept();
     {

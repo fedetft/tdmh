@@ -98,6 +98,20 @@ public:
      * their function is mainly to pass external events to the right Stream
      * or Server class
      */
+
+    // Allows the application to wait until the master identity is verified, if this
+    // feature is on, before calling other methods.
+    void waitForMasterTrusted() {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lock(map_mutex);
+#else
+        std::unique_lock<std::mutex> lock(map_mutex);
+#endif
+        while(!masterTrusted) {
+            trust_cv.wait(lock);
+        }
+    }
+
     // Creates a new Stream and returns the file-descriptor of the new Stream
     int connect(unsigned char dst, unsigned char dstPort, StreamParameters params);
 
@@ -228,11 +242,11 @@ public:
      */
     void untrustMaster() {
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lock(trust_mutex);
+        miosix::Lock<miosix::FastMutex> lock(map_mutex);
         masterTrusted = false;
         trust_cv.broadcast();
 #else
-        std::unique_lock<std::mutex> lock(trust_mutex);
+        std::unique_lock<std::mutex> lock(map_mutex);
         masterTrusted = false;
         trust_cv.notify_all();
 #endif
@@ -245,11 +259,11 @@ public:
      */
     void trustMaster() {
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lock(trust_mutex);
+        miosix::Lock<miosix::FastMutex> lock(map_mutex);
         masterTrusted = true;
         trust_cv.broadcast();
 #else
-        std::unique_lock<std::mutex> lock(trust_mutex);
+        std::unique_lock<std::mutex> lock(map_mutex);
         masterTrusted = true;
         trust_cv.notify_all();
 #endif
@@ -343,17 +357,6 @@ private:
      */
     std::set<StreamId> nextScheduleStreams;
 
-    void waitForMasterTrusted() {
-#ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lock(trust_mutex);
-#else
-        std::unique_lock<std::mutex> lock(trust_mutex);
-#endif
-        while(!masterTrusted) {
-            trust_cv.wait(lock);
-        }
-    }
-
 #ifdef CRYPTO
 
     void doStartRekeying();
@@ -408,14 +411,12 @@ private:
     // Mutex to protect access to shared SME queue
     mutable miosix::FastMutex sme_mutex;
 
-    miosix::FastMutex trust_mutex;
     miosix::ConditionVariable trust_cv;
 
 #else
     mutable std::mutex map_mutex;
     mutable std::mutex sme_mutex;
 
-    std::mutex trust_mutex;
     std::condition_variable trust_cv;
 #endif
 };
