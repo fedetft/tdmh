@@ -103,9 +103,9 @@ public:
     // feature is on, before calling other methods.
     void waitForMasterTrusted() {
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lock(map_mutex);
+        miosix::Lock<miosix::FastMutex> lock(stream_manager_mutex);
 #else
-        std::unique_lock<std::mutex> lock(map_mutex);
+        std::unique_lock<std::mutex> lock(stream_manager_mutex);
 #endif
         while(!masterTrusted) {
             trust_cv.wait(lock);
@@ -242,11 +242,11 @@ public:
      */
     void untrustMaster() {
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lock(map_mutex);
+        miosix::Lock<miosix::FastMutex> lock(stream_manager_mutex);
         masterTrusted = false;
         trust_cv.broadcast();
 #else
-        std::unique_lock<std::mutex> lock(map_mutex);
+        std::unique_lock<std::mutex> lock(stream_manager_mutex);
         masterTrusted = false;
         trust_cv.notify_all();
 #endif
@@ -259,11 +259,11 @@ public:
      */
     void trustMaster() {
 #ifdef _MIOSIX
-        miosix::Lock<miosix::FastMutex> lock(map_mutex);
+        miosix::Lock<miosix::FastMutex> lock(stream_manager_mutex);
         masterTrusted = true;
         trust_cv.broadcast();
 #else
-        std::unique_lock<std::mutex> lock(map_mutex);
+        std::unique_lock<std::mutex> lock(stream_manager_mutex);
         masterTrusted = true;
         trust_cv.notify_all();
 #endif
@@ -280,7 +280,7 @@ private:
 
     // Used by StreamManager::connect, allocates and returns the first available port
     // if there are no available ports return -1
-    // NOTE: remember to lock and unlock map_mutex
+    // NOTE: remember to lock and unlock stream_manager_mutex
     int allocateClientPort();
 
     // Used by StreamManager::removeStream, sets a given port as free
@@ -407,14 +407,14 @@ private:
     /* Thread synchronization */
 #ifdef _MIOSIX
     // Mutex to protect access to shared Stream/Server maps
-    mutable miosix::FastMutex map_mutex;
+    mutable miosix::FastMutex stream_manager_mutex;
     // Mutex to protect access to shared SME queue
     mutable miosix::FastMutex sme_mutex;
 
     miosix::ConditionVariable trust_cv;
 
 #else
-    mutable std::mutex map_mutex;
+    mutable std::mutex stream_manager_mutex;
     mutable std::mutex sme_mutex;
 
     std::condition_variable trust_cv;
