@@ -131,6 +131,9 @@ void Node::sendData(MACContext* ctx, unsigned char dest, Period period, Redundan
         StreamManager* mgr = ctx->getStreamManager();
         auto params = StreamParameters(redundancy, period, 1, Direction::TX);
 
+        printf("[A] N=%d Waiting to authenticate master node\n", ctx->getNetworkId());
+        mgr->waitForMasterTrusted();
+
         /* Open a Stream to another node */
         int stream;
         do{

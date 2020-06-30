@@ -43,6 +43,14 @@ namespace mxnet {
 // because in simulation the various nodes will end up using a single
 // StreamManager because of the global variable shared between threads
 #ifdef _MIOSIX
+int waitForMasterTrusted() {
+    StreamManager* streamManager = getStreamManager();
+    if(streamManager == nullptr)
+        return -1;
+    streamManager->waitForMasterTrusted();
+    return 0;
+}
+
 int connect(unsigned char dst, unsigned char dstPort, StreamParameters params) {
     StreamManager* streamManager = getStreamManager();
     if(streamManager == nullptr)
