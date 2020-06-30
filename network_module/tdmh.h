@@ -40,6 +40,9 @@ namespace mxnet {
 
 /* These functions are the API for the Streams and Servers */
 
+// Wait until the MAC authenticates the master node and transmissions are trusted
+int waitForMasterTrusted();
+
 // Creates a new Stream and returns the file-descriptor of the new Stream
 int connect(unsigned char dst, unsigned char dstPort, StreamParameters params);
 

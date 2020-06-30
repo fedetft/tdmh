@@ -379,6 +379,11 @@ void openStream(unsigned char dest, unsigned char port, StreamParameters params)
     /* Open Stream from node */
     while(true){
         try{
+            printf("[A] N=%d Waiting to authenticate master node\n", ctx->getNetworkId());
+            if(waitForMasterTrusted()) {
+                printf("[A] N=%d StreamManager not present! \n", ctx->getNetworkId());
+                continue;
+            }
             /* Open a Stream to another node */
             printf("[A] Opening stream to node %d\n", dest);
             int stream = connect(dest,          // Destination node
