@@ -41,62 +41,71 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart)
     if(shouldNotListen) return;
 
     Packet pkt;
+    bool pktReceivedCorrectly = true;
     // Receive the schedule packet
-    if(recvPkt(slotStart, pkt))
-    {
-        // Parse the schedule packet
-        SchedulePacket spkt(panId);
-        spkt.deserialize(pkt);
-        newHeader = spkt.getHeader();
-        if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
-            printHeader(newHeader);
-        if(newHeader.isSchedulePacket() &&
-           newHeader.getActivationTile()<=ctx.getCurrentTile(slotStart)) {
-            if(ENABLE_SCHEDULE_DIST_DBG)
-                print_dbg("[SD] BUG: schedule activation tile in the past\n");
-        }
-        
-        //Packet received
-        switch(status)
+    try {
+        if(recvPkt(slotStart, pkt))
         {
-            case ScheduleDownlinkStatus::APPLIED_SCHEDULE:
-            {
-                if(newHeader.isSchedulePacket()) {
-                    initSchedule(spkt);
-                    status = ScheduleDownlinkStatus::SENDING_SCHEDULE;
-                } else applyInfoElements(spkt);
-                break;
+            // Parse the schedule packet
+            SchedulePacket spkt(panId);
+            spkt.deserialize(pkt);
+            newHeader = spkt.getHeader();
+            if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
+                printHeader(newHeader);
+            if(newHeader.isSchedulePacket() &&
+               newHeader.getActivationTile()<=ctx.getCurrentTile(slotStart)) {
+                if(ENABLE_SCHEDULE_DIST_DBG)
+                    print_dbg("[SD] BUG: schedule activation tile in the past\n");
             }
-            case ScheduleDownlinkStatus::SENDING_SCHEDULE:
+
+            //Packet received
+            switch(status)
             {
-                /* NOTE: checks for exiting this state are taken care of
-                 * before trying to receive packets */
-                if(newHeader.isSchedulePacket()) {
-                    if(newHeader.getScheduleID() != header.getScheduleID()) {
+                case ScheduleDownlinkStatus::APPLIED_SCHEDULE:
+                {
+                    if(newHeader.isSchedulePacket()) {
                         initSchedule(spkt);
-                    } else {
-                        appendToSchedule(spkt);
-                        currentSendingRound++;
+                        status = ScheduleDownlinkStatus::SENDING_SCHEDULE;
+                    } else applyInfoElements(spkt);
+                    break;
+                }
+                case ScheduleDownlinkStatus::SENDING_SCHEDULE:
+                {
+                    /* NOTE: checks for exiting this state are taken care of
+                     * before trying to receive packets */
+                    if(newHeader.isSchedulePacket()) {
+                        if(newHeader.getScheduleID() != header.getScheduleID()) {
+                            initSchedule(spkt);
+                        } else {
+                            appendToSchedule(spkt);
+                            currentSendingRound++;
+                        }
                     }
+                    break;
                 }
-                break;
-            }
-            case ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE:
-            {
-                if(newHeader.isSchedulePacket()) {
-                    initSchedule(spkt);
-                    status = ScheduleDownlinkStatus::SENDING_SCHEDULE;
-                } else {
-                    applyInfoElements(spkt);
-                    handleIncompleteSchedule();
+                case ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE:
+                {
+                    if(newHeader.isSchedulePacket()) {
+                        initSchedule(spkt);
+                        status = ScheduleDownlinkStatus::SENDING_SCHEDULE;
+                    } else {
+                        applyInfoElements(spkt);
+                        handleIncompleteSchedule();
+                    }
+                    break;
                 }
-                break;
+                default:
+                    assert(false);
             }
-            default:
-                assert(false);
+        } else pktReceivedCorrectly = false;
+    } catch (exception& e) {
+        pktReceivedCorrectly = false;
+        if(ENABLE_SCHEDULE_DIST_DBG) {
+            print_dbg("Schedule packet invalid: %s", e.what());
         }
-    } else {
-        
+    }
+
+    if(pktReceivedCorrectly == false) {
         //No packet received
         if(status == ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE) {
             handleIncompleteSchedule();
