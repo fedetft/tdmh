@@ -98,33 +98,38 @@ void MasterKeyManager::enqueueChallenge(StreamManagementElement sme) {
     challenges.enqueue(sme.getSrc(), ar);
 }
 
-std::vector<InfoElement> MasterKeyManager::solveChallengesAndGetResponses() {
-    std::vector<InfoElement> result;
+std::vector<ResponseElement> MasterKeyManager::solveChallengesAndGetResponses() {
+    std::vector<ResponseElement> result;
     result.reserve(maxSolvesPerSlot);
+    unsigned char key[16];
+    unsigned char response[16];
+    xorBytes(key, masterKey, challengeSecret, 16);
+    Aes aes(key);
 
     unsigned int solved = 0;
     while (!challenges.empty() && solved < maxSolvesPerSlot) {
         std::pair<unsigned char, std::array<unsigned char, 16>> chal;
         chal = challenges.dequeuePair();
 
-        unsigned char key[16];
-        unsigned char response[16];
-        xorBytes(key, masterKey, challengeSecret, 16);
-        Aes aes(key);
+        if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
+            print_dbg("[KM] Solving challenge for node %d\n", chal.first);
+        }
+
         aes.ecbEncrypt(response, chal.second.data());
-        memset(key, 0, 16);
 
         /**
          * NOTE: because of how the responses are constructed into
-         * InfoElements, we only actually send the first 6 bytes of response.
+         * ResponseElements, we only actually send the first 8 bytes of response.
          * This is not the best, and it would be a good idea in the future to
          * implement responses differently and send more bytes.
          */
-        InfoElement e = InfoElement::makeResponseInfoElement(chal.first, response);
+        ResponseElement e = ResponseElement(chal.first, response);
         result.push_back(e);
         solved++;
     }
 
+    memset(key, 0, 16);
+    memset(response, 0, 16);
     return result;
 }
 

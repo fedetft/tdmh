@@ -280,22 +280,12 @@ void DynamicKeyManager::desync() {
     streamMgr.untrustMaster();
 }
 
-bool DynamicKeyManager::verifyResponse(InfoElement info) {
+bool DynamicKeyManager::verifyResponse(ResponseElement response) {
     if (status != KeyManagerStatus::MASTER_UNTRUSTED) {
         printf("DynamicKeyManager: unexpected call to verifyResponse\n");
         assert(false);
     }
-    if (info.getType() != InfoType::RESPONSE) return false;
-    if (info.getRx() != myId) return false;
-    unsigned char response[6];
-
-    // Manually re-deserialize bytes from InfoElement
-    response[0] = info.getSrc();
-    response[1] = info.getDst();
-    response[2] = info.getSrcPort() | (info.getDstPort() << 4);
-    StreamParameters p = info.getParams();
-    memcpy(response + 3, &p, sizeof(StreamParameters));
-    response[5] = info.getTx();
+    if (response.getNodeId() != myId) return false;
 
     /**
      * Compute correct answer to challenge.
@@ -306,20 +296,24 @@ bool DynamicKeyManager::verifyResponse(InfoElement info) {
      * We check the response right after receiving it, in the same tile the master sent it.
      * This ensures that the master key is the same.
      */
-
+    const unsigned char *bytes = response.getResponseBytes();
     unsigned char key[16];
     unsigned char solution[16];
     xorBytes(key, tempMasterKey, challengeSecret, 16);
     Aes aes(key);
     aes.ecbEncrypt(solution, chal);
     bool valid = true;
-    for (unsigned i=0; i<6; i++) {
-        if (solution[i] != response[i]) {
+    for (unsigned i=0; i<8; i++) {
+        if (solution[i] != bytes[i]) {
             valid = false;
             break;
         }
     }
 
+    if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
+        print_dbg("[KM] N=%d Verifying challenge response\n", myId);
+        if(!valid) print_dbg("[KM] N=%d verify failed!\n", myId);
+    }
     /**
      * If verification fails, we set this flag in order to force the timesync to desync
      * the MAC at the next periodicUpdate.

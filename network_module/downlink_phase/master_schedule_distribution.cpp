@@ -355,7 +355,7 @@ void MasterScheduleDownlinkPhase::sendInfoPkt(long long slotStart)
     if(ctx.getNetworkConfig().getDoMasterChallengeAuthentication()) {
         auto responses = ctx.getKeyManager()->solveChallengesAndGetResponses();
         capacity -= responses.size();
-        for(auto& r : responses) spkt.putInfoElement(r);
+        for(auto& r : responses) spkt.putResponseElement(r);
     }
 #endif
 

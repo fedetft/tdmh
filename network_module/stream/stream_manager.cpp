@@ -471,14 +471,14 @@ void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
             // If server is present in map
             if(serverit != servers.end()) {
                 auto server = serverit->second;
-                InfoType type = info.getType();
+                InfoType type = info.getInfoType();
                 if(type==InfoType::SERVER_OPENED)
                     server->acceptedServer();
                 else if(type==InfoType::SERVER_CLOSED)
                     server->rejectedServer();
             }
             // If server is not present
-            else if(id.isServer() && info.getType() == InfoType::SERVER_OPENED) {
+            else if(id.isServer() && info.getInfoType() == InfoType::SERVER_OPENED) {
                 // Create server in CLOSE_WAIT to warn the master node
                 // that this server is actually closed
                 StreamInfo serverInfo(id, info.getParams(), StreamStatus::CLOSE_WAIT);
@@ -492,7 +492,7 @@ void StreamManager::applyInfoElements(const std::vector<InfoElement>& infos) {
             // If stream is present in map
             if(streamit != streams.end()) {
                 auto stream = streamit->second;
-                InfoType type = info.getType();
+                InfoType type = info.getInfoType();
                 if(type==InfoType::STREAM_REJECT)
                     stream->rejectedStream();
             }

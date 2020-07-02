@@ -56,16 +56,16 @@ public:
      * Used in master node to solve challenges. Called by schedule
      * distribution phase.
      * Solve a maximum of maxSolvesPerSlot challenges present in queue.
-     * @return a vector of InfoElements of type RESPONSE, to be sent in this slot.
+     * @return a vector of ResponseElement to be sent in this slot.
      */
-    std::vector<InfoElement> solveChallengesAndGetResponses() override;
+    std::vector<ResponseElement> solveChallengesAndGetResponses() override;
 
     /**
      * Used in dynamic node to verify a challenge response.
      * Should not be called in master node. Do nothing.
-     * \return true if the response is valid and the master should be trusted.
+     * @return true if the response is valid and the master should be trusted.
      */
-    bool verifyResponse(InfoElement info) override { return false; }
+    bool verifyResponse(ResponseElement response) override { return false; }
 
 private:
     /**
