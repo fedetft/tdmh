@@ -33,6 +33,18 @@
 
 namespace mxnet {
 
+/**
+ * Allows for demultiplexing of downlink elements of different types.
+ * NOTE: We only have 4 bits for this field, so there can never be more than
+ * 16 types of downlink elements.
+ */
+enum class DownlinkElementType
+{
+    SCHEDULE_ELEMENT    =0,
+    INFO_ELEMENT        =1,
+    RESPONSE            =2  // Response to a challenge for master authentication
+};
+
 /* Possible actions to do in a dataphase slot */
 enum class Action
 {
@@ -48,7 +60,6 @@ enum class InfoType
     SERVER_OPENED =0, // Signals that the master has accepted the new Server
     SERVER_CLOSED =1, // Signals that the master has rejected the new Server
     STREAM_REJECT =2, // Signals that the master has rejected the new Stream
-    RESPONSE      =3  // Response to a CHALLENGE SME: used to authenticate master at resync
 };
 
 struct ScheduleHeaderPkt {
@@ -64,6 +75,7 @@ struct ScheduleElementPkt {
     unsigned int tx:8;
     unsigned int rx:8;
     unsigned int offset:20;
+    unsigned int type:4;
 } __attribute__((packed));
 
 class ScheduleHeader : public SerializableMessage {
@@ -116,6 +128,7 @@ public:
 
     // Constructor for single-hop stream
     ScheduleElement(MasterStreamInfo stream, unsigned int off=0) {
+        type = DownlinkElementType::SCHEDULE_ELEMENT;
         id = stream.getStreamId();
         params = stream.getParams();
         // If a ScheduleElement is created from a stream, then tx=src, rx=dst
@@ -123,6 +136,8 @@ public:
         content.tx = id.src;
         content.rx = id.dst;
         content.offset = off;
+        content.type = static_cast<unsigned char>(
+                                  DownlinkElementType::SCHEDULE_ELEMENT) & 0xf;
     }
 
     // Constructor for multi-hop stream
@@ -130,11 +145,14 @@ public:
                     unsigned char tx,
                     unsigned char rx,
                     unsigned int off=0) {
+        type = DownlinkElementType::SCHEDULE_ELEMENT;
         id = stream.getStreamId();
         params = stream.getParams();
         content.tx = tx;
         content.rx = rx;
         content.offset = off;
+        content.type = static_cast<unsigned char>(
+                                  DownlinkElementType::SCHEDULE_ELEMENT) & 0xf;
     }
 
     void serialize(Packet& pkt) const override;
@@ -149,6 +167,7 @@ public:
     StreamInfo getStreamInfo() const {
         return StreamInfo(id, params, StreamStatus::ESTABLISHED);
     }
+    DownlinkElementType getType() { return type; }
     unsigned char getSrc() const { return id.src; }
     unsigned char getDst() const { return id.dst; }
     unsigned char getSrcPort() const { return id.srcPort; }
@@ -160,10 +179,26 @@ public:
     void setOffset(unsigned int off) { content.offset = off; }
     // return an unique key for each stream
     unsigned int getKey() const { return id.getKey(); }
+
+    /**
+     * Used by ResponseElement
+     * @return the network ID of the node that requested the challenge
+     */
+    unsigned char getNodeId() const { return nodeId; }
+
+    /**
+     * Used by ResponseElement
+     * @return a pointer to the 8-byte buffer containing the response
+     */
+    const unsigned char *getResponseBytes() const { return response; }
+
 protected:
+    DownlinkElementType type;
     StreamId id;
     StreamParameters params;
     ScheduleElementPkt content;
+    unsigned char nodeId;
+    unsigned char response[8];
 };
 
 class InfoElement : public ScheduleElement {
@@ -172,6 +207,7 @@ public:
     // Constructor copying data from ScheduleElement
     // Used when parsing SchedulePacket that contains Info elements
     InfoElement(ScheduleElement s) {
+        type = DownlinkElementType::INFO_ELEMENT;
         id = s.getStreamId();
         // Info elements do not carry parameter information, not copying params
         // This is an info element and is characterized by TX=RX=0
@@ -179,29 +215,48 @@ public:
         content.rx = 0;
         // The message of the info element is saved in the offset field
         content.offset = s.getOffset();
+        content.type = static_cast<unsigned char>(
+                                  DownlinkElementType::INFO_ELEMENT) & 0xf;
     }
     // Constructor copying data from StreamId
     InfoElement(StreamId streamId, InfoType type) {
+        this->type = DownlinkElementType::INFO_ELEMENT;
         id = streamId;
         // This is an info element and is characterized by TX=RX=0
         content.tx = 0;
         content.rx = 0;
         // The message of the info element is saved in the offset field
         content.offset = static_cast<unsigned int>(type);
+        content.type = static_cast<unsigned char>(
+                                  DownlinkElementType::INFO_ELEMENT) & 0xf;
     };
-    InfoType getType() const { return static_cast<InfoType>(content.offset); }
+    InfoType getInfoType() const { return static_cast<InfoType>(content.offset); }
+};
 
-    static InfoElement makeResponseInfoElement(unsigned char nodeId,
-                                               unsigned char bytes[6]) {
-        InfoElement result;
-        result.id = StreamId::fromBytes(bytes);
-        result.params = StreamParameters::fromBytes(bytes+3);
-        result.content.tx = bytes[5];
-
-        result.content.rx = nodeId;
-        result.content.offset = static_cast<unsigned int>(InfoType::RESPONSE);
-        return result;
+class ResponseElement : public ScheduleElement {
+public:
+    ResponseElement() : ScheduleElement() {
+        type = DownlinkElementType::RESPONSE;
     }
+
+    ResponseElement(const ResponseElement& other) {
+        type = DownlinkElementType::RESPONSE;
+        nodeId = other.getNodeId();
+        memcpy(response, other.getResponseBytes(), sizeof(response));
+    }
+
+    ResponseElement(ScheduleElement s) {
+        type = DownlinkElementType::RESPONSE;
+        nodeId = s.getNodeId();
+        memcpy(response, s.getResponseBytes(), sizeof(response));
+    }
+
+    ResponseElement(unsigned char nodeId, unsigned char bytes[8]) {
+        type = DownlinkElementType::RESPONSE;
+        this->nodeId = nodeId;
+        memcpy(response, bytes, sizeof(response));
+    }
+
 };
 
 class SchedulePacket : public SerializableMessage {
@@ -223,7 +278,12 @@ public:
     }
     void setHeader(ScheduleHeader& newHeader) { header = newHeader; }
     void putElement(ScheduleElement& el) { elements.push_back(el); }
-    void putInfoElement(InfoElement& el) { elements.push_back(static_cast<ScheduleElement>(el)); }
+    void putInfoElement(InfoElement& el) {
+        elements.push_back(static_cast<ScheduleElement>(el));
+    }
+    void putResponseElement(ResponseElement& el) {
+        elements.push_back(static_cast<ScheduleElement>(el));
+    }
 
 private:
     unsigned short panId;

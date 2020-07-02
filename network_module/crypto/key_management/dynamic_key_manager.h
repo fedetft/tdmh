@@ -57,17 +57,17 @@ public:
 
     void enqueueChallenge(StreamManagementElement sme) override {}
 
-    std::vector<InfoElement> solveChallengesAndGetResponses() override {
+    std::vector<ResponseElement> solveChallengesAndGetResponses() override {
         assert(false);
-        std::vector<InfoElement> result;
+        std::vector<ResponseElement> result;
         return result;
     }
 
     /**
      * Used in dynamic node to verify a challenge response.
-     * \return true if the response is valid and the master should be trusted.
+     * @return true if the response is valid and the master should be trusted.
      */
-    bool verifyResponse(InfoElement info) override;
+    bool verifyResponse(ResponseElement response) override;
 
     /**
      * Called upon resync.

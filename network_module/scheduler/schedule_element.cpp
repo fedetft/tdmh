@@ -27,6 +27,7 @@
 
 #include "schedule_element.h"
 #include "../util/packet.h"
+#include <stdexcept>
 
 namespace mxnet {
 
@@ -40,15 +41,42 @@ void ScheduleHeader::deserialize(Packet& pkt) {
 
 
 void ScheduleElement::serialize(Packet& pkt) const {
-    pkt.put(&id, sizeof(StreamId));
-    pkt.put(&params, sizeof(StreamParameters));
-    pkt.put(&content, sizeof(ScheduleElementPkt));
+    switch(type) {
+        case DownlinkElementType::SCHEDULE_ELEMENT:
+        case DownlinkElementType::INFO_ELEMENT:
+            pkt.put(&id, sizeof(StreamId));
+            pkt.put(&params, sizeof(StreamParameters));
+            pkt.put(&content, sizeof(ScheduleElementPkt));
+            break;
+        case DownlinkElementType::RESPONSE: {
+            pkt.put(&nodeId, sizeof(unsigned char));
+            pkt.put(response, sizeof(response));
+            unsigned char t = static_cast<unsigned char>(type);
+            pkt.put(&t, sizeof(unsigned char));
+            break;
+        }
+    }
 }
 
 void ScheduleElement::deserialize(Packet& pkt) {
-    pkt.get(&id, sizeof(StreamId));
-    pkt.get(&params, sizeof(StreamParameters));
-    pkt.get(&content, sizeof(ScheduleElementPkt));
+    // Extract type from packet
+    type = static_cast<DownlinkElementType>(pkt[9] & 0xf);
+    switch(type) {
+        case DownlinkElementType::SCHEDULE_ELEMENT:
+        case DownlinkElementType::INFO_ELEMENT:
+            pkt.get(&id, sizeof(StreamId));
+            pkt.get(&params, sizeof(StreamParameters));
+            pkt.get(&content, sizeof(ScheduleElementPkt));
+            break;
+        case DownlinkElementType::RESPONSE:
+            pkt.get(&nodeId, sizeof(unsigned char));
+            pkt.get(response, sizeof(response));
+            pkt.discard(sizeof(unsigned char));
+            break;
+        default:
+            throw std::runtime_error("unknown downlink element type");
+            break;
+    }
 }
 
 void SchedulePacket::serialize(Packet& pkt) const {

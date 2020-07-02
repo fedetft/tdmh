@@ -270,34 +270,48 @@ bool DynamicScheduleDownlinkPhase::recvPkt(long long slotStart, Packet& pkt)
 
 void DynamicScheduleDownlinkPhase::applyInfoElements(SchedulePacket& spkt)
 {
+    /**
+     * Here we rely on the fact that downlink elements are always serialized
+     * in the following order: first schedule elements, then response elements,
+     * then info elements.
+     */
+
     std::vector<ScheduleElement> elements = spkt.getElements();
-    std::vector<InfoElement> infos;
+
     // Check for Info Elements and separate them from Schedule Elements
+    std::vector<InfoElement> infos;
     auto firstInfo = std::find_if(elements.begin(), elements.end(),
                                   [](ScheduleElement s){
-                                      return (s.getTx()==0 && s.getRx()==0);
+                                      return (s.getType() == DownlinkElementType::INFO_ELEMENT);
                                   });
-    if(firstInfo != elements.end())
-    {
+    if(firstInfo != elements.end()) {
         infos = std::vector<InfoElement>(firstInfo, elements.end());
         spkt.popElements(infos.size());
     }
 
 #ifdef CRYPTO
     if(ctx.getNetworkConfig().getDoMasterChallengeAuthentication()) {
-        std::vector<InfoElement> newInfos;
-        InfoElement myResponse;
+        // Locate first response element
+        auto firstResponse = std::find_if(elements.begin(), elements.end(),
+                                  [](ScheduleElement s){
+                                      return (s.getType() == DownlinkElementType::RESPONSE);
+                                  });
+
+        std::vector<ResponseElement> responses;
+        if(firstResponse != elements.end()) {
+            responses = std::vector<ResponseElement>(firstResponse, elements.end());
+            spkt.popElements(responses.size());
+        }
+
+        ResponseElement myResponse;
         bool myResponseReceived = false;
-        for(auto i : infos) {
-            if(i.getType() != InfoType::RESPONSE) {
-                newInfos.push_back(i);
-            } else if(i.getRx() == myId) {
-                // this element is a RESPONSE to my challenge
-                myResponse = i;
+        for (auto r : responses) {
+            if(r.getNodeId() == myId) {
+                myResponse = r;
                 myResponseReceived = true;
+                break;
             }
         }
-        infos = newInfos;
 
         if(myResponseReceived) {
             KeyManager& keyMgr = *(ctx.getKeyManager());
