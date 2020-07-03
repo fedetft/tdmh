@@ -53,7 +53,9 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
         {
             if(schedule_comp.needToSendSchedule())
             {
-                getScheduleAndComputeActivation(slotStart);
+                rekeyingSlots = getNumDownlinksForRekeying();
+                rekeyingSlotCtr = 0;
+                getScheduleAndComputeActivation(slotStart, rekeyingSlots);
                 status = ScheduleDownlinkStatus::SENDING_SCHEDULE;
                 //No packet sent in this downlink slot
             } else {
@@ -91,12 +93,31 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
                 status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
                 //No packet sent in this downlink slot
             } else {
-                // Keep rekeying streams if needed
+                /**
+                 * Keep rekeying streams. When all dynamic nodes have no
+                 * streams left to rekey, change state.
+                 */
 #ifdef CRYPTO
                 streamMgr->continueRekeying();
 #endif
-                // We don't send any info elements here, as the dynamic nodes are busy
-                // rekeying too
+                rekeyingSlotCtr++;
+                if(rekeyingSlotCtr >= rekeyingSlots) {
+                    status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
+                }
+            }
+            break;
+        }
+        case ScheduleDownlinkStatus::AWAITING_ACTIVATION:
+        {
+            unsigned int currentTile = ctx.getCurrentTile(slotStart);
+            if(currentTile >= header.getActivationTile()) {
+                applyNewSchedule(slotStart);
+                schedule_comp.scheduleSentAndApplied();
+                status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
+            } else {
+                if(streamColl->getNumInfo() != 0 || ctx.getKeyManager()->challengesPresent()) {
+                    sendInfoPkt(slotStart);
+                }
             }
             break;
         }
@@ -105,7 +126,8 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
     }
 }
 
-void MasterScheduleDownlinkPhase::getScheduleAndComputeActivation(long long slotStart)
+void MasterScheduleDownlinkPhase::getScheduleAndComputeActivation(long long slotStart,
+                                                            unsigned int rekeyingSlots)
 {
     unsigned long id;
     unsigned int tiles;
@@ -120,7 +142,7 @@ void MasterScheduleDownlinkPhase::getScheduleAndComputeActivation(long long slot
 
     // Get the earliest tile when we can activate the schedule, not considering
     // that it must be aligned to the end of the previous schedule, if there is one
-    unsigned int activationTile = getActivationTile(currentTile, numPackets);
+    unsigned int activationTile = getActivationTile(currentTile, numPackets, rekeyingSlots);
     
     // Get scheduleTiles of the previous schedule (still saved in header)
     unsigned int lastScheduleTiles = header.getScheduleTiles();
@@ -182,7 +204,8 @@ void MasterScheduleDownlinkPhase::getScheduleAndComputeActivation(long long slot
 }
 
 unsigned int MasterScheduleDownlinkPhase::getActivationTile(unsigned int currentTile,
-                                                            unsigned int numPackets)
+                                                            unsigned int numPackets,
+                                                            unsigned int rekeyingSlots)
 {
     // This function assumes that in the current tile no packet will be sent,
     // then scheduleRepetitions*numPackets need to be sent,
@@ -193,7 +216,7 @@ unsigned int MasterScheduleDownlinkPhase::getActivationTile(unsigned int current
     // as the schedule has "holes" for the downlink and uplink, which are of
     // different number of slots.
     unsigned int numDownlinks = scheduleRepetitions * numPackets;
-    numDownlinks += getNumDownlinksForRekeying();
+    numDownlinks += rekeyingSlots;
     
     // The first tile that we consider is currentTile + 1 because in
     // currentTile no packet is sent

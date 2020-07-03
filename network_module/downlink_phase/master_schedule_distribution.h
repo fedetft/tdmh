@@ -50,9 +50,10 @@ public:
     
 private:
     
-    void getScheduleAndComputeActivation(long long slotStart);
+    void getScheduleAndComputeActivation(long long slotStart, unsigned int rekeyingSlots);
     
-    unsigned int getActivationTile(unsigned int currentTile, unsigned int numPackets);
+    unsigned int getActivationTile(unsigned int currentTile, unsigned int numPackets,
+                                    unsigned int rekeyingSlots);
 
     unsigned int getNumDownlinksForRekeying();
     
@@ -72,6 +73,10 @@ private:
     ScheduleComputation& schedule_comp;
     // Pointer to StreamCollection, used to get info elements to distribute
     StreamCollection* const streamColl;
+
+    unsigned char rekeyingSlots = 0;
+    unsigned char rekeyingSlotCtr = 0;
+
 };
 
 }

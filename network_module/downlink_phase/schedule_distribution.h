@@ -131,7 +131,8 @@ protected:
         APPLIED_SCHEDULE,
         SENDING_SCHEDULE,
         INCOMPLETE_SCHEDULE,
-        REKEYING
+        REKEYING,
+        AWAITING_ACTIVATION
     };
     
     const int rebroadcastInterval;
