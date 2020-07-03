@@ -613,6 +613,13 @@ void StreamManager::applyRekeying() {
         doApplyRekeying();
     }
 }
+
+bool StreamManager::needToContinueRekeying() {
+    // No need to lock mutex as these bools are never changed by other threads
+    if(!rekeyingInProgress) return false;
+    else return !rekeyingSnapshot.empty();
+}
+
 #endif //ifdef CRYPTO
 
 int StreamManager::allocateClientPort() {

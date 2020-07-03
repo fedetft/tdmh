@@ -237,6 +237,13 @@ public:
     void applyRekeying();
 
     /**
+     * Called by ScheduleDistribution to know when there are no more streams to rekey.
+     * @return true if there are streams that need rekeying and rekeying is in progress,
+     * false otherwise.
+     */
+    bool needToContinueRekeying();
+
+    /**
      * Called by KeyManager when connecting, to inform the StreamManager that no streams
      * or servers should be opened or accepted.
      */
