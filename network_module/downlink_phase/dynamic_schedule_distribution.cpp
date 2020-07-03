@@ -83,6 +83,16 @@ void DynamicScheduleDownlinkPhase::execute(long long slotStart)
                     }
                     break;
                 }
+                case ScheduleDownlinkStatus::AWAITING_ACTIVATION:
+                {
+                    if(newHeader.isSchedulePacket()) {
+                        printf("BUG: receiving schedule before previous schedule activation\n");
+                        assert(false);
+                    } else {
+                        applyInfoElements(spkt);
+                    }
+                    break;
+                }
                 case ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE:
                 {
                     if(newHeader.isSchedulePacket()) {
@@ -142,55 +152,96 @@ bool DynamicScheduleDownlinkPhase::handleActivationAndRekeying(long long slotSta
      * Handle slots in which we don't need to receive packets: rekeying slots
      * and activation tile
      */
-    bool ret = false;
-    if(status == ScheduleDownlinkStatus::SENDING_SCHEDULE) {
-        /* Check if we are ready so stop listening and start rekeying. If not,
-         * do nothing here and try to receive a packet. */
-        if(currentSendingRound >= sendingRounds) {
-            if(isScheduleComplete()) {
-                setNewSchedule(slotStart);
-                if(ENABLE_SCHEDULE_DIST_DBG)
-                    print_dbg("[SD] full schedule %s\n",scheduleStatusAsString().c_str());
+    bool ret;
+    switch(status) {
+        case ScheduleDownlinkStatus::SENDING_SCHEDULE:
+        {
+            /* Check if we are ready to stop listening and start rekeying. If
+             * not, do nothing here and try to receive a packet. */
+            if(currentSendingRound >= sendingRounds) {
+                /* Schedule sending phase is over. Perform first phase or
+                 * schedule application */
+                if(isScheduleComplete()) {
+                    /* setNewSchedule calls startRekeying transparently */
+                    setNewSchedule(slotStart);
+                    if(ENABLE_SCHEDULE_DIST_DBG)
+                        print_dbg("[SD] full schedule %s\n",
+                                  scheduleStatusAsString().c_str());
+                } else {
+                    resetAndDisableSchedule(slotStart);
+#ifdef CRYPTO
+                    /* If the schedule received is incomplete, we still have to
+                     * perform rekeying on the key manager to take care of the
+                     * phase keys */
+                    ctx.getKeyManager()->startRekeying();
+                    if (ENABLE_CRYPTO_REKEYING_DBG) {
+                        unsigned int currentTile = ctx.getCurrentTile(slotStart);
+                        print_dbg("[SD] N=%d start rekeying at tile %d\n",
+                                  myId, currentTile);
+                    }
+#endif
+                }
+                status = ScheduleDownlinkStatus::REKEYING;
+                ret = true;
+            } else {
+                /* Schedule sending phase still in progress. We must listen
+                 * for packets. */
+                ret = false;
+            }
+            break;
+        }
+        case ScheduleDownlinkStatus::REKEYING:
+        {
+            unsigned int currentTile = ctx.getCurrentTile(slotStart);
+            if(currentTile >= header.getActivationTile()) {
+                if(isScheduleComplete()) {
+                    applyNewSchedule(slotStart);
+                    status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
+                } else {
+#ifdef CRYPTO
+                    if (ENABLE_CRYPTO_REKEYING_DBG) {
+                        print_dbg("[SD] N=%d apply rekeying at tile %d\n",
+                                  myId, currentTile);
+                    }
+                    ctx.getKeyManager()->applyRekeying();
+#endif
+                    status = ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE;
+                }
             } else {
 #ifdef CRYPTO
-                /* If the schedule received is incomplete, we still have to
-                 * perform rekeying on the key manager to take care of the
-                 * phase keys */
-                ctx.getKeyManager()->startRekeying();
-                if (ENABLE_CRYPTO_REKEYING_DBG) {
-                    unsigned int currentTile = ctx.getCurrentTile(slotStart);
-                    print_dbg("[SD] N=%d start rekeying at tile %d\n",
-                              myId, currentTile);
+                /* Continue rekeying until stream manager has streams to rekey */
+                if(isScheduleComplete()) streamMgr->continueRekeying();
+                if(!streamMgr->needToContinueRekeying()) {
+                    status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
                 }
+#else
+                status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
 #endif
-                resetAndDisableSchedule(slotStart);
             }
-            status = ScheduleDownlinkStatus::REKEYING;
+            /* We never listen while in this state */
             ret = true;
+            break;
         }
-    } else if (status == ScheduleDownlinkStatus::REKEYING) {
-        unsigned int currentTile = ctx.getCurrentTile(slotStart);
-        if(currentTile >= header.getActivationTile()) {
-            if(isScheduleComplete()) {
-                applyNewSchedule(slotStart);
-                status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
-            } else {
-#ifdef CRYPTO
-                if (ENABLE_CRYPTO_REKEYING_DBG) {
-                    print_dbg("[SD] N=%d apply rekeying at tile %d\n",
-                              myId, currentTile);
+        case ScheduleDownlinkStatus::AWAITING_ACTIVATION:
+        {
+            unsigned int currentTile = ctx.getCurrentTile(slotStart);
+            if(currentTile >= header.getActivationTile()) {
+                if(isScheduleComplete()) {
+                    applyNewSchedule(slotStart);
+                    status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
+                } else {
+                    status = ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE;
                 }
-                ctx.getKeyManager()->applyRekeying();
-#endif
-                status = ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE;
+                /* Do not listen in activation tile */
+                ret = true;
+            } else {
+                /* Wait for activation tile, listen for InfoElements */
+                ret = false;
             }
-        } else {
-#ifdef CRYPTO
-            if(isScheduleComplete()) streamMgr->continueRekeying();
-#endif
+            break;
         }
-        /* We never listen while in this state */
-        ret = true;
+        default:
+            ret = false;
     }
     return ret;
 }

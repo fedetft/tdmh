@@ -47,7 +47,7 @@ public:
 
 private:
     /**
-     * return true if actions of rekeying or activation were taken in this tile, meaning
+     * @return true if actions of rekeying or activation were taken in this tile, meaning
      * that we must not listen for packets in this tile.
      */
     bool handleActivationAndRekeying(long long slotStart);
