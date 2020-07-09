@@ -1,7 +1,11 @@
 #pragma once
 #include <mutex>
-#include "../util/aes_accelerator.h"
 #include "initialization_vector.h"
+#ifdef _MIOSIX
+#include "../util/aes_accelerator.h"
+#else
+#include "../util/tiny_aes_c.h"
+#endif
 
 namespace mxnet {
 
@@ -15,10 +19,10 @@ public:
         {
 #ifdef _MIOSIX
             miosix::Lock<miosix::Mutex> lock(aesMutex);
+            aesAcc.aes128_computeLastRoundKey(lrk, key);
 #else
             std::unique_lock<std::mutex> lock(aesMutex);
 #endif
-            aesAcc.aes128_computeLastRoundKey(lrk, key);
         }
     }
 
@@ -27,10 +31,10 @@ public:
         {
 #ifdef _MIOSIX
             miosix::Lock<miosix::Mutex> lock(aesMutex);
+            aesAcc.aes128_computeLastRoundKey(lrk, key);
 #else
             std::unique_lock<std::mutex> lock(aesMutex);
 #endif
-            aesAcc.aes128_computeLastRoundKey(lrk, key);
         }
     }
 
@@ -39,10 +43,10 @@ public:
         {
 #ifdef _MIOSIX
             miosix::Lock<miosix::Mutex> lock(aesMutex);
+            aesAcc.aes128_computeLastRoundKey(lrk, key);
 #else
             std::unique_lock<std::mutex> lock(aesMutex);
 #endif
-            aesAcc.aes128_computeLastRoundKey(lrk, key);
         }
     }
 
@@ -67,14 +71,17 @@ private:
      * and unlocked after all blocks are processed that use such key. */
 #ifdef _MIOSIX
     static miosix::Mutex aesMutex;
+    AESAccelerator& aesAcc = AESAccelerator::instance();
 #else
     static std::mutex aesMutex;
 #endif
 
-    AESAccelerator& aesAcc = AESAccelerator::instance();
 
     unsigned char key[16];
+
+#ifdef _MIOSIX
     unsigned char lrk[16];
+#endif
 
 };
 
