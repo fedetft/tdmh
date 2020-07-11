@@ -97,27 +97,9 @@ private:
     }
 
     /**
-     * Compute the value of the first offset used foe encryption/decryption
+     * Compute the value of the first offset used for encryption/decryption
      */
-    void computeFirstOffset() {
-        memcpy(lastNonce, nonce, 16);
-        // select the last 6 bits
-        unsigned char bottom = nonce[15] & 0x3f;
-        // clear the last 6 bits
-        nonce[15] = nonce[15] & 0xc0;
-        unsigned char ktop[24];
-        aes.ecbEncrypt(ktop, nonce);
-        memcpy(ktop + 16, ktop, 8);
-        xorBytes(ktop + 16, ktop + 16, ktop + 1, 8);
-
-        unsigned char bitshift = bottom % 8;
-        unsigned char byteshift = bottom / 8;
-        unsigned char carry;
-        for (int i=15; i>=0; i--) {
-            carry = ktop[i+byteshift+1] >> (8-bitshift);
-            offset0[i] = (ktop[i+byteshift] << bitshift) || carry ;
-        }
-    }
+    void computeFirstOffset();
 
     /**
      * Precompute values of offset increments, key dependent.
