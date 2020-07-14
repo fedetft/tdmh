@@ -19,6 +19,7 @@ std::mutex Aes::aesMutex;
 #endif
 
 void Aes::ecbEncrypt(void *ctx, const void *ptx, unsigned int length) {
+    if(length == 0) return;
     if((length & (unsigned int)0xf) != 0)
         throw range_error("Aes::ecbEncrypt : buffer size is not a multiple of cipher block size.");
 
@@ -40,6 +41,7 @@ void Aes::ecbEncrypt(void *ctx, const void *ptx, unsigned int length) {
 }
 
 void Aes::ecbDecrypt(void *ptx, const void *ctx, unsigned int length) {
+    if(length == 0) return;
     if((length & (unsigned int)0xf) != 0)
         throw range_error("Aes::ecbDecrypt : buffer size is not a multiple of cipher block size.");
 
@@ -61,6 +63,7 @@ void Aes::ecbDecrypt(void *ptx, const void *ctx, unsigned int length) {
 }
 
 void Aes::ctrXcrypt(const IV& iv, void *dst, const void *src, unsigned int length) {
+    if(length == 0) return;
     unsigned dataLength = length;
     unsigned short blockLength;
 
