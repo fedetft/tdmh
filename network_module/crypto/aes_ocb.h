@@ -29,9 +29,9 @@ public:
          * We set the 15 bytes of the nonce in a similar value to slotInfo,
          * but we discard the most significat  byte of the sequence number.
          */
-        auto lp = reinterpret_cast<unsigned long long*>(&slotInfo[8]);
+        auto lp = reinterpret_cast<unsigned long long*>(&nonce[8]);
         lp[0] = sequenceNumber;
-        auto ip = reinterpret_cast<unsigned int *>(&slotInfo[1]);
+        auto ip = reinterpret_cast<unsigned int *>(&nonce[1]);
         ip[0] = masterIndex;
         ip[1] = tileOrFrameNumber;
     }
@@ -53,7 +53,7 @@ public:
         this->nonce[1] = 0x0;
         this->nonce[2] = 0x0;
         this->nonce[3] = 0x1;
-        memcpy(this->nonce + 4 ; nonce ; 12);
+        memcpy(this->nonce + 4,  nonce, 12);
     }
 #endif
 
@@ -75,6 +75,10 @@ public:
 
 private:
 
+    void processAdditionalData(const void* auth, unsigned int authLength);
+
+    void finishTag(unsigned char tag[16], const unsigned char offset[16]);
+
     /**
      * Set the information uniquely identifying the time at which the message
      * will be sent.  This information is always implicitly authenticated.
@@ -89,6 +93,7 @@ private:
      */
     void setSlotInfo(unsigned int tileOrFrameNumber,
             unsigned long long sequenceNumber, unsigned int masterIndex) {
+
         auto ip = reinterpret_cast<unsigned int *>(slotInfo);
         ip[0] = masterIndex;
         ip[1] = tileOrFrameNumber;
@@ -110,7 +115,7 @@ private:
         gfDouble(l_dollar, l_star);
         gfDouble(&l[0][0], l_dollar);
         for (unsigned i=1; i<maxCachedL; i++) {
-            gfDouble(&l[0][i], &l[0][i-1]);
+            gfDouble(&l[i][0], &l[i-1][0]);
         }
     }
 
@@ -124,10 +129,17 @@ private:
     static const unsigned int maxCachedL = 3;
     static const unsigned int blockSize = 16;
     static const unsigned char poly = 0x87;
+    static const unsigned int poly_int = 0x87;
     static constexpr unsigned char ntz[maxBlocks] = { 0, 1, 0, 2, 0, 1, 0 };
-    unsigned char l_star[16];
-    unsigned char l_dollar[16];
-    unsigned char l[blockSize][maxCachedL];
+    unsigned char l_star[blockSize];
+    unsigned char l_dollar[blockSize];
+    unsigned char l[maxCachedL][blockSize];
+
+    /* buffers used to process all data at once, so that we can call aes only
+     * a few times to optimize use of accelerator */
+    unsigned char authBuffer[(maxBlocks + 1)*blockSize];
+    unsigned char cryptBuffer[maxBlocks*blockSize];
+    unsigned char offsetBuffer[(maxBlocks + 1)*blockSize];
 
     /**
      * OCB3 specification prescribes the nonce to be a 128-bit vector:
@@ -144,8 +156,8 @@ private:
 
     unsigned char lastNonce[16];
 
-    unsigned char offset0[16];
-    unsigned char checksum[16];
+    unsigned char sum[16] = {0};
+    unsigned char checksum[16] = {0};
 
     /**
      * Block containing implicit information to be authenticated,
