@@ -461,10 +461,10 @@ static void InvCipher(void)
 #if defined(ECB) && ECB
 
 
-void AES_ECB_encrypt(const uint8_t* input, const uint8_t* key, uint8_t* output, const uint32_t length)
+void AES_ECB_encrypt(const uint8_t* input, const uint8_t* key, uint8_t* output)
 {
   // Copy input to output, and work in-memory on output
-  memcpy(output, input, length);
+  memcpy(output, input, BLOCKLEN);
   state = (state_t*)output;
 
   Key = key;
@@ -474,10 +474,10 @@ void AES_ECB_encrypt(const uint8_t* input, const uint8_t* key, uint8_t* output, 
   Cipher();
 }
 
-void AES_ECB_decrypt(const uint8_t* input, const uint8_t* key, uint8_t *output, const uint32_t length)
+void AES_ECB_decrypt(const uint8_t* input, const uint8_t* key, uint8_t *output)
 {
   // Copy input to output, and work in-memory on output
-  memcpy(output, input, length);
+  memcpy(output, input, BLOCKLEN);
   state = (state_t*)output;
 
   // The KeyExpansion routine must be called before encryption.
