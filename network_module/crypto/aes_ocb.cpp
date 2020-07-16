@@ -65,7 +65,6 @@ bool AesOcb::verifyAndDecrypt(const void *tag, void *ptx, const void *ctx,
 
 void AesOcb::processAdditionalData(const void* auth, unsigned int authLength) {
     // TODO: exception on length
-    memset(sum, 0, blockSize);
     // always add one block for slotInfo
     unsigned authLen = authLength + blockSize;
     unsigned authBlocks = authLen/blockSize;
@@ -102,13 +101,12 @@ void AesOcb::processAdditionalData(const void* auth, unsigned int authLength) {
     aes.ecbEncrypt(authBuffer, offsetBuffer, authBlocks*blockSize);
 
     /* compute sum */
-#define TEST_EMPTY_AUTH_DATA
-#ifdef TEST_EMPTY_AUTH_DATA
-    // Skip slotInfo block
-    for (i=blockSize; i<authLen; i+=blockSize) {
-        xorBytes(sum, sum, &authBuffer[i], blockSize);
-    }
-#else
+    memset(sum, 0, blockSize);
+
+#ifndef _MIOSIX
+//#define TEST_EMPTY_AUTH_DATA
+#endif
+#ifndef TEST_EMPTY_AUTH_DATA
     for (i=0; i<authLen; i+=blockSize) {
         xorBytes(sum, sum, &authBuffer[i], blockSize);
     }
