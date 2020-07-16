@@ -12,8 +12,8 @@ void AesOcb::encryptAndComputeTag(void *tag, void *ctx, const void *ptx,
     processAdditionalData(auth, authLength);
 
     memset(checksum, 0, blockSize);
-    unsigned int clen_aligned = cryptLength/blockSize;
-    unsigned cryptBlocks = clen_aligned;
+    unsigned cryptBlocks = cryptLength/blockSize;
+    unsigned clen_aligned = cryptBlocks*blockSize;
     if(cryptLength % blockSize > 0) cryptBlocks++;
 
     unsigned char *op = reinterpret_cast<unsigned char*>(offsetBuffer);
@@ -36,7 +36,9 @@ void AesOcb::encryptAndComputeTag(void *tag, void *ctx, const void *ptx,
     }
     // handle last partial block if present
     if (clen > 0) {
+        // compute the last delta_star and put it in the cryptBuffer directly
         xorBytes(op + blockSize, op, l_star, blockSize);
+        memcpy(cryptBuffer + clen_aligned, op + blockSize, blockSize);
         // digest last partial block into checksum and flip one bit
         xorBytes(checksum, checksum, pp, clen);
         checksum[clen] ^= 0x80;
