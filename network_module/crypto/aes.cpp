@@ -35,7 +35,9 @@ void Aes::ecbEncrypt(void *ctx, const void *ptx, unsigned int length) {
         }
 #else
         std::unique_lock<std::mutex> lock(aesMutex);
-        AES_ECB_encrypt(pp, key, cp, length);
+        for (unsigned i=0; i<length; i+=AESBlockSize) {
+            AES_ECB_encrypt(&pp[i], key, &cp[i]);
+        }
 #endif
     }
 }
@@ -57,7 +59,9 @@ void Aes::ecbDecrypt(void *ptx, const void *ctx, unsigned int length) {
         }
 #else
         std::unique_lock<std::mutex> lock(aesMutex);
-        AES_ECB_decrypt(cp, key, pp, length);
+        for (unsigned i=0; i<length; i+=AESBlockSize) {
+            AES_ECB_decrypt(&cp[i], key, &pp[i]);
+        }
 #endif
     }
 }
@@ -86,7 +90,7 @@ void Aes::ctrXcrypt(const IV& iv, void *dst, const void *src, unsigned int lengt
 #ifdef _MIOSIX
             aesAcc.aes128_ecbEncrypt(buffer, ctr.getData());
 #else
-            AES_ECB_encrypt(ctr.getData(), key, buffer, 16);
+            AES_ECB_encrypt(ctr.getData(), key, buffer);
 #endif
             xorBytes(&dp[i], buffer, &sp[i], blockLength);
             ++ctr; //prefix operator is more efficient
