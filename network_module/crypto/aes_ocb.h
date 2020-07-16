@@ -50,6 +50,7 @@ public:
      * nonce (we only test nonces of this length).
      */
     void setNonce(unsigned char nonce[12]) {
+        this->nonce[0] = 0x0;
         this->nonce[1] = 0x0;
         this->nonce[2] = 0x0;
         this->nonce[3] = 0x1;

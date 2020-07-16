@@ -130,13 +130,12 @@ void AesOcb::computeFirstOffset() {
     aes.ecbEncrypt(ktop, nonce);
     memcpy(ktop + 16, ktop, 8);
     xorBytes(ktop + 16, ktop + 16, ktop + 1, 8);
-
     unsigned char bitshift = bottom % 8;
     unsigned char byteshift = bottom / 8;
-    unsigned char carry;
     for (int i=15; i>=0; i--) {
-        carry = ktop[i+byteshift+1] >> (8-bitshift);
-        offsetBuffer[i] = (ktop[i+byteshift] << bitshift) || carry ;
+        unsigned char rightpart = ktop[i+byteshift+1] >> (8-bitshift);
+        unsigned char leftpart = ktop[i+byteshift] << bitshift;
+        offsetBuffer[i] = rightpart | leftpart ;
     }
 }
 
