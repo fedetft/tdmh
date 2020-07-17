@@ -33,7 +33,7 @@
 #include "stream_management_element.h"
 #ifdef CRYPTO
 #include "../crypto/hash.h"
-#include "../crypto/aes_gcm.h"
+#include "../crypto/aes_ocb.h"
 #endif
 #include <list>
 #ifdef _MIOSIX
@@ -205,7 +205,7 @@ public:
     {
         updateRedundancy();
         memcpy(newKey, key, 16);
-        gcm.rekey(newKey);
+        ocb.rekey(newKey);
     }
 
     Stream(const NetworkConfiguration& config, int fd, StreamInfo info) :
@@ -292,10 +292,10 @@ public:
     }
 
     void applyNewKey() { 
-        gcm.rekey(newKey);
+        ocb.rekey(newKey);
     }
 
-    AesGcm& getGCM() { return gcm; }
+    AesOcb& getOCB() { return ocb; }
 #endif
 
 
@@ -326,7 +326,7 @@ private:
 #ifdef CRYPTO
     const bool authData;
     unsigned char newKey[16] = {0};
-    AesGcm gcm;
+    AesOcb ocb;
 #endif
 
     /* Thread synchronization */

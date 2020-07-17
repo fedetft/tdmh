@@ -564,7 +564,7 @@ unsigned long long StreamManager::getSequenceNumber(StreamId id) {
 }
 
 #ifdef CRYPTO
-AesGcm& StreamManager::getStreamGCM(StreamId id) {
+AesOcb& StreamManager::getStreamOCB(StreamId id) {
     REF_PTR_STREAM stream;
 
 #ifdef _MIOSIX
@@ -575,10 +575,10 @@ AesGcm& StreamManager::getStreamGCM(StreamId id) {
     auto it = streams.find(id);
     if(it == streams.end()) {
         printf("BUG: Stream not present in StreamManager!\n");
-        return emptyGCM;
+        return emptyOCB;
     }
     stream = it->second;
-    return it->second->getGCM();
+    return it->second->getOCB();
 }
 
 void StreamManager::startRekeying() {

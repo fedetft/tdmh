@@ -46,9 +46,9 @@ void MasterKeyManager::applyRekeying() {
     memcpy(masterKey, nextMasterKey, 16);
     status = KeyManagerStatus::CONNECTED;
 
-    uplinkGCM.rekey(nextUplinkKey);
-    downlinkGCM.rekey(nextDownlinkKey);
-    timesyncGCM.rekey(nextTimesyncKey);
+    uplinkOCB.rekey(nextUplinkKey);
+    downlinkOCB.rekey(nextDownlinkKey);
+    timesyncOCB.rekey(nextTimesyncKey);
 }
 
 void* MasterKeyManager::getMasterKey() {

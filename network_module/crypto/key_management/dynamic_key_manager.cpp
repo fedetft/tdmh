@@ -64,9 +64,9 @@ void DynamicKeyManager::applyRekeying() {
         print_dbg("[KM] N=%d applying rekeying\n", myId);
     }
 
-    uplinkGCM.rekey(nextUplinkKey);
-    downlinkGCM.rekey(nextDownlinkKey);
-    timesyncGCM.rekey(nextTimesyncKey);
+    uplinkOCB.rekey(nextUplinkKey);
+    downlinkOCB.rekey(nextDownlinkKey);
+    timesyncOCB.rekey(nextTimesyncKey);
 }
 
 void* DynamicKeyManager::getMasterKey() {
@@ -153,9 +153,9 @@ bool DynamicKeyManager::attemptResync(unsigned int newIndex) {
     uplinkHash.digestBlock(uplinkKey, tempMasterKey);
     downlinkHash.digestBlock(downlinkKey, tempMasterKey);
     timesyncHash.digestBlock(timesyncKey, tempMasterKey);
-    uplinkGCM.rekey(uplinkKey);
-    downlinkGCM.rekey(downlinkKey);
-    timesyncGCM.rekey(timesyncKey);
+    uplinkOCB.rekey(uplinkKey);
+    downlinkOCB.rekey(downlinkKey);
+    timesyncOCB.rekey(timesyncKey);
 
     return true;
 }
@@ -177,9 +177,9 @@ void DynamicKeyManager::advanceResync() {
     uplinkHash.digestBlock(uplinkKey, tempMasterKey);
     downlinkHash.digestBlock(downlinkKey, tempMasterKey);
     timesyncHash.digestBlock(timesyncKey, tempMasterKey);
-    uplinkGCM.rekey(uplinkKey);
-    downlinkGCM.rekey(downlinkKey);
-    timesyncGCM.rekey(timesyncKey);
+    uplinkOCB.rekey(uplinkKey);
+    downlinkOCB.rekey(downlinkKey);
+    timesyncOCB.rekey(timesyncKey);
 
 }
 
@@ -234,7 +234,7 @@ void DynamicKeyManager::attemptAdvance() {
     tempMasterIndex = masterIndex + 1;
 
     timesyncHash.digestBlock(timesyncKey, tempMasterKey);
-    timesyncGCM.rekey(timesyncKey);
+    timesyncOCB.rekey(timesyncKey);
 }
 
 void DynamicKeyManager::commitAdvance() {
@@ -253,8 +253,8 @@ void DynamicKeyManager::commitAdvance() {
      */
     uplinkHash.digestBlock(uplinkKey, masterKey);
     downlinkHash.digestBlock(downlinkKey, masterKey);
-    uplinkGCM.rekey(uplinkKey);
-    downlinkGCM.rekey(downlinkKey);
+    uplinkOCB.rekey(uplinkKey);
+    downlinkOCB.rekey(downlinkKey);
 }
 
 void DynamicKeyManager::rollbackAdvance() {
@@ -269,7 +269,7 @@ void DynamicKeyManager::rollbackAdvance() {
 
     /* restore last valid timesync key */
     timesyncHash.digestBlock(timesyncKey, masterKey);
-    timesyncGCM.rekey(timesyncKey);
+    timesyncOCB.rekey(timesyncKey);
 }
 
 void DynamicKeyManager::desync() {

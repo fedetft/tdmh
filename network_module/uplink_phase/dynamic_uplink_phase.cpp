@@ -34,7 +34,6 @@
 #include <cassert>
 #ifdef CRYPTO
 #include "../crypto/key_management/key_manager.h"
-#include "../crypto/aes_gcm.h"
 #endif
 
 using namespace miosix;
@@ -68,7 +67,7 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
                                   myNeighborTable.getMyTopologyElement(),
                                   0, 0
 #ifdef CRYPTO
-                                  , keyManager.getUplinkGCM()
+                                  , keyManager.getUplinkOCB()
 #endif
                                   );
         if(ENABLE_UPLINK_DYN_INFO_DBG)
@@ -102,7 +101,7 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
                                   myNeighborTable.getMyTopologyElement(),
                                   topologyQueue.size(), smeQueue.size()
 #ifdef CRYPTO
-                                  , keyManager.getUplinkGCM()
+                                  , keyManager.getUplinkOCB()
 #endif
                                   );
         if(ENABLE_UPLINK_DBG) {

@@ -1,5 +1,5 @@
 #pragma once
-#include "../aes_gcm.h"
+#include "../aes_ocb.h"
 #include "../hash.h"
 #include "../../stream/stream_manager.h"
 #include "../../scheduler/schedule_element.h"
@@ -28,9 +28,9 @@ public:
 
     KeyManagerStatus getStatus() { return status; }
 
-    AesGcm& getUplinkGCM() { return uplinkGCM; }
-    AesGcm& getTimesyncGCM() { return timesyncGCM; }
-    AesGcm& getScheduleDistributionGCM() { return downlinkGCM; }
+    AesOcb& getUplinkOCB() { return uplinkOCB; }
+    AesOcb& getTimesyncOCB() { return timesyncOCB; }
+    AesOcb& getScheduleDistributionOCB() { return downlinkOCB; }
 
     /**
      * Compute next value for master key, without applying it yet.
@@ -71,13 +71,13 @@ public:
     void loadMasterKey() {
         masterIndex = 0;
 
-        // Initialize phase GCMs
+        // Initialize phase OCBs
         uplinkHash.digestBlock(uplinkKey, masterKey);
         downlinkHash.digestBlock(downlinkKey, masterKey);
         timesyncHash.digestBlock(timesyncKey, masterKey);
-        uplinkGCM.rekey(uplinkKey);
-        downlinkGCM.rekey(downlinkKey);
-        timesyncGCM.rekey(timesyncKey);
+        uplinkOCB.rekey(uplinkKey);
+        downlinkOCB.rekey(downlinkKey);
+        timesyncOCB.rekey(timesyncKey);
     }
 
     /**
@@ -170,7 +170,7 @@ protected:
     SingleBlockMPHash masterHash = SingleBlockMPHash(masterRotationIv);
 
     /*
-     * Timesync: key, next key, current valid GCM, hash for
+     * Timesync: key, next key, current valid OCB, hash for
      * key derivation
      */
     unsigned char timesyncKey[16];
@@ -184,10 +184,10 @@ protected:
                 0x74, 0x49, 0x6d, 0x45, 0x73, 0x59, 0x6e, 0x43
         };
     SingleBlockMPHash timesyncHash = SingleBlockMPHash(timesyncDerivationIv);
-    AesGcm timesyncGCM;
+    AesOcb timesyncOCB;
 
     /*
-     * ScheduleDistribution: key, next key, current valid GCM, hash for
+     * ScheduleDistribution: key, next key, current valid OCB, hash for
      * key derivation
      */
     unsigned char downlinkKey[16];
@@ -202,10 +202,10 @@ protected:
                 0x64, 0x4f, 0x77, 0x4e, 0x6c, 0x49, 0x6e, 0x4b
         };
     SingleBlockMPHash downlinkHash = SingleBlockMPHash(downlinkDerivationIv);
-    AesGcm downlinkGCM;
+    AesOcb downlinkOCB;
 
     /*
-     * Uplink: key, next key, current valid GCM, hash for
+     * Uplink: key, next key, current valid OCB, hash for
      * key derivation
      */
     unsigned char uplinkKey[16];
@@ -219,7 +219,7 @@ protected:
                 0x55, 0x70, 0x4c, 0x69, 0x6e, 0x6b, 0x49, 0x76
         };
     SingleBlockMPHash uplinkHash = SingleBlockMPHash(uplinkDerivationIv);
-    AesGcm uplinkGCM;
+    AesOcb uplinkOCB;
     /**
      * IV for the Miyaguchi-Preneel Hash used for deriving stream keys from
      * master key.

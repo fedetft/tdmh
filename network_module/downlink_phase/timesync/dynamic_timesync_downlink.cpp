@@ -33,7 +33,7 @@
 #include <cassert>
 #ifdef CRYPTO
 #include "../../crypto/key_management/key_manager.h"
-#include "../../crypto/aes_gcm.h"
+#include "../../crypto/aes_ocb.h"
 #endif
 
 using namespace miosix;
@@ -103,9 +103,9 @@ void DynamicTimesyncDownlink::periodicSync() {
             unsigned char hop = pkt[2];
             pkt[2] = 0;
 
-            AesGcm& gcm = ctx.getKeyManager()->getTimesyncGCM();
+            AesOcb& ocb = ctx.getKeyManager()->getTimesyncOCB();
             /**
-             * Note: the first argument of setIV is supposed to be set to the
+             * Note: the first argument of setNonce is supposed to be set to the
              * current tileNumber, which can be computed directly from the
              * slotframeStart in timesync.
              * Sequence number is always set to 1 in timesync messages.
@@ -118,8 +118,8 @@ void DynamicTimesyncDownlink::periodicSync() {
             if (ENABLE_CRYPTO_TIMESYNC_DBG)
                 print_dbg("[T] Verifying timesync: tile=%u, seqNo=%llu, mI=%u\n",
                           tile, seqNo, mI);
-            gcm.setIV(tile, seqNo, mI);
-            verified = pkt.verify(gcm);
+            ocb.setNonce(tile, seqNo, mI);
+            verified = pkt.verify(ocb);
             if(ENABLE_CRYPTO_TIMESYNC_DBG)
                 if(!verified) print_dbg("[T] periodicSync: verify failed!\n");
             pkt[2] = hop;
@@ -227,9 +227,9 @@ void DynamicTimesyncDownlink::resyncTime() {
         NetworkTime::setLocalNodeToNetworkTimeOffset(packetCounter *
                          networkConfig.getClockSyncPeriod() - slotframeStart);
 
-        AesGcm& gcm = ctx.getKeyManager()->getTimesyncGCM();
+        AesOcb& ocb = ctx.getKeyManager()->getTimesyncOCB();
         /**
-         * Note: the first argument of setIV is supposed to be set to the
+         * Note: the first argument of setNonce is supposed to be set to the
          * current tileNumber. Because we are in the process of performing
          * resync, the tileNumber should be computed from the timing
          * information just received.
@@ -241,8 +241,8 @@ void DynamicTimesyncDownlink::resyncTime() {
         if (ENABLE_CRYPTO_TIMESYNC_DBG)
             print_dbg("[T] Verifying timesync: tile=%u, seqNo=%llu, mI=%u\n",
                       tile, seqNo, mI);
-        gcm.setIV(tile, seqNo, mI);
-        verified = pkt.verify(gcm);
+        ocb.setNonce(tile, seqNo, mI);
+        verified = pkt.verify(ocb);
         if(ENABLE_CRYPTO_TIMESYNC_DBG)
             if(!verified) print_dbg("[T] resyncTime: verify failed!\n");
         pkt[2] = hop;

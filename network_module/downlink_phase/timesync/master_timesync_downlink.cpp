@@ -30,7 +30,7 @@
 #include "networktime.h"
 #include "../../util/debug_settings.h"
 #include "../../mac_context.h"
-#include "../../crypto/aes_gcm.h"
+#include "../../crypto/aes_ocb.h"
 
 using namespace miosix;
 
@@ -65,15 +65,15 @@ void MasterTimesyncDownlink::execute(long long slotStart)
     setPacketMasterIndex();
     if (ctx.getNetworkConfig().getAuthenticateControlMessages()) {
         packet.reserveTag();
-        AesGcm& gcm = ctx.getKeyManager()->getTimesyncGCM();
+        AesOcb& ocb = ctx.getKeyManager()->getTimesyncOCB();
         unsigned int tile = ctx.getCurrentTile(slotStart);
         /* Sequence number is always set to 1 in timesync messages.  */
         unsigned long long seqNo = 1;
         unsigned int mI = ctx.getKeyManager()->getMasterIndex();
         if (ENABLE_CRYPTO_TIMESYNC_DBG)
             print_dbg("[T] Authenticating timesync: tile=%u, seqNo=%llu, mI=%d\n", tile, seqNo, mI);
-        gcm.setIV(tile, seqNo, mI);
-        packet.putTag(gcm);
+        ocb.setNonce(tile, seqNo, mI);
+        packet.putTag(ocb);
     }
 #endif
 
