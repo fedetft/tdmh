@@ -69,6 +69,7 @@ bool AesOcb::verifyAndDecrypt(const void *tag, void *ptx, const void *ctx,
     if(cryptLength % blockSize > 0) cryptBlocks++;
 
     unsigned char *op = reinterpret_cast<unsigned char*>(offsetBuffer);
+    unsigned char *pp = reinterpret_cast<unsigned char*>(ptx);
     const unsigned char *cp = reinterpret_cast<const unsigned char*>(ctx);
     unsigned int clen = cryptLength;
 
@@ -91,15 +92,14 @@ bool AesOcb::verifyAndDecrypt(const void *tag, void *ptx, const void *ctx,
 
     xorBytes(cryptBuffer, ctx, offsetBuffer + blockSize, clen_aligned);
     aes.ecbDecrypt(cryptBuffer, cryptBuffer, clen_aligned);
-    xorBytes(ptx, ctx, offsetBuffer + blockSize, clen_aligned);
+    xorBytes(ptx, cryptBuffer, offsetBuffer + blockSize, clen_aligned);
     if (clen > 0) {
         // encrypt delta_star into the last block of cryptBuffer
         aes.ecbEncrypt(cryptBuffer + clen_aligned, op, blockSize);
-        xorBytes(ptx + clen_aligned, ctx + clen_aligned, op, clen);
+        xorBytes(pp + clen_aligned, cp + clen_aligned, cryptBuffer + clen_aligned, clen);
     }
 
     // compute checksum
-    unsigned char *pp = reinterpret_cast<unsigned char*>(ptx);
     unsigned int plen = cryptLength;
     while (plen >= blockSize) {
         xorBytes(checksum, checksum, pp, blockSize);
@@ -111,10 +111,11 @@ bool AesOcb::verifyAndDecrypt(const void *tag, void *ptx, const void *ctx,
         checksum[plen] ^= 0x80;
     }
 
-    unsigned char *tp = reinterpret_cast<unsigned char*>(tag);
+    const unsigned char *tp = reinterpret_cast<const unsigned char*>(tag);
     unsigned char received_tag[16];
     bool valid = true;
     finishTag(received_tag, op);
+
     for (unsigned j=0; j<blockSize; j++) {
         if (received_tag[i] != tp[i]) {
             valid = false;
@@ -122,7 +123,6 @@ bool AesOcb::verifyAndDecrypt(const void *tag, void *ptx, const void *ctx,
         }
     }
     return valid;
-
 }
 
 void AesOcb::processAdditionalData(const void* auth, unsigned int authLength) {
@@ -176,6 +176,7 @@ void AesOcb::processAdditionalData(const void* auth, unsigned int authLength) {
 }
 
 void AesOcb::finishTag(unsigned char tag[16], const unsigned char offset[16]) {
+
     xorBytes(checksum, checksum, offset, blockSize);
     xorBytes(checksum, checksum, l_dollar, blockSize);
     aes.ecbEncrypt(checksum, checksum);
