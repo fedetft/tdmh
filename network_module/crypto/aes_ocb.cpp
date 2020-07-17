@@ -61,6 +61,68 @@ void AesOcb::encryptAndComputeTag(void *tag, void *ctx, const void *ptx,
 bool AesOcb::verifyAndDecrypt(const void *tag, void *ptx, const void *ctx,
                               unsigned int cryptLength, const void *auth,
                               unsigned int authLength) {
+    processAdditionalData(auth, authLength);
+
+    memset(checksum, 0, blockSize);
+    unsigned cryptBlocks = cryptLength/blockSize;
+    unsigned clen_aligned = cryptBlocks*blockSize;
+    if(cryptLength % blockSize > 0) cryptBlocks++;
+
+    unsigned char *op = reinterpret_cast<unsigned char*>(offsetBuffer);
+    const unsigned char *cp = reinterpret_cast<const unsigned char*>(ctx);
+    unsigned int clen = cryptLength;
+
+    computeFirstOffset();
+    unsigned i = 0;
+    while (clen >= blockSize) {
+        // compute each offset from previous one in offsetBuffer
+        xorBytes(op + blockSize, op, &l[ntz[i]][0], blockSize);
+
+        i++;
+        op += blockSize;
+        clen -= blockSize;
+    }
+    // handle last partial block if present
+    if (clen > 0) {
+        // compute the last delta_star
+        xorBytes(op + blockSize, op, l_star, blockSize);
+        op += blockSize;
+    }
+
+    xorBytes(cryptBuffer, ctx, offsetBuffer + blockSize, clen_aligned);
+    aes.ecbDecrypt(cryptBuffer, cryptBuffer, clen_aligned);
+    xorBytes(ptx, ctx, offsetBuffer + blockSize, clen_aligned);
+    if (clen > 0) {
+        // encrypt delta_star into the last block of cryptBuffer
+        aes.ecbEncrypt(cryptBuffer + clen_aligned, op, blockSize);
+        xorBytes(ptx + clen_aligned, ctx + clen_aligned, op, clen);
+    }
+
+    // compute checksum
+    unsigned char *pp = reinterpret_cast<unsigned char*>(ptx);
+    unsigned int plen = cryptLength;
+    while (plen >= blockSize) {
+        xorBytes(checksum, checksum, pp, blockSize);
+        pp += blockSize;
+        plen -= blockSize;
+    }
+    if (plen > 0) {
+        xorBytes(checksum, checksum, pp, plen);
+        checksum[plen] ^= 0x80;
+    }
+
+    unsigned char *tp = reinterpret_cast<unsigned char*>(tag);
+    unsigned char received_tag[16];
+    bool valid = true;
+    finishTag(received_tag, op);
+    for (unsigned j=0; j<blockSize; j++) {
+        if (received_tag[i] != tp[i]) {
+            valid = false;
+            break;
+        }
+    }
+    return valid;
+
 }
 
 void AesOcb::processAdditionalData(const void* auth, unsigned int authLength) {
