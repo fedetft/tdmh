@@ -36,7 +36,7 @@
 // For cryptography
 #ifdef CRYPTO
 #include "../crypto/hash.h"
-#include "../crypto/aes_gcm.h"
+#include "../crypto/aes_ocb.h"
 #include <queue>
 #endif
 // For thread synchronization
@@ -201,7 +201,7 @@ public:
 
 #ifdef CRYPTO
 
-    AesGcm& getStreamGCM(StreamId id);
+    AesOcb& getStreamOCB(StreamId id);
 
     /**
      * Stream keys are derived from the master key as: 
@@ -403,9 +403,9 @@ private:
      */
     std::queue<StreamId> rekeyingSnapshot;
 
-    /* Return this GCM to dataphase for safety in case dataphase asks for the GCM
+    /* Return this OCB to dataphase for safety in case dataphase asks for the OCB
      * of a stream that does not exist */
-    AesGcm emptyGCM;
+    AesOcb emptyOCB;
 #endif
 
     bool masterTrusted = true;

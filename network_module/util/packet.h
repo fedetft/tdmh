@@ -36,8 +36,7 @@
 #include <limits>
 #include <stdexcept>
 #include <functional>
-#include "../crypto/initialization_vector.h"
-#include "../crypto/aes_gcm.h"
+#include "../crypto/aes_ocb.h"
 
 using namespace std;
 
@@ -140,13 +139,13 @@ public:
                             std::function<bool (const Packet& p, miosix::RecvResult r)> pred,
                             miosix::Transceiver::Correct = miosix::Transceiver::Correct::CORR);
 
-    void encryptAndPutTag(AesGcm& gcm) {
+    void encryptAndPutTag(AesOcb& ocb) {
         if(reservedSize < tagSize)
             throw range_error("Packet::encryptAndPutTag: size error");
         if(MediumAccessController::maxPktSize - dataSize < tagSize)
             throw range_error("Packet::encryptAndPutTag: Overflow");
 
-        gcm.encryptAndComputeTag(
+        ocb.encryptAndComputeTag(
                 packet.data() + dataSize,   // put tag at the end of the packet (tag)
                 packet.data() + 5,          // skip panHeader (ctx)
                 packet.data() + 5,          // skip panHeader (ptx)
@@ -157,13 +156,13 @@ public:
         reservedSize = 0;
     }
 
-    void putTag(AesGcm& gcm) {
+    void putTag(AesOcb& ocb) {
         if(reservedSize < tagSize)
             throw range_error("Packet::putTag: size error");
         if(MediumAccessController::maxPktSize - dataSize < tagSize)
             throw range_error("Packet::putTag: Overflow");
 
-        gcm.encryptAndComputeTag(
+        ocb.encryptAndComputeTag(
                 packet.data() + dataSize,   // put tag at the end of the packet (tag)
                 NULL, NULL, 0,              // no data to encrypt
                 packet.data(),              // authenticate entire packet (auth)
@@ -172,10 +171,10 @@ public:
         reservedSize = 0;
     }
 
-    bool verifyAndDecrypt(AesGcm& gcm) {
+    bool verifyAndDecrypt(AesOcb& ocb) {
         if(dataSize < tagSize)
             throw range_error("Packet::verifyAndDecrypt: size error");
-        bool valid = gcm.verifyAndDecrypt(
+        bool valid = ocb.verifyAndDecrypt(
                 packet.data() + dataSize - tagSize, // tag
                 packet.data() + 5,      // skip panHeader (ptx)
                 packet.data() + 5,      // skip panHeader (ctx)
@@ -186,10 +185,10 @@ public:
         return valid;
     }
 
-    bool verify(AesGcm& gcm) {
+    bool verify(AesOcb& ocb) {
         if(dataSize < tagSize)
             throw range_error("Packet::verify: size error");
-        bool valid = gcm.verifyAndDecrypt(
+        bool valid = ocb.verifyAndDecrypt(
                 packet.data() + dataSize - tagSize, // tag
                 NULL, NULL, 0,          // no data to decrypt
                 packet.data(),          // authenticate entire packet (auth)

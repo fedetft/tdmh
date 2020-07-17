@@ -41,7 +41,7 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
                                      const TopologyElement& myTopology,
                                      int availableTopologies, int availableSMEs
 #ifdef CRYPTO
-                                     , AesGcm& gcm
+                                     , AesOcb& ocb
 #endif
                                      ) :
     weakTop(config.getUseWeakTopologies()),
@@ -49,7 +49,7 @@ SendUplinkMessage::SendUplinkMessage(const NetworkConfiguration& config,
     smeSize(StreamManagementElement::maxSize()),
     panId(config.getPanId())
 #ifdef CRYPTO
-    , gcm(gcm),
+    , ocb(ocb),
     authenticate(config.getAuthenticateControlMessages()),
     encrypt(config.getEncryptControlMessages())
 #endif
@@ -179,8 +179,8 @@ bool ReceiveUplinkMessage::recv(MACContext& ctx, long long tExpected) {
 
 #ifdef CRYPTO
     bool valid = true;
-    if(encrypt) valid = packet.verifyAndDecrypt(gcm);
-    else if(authenticate) valid = packet.verify(gcm);
+    if(encrypt) valid = packet.verifyAndDecrypt(ocb);
+    else if(authenticate) valid = packet.verify(ocb);
     if(!valid) {
         if(ENABLE_CRYPTO_UPLINK_DBG) print_dbg("[U] verify failed!\n");
         return false;

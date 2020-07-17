@@ -117,7 +117,7 @@ public:
                       bool badFlag, unsigned char assignee,
                       const TopologyElement& myTopology,
                       int availableTopologies, int availableSMEs,
-                      AesGcm& gcm);
+                      AesOcb& ocb);
 #else
     SendUplinkMessage(const NetworkConfiguration& config, unsigned char hop,
                       bool badFlag, unsigned char assignee,
@@ -149,8 +149,8 @@ public:
         /**
          * NOTE: it is important that setIV is called before calling send
          */
-        if(encrypt) packet.encryptAndPutTag(gcm);
-        else if(authenticate) packet.putTag(gcm);
+        if(encrypt) packet.encryptAndPutTag(ocb);
+        else if(authenticate) packet.putTag(ocb);
 #endif
         packet.send(ctx, sendTime);
         // Prepare the next packet
@@ -180,14 +180,14 @@ public:
 
 #ifdef CRYPTO
     /**
-     * Wrapper to set IV on the uplink gcm. Needed because decryption needs to be
+     * Wrapper to set IV on the uplink ocb. Needed because decryption needs to be
      * performed before semantic checks on uplink message.
      */
     void setIV(unsigned int tileNo, unsigned long long seqNo, unsigned int masterIndex) {
         if(ENABLE_CRYPTO_UPLINK_DBG)
             print_dbg("[U] Authenticating uplink: tile=%u, seqNo=%llu, mI=%u\n",
                       tileNo, seqNo, masterIndex);
-        gcm.setIV(tileNo, seqNo, masterIndex);
+        ocb.setNonce(tileNo, seqNo, masterIndex);
     }
 #endif
 
@@ -218,7 +218,7 @@ private:
     unsigned char numSMEs;
 
 #ifdef CRYPTO
-    AesGcm& gcm;
+    AesOcb& ocb;
     bool authenticate;
     bool encrypt;
 #endif
@@ -227,7 +227,7 @@ private:
 class ReceiveUplinkMessage {
 public:
 #ifdef CRYPTO
-    ReceiveUplinkMessage(const NetworkConfiguration& config, AesGcm& gcm) :
+    ReceiveUplinkMessage(const NetworkConfiguration& config, AesOcb& ocb) :
         bitsetSize(config.getNeighborBitmaskSize()),
         maxNodes(config.getMaxNodes()),
         weakTop(config.getUseWeakTopologies()),
@@ -236,7 +236,7 @@ public:
         panId(config.getPanId()),
         topology(RuntimeBitset(maxNodes)),
         weakTopology(RuntimeBitset(maxNodes)),
-        gcm(gcm),
+        ocb(ocb),
         authenticate(config.getAuthenticateControlMessages()),
         encrypt(config.getEncryptControlMessages()) {}
 #else
@@ -320,14 +320,14 @@ public:
 
 #ifdef CRYPTO
     /**
-     * Wrapper to set IV on the uplink gcm. Needed because decryption needs to be
+     * Wrapper to set IV on the uplink ocb. Needed because decryption needs to be
      * performed before semantic checks on uplink message.
      */
     void setIV(unsigned int tileNo, unsigned long long seqNo, unsigned int masterIndex) {
         if(ENABLE_CRYPTO_UPLINK_DBG)
             print_dbg("[U] Verifying uplink: tile=%u, seqNo=%llu, mI=%u\n",
                       tileNo, seqNo, masterIndex);
-        gcm.setIV(tileNo, seqNo, masterIndex);
+        ocb.setNonce(tileNo, seqNo, masterIndex);
     }
 #endif
 
@@ -382,7 +382,7 @@ private:
     unsigned int packetSMEs = 0;
 
 #ifdef CRYPTO
-    AesGcm& gcm;
+    AesOcb& ocb;
     bool authenticate;
     bool encrypt;
 #endif

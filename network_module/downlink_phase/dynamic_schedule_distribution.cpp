@@ -298,18 +298,18 @@ bool DynamicScheduleDownlinkPhase::recvPkt(long long slotStart, Packet& pkt)
 #ifdef CRYPTO
     if(ctx.getNetworkConfig().getAuthenticateControlMessages()) {
         if(received) {
-            AesGcm& gcm = ctx.getKeyManager()->getScheduleDistributionGCM();
+            AesOcb& ocb = ctx.getKeyManager()->getScheduleDistributionOCB();
             unsigned int tileNumber = ctx.getCurrentTile(slotStart);
             unsigned int seqNo = 1;
             unsigned int masterIndex = ctx.getKeyManager()->getMasterIndex();
             if(ENABLE_CRYPTO_DOWNLINK_DBG)
                 print_dbg("[SD] Verifying downlink: tile=%u, seqNo=%llu, mI=%u\n",
                           tileNumber, seqNo, masterIndex);
-            gcm.setIV(tileNumber, seqNo, masterIndex);
+            ocb.setNonce(tileNumber, seqNo, masterIndex);
             if(ctx.getNetworkConfig().getEncryptControlMessages()) {
-                received = pkt.verifyAndDecrypt(gcm);
+                received = pkt.verifyAndDecrypt(ocb);
             } else {
-                received = pkt.verify(gcm);
+                received = pkt.verify(ocb);
             }
             if(ENABLE_CRYPTO_DOWNLINK_DBG)
                 if(!received) print_dbg("[SD] verify failed!\n");

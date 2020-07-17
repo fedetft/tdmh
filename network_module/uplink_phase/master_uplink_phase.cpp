@@ -81,7 +81,7 @@ void MasterUplinkPhase::sendMyUplink(long long slotStart)
                               myNeighborTable.getMyTopologyElement(),
                               0, 0
 #ifdef CRYPTO
-                              , keyManager.getUplinkGCM()
+                              , keyManager.getUplinkOCB()
 #endif
                               );
     if(ENABLE_UPLINK_DYN_INFO_DBG)

@@ -74,10 +74,10 @@ unsigned char UplinkPhase::getAndUpdateCurrentNode()
  * It is important to note that this implementation difference does not
  * translate in different behavior. Like all other packets, uplink packets are
  * authenticated and/or encrypted if those functionalities are ON in config.
- * The GCM object used is rekeyed in the KeyManager like all others.
+ * The OCB object used is rekeyed in the KeyManager like all others.
  * All packets must always been authenticated and encrypted (or verified and
- * decrypted) AFTER calling setIV on the GCM object. In the special case of
- * uplink, this means that we must always call send/recv after calling setIV
+ * decrypted) AFTER calling setNonce on the OCB object. In the special case of
+ * uplink, this means that we must always call send/recv after calling setNonce
  * on the Send/ReceiveUplinkMessage object.
  * This is ugly, but many things are ugly, and there is no time in this world
  * for beauty.
@@ -87,8 +87,8 @@ void UplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode)
 {
 #ifdef CRYPTO
     KeyManager& keyManager = *(ctx.getKeyManager());
-    AesGcm& gcm = keyManager.getUplinkGCM();
-    ReceiveUplinkMessage message(ctx.getNetworkConfig(), gcm);
+    AesOcb& ocb = keyManager.getUplinkOCB();
+    ReceiveUplinkMessage message(ctx.getNetworkConfig(), ocb);
     unsigned int masterIndex = keyManager.getMasterIndex();
     unsigned int tileNumber = ctx.getCurrentTile(slotStart);
     if(ctx.getNetworkConfig().getAuthenticateControlMessages()) {

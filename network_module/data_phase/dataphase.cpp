@@ -29,8 +29,7 @@
 #include "../util/debug_settings.h"
 #include <unistd.h>
 #ifdef CRYPTO
-#include "../crypto/initialization_vector.h"
-#include "../crypto/aes_gcm.h"
+#include "../crypto/aes_ocb.h"
 #endif
 
 using namespace std;
@@ -125,16 +124,16 @@ void DataPhase::sendFromStream(long long slotStart, StreamId id) {
          */
         pktReady = stream.sendPacket(id, pkt);
         if (pktReady) {
-            AesGcm& gcm = stream.getStreamGCM(id);
+            AesOcb& ocb = stream.getStreamOCB(id);
             unsigned int masterIndex = ctx.getKeyManager()->getMasterIndex();
 
             if (ENABLE_CRYPTO_DATA_DBG)
                 print_dbg("[D] sendFromStream: FrameNumber = %u, seqNo = %llu, mIndex = %u\n",
                           dataSuperframeNumber, seqNo, masterIndex);
-            gcm.setIV(dataSuperframeNumber, seqNo, masterIndex);
+            ocb.setNonce(dataSuperframeNumber, seqNo, masterIndex);
 
-            if (config.getEncryptDataMessages()) pkt.encryptAndPutTag(gcm);
-            else pkt.putTag(gcm);
+            if (config.getEncryptDataMessages()) pkt.encryptAndPutTag(ocb);
+            else pkt.putTag(ocb);
         }
     } else {
         pktReady = stream.sendPacket(id, pkt);
@@ -171,16 +170,16 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
     if(rcvResult.error == RecvResult::ErrorCode::OK && pkt.checkPanHeader(panId) == true) {
 #ifdef CRYPTO
         if (config.getAuthenticateDataMessages()) {
-            AesGcm& gcm = stream.getStreamGCM(id);
+            AesOcb& ocb = stream.getStreamOCB(id);
             unsigned int masterIndex = ctx.getKeyManager()->getMasterIndex();
             if (ENABLE_CRYPTO_DATA_DBG)
                 print_dbg("[D] receiveToStream: FrameNumber = %u, seqNo = %llu, mIndex = %u\n",
                           dataSuperframeNumber, stream.getSequenceNumber(id),
                           masterIndex);
-            gcm.setIV(dataSuperframeNumber, stream.getSequenceNumber(id),
+            ocb.setNonce(dataSuperframeNumber, stream.getSequenceNumber(id),
                       masterIndex);
-            if (config.getEncryptDataMessages()) valid &= pkt.verifyAndDecrypt(gcm);
-            else valid &= pkt.verify(gcm);
+            if (config.getEncryptDataMessages()) valid &= pkt.verifyAndDecrypt(ocb);
+            else valid &= pkt.verify(ocb);
 
             if (ENABLE_CRYPTO_DATA_DBG)
                 if (!valid) print_dbg("[D] receiveToStream: verify failed\n");
