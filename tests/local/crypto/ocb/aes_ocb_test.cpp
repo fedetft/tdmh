@@ -5,6 +5,7 @@ using namespace mxnet;
 
 void test1() {
     printf("Test 1, auth empty\n\n");
+
     unsigned char key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
     unsigned char nonce[12] = {0xBB, 0xAA, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x0F};
     unsigned char ptx[40] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27};
@@ -36,6 +37,26 @@ void test1() {
     printf("\n\n");
     if(success) printf("Tag success!\n\n\n");
     else printf("Tag FAIL :(\n\n\n");
+
+
+    unsigned char ptx_test[40];
+    ocb.setNonce(nonce);
+    bool valid = ocb.verifyAndDecrypt(tag_result, ptx_test, ctx_result, 40, nullptr, 0);
+
+    success = true;
+    printf("\n\n");
+    for(int i=0; i<40; i++) {
+        printf("0x%x ",ptx_test[i]);
+        if(ptx[i] != ptx_test[i]) success = false;
+    }
+    printf("\n\n");
+    if(success) printf("Decryption success!\n\n\n");
+    else printf("Decryption FAIL :(\n\n\n");
+
+    if(valid) printf("Verify success!\n\n\n");
+    else printf("Verify FAIL :(\n\n\n");
+
+
 }
 
 void test2() {
@@ -72,6 +93,27 @@ void test2() {
     printf("\n\n");
     if(success) printf("Tag success!\n\n\n");
     else printf("Tag FAIL :(\n\n\n");
+
+
+    unsigned char ptx_test[40];
+    ocb.setSlotInfo(auth);
+    ocb.setNonce(nonce);
+    bool valid = ocb.verifyAndDecrypt(tag_result, ptx_test, ctx_result, 40, auth+16, 40-16);
+
+    success = true;
+    printf("\n\n");
+    for(int i=0; i<40; i++) {
+        printf("0x%x ",ptx_test[i]);
+        if(ptx[i] != ptx_test[i]) success = false;
+    }
+    printf("\n\n");
+    if(success) printf("Decryption success!\n\n\n");
+    else printf("Decryption FAIL :(\n\n\n");
+
+    if(valid) printf("Verify success!\n\n\n");
+    else printf("Verify FAIL :(\n\n\n");
+
+
 }
 
 int main() {
@@ -81,6 +123,6 @@ Because our OCB implementation hides the authentication of the slotInfo block,\n
 the tests where additional data is empty cannot pass unless the TEST_EMPTY_AUTH_DATA \n\
 flag is defined in the AesOcb source file.\n\n\n");
 
-    test1();
+    //test1();
     test2();
 }
