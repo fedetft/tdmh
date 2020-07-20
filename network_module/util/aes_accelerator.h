@@ -2,7 +2,6 @@
 
 #pragma once
 #include <miosix.h>
-#include "tiny_aes_c.h"
 
 namespace mxnet {
 
