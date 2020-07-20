@@ -48,9 +48,16 @@ void AESAccelerator::processBlock(void *dst, const void *src) {
     AES->DATA = sp[2];
     AES->DATA = sp[3];
 
+    /**
+     * EFM32GG errata sheet mentions that, when BYTEORDER is set,
+     * AES_STATUS_RUNNING is set one clock cycle late and suggests using
+     * a NOP before reafind AES_STATUS when polling. In our experience, one
+     * NOP was not enough, but two worked.
+     */
     AES->CMD = AES_CMD_START;
+    __NOP();
+    __NOP();
     while(AES->STATUS & AES_STATUS_RUNNING) ;
-
 
     auto *dp = reinterpret_cast<unsigned int*>(dst);
     dp[0] = AES->DATA;
