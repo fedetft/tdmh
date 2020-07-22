@@ -389,7 +389,10 @@ private:
 
     bool rekeyingInProgress = false;
     // TODO: tweak this value
-    const unsigned int maxHashesPerSlot = 5;
+    const unsigned int maxHashesPerSlot = 15;
+    // const unsigned int maxHashesPerSlot = totalRekeyingTime/streamRekeyingTime;
+    // const unsigned int totalRekeyingTime...
+    const unsigned int streamRekeyingTime = 60000; // measuring 60 us betewwen hash and OCB contructor
 
     /**
      * Set of streams that need rekeying. At the beginning of the rekeying process,
