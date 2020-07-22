@@ -88,10 +88,10 @@ void MACContext::calculateDurations() {
     tileSlackTime = tileDuration - (uplinkSlotDuration + numDataSlotInUplinkTile * dataSlotDuration);
     printf("\
             Uplink slot duration: %lld\n\
-            Schedule distribution slot duration: %lld\n\
+            Schedule distribution slot duration (unaligned): %lld\n\
             Timesync slot duration (unaligned): %lld\n\
             Downlink slot duration: %lld\n\
-            Data slot duration (unaligned): %lld\n\
+            Data slot duration: %lld\n\
             Number of dataslots in uplink tile: %d\n\
             Number of dataslots in downlink tile: %d\n\
             Tile slack time: %lld\n",
