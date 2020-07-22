@@ -405,7 +405,7 @@ void MasterScheduleDownlinkPhase::sendPkt(long long slotStart, Packet& pkt)
     if(ctx.getNetworkConfig().getAuthenticateControlMessages()) {
         AesOcb& ocb = ctx.getKeyManager()->getScheduleDistributionOCB();
         unsigned int tileNumber = ctx.getCurrentTile(slotStart);
-        unsigned int seqNo = 1;
+        unsigned long long seqNo = 1;
         unsigned int masterIndex = ctx.getKeyManager()->getMasterIndex();
         if(ENABLE_CRYPTO_DOWNLINK_DBG)
             print_dbg("[SD] Authenticating downlink: tile=%u, seqNo=%llu, mI=%u\n",
