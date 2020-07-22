@@ -65,9 +65,9 @@ public:
 #ifdef CRYPTO
         // 330 us measured for encryption and authentication of maximum size data packet
         // TODO: make configurable on maxDataPktSize
-        long long processingTime=1500000 + 2*330000;
+        long long processingTime=892000 + 2*330000;
 #else
-        long long processingTime=1500000; //TODO: benchmark
+        long long processingTime=892000;
 #endif
         return align(MACContext::radioTime(MediumAccessController::maxDataPktSize)+processingTime,1000000LL);
     }
