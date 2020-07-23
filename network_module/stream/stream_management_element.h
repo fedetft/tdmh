@@ -51,7 +51,9 @@ enum class SMEType : unsigned char
     LISTEN = 1,          // Request to open a new server
     CLOSED = 2,          // Request to close the stream or server
     RESEND_SCHEDULE = 3, // Request to resend the schedule
-    CHALLENGE = 4        // Random bytes challenge to authenticate master at resync
+    CHALLENGE = 4,       // Random bytes challenge to authenticate master at resync
+    UNINITIALIZED = 255  // Default constructed SME, shall never be sent
+    //NOTE: when adding new types remember to add them to StreamManagementElement::validateInPacket!
 };
 
 inline const char *smeTypeToString(SMEType s)
@@ -63,6 +65,7 @@ inline const char *smeTypeToString(SMEType s)
         case SMEType::CLOSED:          return "CLOSED";
         case SMEType::RESEND_SCHEDULE: return "RESEND_SCHEDULE";
         case SMEType::CHALLENGE:       return "CHALLENGE";
+        case SMEType::UNINITIALIZED:   return "UNINITIALIZED";
         default:                       return "UNKNOWN";
     }
 }
@@ -81,6 +84,7 @@ inline unsigned char smeTypeToClass(SMEType s)
         case SMEType::CLOSED:          return 0;
         case SMEType::RESEND_SCHEDULE: return 1; // Class 1, schedule control
         case SMEType::CHALLENGE:       return 2; // Class 2, crypto
+        case SMEType::UNINITIALIZED:   return 255;
         default:                       return 255;
     }
 }
@@ -122,7 +126,9 @@ struct SMEKey {
  */
 class StreamManagementElement : public SerializableMessage {
 public:
-    StreamManagementElement() {}
+    //Defensive programming, a default constructed SME shall never be made,
+    //can't make the default constructor private due to map requirements
+    StreamManagementElement() : type(SMEType::UNINITIALIZED) {}
 
     StreamManagementElement(StreamInfo info, SMEType t)
         : id(info.getStreamId()), parameters(info.getParams()), type(t)
