@@ -262,7 +262,7 @@ void DynamicTimesyncDownlink::resyncTime() {
          * lower than the last valid one, the timesync message is not valid
          * and resync operation is aborted.
          */
-        missedPacket();
+        forceDesync();
         ctx.getKeyManager()->rollbackResync();
     }
 
