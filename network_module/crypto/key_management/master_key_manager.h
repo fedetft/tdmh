@@ -52,6 +52,11 @@ public:
      */
     void enqueueChallenge(StreamManagementElement sme) override;
 
+    /*
+     * Used in dynamic node. Do nothing.
+     */
+    void sendChallenge() override {}
+
     /**
      * Used in master node to solve challenges. Called by schedule
      * distribution phase.
