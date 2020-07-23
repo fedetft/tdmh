@@ -121,6 +121,7 @@ void StreamCollection::receiveSMEs(UpdatableQueue<SMEKey,
                   sme.getSrc(),sme.getDst(),sme.getSrcPort(),sme.getDstPort(),
                   smeTypeToString(sme.getType()),sme.getSeqNo());
 #endif //WITH_SME_SEQNO
+        if(sme.getType() == SMEType::UNINITIALIZED) continue;
         
         if(sme.getType() == SMEType::RESEND_SCHEDULE)
         {

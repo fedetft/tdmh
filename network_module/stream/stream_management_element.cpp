@@ -80,6 +80,8 @@ bool StreamManagementElement::validateInPacket(Packet& packet, unsigned int offs
         case SMEType::CHALLENGE:
             if(id.src==0) result = false; //Master does not send challenges
             break;
+        case SMEType::UNINITIALIZED:
+            break;
         default:
             result = false;
     }
