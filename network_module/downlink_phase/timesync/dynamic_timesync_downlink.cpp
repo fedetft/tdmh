@@ -253,7 +253,9 @@ void DynamicTimesyncDownlink::resyncTime() {
          * verify the master's identity, we also commit resync.
          */
         doResyncTime(rcvResult, pkt);
-        if(!networkConfig.getDoMasterChallengeAuthentication()) {
+        if(networkConfig.getDoMasterChallengeAuthentication()) {
+            ctx.getKeyManager()->sendChallenge();
+        } else {
             ctx.getKeyManager()->commitResync();
         }
     } else {

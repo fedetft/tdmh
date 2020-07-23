@@ -54,8 +54,12 @@ public:
         assert(false);
         return false;
     }
-
     void enqueueChallenge(StreamManagementElement sme) override {}
+
+    /**
+     * Enqueue a challenge SME in the stream manager, and save it here
+     */
+    void sendChallenge() override; 
 
     std::vector<ResponseElement> solveChallengesAndGetResponses() override {
         assert(false);
@@ -94,10 +98,6 @@ public:
 
 private:
 
-    /**
-     * Enqueue a challenge SME in the stream manager, and save it here
-     */
-    void sendChallenge();
 
     const unsigned char myId;
     const bool sendChallenges;

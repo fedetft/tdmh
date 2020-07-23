@@ -92,6 +92,11 @@ public:
     virtual void enqueueChallenge(StreamManagementElement sme) = 0;
 
     /**
+     * Used in dynamic node to send challenge SME to master.
+     */
+    virtual void sendChallenge() = 0;
+
+    /**
      * Used in master node to solve challenges. Called by schedule
      * distribution phase.
      */
