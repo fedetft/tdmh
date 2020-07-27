@@ -10,7 +10,7 @@ void MPHash::digestBlock(void *hash, const void *data) {
     xorBytes(next_aes_key, next_aes_key, data, 16);
     next_aes.rekey(next_aes_key);
     memcpy(hash, next_aes_key, 16);
-    memset(buffer, 0, 16);
+    secureClearBytes(buffer, 16);
 }
 
 void SingleBlockMPHash::digestBlock(void *hash, const void *data) {
@@ -18,6 +18,7 @@ void SingleBlockMPHash::digestBlock(void *hash, const void *data) {
     aes.ecbEncrypt(buffer, data);
     xorBytes(buffer, iv, buffer, 16);
     xorBytes(hash, buffer, data, 16);
-    memset(buffer, 0, 16);
+    secureClearBytes(buffer, 16);
 }
+
 } // namespace mxnet

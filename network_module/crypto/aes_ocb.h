@@ -6,6 +6,8 @@ namespace mxnet {
 
 class AesOcb {
 public:
+    ~AesOcb();
+
     AesOcb(const unsigned char key[16]) : aes(key) {
         compute_l_values();
     }
@@ -154,8 +156,6 @@ private:
      */
     unsigned char nonce[16] = {0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
                                0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
-
-    unsigned char lastNonce[16];
 
     unsigned char sum[16] = {0};
     unsigned char checksum[16] = {0};

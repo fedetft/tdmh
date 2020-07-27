@@ -4,6 +4,12 @@
 
 namespace mxnet {
 
+AesGcm::~AesGcm() {
+    secureClearBytes(H, GCMBlockSize);
+    secureClearBytes(firstEctr, GCMBlockSize);
+    secureClearBytes(workingTag, GCMBlockSize);
+}
+
 void AesGcm::encryptAndComputeTag(void *tag, void *ctx, const void *ptx,
                                   unsigned int cryptLength, const void *auth,
                                   unsigned int authLength) { 
@@ -42,6 +48,7 @@ bool AesGcm::verifyAndDecrypt(const void *tag, void *ptx, const void *ctx,
             break;
         }
     }
+    secureClearBytes(buffer, 16);
     return result;
 }
 

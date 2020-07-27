@@ -11,6 +11,7 @@ namespace mxnet {
 
 class Aes {
 public:
+    ~Aes();
     /**
      * Default constructor: key=0
      */

@@ -1,6 +1,7 @@
 #pragma once
 #include "aes.h"
 #include "initialization_vector.h"
+#include "crypto_utils.h"
 
 namespace mxnet {
 
@@ -30,6 +31,8 @@ namespace mxnet {
  */
 class AesGcm {
 public:
+    ~AesGcm();
+
     /**
      * Default constructor: IV=0, key=0
      */
@@ -97,6 +100,7 @@ public:
         unsigned char ivData[16];
         aes.ecbEncrypt(ivData, slotInfo);
         iv = IV(ivData);
+        secureClearBytes(ivData, 16);
     }
 
 #ifdef UNITTEST

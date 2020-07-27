@@ -5,6 +5,12 @@ namespace mxnet {
 const unsigned int AesOcb::blockSize;
 constexpr unsigned char AesOcb::ntz[maxBlocks];
 
+AesOcb::~AesOcb() {
+    secureClearBytes(l_star, blockSize);
+    secureClearBytes(l_dollar, blockSize);
+    secureClearBytes(l, maxCachedL*blockSize);
+}
+
 void AesOcb::encryptAndComputeTag(void *tag, void *ctx, const void *ptx,
                                   unsigned int cryptLength, const void *auth,
                                   unsigned int authLength) {
@@ -56,6 +62,10 @@ void AesOcb::encryptAndComputeTag(void *tag, void *ctx, const void *ptx,
 
     unsigned char *tp = reinterpret_cast<unsigned char*>(tag);
     finishTag(tp, op);
+
+    secureClearBytes(authBuffer, (maxBlocks+1)*blockSize);
+    secureClearBytes(cryptBuffer, (maxBlocks)*blockSize);
+    secureClearBytes(offsetBuffer, (maxBlocks+1)*blockSize);
 }
 
 bool AesOcb::verifyAndDecrypt(const void *tag, void *ptx, const void *ctx,
@@ -123,6 +133,12 @@ bool AesOcb::verifyAndDecrypt(const void *tag, void *ptx, const void *ctx,
         }
     }
     return valid;
+
+    secureClearBytes(authBuffer, (maxBlocks+1)*blockSize);
+    secureClearBytes(cryptBuffer, (maxBlocks)*blockSize);
+    secureClearBytes(offsetBuffer, (maxBlocks+1)*blockSize);
+    secureClearBytes(received_tag, blockSize);
+
 }
 
 void AesOcb::processAdditionalData(const void* auth, unsigned int authLength) {
@@ -134,7 +150,6 @@ void AesOcb::processAdditionalData(const void* auth, unsigned int authLength) {
 
     /* initialize offsets: compute delta values into offsetBuffer */
     unsigned int alen = authLen;
-    const unsigned char *ap = reinterpret_cast<const unsigned char*>(auth);
     unsigned char *op = reinterpret_cast<unsigned char*>(offsetBuffer);
 
     memcpy(op, &l[ntz[0]][0], blockSize);
@@ -181,10 +196,11 @@ void AesOcb::finishTag(unsigned char tag[16], const unsigned char offset[16]) {
     xorBytes(checksum, checksum, l_dollar, blockSize);
     aes.ecbEncrypt(checksum, checksum);
     xorBytes(tag, checksum, sum, blockSize);
+    secureClearBytes(checksum, blockSize);
+    secureClearBytes(sum, blockSize);
 }
 
 void AesOcb::computeFirstOffset() {
-    memcpy(lastNonce, nonce, 16);
     // select the last 6 bits
     unsigned char bottom = nonce[15] & 0x3f;
     // clear the last 6 bits
@@ -200,6 +216,7 @@ void AesOcb::computeFirstOffset() {
         unsigned char leftpart = ktop[i+byteshift] << bitshift;
         offsetBuffer[i] = rightpart | leftpart ;
     }
+    secureClearBytes(ktop, 24);
 }
 
 void AesOcb::gfDouble(unsigned char dst[16], const unsigned char src[16]) {
