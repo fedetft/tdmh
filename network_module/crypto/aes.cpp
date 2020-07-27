@@ -18,6 +18,13 @@ miosix::Mutex Aes::aesMutex;
 std::mutex Aes::aesMutex;
 #endif
 
+Aes::~Aes() {
+    secureClearBytes(key, AESBlockSize);
+#ifdef _MIOSIX
+    secureClearBytes(lrk, AESBlockSize);
+#endif
+}
+
 void Aes::ecbEncrypt(void *ctx, const void *ptx, unsigned int length) {
     if(length == 0) return;
     if((length & (unsigned int)0xf) != 0)
@@ -98,7 +105,7 @@ void Aes::ctrXcrypt(const IV& iv, void *dst, const void *src, unsigned int lengt
             dataLength -= blockLength;
         }
     }
-    memset(buffer, 0, AESBlockSize);
+    secureClearBytes(buffer, AESBlockSize);
 }
 
 
