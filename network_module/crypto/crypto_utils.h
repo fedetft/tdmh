@@ -12,4 +12,11 @@ inline void xorBytes(void *dst, const void *op1, const void *op2, unsigned int l
     }
 }
 
+inline void secureClearBytes(void *bytes, unsigned int length) {
+    auto p = reinterpret_cast<volatile unsigned char*>(bytes);
+    for (unsigned i=0; i<length; i++) {
+        p[i] = 0x00;
+    }
+}
+
 } //namespace mxnet
