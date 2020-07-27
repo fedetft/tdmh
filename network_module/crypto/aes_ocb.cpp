@@ -157,7 +157,7 @@ void AesOcb::processAdditionalData(const void* auth, unsigned int authLength) {
     if(authLen % blockSize > 0) authBlocks++;
 
     /* When checking length of buffer, also consider the slotInfo block */
-    if(authBlocks + 1 > maxBlocks) {
+    if(authBlocks > maxBlocks) {
         throw std::range_error("AesOcb: additional data too long");
     }
 
