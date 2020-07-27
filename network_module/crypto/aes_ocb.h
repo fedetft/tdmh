@@ -160,7 +160,6 @@ private:
     static const unsigned int maxCachedL = 3;
     static const unsigned int blockSize = 16;
     static const unsigned char poly = 0x87;
-    static const unsigned int poly_int = 0x87;
     static constexpr unsigned char ntz[maxBlocks] = { 0, 1, 0, 2, 0, 1, 0, 3 };
     unsigned char l_star[blockSize];
     unsigned char l_dollar[blockSize];
