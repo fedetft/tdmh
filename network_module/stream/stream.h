@@ -201,11 +201,9 @@ public:
     Stream(const NetworkConfiguration& config, int fd, StreamInfo info,
                                                  const unsigned char key[16]) :
             Endpoint(config, fd, info), panId(config.getPanId()),
-            authData(config.getAuthenticateDataMessages()) 
+            authData(config.getAuthenticateDataMessages()), ocb(key) 
     {
         updateRedundancy();
-        memcpy(newKey, key, 16);
-        ocb.rekey(newKey);
     }
 
     Stream(const NetworkConfiguration& config, int fd, StreamInfo info) :
@@ -288,11 +286,12 @@ public:
 
 #ifdef CRYPTO
     void setNewKey(const unsigned char newKey[16]) {
-        memcpy(this->newKey, newKey, 16);
+        AesOcb tmp(newKey);
+        ocb_next = std::move(tmp);
     }
 
     void applyNewKey() { 
-        ocb.rekey(newKey);
+        ocb = std::move(ocb_next);
     }
 
     AesOcb& getOCB() { return ocb; }
@@ -325,8 +324,8 @@ private:
 
 #ifdef CRYPTO
     const bool authData;
-    unsigned char newKey[16] = {0};
     AesOcb ocb;
+    AesOcb ocb_next;
 #endif
 
     /* Thread synchronization */

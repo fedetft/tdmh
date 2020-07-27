@@ -4,7 +4,7 @@
 namespace mxnet {
 
 const unsigned int AesOcb::blockSize;
-constexpr unsigned char AesOcb::ntz[maxBlocks];
+const unsigned char AesOcb::ntz[maxBlocks] = { 0, 1, 0, 2, 0, 1, 0, 3 };
 
 AesOcb::~AesOcb() {
     secureClearBytes(l_star, blockSize);

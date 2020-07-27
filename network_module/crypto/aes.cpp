@@ -12,8 +12,11 @@
 using namespace std;
 
 namespace mxnet {
+const unsigned int Aes::AESBlockSize = 16;
+
 #ifdef _MIOSIX
 miosix::Mutex Aes::aesMutex;
+AESAccelerator& Aes::aesAcc = AESAccelerator::instance();
 #else
 std::mutex Aes::aesMutex;
 #endif

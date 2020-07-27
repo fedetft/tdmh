@@ -66,13 +66,13 @@ public:
     void ctrXcrypt(const IV& iv, void *dst, const void *src, unsigned int length);
 
 private:
-    const unsigned int AESBlockSize = 16;
+    static const unsigned int AESBlockSize;
 
     /* Mutex to access the AESAccelerator, must be locked before setting the key
      * and unlocked after all blocks are processed that use such key. */
 #ifdef _MIOSIX
     static miosix::Mutex aesMutex;
-    AESAccelerator& aesAcc = AESAccelerator::instance();
+    static AESAccelerator& aesAcc;
 #else
     static std::mutex aesMutex;
 #endif
