@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "aes_ocb.h"
 
 namespace mxnet {
@@ -21,6 +22,10 @@ void AesOcb::encryptAndComputeTag(void *tag, void *ctx, const void *ptx,
     unsigned cryptBlocks = cryptLength/blockSize;
     unsigned clen_aligned = cryptBlocks*blockSize;
     if(cryptLength % blockSize > 0) cryptBlocks++;
+
+    if(cryptBlocks > maxBlocks) {
+        throw std::range_error("AesOcb: data to encrypt too long");
+    }
 
     unsigned char *op = reinterpret_cast<unsigned char*>(offsetBuffer);
     const unsigned char *pp = reinterpret_cast<const unsigned char*>(ptx);
@@ -77,6 +82,10 @@ bool AesOcb::verifyAndDecrypt(const void *tag, void *ptx, const void *ctx,
     unsigned cryptBlocks = cryptLength/blockSize;
     unsigned clen_aligned = cryptBlocks*blockSize;
     if(cryptLength % blockSize > 0) cryptBlocks++;
+
+    if(cryptBlocks > maxBlocks) {
+        throw std::range_error("AesOcb: data to decrypt too long");
+    }
 
     unsigned char *op = reinterpret_cast<unsigned char*>(offsetBuffer);
     unsigned char *pp = reinterpret_cast<unsigned char*>(ptx);
@@ -142,11 +151,15 @@ bool AesOcb::verifyAndDecrypt(const void *tag, void *ptx, const void *ctx,
 }
 
 void AesOcb::processAdditionalData(const void* auth, unsigned int authLength) {
-    // TODO: exception on length
     // always add one block for slotInfo
     unsigned authLen = authLength + blockSize;
     unsigned authBlocks = authLen/blockSize;
     if(authLen % blockSize > 0) authBlocks++;
+
+    /* When checking length of buffer, also consider the slotInfo block */
+    if(authBlocks + 1 > maxBlocks) {
+        throw std::range_error("AesOcb: additional data too long");
+    }
 
     /* initialize offsets: compute delta values into offsetBuffer */
     unsigned int alen = authLen;
