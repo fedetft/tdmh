@@ -470,6 +470,7 @@ void DynamicScheduleDownlinkPhase::resetAndDisableSchedule(long long slotStart)
 
 void DynamicScheduleDownlinkPhase::handleIncompleteSchedule()
 {
+    //TODO: tweak timeout value
     const int timeout = ctx.getNetworkConfig().getMaxNodes()*2; //Trying a reasonable timeout
     if(++incompleteScheduleCounter >= timeout)
     {
