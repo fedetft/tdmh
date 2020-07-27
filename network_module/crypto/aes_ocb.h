@@ -4,6 +4,25 @@
 
 namespace mxnet {
 
+/**
+ * Implementation of the OCB3 mode of authenticated encryption (RFC 7253) using AES.
+ *
+ * Usage for authenticated encryption/decryption
+ *  - setNonce
+ *  - encryptAndComputeTag / verifyAndDecrypt
+ *
+ * NOTE (1): this implementation presents a small difference with respect to
+ * the standard's prescriptions. The standard prescribes support for a nonce of
+ * variable length. We have chosen to always use a nonce of the maximum possible
+ * specified length, that is 12 bytes.
+ *
+ * NOTE (2): to avoid replay attacks, our message authentication always
+ * includes implicit information about the time when the message is being sent.
+ * This information is uniquely identified by the tuple
+ * <tileOrFrameNumber, sequenceNumber, masterIndex> and encoded into the
+ * slotInfo block, which is always authenticated together with the buffers.
+ *
+ */
 class AesOcb {
 public:
     ~AesOcb();
@@ -128,6 +147,15 @@ private:
      */
     void gfDouble(unsigned char dst[16], const unsigned char src[16]);
 
+    /**
+     * NOTE on supported buffer size:
+     * This implementation only uses precomputed values of L. These values are computed
+     * when the key is set by using the values in table ntz. Therefore, if support
+     * for longer packets is desired in the future, either maxBlocks is changed and the
+     * ntz table extended, or additional code should be added to compute ntz values on
+     * the fly. The latter solution can always be avoided if the packet size is bounded.
+     *
+     */
     static const unsigned int maxBlocks = 8;
     static const unsigned int maxCachedL = 3;
     static const unsigned int blockSize = 16;
