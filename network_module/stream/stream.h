@@ -201,7 +201,7 @@ public:
     Stream(const NetworkConfiguration& config, int fd, StreamInfo info,
                                                  const unsigned char key[16]) :
             Endpoint(config, fd, info), panId(config.getPanId()),
-            authData(config.getAuthenticateDataMessages()), ocb(key) 
+            ocb(key), authData(config.getAuthenticateDataMessages())
     {
         updateRedundancy();
     }
@@ -323,9 +323,9 @@ private:
     unsigned long long seqNo = 1;
 
 #ifdef CRYPTO
-    const bool authData;
     AesOcb ocb;
     AesOcb ocb_next;
+    const bool authData;
 #endif
 
     /* Thread synchronization */

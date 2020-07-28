@@ -181,11 +181,12 @@ private:
      * the specification, our nonce vector will have a fixed first byte of
      * value 1, and the remaining 15 bytes set to N.
      */
-    unsigned char nonce[16] = {0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+    unsigned char __attribute__((aligned(4)))
+                  nonce[16] = {0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
                                0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
 
-    unsigned char sum[16] = {0};
-    unsigned char checksum[16] = {0};
+    unsigned char __attribute__((aligned(4))) sum[16] = {0};
+    unsigned char __attribute__((aligned(4))) checksum[16] = {0};
 
     /**
      * Block containing implicit information to be authenticated,
@@ -194,7 +195,7 @@ private:
      * - sequenceNumber
      * - masterIndex
      **/
-    unsigned char slotInfo[16];
+    unsigned char __attribute__((aligned(4))) slotInfo[16];
     Aes aes;
 };
 
