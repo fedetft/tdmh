@@ -15,7 +15,7 @@ AESAccelerator& AESAccelerator::instance() {
 }
 
 void AESAccelerator::aes128_setKey(const void *key) {
-    auto *kp = reinterpret_cast<const unsigned int*>(key);
+    volatile auto *kp = reinterpret_cast<const unsigned int*>(key);
     AES->KEYHA = kp[0];
     AES->KEYHA = kp[1];
     AES->KEYHA = kp[2];
@@ -28,7 +28,18 @@ void AESAccelerator::aes128_computeLastRoundKey(void *lrk, const void *key) {
     aes128_setKey(key);
     aes128_ecbEncrypt(buffer, buffer);
 
-    auto *kp = reinterpret_cast<unsigned int*>(lrk);
+    /*
+     * volatile here is to fix what may be considered a compiler bug.
+     * The ARM Cortex CPUs are said to support unaligned memory access, thus
+     * casting from void* to unsigned int* is supposed to be safe, as ldr
+     * and str instructions can work with unaligned addresses.
+     * Well, almost, as ldmia and stmia instructions do not support unaligned
+     * memory access, and the compiler in some uncommon corner cases, such as
+     * the code below decides to "optimize" by using an stmia, with the effect
+     * of causing an unaligned memory acces UsageFault the first time an
+     * unaligned pointer is passed.
+     */
+    volatile auto *kp = reinterpret_cast<unsigned int*>(lrk);
     kp[0] = AES->KEYLA;
     kp[1] = AES->KEYLA;
     kp[2] = AES->KEYLA;
@@ -42,7 +53,7 @@ void AESAccelerator::aes128_clearKey() {
 }
 
 void AESAccelerator::processBlock(void *dst, const void *src) {
-    auto *sp = reinterpret_cast<const unsigned int*>(src);
+    volatile auto *sp = reinterpret_cast<const unsigned int*>(src);
     AES->DATA = sp[0];
     AES->DATA = sp[1];
     AES->DATA = sp[2];
@@ -59,7 +70,7 @@ void AESAccelerator::processBlock(void *dst, const void *src) {
     __NOP();
     while(AES->STATUS & AES_STATUS_RUNNING) ;
 
-    auto *dp = reinterpret_cast<unsigned int*>(dst);
+    volatile auto *dp = reinterpret_cast<unsigned int*>(dst);
     dp[0] = AES->DATA;
     dp[1] = AES->DATA;
     dp[2] = AES->DATA;
