@@ -61,7 +61,8 @@ public:
                + networkConfig.getMaxHops() * computeRebroadcastInterval(networkConfig);
 #ifdef CRYPTO
         //NOTE: assuming maxControlPktSize is equal to maxDataPktSize == 125
-        duration += 2 * 330000;
+        duration += (365000   // max packet authenticated encryption
+                   + 340000); // max packet authenticated decryption
 #endif
         return duration;
     }

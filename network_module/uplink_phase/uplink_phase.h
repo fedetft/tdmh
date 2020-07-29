@@ -62,7 +62,7 @@ public:
         unsigned long long duration = (packetArrivalAndProcessingTime + transmissionInterval) * numUplinkPackets;
 #ifdef CRYPTO
         //NOTE: assuming maxControlPktSize is equal to maxDataPktSize == 125
-        duration += 330000 * (1 + numUplinkPackets);
+        duration += 365000 * (1 + numUplinkPackets);
 #endif
         return duration;
     }
