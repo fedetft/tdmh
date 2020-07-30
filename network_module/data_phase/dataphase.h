@@ -110,16 +110,16 @@ public:
         slotIndex = 0;
         dataSuperframeNumber = 1;
         if(newActivationTile == currentTile) {
-            print_dbg("[D] Schedule ID:%lu, StartTile:%lu activated at tile:%2u\n",
-                      newId, newActivationTile, currentTile);
+            print_dbg("[D] N=%d Schedule ID:%lu, StartTile:%lu activated at tile:%2u\n",
+                      myId, newId, newActivationTile, currentTile);
         }
         else {
             // Calculate current slotIndex for a late schedule
             // (0 + tileDelay * slotsInTile)
             unsigned int tileDelay = currentTile - newActivationTile;
             incrementSlot(tileDelay * ctx.getSlotsInTileCount());
-            print_dbg("[D] Schedule ID:%lu, StartTile:%lu activated late at tile:%2u\n",
-                      newId, newActivationTile, currentTile);
+            print_dbg("[D] N=%d Schedule ID:%lu, StartTile:%lu activated late at tile:%2u\n",
+                      myId, newId, newActivationTile, currentTile);
         }
     }
     /* Called from ScheduleDownlinkPhase class to check if the schedule is up to date */
