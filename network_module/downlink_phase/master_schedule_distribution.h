@@ -64,6 +64,15 @@ private:
     void sendPkt(long long slotStart, Packet& pkt);
     
     void printHeader(ScheduleHeader& header);
+
+    bool infoElementsReady() {
+#ifdef CRYPTO
+        return (streamColl->getNumInfo() != 0 || ctx.getKeyManager()->challengesPresent());
+#else
+        return (streamColl->getNumInfo() != 0);
+#endif
+    }
+
     
     // Last schedule element sent
     unsigned position = 0;
