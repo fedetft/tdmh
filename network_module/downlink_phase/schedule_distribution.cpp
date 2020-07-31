@@ -164,6 +164,11 @@ void ScheduleDownlinkPhase::applyNewSchedule(long long slotStart) {
     
     streamMgr->applySchedule(schedule);
 #ifdef CRYPTO
+    if (ENABLE_CRYPTO_REKEYING_DBG) {
+        auto myID = ctx.getNetworkId();
+        unsigned int currentTile = ctx.getCurrentTile(slotStart);
+        print_dbg("[SD] N=%d apply rekeying at tile %d\n", myID, currentTile);
+    }
     ctx.getKeyManager()->applyRekeying();
 #endif
     
@@ -188,7 +193,13 @@ void ScheduleDownlinkPhase::applySameSchedule(long long slotStart) {
         print_dbg("[SD] Activating schedule n.%2lu at tile n.%u\n", schId, currentTile);
     
 #ifdef CRYPTO
+    if (ENABLE_CRYPTO_REKEYING_DBG) {
+        auto myID = ctx.getNetworkId();
+        unsigned int currentTile = ctx.getCurrentTile(slotStart);
+        print_dbg("[SD] N=%d apply rekeying at tile %d\n", myID, currentTile);
+    }
     streamMgr->applyRekeying();
+    dataPhase->resetSuperframeNumber();
     ctx.getKeyManager()->applyRekeying();
 #endif
     

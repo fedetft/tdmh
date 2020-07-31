@@ -61,6 +61,10 @@ private:
     void appendToSchedule(SchedulePacket& spkt, bool beginResend = false);
     
     bool isScheduleComplete();
+
+    void setEmptySchedule(long long slotStart);
+
+    void applyEmptySchedule(long long slotStart);
     
     void resetAndDisableSchedule(long long slotStart);
     
@@ -78,11 +82,14 @@ private:
     
     int incompleteScheduleCounter = 0;
 
-    // Header of schedule being received
     ScheduleHeader newHeader;
 
-    // ScheduleID of schedule that is being replaced
-    unsigned int lastScheduleID;
+    // ScheduleID of last schedule I received complete
+    unsigned int lastScheduleID = 0;
+    // ScheduleID of the schedule being received
+    unsigned int currentScheduleID = 0;
+
+    unsigned int nextActivationTile;
 };
 
 }

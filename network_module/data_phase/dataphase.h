@@ -109,7 +109,9 @@ public:
         setScheduleTiles(newScheduleTiles);
         slotIndex = 0;
         dataSuperframeNumber = 1;
-        if(newActivationTile == currentTile) {
+        if(newActivationTile == 0) {
+            print_dbg("[D] N=%d Empty schedule activated\n", myId);
+        } else if(newActivationTile == currentTile) {
             print_dbg("[D] N=%d Schedule ID:%lu, StartTile:%lu activated at tile:%2u\n",
                       myId, newId, newActivationTile, currentTile);
         }
@@ -121,6 +123,9 @@ public:
             print_dbg("[D] N=%d Schedule ID:%lu, StartTile:%lu activated late at tile:%2u\n",
                       myId, newId, newActivationTile, currentTile);
         }
+    }
+    void resetSuperframeNumber() {
+        dataSuperframeNumber = 1;
     }
     /* Called from ScheduleDownlinkPhase class to check if the schedule is up to date */
     unsigned long getScheduleID() {
