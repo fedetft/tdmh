@@ -8,7 +8,29 @@ namespace mxnet {
 class MasterKeyManager : public KeyManager {
 public:
     MasterKeyManager(StreamManager& streamMgr) :
-        KeyManager(streamMgr, KeyManagerStatus::CONNECTED) {}
+        KeyManager(streamMgr, KeyManagerStatus::CONNECTED) {
+            /*
+             * TEST CODE
+             * for measuring computation time for many hash rounds.
+             * Current results: ~21 us per hash
+             *                  leaving time for about 470k hashes in the 10 seconds
+             *                  between two timesyncs
+             *
+            unsigned how_many = 10000;
+            for (unsigned i=0; i<how_many; i++) {
+                masterHash.digestBlock(masterKey, masterKey);
+            }
+            masterIndex = how_many;
+
+            uplinkHash.digestBlock(uplinkKey, masterKey);
+            downlinkHash.digestBlock(downlinkKey, masterKey);
+            timesyncHash.digestBlock(timesyncKey, masterKey);
+            uplinkOCB.rekey(uplinkKey);
+            downlinkOCB.rekey(downlinkKey);
+            timesyncOCB.rekey(timesyncKey);
+            */
+
+        }
 
     /**
      * Compute next value for master key, without applying it yet.
