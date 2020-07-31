@@ -442,7 +442,6 @@ void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) 
     for(auto& stream : streams) {
         REF_PTR_STREAM s = stream.second;
         s->resetCounters();
-        s->resetSequenceNumber();
     }
 
 #ifdef CRYPTO
@@ -793,6 +792,10 @@ void StreamManager::doApplyRekeying() {
                   myId);
     }
 
+    /* reset all sequence numbers */
+    for(auto& s : streams) {
+        REF_PTR_STREAM stream = s.second;
+        stream->resetSequenceNumber();
     }
     /* at this point, all streams have had their new key computed */
     for (auto& s: streams) {
