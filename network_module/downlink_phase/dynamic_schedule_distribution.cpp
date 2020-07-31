@@ -409,31 +409,31 @@ void DynamicScheduleDownlinkPhase::appendToSchedule(SchedulePacket& spkt, bool b
 {
     applyInfoElements(spkt); //Must be done first as it removes them
     
-    auto newHeader = spkt.getHeader();
+    auto nextHeader = spkt.getHeader();
     
     if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
         print_dbg("[SD] Node:%d Piece %d of schedule received!\n",
-                  myId, newHeader.getCurrentPacket());
+                  myId, nextHeader.getCurrentPacket());
     
-    if(header.getTotalPacket()   != newHeader.getTotalPacket()   ||
-       header.getScheduleID()    != newHeader.getScheduleID()    ||
-       header.getScheduleTiles() != newHeader.getScheduleTiles() ||
-       (beginResend==false && header.getActivationTile() != newHeader.getActivationTile()))
+    if(header.getTotalPacket()   != nextHeader.getTotalPacket()   ||
+       header.getScheduleID()    != nextHeader.getScheduleID()    ||
+       header.getScheduleTiles() != nextHeader.getScheduleTiles() ||
+       (beginResend==false && header.getActivationTile() != nextHeader.getActivationTile()))
     {
         if(ENABLE_SCHEDULE_DIST_DBG)
             print_dbg("[SD] BUG: appendToSchedule header differs, refusing to apply\n");
         return; //Not applying this schedule packet
     }
-    header = newHeader;
+    header = nextHeader;
 
     // Add elements from received packet to new schedule only if this is the
     // first time these elements are being received
-    if(received.at(newHeader.getCurrentPacket()) == 0) {
+    if(received.at(nextHeader.getCurrentPacket()) == 0) {
         std::vector<ScheduleElement> elements = spkt.getElements();
         schedule.insert(schedule.end(), elements.begin(), elements.end());
     }
     // Set current packet as received
-    received.at(newHeader.getCurrentPacket())++;
+    received.at(nextHeader.getCurrentPacket())++;
 }
 
 bool DynamicScheduleDownlinkPhase::isScheduleComplete()
