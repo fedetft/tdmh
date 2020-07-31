@@ -161,25 +161,25 @@ bool DynamicScheduleDownlinkPhase::handleActivationAndRekeying(long long slotSta
             if(currentSendingRound >= sendingRounds) {
                 /* Schedule sending phase is over. Perform first phase or
                  * schedule application */
-                if(isScheduleComplete()) {
-                    /* setNewSchedule calls startRekeying transparently */
-                    setNewSchedule(slotStart);
-                    if(ENABLE_SCHEDULE_DIST_DBG)
-                        print_dbg("[SD] full schedule %s\n",
-                                  scheduleStatusAsString().c_str());
-                } else {
-                    resetAndDisableSchedule(slotStart);
-#ifdef CRYPTO
-                    /* If the schedule received is incomplete, we still have to
-                     * perform rekeying on the key manager to take care of the
-                     * phase keys */
-                    ctx.getKeyManager()->startRekeying();
-                    if (ENABLE_CRYPTO_REKEYING_DBG) {
-                        unsigned int currentTile = ctx.getCurrentTile(slotStart);
-                        print_dbg("[SD] N=%d start rekeying at tile %d\n",
-                                  myId, currentTile);
+                nextActivationTile = header.getActivationTile();
+                if(currentScheduleID > lastScheduleID) {
+                    //this schedule is new
+                    if(isScheduleComplete()) {
+                        /* setNewSchedule calls startRekeying transparently */
+                        if(ENABLE_SCHEDULE_DIST_DBG)
+                            print_dbg("[SD] full schedule %s\n",
+                                      scheduleStatusAsString().c_str());
+                        setNewSchedule(slotStart);
+                    } else {
+                        /* If the schedule received is incomplete, we still have to
+                         * perform rekeying on the key manager to take care of the
+                         * phase keys */
+                        setEmptySchedule(slotStart);
                     }
-#endif
+                } else {
+                    // this schedule is already known. It doesn't matter if
+                    // it is complete.
+                    setSameSchedule(slotStart);
                 }
                 status = ScheduleDownlinkStatus::REKEYING;
                 ret = true;
@@ -193,25 +193,33 @@ bool DynamicScheduleDownlinkPhase::handleActivationAndRekeying(long long slotSta
         case ScheduleDownlinkStatus::REKEYING:
         {
             unsigned int currentTile = ctx.getCurrentTile(slotStart);
-            if(currentTile >= header.getActivationTile()) {
-                if(isScheduleComplete()) {
-                    applyNewSchedule(slotStart);
-                    status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
-                } else {
-#ifdef CRYPTO
-                    if (ENABLE_CRYPTO_REKEYING_DBG) {
-                        print_dbg("[SD] N=%d apply rekeying at tile %d\n",
-                                  myId, currentTile);
+            if(currentTile >= nextActivationTile) {
+                // activation tile handling
+                if(currentScheduleID > lastScheduleID) {
+                    // this schedule is new
+                    if(isScheduleComplete()) {
+                        lastScheduleID = currentScheduleID;
+                        status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
+                        applyNewSchedule(slotStart);
+                    } else {
+                        status = ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE;
+                        applyEmptySchedule(slotStart);
                     }
-                    ctx.getKeyManager()->applyRekeying();
-#endif
-                    status = ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE;
+                } else {
+                    // this schedule is the same, it is being resent
+                    applySameSchedule(slotStart);
+                    status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
                 }
             } else {
+                // before activation tile:
 #ifdef CRYPTO
                 /* Continue rekeying until stream manager has streams to rekey */
-                if(isScheduleComplete()) streamMgr->continueRekeying();
-                if(!streamMgr->needToContinueRekeying()) {
+                if(isScheduleComplete()) {
+                    streamMgr->continueRekeying();
+                    if(!streamMgr->needToContinueRekeying()) {
+                        status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
+                    }
+                } else {
                     status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
                 }
 #else
@@ -225,12 +233,22 @@ bool DynamicScheduleDownlinkPhase::handleActivationAndRekeying(long long slotSta
         case ScheduleDownlinkStatus::AWAITING_ACTIVATION:
         {
             unsigned int currentTile = ctx.getCurrentTile(slotStart);
-            if(currentTile >= header.getActivationTile()) {
-                if(isScheduleComplete()) {
-                    applyNewSchedule(slotStart);
-                    status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
+            if(currentTile >= nextActivationTile) {
+                // activation tile handling
+                if(currentScheduleID > lastScheduleID) {
+                    // this schedule is new
+                    if(isScheduleComplete()) {
+                        lastScheduleID = currentScheduleID;
+                        status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
+                        applyNewSchedule(slotStart);
+                    } else {
+                        status = ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE;
+                        applyEmptySchedule(slotStart);
+                    }
                 } else {
-                    status = ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE;
+                    // this schedule is the same, it is being resent
+                    applySameSchedule(slotStart);
+                    status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
                 }
                 /* Do not listen in activation tile */
                 ret = true;
@@ -383,10 +401,9 @@ void DynamicScheduleDownlinkPhase::initSchedule(SchedulePacket& spkt)
     if(ENABLE_SCHEDULE_DIST_DYN_INFO_DBG)
         print_dbg("[SD] Node:%d New schedule received!\n", myId);
 
-    // Save last schedule ID
-    lastScheduleID = header.getScheduleID();
     // Replace old schedule header and elements
     header = spkt.getHeader();
+    currentScheduleID = header.getScheduleID();
     schedule = spkt.getElements();
     // Resize the received bool vector to the size of the new schedule
     received.clear();
@@ -442,6 +459,46 @@ bool DynamicScheduleDownlinkPhase::isScheduleComplete()
     if(received.size() == 0) return false;
     for(auto pkt : received) if(pkt==0) return false;
     return true;
+}
+
+void DynamicScheduleDownlinkPhase::setEmptySchedule(long long slotStart) {
+    if(ENABLE_SCHEDULE_DIST_DBG)
+        print_dbg("[SD] incomplete schedule %s\n",scheduleStatusAsString().c_str());
+
+    incompleteScheduleCounter = 0;
+
+#ifdef CRYPTO
+    if (ENABLE_CRYPTO_REKEYING_DBG) {
+        auto myID = ctx.getNetworkId();
+        unsigned int currentTile = ctx.getCurrentTile(slotStart);
+        print_dbg("[SD] N=%d start rekeying at tile %d\n", myID, currentTile);
+    }
+    ctx.getKeyManager()->startRekeying();
+#endif
+
+    ctx.getStreamManager()->enqueueSME(StreamManagementElement::makeResendSME(myId));
+}
+
+void DynamicScheduleDownlinkPhase::applyEmptySchedule(long long slotStart) {
+    header = ScheduleHeader();
+    schedule.clear();
+    received.clear();
+
+#ifdef CRYPTO
+    if (ENABLE_CRYPTO_REKEYING_DBG) {
+        auto myID = ctx.getNetworkId();
+        unsigned int currentTile = ctx.getCurrentTile(slotStart);
+        print_dbg("[SD] N=%d apply rekeying at tile %d\n", myID, currentTile);
+    }
+    ctx.getKeyManager()->applyRekeying();
+#endif
+
+    auto currentTile = ctx.getCurrentTile(slotStart);
+    dataPhase->applySchedule(std::vector<ExplicitScheduleElement>(),
+                             std::map<StreamId, std::pair<unsigned char, unsigned char>>(),
+                             header.getScheduleID(),
+                             header.getScheduleTiles(),
+                             header.getActivationTile(), currentTile);
 }
 
 void DynamicScheduleDownlinkPhase::resetAndDisableSchedule(long long slotStart)

@@ -792,21 +792,7 @@ void StreamManager::doApplyRekeying() {
         print_dbg("N=%d BUG: call to doApplyRekeying without starting rekeying first\n",
                   myId);
     }
-    while (!rekeyingSnapshot.empty()) {
-        print_dbg("[SM] N=%d doApplyRekeying: unexpected streams left\n", myId);
-        StreamId id = rekeyingSnapshot.front();
-        rekeyingSnapshot.pop();
-        /* precompute rekeying for this stream */
-        auto it = streams.find(id);
-        if (it != streams.end()) {
-            unsigned char streamIdBlock[16] = {0};
-            unsigned char newKey[16];
-            memcpy(streamIdBlock, &id, sizeof(StreamId));
-            secondBlockStreamHash.digestBlock(newKey, streamIdBlock);
 
-            REF_PTR_STREAM stream = it->second;
-            it->second->setNewKey(newKey);
-        }
     }
     /* at this point, all streams have had their new key computed */
     for (auto& s: streams) {
