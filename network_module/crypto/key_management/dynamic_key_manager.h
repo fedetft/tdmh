@@ -1,5 +1,8 @@
 #pragma once
+
 #include "key_manager.h"
+
+#ifdef CRYPTO
 #include "../../stream/stream_manager.h"
 
 namespace mxnet {
@@ -126,3 +129,4 @@ private:
 };
 
 } //namespace mxnet
+#endif //ifdef CRYPTO
