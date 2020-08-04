@@ -220,6 +220,11 @@ int StreamManager::listen(unsigned char port, StreamParameters params) {
     // Make the server wait for an info element confirming LISTEN status
     int error = server->listen(this);
     if(error != 0) {
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
+#else
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
+#endif
         unsigned char port = serverId.dstPort;
         removeServer(port);
         return -1;
