@@ -657,11 +657,7 @@ std::pair<int,REF_PTR_STREAM> StreamManager::addStream(StreamInfo streamInfo) {
 
 std::pair<int,REF_PTR_SERVER> StreamManager::addServer(StreamInfo serverInfo) {
     int fd = fdcounter++;
-#ifdef _MIOSIX
-    miosix::intrusive_ref_ptr<Server> server(new Server(config, fd, serverInfo));
-#else
-    std::shared_ptr<Server> server(new Server(config, fd, serverInfo));
-#endif
+    REF_PTR_SERVER server = REF_PTR_SERVER (new Server(config, fd, serverInfo));
     unsigned char port = serverInfo.getStreamId().dstPort;
     servers[port] = server;
     fdt[fd] = server;
