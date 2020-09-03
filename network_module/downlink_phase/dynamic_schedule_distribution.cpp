@@ -142,6 +142,11 @@ void DynamicScheduleDownlinkPhase::desync()
     schedule.clear();
     received.clear();
     incompleteScheduleCounter = 0;
+
+    newHeader = ScheduleHeader();
+    lastScheduleID = 0;
+    currentScheduleID = 0;
+    nextActivationTile = 0;
     
     status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
 }
