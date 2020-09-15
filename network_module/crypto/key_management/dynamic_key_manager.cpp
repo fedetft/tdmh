@@ -160,6 +160,7 @@ void DynamicKeyManager::sendChallenge() {
 bool DynamicKeyManager::attemptResync(unsigned int newIndex) {
     if (status != KeyManagerStatus::DISCONNECTED) return false;
     if (newIndex < masterIndex) return false;
+    if (newIndex - masterIndex > maxIndexDelta) return false;
 
     memcpy(tempMasterKey, masterKey, 16);
     for (unsigned int i = masterIndex ; i < newIndex; i++) {
