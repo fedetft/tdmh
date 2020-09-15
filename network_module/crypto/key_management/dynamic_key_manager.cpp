@@ -217,7 +217,8 @@ void DynamicKeyManager::rollbackResync() {
 }
 
 void DynamicKeyManager::commitResync() {
-    if (status != KeyManagerStatus::MASTER_UNTRUSTED) {
+    if (status != KeyManagerStatus::MASTER_UNTRUSTED &&
+            status != KeyManagerStatus::REKEYING_UNTRUSTED) {
         // error: reset
         status = KeyManagerStatus::DISCONNECTED;
         streamMgr.untrustMaster();
@@ -228,9 +229,13 @@ void DynamicKeyManager::commitResync() {
         print_dbg("[KM] N=%d committing resync\n", myId);
     }
 
+    if(status == KeyManagerStatus::MASTER_UNTRUSTED) {
+        status = KeyManagerStatus::CONNECTED;
+    } else if(status == KeyManagerStatus::REKEYING_UNTRUSTED) {
+        status = KeyManagerStatus::REKEYING;
+    }
     memcpy(masterKey, tempMasterKey, 16);
     masterIndex = tempMasterIndex;
-    status = KeyManagerStatus::CONNECTED;
     streamMgr.trustMaster();
 }
 
