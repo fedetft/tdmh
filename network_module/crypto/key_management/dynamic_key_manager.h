@@ -101,6 +101,11 @@ public:
 
 private:
 
+    /**
+     * Resend same challenge
+     */
+    void resendChallenge();
+
     /* Maximum index advancement when attempting resync */
     const unsigned maxIndexDelta = 470000;
     const unsigned char myId;
@@ -117,7 +122,10 @@ private:
 
     const bool doChallengeResponse;
     const unsigned int challengeTimeout;
-    unsigned int challengeCtr = 0;
+    //resend twice before resync
+    const unsigned int chalResendTimeout = (challengeTimeout/5)*4;
+    unsigned int chalResendCtr = 0;
+    unsigned int chalTimeoutCtr = 0;
 
     bool forceDesync = false;
 
