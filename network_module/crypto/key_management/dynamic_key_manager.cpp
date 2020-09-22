@@ -111,19 +111,27 @@ bool DynamicKeyManager::periodicUpdate() {
      * Check if a challenge verification has recently failed and reset flag and timeout
      */
     if (forceDesync) {
-        challengeCtr = 0;
+        chalResendCtr = 0;
+        chalTimeoutCtr = 0;
         forceDesync = false;
         return true;
     }
 
     bool result;
-    if (doChallengeResponse && status == KeyManagerStatus::MASTER_UNTRUSTED) {
-        challengeCtr++;
-        if (challengeCtr >= challengeTimeout) {
+    if (doChallengeResponse && (status == KeyManagerStatus::MASTER_UNTRUSTED
+                || status == KeyManagerStatus::REKEYING_UNTRUSTED)) {
+        chalResendCtr++;
+        chalTimeoutCtr++;
+        if (chalResendCtr >= chalResendTimeout) {
+            chalResendCtr = 0;
+            resendChallenge();
+            result = false;
+        } else if (chalTimeoutCtr >= challengeTimeout) {
             if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
                 print_dbg("[KM] N=%d challenge timeout\n", myId);
             }
-            challengeCtr = 0;
+            chalResendCtr = 0;
+            chalTimeoutCtr = 0;
             rollbackResync();
             result = true;
         } else result = false;
@@ -153,7 +161,8 @@ void DynamicKeyManager::sendChallenge() {
         }
 
         streamMgr.enqueueSME(StreamManagementElement::makeChallengeSME(myId, chal));
-        challengeCtr = 0;
+        chalTimeoutCtr = 0;
+        chalResendCtr = 0;
     }
 }
 
@@ -351,6 +360,14 @@ bool DynamicKeyManager::verifyResponse(ResponseElement response) {
     if(!valid) forceDesync = true;
 
     return valid;
+}
+
+void DynamicKeyManager::resendChallenge() {
+    if(ENABLE_CRYPTO_KEY_MGMT_DBG) {
+        print_dbg("[KM] N=%d resending challenge SME\n", myId);
+    }
+
+    streamMgr.enqueueSME(StreamManagementElement::makeChallengeSME(myId, chal));
 }
 
 } //namespace mxnet
