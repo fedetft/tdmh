@@ -246,6 +246,10 @@ private:
     // Class containing a snapshot of the network topology
     GRAPH_TYPE network_graph;
     GRAPH_TYPE weak_graph;
+
+#ifdef CRYPTO
+    unsigned int rekeyingCtr = 0;
+#endif
     
 #ifdef UNITTEST
     bool ready=false;

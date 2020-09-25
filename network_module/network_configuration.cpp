@@ -76,6 +76,7 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
         bool authenticateDataMessages, bool encryptDataMessages,
         bool doMasterChallengeAuthentication,
         unsigned int masterChallengeAuthenticationTimeout,
+        unsigned int rekeyingPeriod,
 #endif
         ControlSuperframeStructure controlSuperframe) :
     maxHops(maxHops), hopBits(BitwiseOps::bitsForRepresentingCount(maxHops)),
@@ -97,6 +98,7 @@ NetworkConfiguration::NetworkConfiguration(unsigned char maxHops, unsigned short
     encryptDataMessages(encryptDataMessages),
     doMasterChallengeAuthentication(doMasterChallengeAuthentication),
     masterChallengeAuthenticationTimeout(masterChallengeAuthenticationTimeout),
+    rekeyingPeriod(rekeyingPeriod),
 #endif
     controlSuperframe(controlSuperframe),
     controlSuperframeDuration(tileDuration * controlSuperframe.size()),
