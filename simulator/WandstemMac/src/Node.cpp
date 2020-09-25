@@ -76,7 +76,8 @@ try {
             true,          //authenticateDataMessages
             true,          //encryptDataMessages
             true,          //doMasterChallengeAuthentication
-            32000          //masterChallengeAuthenticationTimeout
+            3000,          //masterChallengeAuthenticationTimeout
+            3000           //rekeyingPeriod
 #endif
     );
     DynamicMediumAccessController controller(Transceiver::instance(), config);

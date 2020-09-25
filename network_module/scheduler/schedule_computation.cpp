@@ -117,6 +117,19 @@ void ScheduleComputation::run()
             if(op.reschedule) forceReschedule = true;
             if(op.resend) forceResend = true;
         }
+
+#ifdef CRYPTO
+        if (forceResend || forceReschedule) {
+            rekeyingCtr = 0;
+        } else {
+            rekeyingCtr++;
+        }
+
+        if(rekeyingCtr >= netconfig.getRekeyingPeriod()) {
+            rekeyingCtr = 0;
+            forceResend = true;
+        }
+#endif
         
         bool scheduleChanged=false;
         if(forceReschedule) scheduleChanged=reschedule();

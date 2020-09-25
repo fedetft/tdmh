@@ -67,7 +67,8 @@ void RootNode::activity()
             true,          //authenticateDataMessages
             true,          //encryptDataMessages
             true,          //doMasterChallengeAuthentication
-            32000          //masterChallengeAuthenticationTimeout
+            3000,          //masterChallengeAuthenticationTimeout
+            3000           //rekeyingPeriod
 #endif
     );
     MasterMediumAccessController controller(Transceiver::instance(), config);
