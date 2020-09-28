@@ -506,30 +506,6 @@ void DynamicScheduleDownlinkPhase::applyEmptySchedule(long long slotStart) {
                              header.getActivationTile(), currentTile);
 }
 
-void DynamicScheduleDownlinkPhase::resetAndDisableSchedule(long long slotStart)
-{
-    if(ENABLE_SCHEDULE_DIST_DBG)
-        print_dbg("[SD] incomplete schedule %s\n",scheduleStatusAsString().c_str());
-    
-    header = ScheduleHeader();
-    schedule.clear();
-    received.clear();
-    incompleteScheduleCounter = 0;
-
-    auto currentTile = ctx.getCurrentTile(slotStart);
-    dataPhase->applySchedule(std::vector<ExplicitScheduleElement>(),
-                             std::map<StreamId, std::pair<unsigned char, unsigned char>>(),
-                             header.getScheduleID(),
-                             header.getScheduleTiles(),
-                             header.getActivationTile(), currentTile);
-    //NOTE: applying an empty schedule to the Stream Manager closes all the streams,
-    //causing applications to send another CONNECT when a new schedule is
-    //finally received, resulting in the distribution of two schedules instead
-    //of one.
-    //streamMgr->applySchedule(schedule);
-    ctx.getStreamManager()->enqueueSME(StreamManagementElement::makeResendSME(myId));
-}
-
 void DynamicScheduleDownlinkPhase::handleIncompleteSchedule()
 {
     //TODO: tweak timeout value

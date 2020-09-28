@@ -89,8 +89,6 @@ private:
 
     void applyEmptySchedule(long long slotStart);
     
-    void resetAndDisableSchedule(long long slotStart);
-    
     void handleIncompleteSchedule();
     
     std::string scheduleStatusAsString() const;
