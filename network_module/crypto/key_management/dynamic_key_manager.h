@@ -122,8 +122,12 @@ private:
 
     const bool doChallengeResponse;
     const unsigned int challengeTimeout;
-    //resend twice before resync
-    const unsigned int chalResendTimeout = (challengeTimeout/5)*4;
+    /**
+     * Resend twice before resync:
+     * sizing is done so that the resync timeout happens after the challenge has been
+     * sent three times, and the two timeouts are not reached too close to each other
+     */
+    const unsigned int chalResendTimeout = (challengeTimeout/5)*2;
     unsigned int chalResendCtr = 0;
     unsigned int chalTimeoutCtr = 0;
 
