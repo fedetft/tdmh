@@ -118,6 +118,13 @@ protected:
     void resyncTime();
     void doResyncTime(miosix::RecvResult rcvResult, Packet pkt);
 
+
+    /**
+     * Check if activation tile is included in timesync packet, and apply it to schedule
+     * distribution phase
+     */
+    void handleActivationTile(long long slotStart, Packet pkt);
+
     /**
      * Resets the data calculated by and useful for the controller
      */
