@@ -128,6 +128,7 @@ void ScheduleComputation::run()
         if(rekeyingCtr >= netconfig.getRekeyingPeriod()) {
             rekeyingCtr = 0;
             forceResend = true;
+            printf("[SC] Schedule resend for rekeying purposes\n");
         }
 #endif
         
