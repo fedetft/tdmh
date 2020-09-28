@@ -50,15 +50,15 @@ public:
     }
 #ifdef CRYPTO
     // add 4 bytes for masterIndex and 16 bytes for authentication tag
-    static const unsigned int syncPacketSize = 11 + 4 + 4 + 16;
+    static const unsigned int maxSyncPacketSize = 11 + 4 + 4 + 16;
     static const int phaseStartupTime = 450000
                                       + 250000  // crypto MAC authenticate
                                       + 200000; // crypto MAC verify
 #else
-    static const unsigned int syncPacketSize = 11;
+    static const unsigned int maxSyncPacketSize = 11;
     static const int phaseStartupTime = 450000;
 #endif
-    static const int rebroadcastInterval = (syncPacketSize+8)*32000 + 536000; //32us per-byte + 536us total delta
+    static const int rebroadcastInterval = (maxSyncPacketSize+8)*32000 + 536000; //32us per-byte + 536us total delta
 
     /**
      * @return the status of the synchronization state machine
