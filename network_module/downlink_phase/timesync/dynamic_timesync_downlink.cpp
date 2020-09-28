@@ -166,6 +166,16 @@ void DynamicTimesyncDownlink::doPeriodicSync(long long correctedStart,
                   receiverWindow,
                   rcvResult.rssi);
     }
+
+#ifdef CRYPTO
+    // If packet contains more than packet counter and master index,
+    // read the activation tile and force it
+    if (pkt.size() >= sizeof(newPacketCounter) + 2*sizeof(unsigned int)) {
+        unsigned int activationTile = *reinterpret_cast<unsigned int*>(&pkt[15]);
+        ctx.getScheduleDistribution()->forceScheduleActivation(getSlotframeStart(),
+                                                               activationTile);
+    }
+#endif
 }
 
 void DynamicTimesyncDownlink::resyncTime() {
@@ -290,6 +300,17 @@ void DynamicTimesyncDownlink::doResyncTime(miosix::RecvResult rcvResult, Packet 
         print_dbg("[T] hop=%d NT=%lld ats=%lld w=%d rssi=%d\n",
                   pkt[2], ntNow.get(), rcvResult.timestamp, receiverWindow, rcvResult.rssi
         );
+
+#ifdef CRYPTO
+    // If packet contains more than packet counter and master index,
+    // read the activation tile and force it
+    if (pkt.size() >= sizeof(packetCounter) + 2*sizeof(unsigned int)) {
+        unsigned int activationTile = *reinterpret_cast<unsigned int*>(&pkt[15]);
+        ctx.getScheduleDistribution()->forceScheduleActivation(slotframeStart,
+                                                               activationTile);
+    }
+#endif
+
 }
 
 inline void DynamicTimesyncDownlink::execute(long long slotStart)

@@ -45,6 +45,29 @@ public:
 
     void desync() override;
 
+    /**
+     * @return the number of the activation tile of a schedule that has been
+     * sent and not yet applied. If no schedule has been sent, return zero
+     */
+    unsigned int getNextActivationTile() override {
+        if (status == ScheduleDownlinkStatus::APPLIED_SCHEDULE ||
+                status == ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE) return 0;
+        else return nextActivationTile;
+    }
+
+    /**
+     * Used by Timesync to force rekeying in dynamic nodes when the Timesync packet
+     * contains an activation tile and the node is currently unaware of the schedule that
+     * was distributed. This can happen if the node has started resyncing after the
+     * rekeying process had started, or if a schedule was missed entirely (zero schedule
+     * packets received).
+     */
+    void forceScheduleActivation(long long slotStart, unsigned int activationTile) override {
+        status = ScheduleDownlinkStatus::REKEYING;
+        setEmptySchedule(slotStart);
+        nextActivationTile = activationTile;
+    }
+
 private:
     /**
      * @return true if actions of rekeying or activation were taken in this tile, meaning

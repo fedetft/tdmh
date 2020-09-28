@@ -47,6 +47,16 @@ public:
      */
     void advance(long long slotStart) override {}
     void desync() override {}
+
+    /**
+     * @return the number of the activation tile of a schedule that has been
+     * sent and not yet applied. If no schedule has been sent, return zero
+     */
+    unsigned int getNextActivationTile() override {
+        if (status == ScheduleDownlinkStatus::APPLIED_SCHEDULE) return 0;
+        else return header.getActivationTile();
+    }
+
     
 private:
     

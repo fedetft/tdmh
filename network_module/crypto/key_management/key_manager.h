@@ -24,6 +24,11 @@ public:
         loadMasterKey();
     }
 
+    bool rekeyingInProgress() {
+        return (status == KeyManagerStatus::REKEYING ||
+                status == KeyManagerStatus::REKEYING_UNTRUSTED);
+    }
+
     virtual ~KeyManager() {}
 
     KeyManagerStatus getStatus() { return status; }
