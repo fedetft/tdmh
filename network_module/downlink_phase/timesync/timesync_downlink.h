@@ -52,8 +52,8 @@ public:
     // add 4 bytes for masterIndex and 16 bytes for authentication tag
     static const unsigned int maxSyncPacketSize = 11 + 4 + 4 + 16;
     static const int phaseStartupTime = 450000
-                                      + 250000  // crypto MAC authenticate
-                                      + 200000; // crypto MAC verify
+                                      + 270000  // crypto MAC authenticate
+                                      + 260000; // crypto MAC verify
 #else
     static const unsigned int maxSyncPacketSize = 11;
     static const int phaseStartupTime = 450000;
