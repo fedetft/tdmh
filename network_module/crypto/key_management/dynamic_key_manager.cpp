@@ -141,7 +141,8 @@ bool DynamicKeyManager::periodicUpdate() {
 }
 
 void DynamicKeyManager::sendChallenge() {
-    if (status != KeyManagerStatus::MASTER_UNTRUSTED) {
+    if (status != KeyManagerStatus::MASTER_UNTRUSTED &&
+            status != KeyManagerStatus::REKEYING_UNTRUSTED) {
         printf("DynamicKeyManager: unexpected call to sendChallenge\n");
         assert(false);
     }
