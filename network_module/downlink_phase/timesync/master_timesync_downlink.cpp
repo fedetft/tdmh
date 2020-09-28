@@ -31,6 +31,8 @@
 #include "../../util/debug_settings.h"
 #include "../../mac_context.h"
 #include "../../crypto/aes_ocb.h"
+#include "../../crypto/key_management/master_key_manager.h"
+#include "../schedule_distribution.h"
 
 using namespace miosix;
 
@@ -51,7 +53,8 @@ MasterTimesyncDownlink::MasterTimesyncDownlink(MACContext& ctx) : TimesyncDownli
     packet.put(&timesyncPkt, sizeof(timesyncPkt));
 
 #ifdef CRYPTO
-    unsigned int index = ctx.getKeyManager()->getMasterIndex();
+    KeyManager *keyMgr = ctx.getKeyManager();
+    unsigned int index = keyMgr->getMasterIndex();
     packet.put(&index, sizeof(index));
 #endif
 }
@@ -63,6 +66,15 @@ void MasterTimesyncDownlink::execute(long long slotStart)
 
 #ifdef CRYPTO
     setPacketMasterIndex();
+
+    if (ctx.getKeyManager()->rekeyingInProgress()) {
+        ScheduleDownlinkPhase *sd = ctx.getScheduleDistribution();
+        unsigned int actTile = sd->getNextActivationTile();
+        if (actTile != 0) {
+            packet.put(&actTile, sizeof(actTile));
+        }
+    }
+
     if (ctx.getNetworkConfig().getAuthenticateControlMessages()) {
         packet.reserveTag();
         AesOcb& ocb = ctx.getKeyManager()->getTimesyncOCB();

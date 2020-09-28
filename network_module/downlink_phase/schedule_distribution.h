@@ -72,6 +72,21 @@ public:
      */
     void resync() override {}
 
+    /**
+     * @return the number of the activation tile of a schedule that has been
+     * sent and not yet applied. If no schedule has been sent, return zero
+     */
+    virtual unsigned int getNextActivationTile() = 0;
+
+    /**
+     * Used by Timesync to force rekeying in dynamic nodes when the Timesync packet
+     * contains an activation tile and the node is currently unaware of the schedule that
+     * was distributed. This can happen if the node has started resyncing after the
+     * rekeying process had started, or if a schedule was missed entirely (zero schedule
+     * packets received).
+     */
+    virtual void forceScheduleActivation(long long slotStart, unsigned int activationTile) {}
+
 protected:
     ScheduleDownlinkPhase(MACContext& ctx) : MACPhase(ctx),
                                              rebroadcastInterval(computeRebroadcastInterval(ctx.getNetworkConfig())),
