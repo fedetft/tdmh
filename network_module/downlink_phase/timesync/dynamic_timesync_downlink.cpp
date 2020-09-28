@@ -167,15 +167,7 @@ void DynamicTimesyncDownlink::doPeriodicSync(long long correctedStart,
                   rcvResult.rssi);
     }
 
-#ifdef CRYPTO
-    // If packet contains more than packet counter and master index,
-    // read the activation tile and force it
-    if (pkt.size() >= sizeof(newPacketCounter) + 2*sizeof(unsigned int)) {
-        unsigned int activationTile = *reinterpret_cast<unsigned int*>(&pkt[15]);
-        ctx.getScheduleDistribution()->forceScheduleActivation(getSlotframeStart(),
-                                                               activationTile);
-    }
-#endif
+    handleActivationTile(getSlotframeStart(), pkt);
 }
 
 void DynamicTimesyncDownlink::resyncTime() {
@@ -301,16 +293,20 @@ void DynamicTimesyncDownlink::doResyncTime(miosix::RecvResult rcvResult, Packet 
                   pkt[2], ntNow.get(), rcvResult.timestamp, receiverWindow, rcvResult.rssi
         );
 
+    handleActivationTile(slotframeStart, pkt);
+
+}
+
+void DynamicTimesyncDownlink::handleActivationTile(long long slotStart, Packet pkt) {
 #ifdef CRYPTO
-    // If packet contains more than packet counter and master index,
+    // If packet contains more than header, packet counter and master index,
     // read the activation tile and force it
-    if (pkt.size() >= sizeof(packetCounter) + 2*sizeof(unsigned int)) {
+    if (pkt.size() >= 7 + 3*sizeof(unsigned int)) {
         unsigned int activationTile = *reinterpret_cast<unsigned int*>(&pkt[15]);
-        ctx.getScheduleDistribution()->forceScheduleActivation(slotframeStart,
+        ctx.getScheduleDistribution()->forceScheduleActivation(slotStart,
                                                                activationTile);
     }
 #endif
-
 }
 
 inline void DynamicTimesyncDownlink::execute(long long slotStart)
