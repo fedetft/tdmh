@@ -321,7 +321,8 @@ void DynamicKeyManager::desync() {
 }
 
 bool DynamicKeyManager::verifyResponse(ResponseElement response) {
-    if (status != KeyManagerStatus::MASTER_UNTRUSTED) {
+    if (status != KeyManagerStatus::MASTER_UNTRUSTED &&
+            status != KeyManagerStatus::REKEYING_UNTRUSTED) {
         printf("DynamicKeyManager: unexpected call to verifyResponse\n");
         assert(false);
     }
