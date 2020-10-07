@@ -86,6 +86,11 @@ public:
      * When reading a packet, ignore "size" bytes
      */
     void discard(unsigned int size);
+    
+    /**
+     * Discard bytes from the end of the packet
+     */
+    void discardFromEnd(unsigned int discardSize);
 
     void discardTag() {
         if(dataSize < tagSize)
