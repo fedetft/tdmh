@@ -67,9 +67,10 @@ void MasterTimesyncDownlink::execute(long long slotStart)
 #ifdef CRYPTO
     setPacketMasterIndex();
 
+    unsigned int actTile = 0;
     if (ctx.getKeyManager()->rekeyingInProgress()) {
         ScheduleDownlinkPhase *sd = ctx.getScheduleDistribution();
-        unsigned int actTile = sd->getNextActivationTile();
+        actTile = sd->getNextActivationTile();
         if (actTile != 0) {
             packet.put(&actTile, sizeof(actTile));
         }
@@ -100,6 +101,9 @@ void MasterTimesyncDownlink::execute(long long slotStart)
 #ifdef CRYPTO
     if (ctx.getNetworkConfig().getAuthenticateControlMessages()) {
         packet.discardTag();
+    }
+    if (actTile != 0) {
+        packet.discardFromEnd(sizeof(actTile));
     }
 #endif
     
