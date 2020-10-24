@@ -192,6 +192,9 @@ public:
      */
     const unsigned char *getResponseBytes() const { return response; }
 
+    // Print info element
+    void print();
+
 protected:
     DownlinkElementType type;
     StreamId id;
