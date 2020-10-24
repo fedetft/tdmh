@@ -51,7 +51,7 @@ void ScheduleElement::serialize(Packet& pkt) const {
         case DownlinkElementType::RESPONSE: {
             pkt.put(&nodeId, sizeof(unsigned char));
             pkt.put(response, sizeof(response));
-            unsigned char t = static_cast<unsigned char>(type);
+            unsigned char t = static_cast<unsigned char>(type)<<4;
             pkt.put(&t, sizeof(unsigned char));
             break;
         }
@@ -59,8 +59,10 @@ void ScheduleElement::serialize(Packet& pkt) const {
 }
 
 void ScheduleElement::deserialize(Packet& pkt) {
+    static_assert(sizeof(StreamId)==3 && sizeof(StreamParameters)==2 && sizeof(ScheduleElementPkt)==5,"Recompute typeIndex");
+    const int typeIndex=9;//Index of byte containing the content.type field
     // Extract type from packet
-    type = static_cast<DownlinkElementType>(pkt[9] & 0xf);
+    type = static_cast<DownlinkElementType>(pkt[typeIndex]>>4);
     switch(type) {
         case DownlinkElementType::SCHEDULE_ELEMENT:
         case DownlinkElementType::INFO_ELEMENT:
@@ -75,6 +77,35 @@ void ScheduleElement::deserialize(Packet& pkt) {
             break;
         default:
             throw std::runtime_error("unknown downlink element type");
+            break;
+    }
+}
+
+void ScheduleElement::print()
+{
+    switch(type)
+    {
+        case DownlinkElementType::SCHEDULE_ELEMENT:
+            print_dbg("SCHEDULE_ELEMENT (%d,%d,%d,%d) tx:%d rx:%d off:%d\n",
+                    id.src,id.dst,id.srcPort,id.dstPort,content.tx,content.rx,content.offset);
+            break;
+        case DownlinkElementType::INFO_ELEMENT:
+        {
+            const char *ptr;
+            switch(static_cast<InfoType>(content.offset))
+            {
+                case InfoType::SERVER_CLOSED: ptr="SERVER_CLOSED"; break;
+                case InfoType::SERVER_OPENED: ptr="SERVER_OPENED"; break;
+                case InfoType::STREAM_REJECT: ptr="STREAM_REJECT"; break;
+                default: ptr="UNKNOWN"; break;
+            }
+            print_dbg("INFO_ELEMENT (%d,%d,%d,%d) %s\n",
+                   id.src,id.dst,id.srcPort,id.dstPort,ptr);
+            break;
+        }
+        case DownlinkElementType::RESPONSE:
+            print_dbg("RESPONSE (%d,%d,%d,%d)\n",
+                   id.src,id.dst,id.srcPort,id.dstPort);
             break;
     }
 }
