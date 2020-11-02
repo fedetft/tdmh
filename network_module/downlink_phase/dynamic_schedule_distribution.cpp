@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2018-2019 by Federico Amedeo Izzo and Federico Terraneo *
+ *   Copyright (C) 2018-2020 by Federico Amedeo Izzo, Federico Terraneo,   *
+ *   Valeria Mazzola                                                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
