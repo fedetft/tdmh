@@ -300,12 +300,17 @@ void DynamicTimesyncDownlink::doResyncTime(miosix::RecvResult rcvResult, Packet 
 
 void DynamicTimesyncDownlink::handleActivationTile(long long slotStart, Packet pkt) {
 #ifdef CRYPTO
-    // If packet contains more than header, packet counter and master index,
-    // read the activation tile and force it
-    if (pkt.size() >= 7 + 3*sizeof(unsigned int)) {
-        unsigned int activationTile = *reinterpret_cast<unsigned int*>(&pkt[15]);
-        ctx.getScheduleDistribution()->forceScheduleActivation(slotStart,
-                                                               activationTile);
+    /**
+     * If packet contains more than header, packet counter and master index,
+     * AND if the key manager is not aware of the rekeying,
+     * read the activation tile and force it, to force rekeying.
+     */
+    if(!ctx.getKeyManager()->rekeyingInProgress()) {
+        if (pkt.size() >= 7 + 3*sizeof(unsigned int)) {
+            unsigned int activationTile = *reinterpret_cast<unsigned int*>(&pkt[15]);
+            ctx.getScheduleDistribution()->forceScheduleActivation(slotStart,
+                                                                   activationTile);
+        }
     }
 #endif
 }
