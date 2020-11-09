@@ -112,7 +112,7 @@ public:
         return internalStatus == IN_SYNC && llabs(error) < networkConfig.getMaxAdmittedRcvWindow()/2;
     }
     
-    virtual void macStartHook() {}
+    virtual long long macStartHook() { return 0; }
 
     void advance(long long slotStart) override;
 

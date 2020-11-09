@@ -115,14 +115,15 @@ void MasterTimesyncDownlink::execute(long long slotStart)
 #endif
 }
 
-void MasterTimesyncDownlink::macStartHook()
+long long MasterTimesyncDownlink::macStartHook()
 {
-    slotframeTime = getTime() + initializationDelay;
-    NetworkTime::setLocalNodeToNetworkTimeOffset(-slotframeTime);
+    long long startTime = getTime() + initializationDelay;
+    NetworkTime::setLocalNodeToNetworkTimeOffset(-startTime);
     
     // Initialize considering the next() in execute
-    slotframeTime -= networkConfig.getClockSyncPeriod();
+    slotframeTime = startTime - networkConfig.getClockSyncPeriod();
     setTimesyncPacketCounter(-1);
+    return startTime;
 }
 
 void MasterTimesyncDownlink::next() {

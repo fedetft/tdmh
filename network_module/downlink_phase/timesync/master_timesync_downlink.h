@@ -54,7 +54,7 @@ public:
 
     virtual long long getSlotframeStart() const override { return slotframeTime; }
     
-    void macStartHook() override;
+    long long macStartHook() override;
 
 
 protected:

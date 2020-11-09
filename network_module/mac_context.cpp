@@ -167,10 +167,9 @@ void MACContext::run()
 {
     transceiver.turnOn();
     // After this: NetworkTime is valid in the Master node
-    timesync->macStartHook();
+    long long currentNextDeadline = timesync->macStartHook();
     startScheduler();
 
-    long long currentNextDeadline = 0;
     unsigned int controlSuperframeCounter = 0;
     int tileCounter = 0; 
     unsigned tile_size = getSlotsInTileCount();
