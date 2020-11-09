@@ -306,7 +306,7 @@ protected:
     ScheduleDownlinkPhase* scheduleDistribution = nullptr;
     DataPhase* data = nullptr;
 
-    unsigned char hop;
+    unsigned char hop = 0;
     const MediumAccessController& mac;
     const miosix::TransceiverConfiguration transceiverConfig;
     const NetworkConfiguration& networkConfig;
