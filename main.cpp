@@ -46,6 +46,7 @@ using namespace miosix;
 
 const int maxNodes = 16;
 const int maxHops = 6;
+const int txPower = 5; //dBm
 
 FastMutex m;
 MediumAccessController *tdmh = nullptr;
@@ -134,7 +135,7 @@ void masterNode(void*)
             0,             //networkId
             false,         //staticHop
             6,             //panId
-            5,             //txPower
+            txPower,       //txPower
             2450,          //baseFrequency
             10000000000,   //clockSyncPeriod
             guaranteedTopologies(maxNodes,useWeakTopologies), //guaranteedTopologies
@@ -187,7 +188,7 @@ void dynamicNode(void* argv)
             arg->id,       //networkId
             arg->hop,      //staticHop
             6,             //panId
-            5,             //txPower
+            txPower,       //txPower
             2450,          //baseFrequency
             10000000000,   //clockSyncPeriod
             guaranteedTopologies(maxNodes,useWeakTopologies), //guaranteedTopologies

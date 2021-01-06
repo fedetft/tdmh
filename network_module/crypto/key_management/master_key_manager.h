@@ -128,6 +128,8 @@ private:
     UpdatableQueue<unsigned char, std::array<unsigned char, 16>> challenges;
 
     //TODO: tweak this value
+    //NOTE: must be less than SchedulePacket::getPacketCapacity(), see how
+    //MasterScheduleDownlinkPhase::sendInfoPkt() calls solveChallengesAndGetResponses()
     const unsigned int maxSolvesPerSlot = 5;
 };
 
