@@ -143,6 +143,11 @@ const unsigned char MAX_OPEN_FILES=8;
 // Kernel related options (stack sizes, priorities)
 //
 
+/// \def WITH_DEEP_SLEEP 
+/// Adds interfaces and required variables to support deep sleep state switch
+/// automatically when peripherals are not required
+//#define WITH_DEEP_SLEEP
+
 /**
  * \def JTAG_DISABLE_SLEEP
  * JTAG debuggers lose communication with the device if it enters sleep
@@ -150,6 +155,10 @@ const unsigned char MAX_OPEN_FILES=8;
  * By default it is not defined (idle thread calls sleep).
  */
 //#define JTAG_DISABLE_SLEEP
+
+#if defined(WITH_DEEP_SLEEP) && defined(JTAG_DISABLE_SLEEP)
+#error Deep sleep cannot work together with jtag
+#endif //defined(WITH_PROCESSES) && !defined(WITH_DEVFS)
 
 /// Minimum stack size (MUST be divisible by 4)
 const unsigned int STACK_MIN=256;
@@ -214,8 +223,16 @@ const unsigned int WATERMARK_FILL=0xaaaaaaaa;
 const unsigned int STACK_FILL=0xbbbbbbbb;
 
 // Compiler version checks
-#if _MIOSIX_GCC_PATCH_VERSION < 1
-#error "You are using a too old compiler. Get the latest one from https://miosix.org/wiki/index.php?title=Miosix_Toolchain"
+#if _MIOSIX_GCC_PATCH_MAJOR > 3
+#warning "You are using a too new compiler, which may not be supported"
+#elif _MIOSIX_GCC_PATCH_MAJOR == 2
+#error "The compiler you are using has known incomplete patches and is not supported. Get the latest one from https://miosix.org/wiki/index.php?title=Miosix_Toolchain"
+#elif _MIOSIX_GCC_PATCH_VERSION == 1
+#warning "You are using an unsupported compiler. Get the latest one from https://miosix.org/wiki/index.php?title=Miosix_Toolchain"
+#endif
+#if  !defined(_MIOSIX_GCC_PATCH_MAJOR) && \
+    (!defined(_MIOSIX_GCC_PATCH_VERSION) || _MIOSIX_GCC_PATCH_VERSION < 1)
+#error "You are using an unsupported compiler. Get the latest one from https://miosix.org/wiki/index.php?title=Miosix_Toolchain"
 #endif
 
 /**

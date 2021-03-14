@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2016 by Terraneo Federico                               *
+ *   Copyright (C) 2012, 2013, 2014 by Terraneo Federico                   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -44,12 +44,12 @@ namespace miosix {
  */
 
 /// Size of stack for main().
-/// The C standard library is stack-heavy (iprintf requires 1KB) but the
-/// STM32F429ZI only has 256KB of RAM so there is room for a big 4K stack.
-const unsigned int MAIN_STACK_SIZE=4*1024;
+/// The C standard library is stack-heavy (iprintf requires 1KB)
+/// Application requires more than the usual 4KB stack, increasing to 5KB.
+const unsigned int MAIN_STACK_SIZE=5*1024;
 
-/// Frequency of tick (in Hz). The frequency of the STM32F429ZI timer in the
-/// anakin board can be divided by 1000. This allows to use a 1KHz
+/// Frequency of tick (in Hz). The frequency of the STM32F100RB timer in the
+/// stm32vldiscovery board can be divided by 1000. This allows to use a 1KHz
 /// tick and the minimun Thread::sleep value is 1ms
 /// For the priority scheduler this is also the context switch frequency
 const unsigned int TICK_FREQ=1000;
@@ -62,23 +62,23 @@ const unsigned int TICK_FREQ=1000;
 const unsigned int AUX_TIMER_CLOCK=100000;
 const unsigned int AUX_TIMER_MAX=0xffff; ///<\internal Aux timer is 16 bits
 
-/// Serial port
 const unsigned int defaultSerial=1;
-const unsigned int defaultSerialSpeed=19200;
+const unsigned int defaultSerialSpeed=115200;
 const bool defaultSerialFlowctrl=false;
-//#define SERIAL_1_DMA //Serial 1 has no DMA as it would conflict with SPI6
-#define SERIAL_2_DMA   //Serial 2 is used by the piksi GPS, enable DMA
-//#define SERIAL_3_DMA //Serial 3 is not used
+// Uncomment AUX_SERIAL to enable. The device will appear as /dev/auxtty.
+#define AUX_SERIAL "auxtty"
+const unsigned int auxSerial=3;
+const unsigned int auxSerialSpeed=230400;
+const bool auxSerialFlowctrl=false;
+#define SERIAL_1_DMA
+//#define SERIAL_2_DMA
+#define SERIAL_3_DMA
 
-#define I2C_WITH_DMA
+//#define I2C_WITH_DMA
 
 //SD card driver
 static const unsigned char sdVoltage=33; //Board powered @ 3.3V
-#ifdef __ENABLE_XRAM
-//Reduce SD clock to ~4.8MHz
-#define OVERRIDE_SD_CLOCK_DIVIDER_MAX 8
-#endif //__ENABLE_XRAM
-//#define SD_ONE_BIT_DATABUS //Use full 4 bit data bus to SD card
+// #define SD_ONE_BIT_DATABUS //Commented to use 4 bit databus
 
 /**
  * \}
