@@ -1,7 +1,9 @@
 ##
 ## Makefile for Miosix embedded OS
 ##
-MAKEFILE_VERSION := 1.07
+MAKEFILE_VERSION := 1.09
+GCCMAJOR := $(shell arm-miosix-eabi-gcc --version | \
+                    perl -e '$$_=<>;/\(GCC\) (\d+)/;print "$$1"')
 ## Path to kernel directory (edited by init_project_out_of_git_repo.pl)
 KPATH := miosix-kernel-unofficial/miosix/
 ## Path to config directory (edited by init_project_out_of_git_repo.pl)
@@ -16,7 +18,7 @@ SUBDIRS := $(KPATH)
 ##
 ## List here your source files (both .s, .c and .cpp)
 ##
-SRC :=\
+SRC :=                                  \
 main.cpp
 
 NET_SRC :=\
@@ -82,9 +84,14 @@ DFLAGS   := -MMD -MP
 LDFLAGS   := -MMD -MP
 LCXXFLAGS := -O0 -Wall -g
 
+## libmiosix.a is among stdlibs because needs to be within start/end group
+STDLIBS  := -lmiosix -lstdc++ -lc -lm -lgcc
 
-LINK_LIBS := $(LIBS) -L$(KPATH) -Wl,--start-group -lmiosix -lstdc++ -lc \
-             -lm -lgcc -Wl,--end-group
+ifneq ($(GCCMAJOR),4)
+	STDLIBS += -latomic
+endif
+
+LINK_LIBS := $(LIBS) -L$(KPATH) -Wl,--start-group $(STDLIBS) -Wl,--end-group
 
 all: all-recursive main
 
@@ -153,4 +160,4 @@ testboard: $(TEST_BBINS)
 	$(Q)$(CXX) $(LFLAGS) -o $@ $< $(NET_OBJ) $(KPATH)/$(BOOT_FILE) $(LINK_LIBS)
 
 #pull in dependecy info for existing .o files
--include $(NET_OBJ:.o=.d)
+-include $(OBJ:.o=.d) $(NET_OBJ:.o=.d)
