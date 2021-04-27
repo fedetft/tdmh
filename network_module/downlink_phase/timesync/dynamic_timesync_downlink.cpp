@@ -48,10 +48,28 @@ void DynamicTimesyncDownlink::periodicSync() {
     Packet pkt;
     using namespace std::placeholders;
     auto pred = std::bind(&DynamicTimesyncDownlink::isSyncPacket, this, _1, _2, true);
-    auto rcvResult = pkt.recv(ctx, correctedStart, pred, Transceiver::Correct::UNCORR);
+    RecvResult rcvResult;
+    for(int tryHop = ctx.getHop(); tryHop <= networkConfig.getMaxHops(); tryHop++)
+    {
+        rcvResult = pkt.recv(ctx, correctedStart, pred, Transceiver::Correct::UNCORR);
+        if(rcvResult.error != RecvResult::ErrorCode::OK || pkt[2] + 1 != tryHop)
+        {
+            correctedStart += rebroadcastInterval;
+            continue;
+        }
+        pkt[2]++;
+        //Rebroadcast the sync packet
+        auto correctedTimestamp = correct(rcvResult.timestamp);
+        rebroadcast(pkt, correctedTimestamp);
+        //Fixup timestamps if we missed the first packet and we had to listen
+        //to subsequent hops
+        rcvResult.timestamp -= (tryHop - ctx.getHop()) * rebroadcastInterval;
+        measuredFrameStart = correctedTimestamp - (tryHop - ctx.getHop()) * rebroadcastInterval;
+        break;
+    }
+    ctx.transceiverIdle();
+    
     if(rcvResult.error != RecvResult::ErrorCode::OK) {
-        // Turn off the radio because we don't need it anymore this round
-        ctx.transceiverIdle();
         auto n = missedPacket();
         if (ENABLE_TIMESYNC_DL_INFO_DBG) {
             auto nt = NetworkTime::fromLocalTime(getSlotframeStart());
@@ -59,15 +77,7 @@ void DynamicTimesyncDownlink::periodicSync() {
             if (n >= networkConfig.getMaxMissedTimesyncs())
                 print_dbg("[T] lost sync\n");
         }
-    }
-    else {
-        //corrected time in NS, to pass to transceiver
-        pkt[2]++;
-        //Rebroadcast the sync packet
-        measuredFrameStart = correct(rcvResult.timestamp);
-        rebroadcast(pkt, measuredFrameStart);
-        ctx.transceiverIdle();
-
+    } else {
 #ifdef CRYPTO
         unsigned currentMI = ctx.getKeyManager()->getMasterIndex();
         unsigned int mI = *reinterpret_cast<unsigned int*>(&pkt[11]);

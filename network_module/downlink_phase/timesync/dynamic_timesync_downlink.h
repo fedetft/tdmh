@@ -87,10 +87,7 @@ protected:
             && packet[3] == static_cast<unsigned char>(panId >> 8)
             && packet[4] == static_cast<unsigned char>(panId & 0xff)
             && packet[5] == 0xff && packet[6] == 0xff) == false) return false;
-        if(synchronized) {
-            // If synchronized, the hop can't change
-            if(ctx.getHop() != packet[2] + 1) return false;
-        } else {
+        if(synchronized == false) {
             if(networkConfig.getStaticHop()>0)
             {
                 // If not synchronized and forced hop selected, ignore other hops

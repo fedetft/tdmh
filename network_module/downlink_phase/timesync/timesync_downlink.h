@@ -58,7 +58,9 @@ public:
     static const unsigned int maxSyncPacketSize = 11;
     static const int phaseStartupTime = 450000;
 #endif
-    static const int rebroadcastInterval = (maxSyncPacketSize+8)*32000 + 536000; //32us per-byte + 536us total delta
+    static const int rebroadcastInterval = (maxSyncPacketSize+8)*32000 + 736000; //32us per-byte + 736us total delta
+    //NOTE: was 536us, but caused Packet::recv: too late when receiving two
+    //packets back to back and the first one fails the isSyncPacket predicate
 
     /**
      * @return the status of the synchronization state machine
