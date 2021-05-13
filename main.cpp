@@ -35,6 +35,7 @@
 #include "network_module/master_tdmh.h"
 #include "network_module/downlink_phase/timesync/networktime.h"
 #include "network_module/util/stackrange.h"
+#include "network_module/util/stats.h"
 #include "interfaces-impl/gpio_timer_corr.h"
 
 // For tests with a 50ms tile and 2ms slots
@@ -62,8 +63,10 @@ public:
 class StreamThreadPar
 {
 public:
-    StreamThreadPar(int stream) : stream(stream) {};
+    StreamThreadPar(int stream, Stats* delay_stats) : 
+                stream(stream), delay_stats(delay_stats) {};
     int stream;
+    Stats* delay_stats;
 };
 
 inline int guaranteedTopologies(int maxNumNodes, bool useWeakTopologies)
@@ -246,19 +249,22 @@ void statThread(void *)
 struct Data
 {
     Data() {}
-    Data(int id, unsigned int counter) : id(id), time(miosix::getTime()),
+    Data(int id, unsigned int counter) : id(id), time(miosix::getTime()), 
+                   netTime(NetworkTime::now().get()),
                    minHeap(MemoryProfiling::getAbsoluteFreeHeap()),
                    heap(MemoryProfiling::getCurrentFreeHeap()),
                    counter(counter) {}
                    
-    unsigned char getId()      const { return id; }
-    long long     getTime()    const { return time; }
-    int           getMinHeap() const { return minHeap; }
-    int           getHeap()    const { return heap; }
-    unsigned int  getCounter() const { return counter; }
+    unsigned char getId()          const { return id; }
+    long long     getTime()        const { return time; }
+    long long     getNetworkTime() const { return netTime; }
+    int           getMinHeap()     const { return minHeap; }
+    int           getHeap()        const { return heap; }
+    unsigned int  getCounter()     const { return counter; }
     
     unsigned char id;
     long long time;
+    long long netTime;
     int minHeap;
     int heap;
     unsigned int counter;
@@ -272,11 +278,12 @@ struct Data
     Data(int id, unsigned int counter): id(id),
         minHeap(MemoryProfiling::getAbsoluteFreeHeap()), counter(counter) {}
     
-    unsigned char getId()      const { return id; }
-    long long     getTime()    const { return -1; }
-    int           getMinHeap() const { return minHeap; }
-    int           getHeap()    const { return -1; }
-    unsigned int  getCounter() const { return counter; }
+    unsigned char getId()          const { return id; }
+    long long     getTime()        const { return -1; }
+    long long     getNetworkTime() const { return -1; }
+    int           getMinHeap()     const { return minHeap; }
+    int           getHeap()        const { return -1; }
+    unsigned int  getCounter()     const { return counter; }
     
     unsigned char id;
     int minHeap;
@@ -290,10 +297,12 @@ void streamThread(void *arg)
     printStackRange("stream");
     auto *s = reinterpret_cast<StreamThreadPar*>(arg);
     int stream = s->stream;
+    Stats* delay_stats = s->delay_stats;
     StreamInfo info = getInfo(stream);
     StreamId id = info.getStreamId();
     printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
     int cnt = 0;
+
     while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
         Data data;
         int len = mxnet::read(stream, &data, sizeof(data));
@@ -309,11 +318,18 @@ void streamThread(void *arg)
             if(len == sizeof(data))
             {
                 if(COMPRESSED_DBG==false)
+                {
                     printf("[A] Received data from (%d,%d): ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
                        id.src, id.dst, data.getId(), data.getTime(), data.getMinHeap(), data.getHeap(), data.getCounter());
-                else {
+                } else {
                     printf("[A] R (%d,%d) ID=%d T=%lld MH=%u C=%u\n",
                        id.src, id.dst, data.getId(), data.getTime(), data.getMinHeap(), data.getCounter());
+                       
+                    long long delay = mxnet::NetworkTime::now().get() - data.getNetworkTime();
+                    delay_stats[id.src].add(delay);
+                    printf("[A] Delay (%d,%d): D=%lld N=%u\n", id.src, id.dst, delay, delay_stats[id.src].getStats().n);
+                    printf("[A] Mean Delay (%d,%d): MD=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().mean);
+                    printf("[A] Delay Standard Deviation (%d,%d): DV=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().stdev);
                 }
             } else {
                 if(COMPRESSED_DBG==false)
@@ -356,17 +372,22 @@ void openServer(unsigned char port, StreamParameters params) {
         printf("[A] Server opening failed! error=%d\n", server);
         return;
     }
+
+    // array of delay statistics maintained by the master
+    // statistics are update online at each packet received from dynamic nodes
+    Stats delay_stats[maxNodes];
+
     try {
         while(getInfo(server).getStatus() == StreamStatus::LISTEN) {
             int stream = accept(server);
-            Thread::create(streamThread, 1536, MAIN_PRIORITY, new StreamThreadPar(stream));
+            Thread::create(streamThread, 1536, MAIN_PRIORITY, new StreamThreadPar(stream, delay_stats));
         }
     } catch(exception& e) {
         printf("Unexpected exception while server accept: %s\n",e.what());
     } catch(...) {
         printf("Unexpected unknown exception while server accept\n");
     }
-    printf("[A]Server on port %d closed, status=", port);
+    printf("[A] Server on port %d closed, status=", port);
     printStatus(getInfo(server).getStatus());
     mxnet::close(server);
 }
@@ -390,7 +411,7 @@ void openStream(unsigned char dest, unsigned char port, StreamParameters params)
             /* Open a Stream to another node */
             printf("[A] Opening stream to node %d\n", dest);
             int stream = connect(dest,          // Destination node
-                                 port,             // Destination port
+                                 port,          // Destination port
                                  params);       // Stream parameters
             if(stream < 0) {                
                 printf("[A] Stream opening failed! error=%d\n", stream);
@@ -406,8 +427,8 @@ void openStream(unsigned char dest, unsigned char port, StreamParameters params)
                     printf("[A] Stream opened \n");
                 }
                 if(ret >= 0) {
-                    printf("[A] Sent ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
-                              data.getId(), data.getTime(), data.getMinHeap(), data.getHeap(), data.getCounter());
+                    printf("[A] Sent ID=%d Time=%lld NetTime=%lld MinHeap=%u Heap=%u Counter=%u\n",
+                              data.getId(), data.getTime(), data.getNetworkTime(), data.getMinHeap(), data.getHeap(), data.getCounter());
                 }
                 else
                     printf("[E] Error sending data, result=%d\n", ret);
