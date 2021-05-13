@@ -31,9 +31,12 @@ using namespace mxnet;
 struct Data
 {
     Data() {}
-    Data(int id, unsigned int counter) : id(id), counter(counter){}
+    Data(int id, unsigned int counter, long long timestamp) : 
+                        id(id), counter(counter), timestamp(timestamp){}
     unsigned char id;
     unsigned int counter;
+    long long timestamp;
+
 }__attribute__((packed));
 
 
@@ -120,8 +123,8 @@ void Node::application() {
     /* Wait for TDMH to become ready */
     MACContext* ctx = tdmh->getMACContext();
     while(!ctx->isReady()) ;
-    Period p = Period::P10;
-    Redundancy r = Redundancy::TRIPLE_SPATIAL;
+    Period p = Period::P1;
+    Redundancy r = Redundancy::NONE;
     sendData(ctx, 0, p, r);
 }
 
@@ -150,9 +153,10 @@ void Node::sendData(MACContext* ctx, unsigned char dest, Period period, Redundan
         printf("[A] Stream (%d,%d) opened \n", id.src, id.dst);
         unsigned int counter = 1;
         while(mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
-            Data data(ctx->getNetworkId(), counter);
-            /*int len =*/ mgr->write(stream, &data, sizeof(data));
-            //printf("[A] Sent ID=%d Counter=%u, result=%d \n", data.id, data.counter, len);
+            Data data(ctx->getNetworkId(), counter, getTime());
+            int len = mgr->write(stream, &data, sizeof(data));
+            printf("[A] Sent ID=%d Counter=%u Time=%llu, result=%d \n", 
+                                    data.id, data.counter, data.timestamp, len);
             counter++;
         }
         printf("[A] Stream was closed\n");

@@ -32,11 +32,13 @@ public:
     RootNode() : quit(false) {};
 
 protected:
+    virtual void initialize();
     virtual void activity();
     void application();
     void openServer(mxnet::MACContext* ctx, unsigned char port, mxnet::Period period, mxnet::Redundancy redundancy);
-    void streamThread(std::pair<int, mxnet::StreamManager*> arg);
+    void streamThread(void* arg);
 
+    unsigned int nodesNum;
 
     /* Pointer to tdmh class for opening streams */
     mxnet::MediumAccessController* tdmh = nullptr;

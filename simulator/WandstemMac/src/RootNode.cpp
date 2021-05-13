@@ -21,6 +21,8 @@
 #include <stdexcept>
 #include <chrono>
 #include <list>
+#include <miosix.h>
+#include "network_module/util/stats.h"
 
 Define_Module(RootNode);
 
@@ -30,10 +32,23 @@ using namespace mxnet;
 struct Data
 {
     Data() {}
-    Data(int id, unsigned int counter) : id(id), counter(counter){}
+    Data(int id, unsigned int counter, long long timestamp) : 
+                        id(id), counter(counter), timestamp(timestamp){}
     unsigned char id;
     unsigned int counter;
+    long long timestamp;
+
 }__attribute__((packed));
+
+class StreamThreadPar
+{
+public:
+    StreamThreadPar(int stream, StreamManager* mgr, Stats* delay_stats) : 
+                stream(stream), mgr(mgr), delay_stats(delay_stats) {};
+    int stream;
+    StreamManager* mgr;
+    Stats* delay_stats;
+};
 
 void RootNode::activity()
 {
@@ -98,12 +113,18 @@ void RootNode::activity()
     }
 }
 
+void RootNode::initialize()
+{
+    NodeBase::initialize();
+    nodesNum = par("nodes").intValue();
+}
+
 void RootNode::application() {
     /* Wait for TDMH to become ready */
     MACContext* ctx = tdmh->getMACContext();
     while(!ctx->isReady()) {
     }
-    openServer(ctx, 1, Period::P1, Redundancy::TRIPLE_SPATIAL);
+    openServer(ctx, 1, Period::P1, Redundancy::NONE);
 }
 
 void RootNode::openServer(MACContext* ctx, unsigned char port, Period period, Redundancy redundancy) {
@@ -123,10 +144,14 @@ void RootNode::openServer(MACContext* ctx, unsigned char port, Period period, Re
             printf("[A] Server opening failed! error=%d\n", server);
             return;
         }
+
+        // map used to computer mean delay for each node
+        Stats delay_stats[nodesNum];
+
         while(mgr->getInfo(server).getStatus() == StreamStatus::LISTEN) {
             int stream = mgr->accept(server);
-            pair<int, StreamManager*> arg = make_pair(stream, mgr);
-            thread t1(&RootNode::streamThread, this, arg);
+            //pair<int, StreamManager*> arg = make_pair(stream, mgr);
+            thread t1(&RootNode::streamThread, this, new StreamThreadPar(stream, mgr, delay_stats));
             t1.detach();
         }
     } catch(exception& e) {
@@ -137,10 +162,12 @@ void RootNode::openServer(MACContext* ctx, unsigned char port, Period period, Re
     }
 }
 
-void RootNode::streamThread(pair<int, StreamManager*> arg) {
+void RootNode::streamThread(void *arg) {
     try{
-        int stream = arg.first;
-        StreamManager* mgr = arg.second;
+        auto *s = reinterpret_cast<StreamThreadPar*>(arg);
+        int stream = s->stream;
+        StreamManager* mgr = s->mgr;
+        Stats* delay_stats = s->delay_stats;
         StreamId id = mgr->getInfo(stream).getStreamId();
         printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
         // Receive data until the stream is closed
@@ -149,8 +176,19 @@ void RootNode::streamThread(pair<int, StreamManager*> arg) {
             int len = mgr->read(stream, &data, sizeof(data));
             if(len >= 0) {
                 if(len == sizeof(data))
-                    printf("[A] Received data from (%d,%d): ID=%d Time=0 MinHeap=0 Heap=0 Counter=%u\n",
-                            id.src, id.dst, data.id, data.counter);
+                {
+                    printf("[A] Received data from (%d,%d): ID=%d MinHeap=0 Heap=0 Counter=%u Time=%llu\n",
+                            id.src, id.dst, data.id, data.counter, miosix::getTime());
+
+                    long long delay = miosix::getTime() - data.timestamp;
+                    if (delay != 0)
+                    {
+                        delay_stats[id.src].add(delay);
+                        printf("[A] Delay (%d,%d): D=%lld N=%u\n", id.src, id.dst, delay, delay_stats[id.src].getStats().n);
+                        printf("[A] Mean Delay (%d,%d): MD=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().mean);
+                        printf("[A] Delay Standard Deviation (%d,%d): DV=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().stdev);
+                    }
+                }
                 else
                     printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
                             id.src, id.dst, len);
