@@ -161,20 +161,20 @@ bool AesOcb::verifyAndDecrypt(const void *tag, void *ptx, const void *ctx,
     unsigned char received_tag[16];
     bool valid = true;
     finishTag(received_tag, op);
-
+    
     for (unsigned j=0; j<blockSize; j++) {
-        if (received_tag[i] != tp[i]) {
+        if (received_tag[j] != tp[j]) {
             valid = false;
-            break;
+            //no break; constant time check
         }
     }
-    return valid;
 
     secureClearBytes(authBuffer, (maxBlocks+1)*blockSize);
     secureClearBytes(cryptBuffer, (maxBlocks)*blockSize);
     secureClearBytes(offsetBuffer, (maxBlocks+1)*blockSize);
     secureClearBytes(received_tag, blockSize);
 
+    return valid;
 }
 
 void AesOcb::processAdditionalData(const void* auth, unsigned int authLength) {
