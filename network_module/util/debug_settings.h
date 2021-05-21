@@ -108,19 +108,19 @@ const bool ENABLE_DATA_ERROR_DBG = true;
 const bool ENABLE_STREAM_MGR_INFO_DBG = true;
 
 //prints debug messages for state changes in KeyManager
-const bool ENABLE_CRYPTO_KEY_MGMT_DBG = true;
+const bool ENABLE_CRYPTO_KEY_MGMT_DBG = false;
 
 //prints debug information about rekeying
-const bool ENABLE_CRYPTO_REKEYING_DBG = true;
+const bool ENABLE_CRYPTO_REKEYING_DBG = false;
 
 //prints packet synchronization numbers in dataphase
-const bool ENABLE_CRYPTO_DATA_DBG = true;
+const bool ENABLE_CRYPTO_DATA_DBG = false;
 
 //prints packet synchronization numbers and verify errors in timesync
-const bool ENABLE_CRYPTO_TIMESYNC_DBG = true;
+const bool ENABLE_CRYPTO_TIMESYNC_DBG = false;
 
 //prints packet synchronization numbers and verify errors in schedule distribution
-const bool ENABLE_CRYPTO_DOWNLINK_DBG = true;
+const bool ENABLE_CRYPTO_DOWNLINK_DBG = false;
 
 //prints packet synchronization numbers and verify errors in uplink
 //NOTE: this is too verbose. Use only to debug nonces.

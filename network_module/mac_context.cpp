@@ -64,6 +64,9 @@ MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiv
 void MACContext::calculateDurations() {
     dataSlotDuration = DataPhase::getDuration();
     uplinkSlotDuration = UplinkPhase::getDuration(networkConfig.getNumUplinkPackets());
+    printf("Radio time (maxDataPktSize) : %lld\n"
+           "Uplink slot duration (unaligned): %lld\n",
+           MACContext::radioTime(MediumAccessController::maxDataPktSize),uplinkSlotDuration);
     /* Align the Uplink slot duration is a multiple of the Data slot duration */
     uplinkSlotDuration = align(uplinkSlotDuration, dataSlotDuration);
     auto scheduleDownlinkDuration = ScheduleDownlinkPhase::getDuration(networkConfig);
