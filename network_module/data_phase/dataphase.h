@@ -62,15 +62,18 @@ public:
         incrementSlot(slots);
     }
     static unsigned long long getDuration() {
-#ifdef CRYPTO
-        // 330 us measured for encryption and authentication of maximum size data packet
         // TODO: make configurable on maxDataPktSize
-        long long processingTime=847000
-                                +365000  // max packet authenticated encryption
-                                +340000; // max packet authenticated decryption
-#else
         long long processingTime=847000;
-#endif
+#ifdef CRYPTO
+        //NOTE: account for presence/absence of print_dbg. The time is actually
+        //even lower if encryption is disabled
+        if(ENABLE_CRYPTO_DATA_DBG)
+            processingTime+=272000  // max packet authenticated encryption
+                           +342000; // max packet authenticated decryption
+        else
+            processingTime+=179000  // max packet authenticated encryption
+                           +197000; // max packet authenticated decryption
+#endif //ENABLE_CRYPTO_DATA_DBG
         return align(MACContext::radioTime(MediumAccessController::maxDataPktSize)+processingTime,1000000LL);
     }
     /**

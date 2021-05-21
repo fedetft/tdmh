@@ -46,17 +46,24 @@ public:
     TimesyncDownlink(const TimesyncDownlink& orig) = delete;
 
     static unsigned long long getDuration(unsigned short hops) {
+        int phaseStartupTime = 450000;
+#ifdef CRYPTO
+        if(ENABLE_CRYPTO_TIMESYNC_DBG)
+            phaseStartupTime += 233000  // crypto MAC authenticate
+                              + 279000; // crypto MAC verify
+        else
+            phaseStartupTime += 133000  // crypto MAC authenticate
+                              + 139000; // crypto MAC verify
+#endif
         return phaseStartupTime + hops * rebroadcastInterval;
     }
 #ifdef CRYPTO
     // add 4 bytes for masterIndex and 16 bytes for authentication tag
+    // the last 4 bytes are for the activation tile that is sent while a schedule
+    // change is planned
     static const unsigned int maxSyncPacketSize = 11 + 4 + 4 + 16;
-    static const int phaseStartupTime = 450000
-                                      + 270000  // crypto MAC authenticate
-                                      + 260000; // crypto MAC verify
 #else
     static const unsigned int maxSyncPacketSize = 11;
-    static const int phaseStartupTime = 450000;
 #endif
     static const int rebroadcastInterval = (maxSyncPacketSize+8)*32000 + 736000; //32us per-byte + 736us total delta
     //NOTE: was 536us, but caused Packet::recv: too late when receiving two

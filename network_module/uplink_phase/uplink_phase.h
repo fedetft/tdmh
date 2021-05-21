@@ -62,7 +62,15 @@ public:
         unsigned long long duration = (packetArrivalAndProcessingTime + transmissionInterval) * numUplinkPackets;
 #ifdef CRYPTO
         //NOTE: assuming maxControlPktSize is equal to maxDataPktSize == 125
-        duration += 365000 * (1 + numUplinkPackets);
+        //NOTE: time reported here is maximum between tx and rx side as when
+        //sending multiple packets encryption in the sender node and decryption
+        //in the receiving node occur in parallel
+        //NOTE: account for presence/absence of print_dbg. The time is actually
+        //even lower if encryption is disabled
+        if(ENABLE_CRYPTO_UPLINK_DBG)
+            duration += 342000 * numUplinkPackets + 272000;
+        else
+            duration += 197000 * numUplinkPackets + 179000;
 #endif
         return duration;
     }

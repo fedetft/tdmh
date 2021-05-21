@@ -61,8 +61,14 @@ public:
                + networkConfig.getMaxHops() * computeRebroadcastInterval(networkConfig);
 #ifdef CRYPTO
         //NOTE: assuming maxControlPktSize is equal to maxDataPktSize == 125
-        duration += (365000   // max packet authenticated encryption
-                   + 340000); // max packet authenticated decryption
+        //NOTE: account for presence/absence of print_dbg. The time is actually
+        //even lower if encryption is disabled
+        if(ENABLE_CRYPTO_DOWNLINK_DBG)
+            duration+=272000  // max packet authenticated encryption
+                     +342000; // max packet authenticated decryption
+        else
+            duration+=179000  // max packet authenticated encryption
+                     +197000; // max packet authenticated decryption
 #endif
         return duration;
     }
