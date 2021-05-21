@@ -134,7 +134,7 @@ private:
     void resendChallenge();
 
     /* Maximum index advancement when attempting resync */
-    const unsigned maxIndexDelta = 470000;
+    const unsigned maxIndexDelta = 600000;
     const unsigned char myId;
     const bool sendChallenges;
     /**
