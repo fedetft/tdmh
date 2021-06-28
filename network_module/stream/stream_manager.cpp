@@ -111,6 +111,17 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
     return fd;
 }
 
+int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParameters params, 
+                                std::function<void(void*,unsigned int*)> sendCallback) {
+    int fd = connect(dst, dstPort, params);
+    if (fd != -1)
+    {
+        auto stream = fdt.find(fd)->second;
+        stream->setSendCallback(sendCallback);
+    }
+    return fd;
+}
+
 int StreamManager::write(int fd, const void* data, int size) {
     REF_PTR_EP stream;
     {
@@ -262,6 +273,17 @@ int StreamManager::accept(int serverfd) {
         stream = streamit->second;
     }
     stream->acceptedStream();
+    return fd;
+}
+
+int StreamManager::accept(int serverfd,
+                       std::function<void(void*,unsigned int*)> recvCallback) {
+    int fd = accept(serverfd);
+    if (fd != -1) 
+    {
+        auto stream = fdt.find(fd)->second;
+        stream->setReceiveCallback(recvCallback);
+    }
     return fd;
 }
 

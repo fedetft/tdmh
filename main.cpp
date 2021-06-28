@@ -292,6 +292,41 @@ struct Data
 
 #endif //SMALL_DATA
 
+int networkId;
+unsigned int counter = 0;
+bool received        = false;
+int receivedBytes    = 0;
+Data receivedData;
+miosix::FastMutex receiveMutex;
+miosix::ConditionVariable receiveCv;
+
+void sendCallback(void* data, unsigned int* size)
+{
+    counter++;
+    Data d(networkId, counter);
+    *size = sizeof(Data);
+    memcpy(data, &d, *size);
+}
+
+void recvCallback(void* data, unsigned int* size)
+{
+    miosix::Lock<miosix::FastMutex> lck(receiveMutex);
+    
+    received = true;
+
+    if (*size != 0) {
+        receivedBytes = *size;
+        memcpy(&receivedData, data, receivedBytes);
+    }
+    else {
+        printf("!!!!!!! MISS !!!!!!! \n");
+        receivedBytes = -1;
+        receivedData = Data{0, 0};
+    }
+
+    receiveCv.signal();
+}
+
 void streamThread(void *arg)
 {
     printStackRange("stream");
@@ -301,56 +336,65 @@ void streamThread(void *arg)
     StreamInfo info = getInfo(stream);
     StreamId id = info.getStreamId();
     printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
-    int cnt = 0;
+    //int cnt = 0;
 
     while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
+
         Data data;
-        int len = mxnet::read(stream, &data, sizeof(data));
-        if(++cnt>300) {
-            cnt = 0;
-#ifdef _MIOSIX
-            unsigned int stackSize = MemoryProfiling::getStackSize();
-            unsigned int absFreeStack = MemoryProfiling::getAbsoluteFreeStack();
-            printf("[H] Stream thread stack %d/%d\n",stackSize-absFreeStack,stackSize);
-#endif
+        int len = -1;
+
+        // wait for callback to be executed
+        {
+            miosix::Lock<miosix::FastMutex> lck(receiveMutex);
+
+            while(!received)
+                receiveCv.wait(lck);
+
+            received = false;
+            data = receivedData;
+            len = receivedBytes;
         }
-        if(len > 0) {
+
+        if(len >= 0) {
             if(len == sizeof(data))
             {
+                long long now = NetworkTime::now().get();
+
                 if(COMPRESSED_DBG==false)
+                    printf("[A] Received data from (%d,%d): ID=%d MinHeap=%u Heap=%u Counter=%u Time=%llu NetTime=%llu \n",
+                    id.src, id.dst, data.getId(), data.getMinHeap(), data.getHeap(), data.getCounter(), miosix::getTime(), now);
+                else {
+                    printf("[A] R (%d,%d) ID=%d MH=%u C=%u T=%llu NT=%llu\n",
+                    id.src, id.dst, data.getId(), data.getMinHeap(), data.getCounter(), miosix::getTime(), now);
+                }
+
+                long long delay = now - data.getNetworkTime();
+                if (delay != 0)
                 {
-                    printf("[A] Received data from (%d,%d): ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
-                       id.src, id.dst, data.getId(), data.getTime(), data.getMinHeap(), data.getHeap(), data.getCounter());
-                } else {
-                    printf("[A] R (%d,%d) ID=%d T=%lld MH=%u C=%u\n",
-                       id.src, id.dst, data.getId(), data.getTime(), data.getMinHeap(), data.getCounter());
-                       
-                    long long delay = mxnet::NetworkTime::now().get() - data.getNetworkTime();
                     delay_stats[id.src].add(delay);
                     printf("[A] Delay (%d,%d): D=%lld N=%u\n", id.src, id.dst, delay, delay_stats[id.src].getStats().n);
                     printf("[A] Mean Delay (%d,%d): MD=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().mean);
                     printf("[A] Delay Standard Deviation (%d,%d): DV=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().stdev);
                 }
-            } else {
+            }
+            else {
                 if(COMPRESSED_DBG==false)
                     printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
-                       id.src, id.dst, len);
+                    id.src, id.dst, len);
                 else
                     printf("[E] W (%d,%d) %d\n", id.src, id.dst, len);
             }
         }
-        else if(len == -1) {
+        else {
             if(COMPRESSED_DBG==false)
                 printf("[E] No data received from Stream (%d,%d): %d\n",
-                   id.src, id.dst, len);
+                id.src, id.dst, len);
             else {
                 printf("[E] M (%d,%d)\n", id.src, id.dst);
             }
         }
-        else {
-            printf("[E] M (%d,%d) Read returned %d\n", id.src, id.dst, len);
-        }
     }
+
     printf("[A] Stream (%d,%d) has been closed, status=", id.src, id.dst);
     printStatus(getInfo(stream).getStatus());
     // NOTE: Remember to call close() after the stream has been closed remotely
@@ -379,7 +423,7 @@ void openServer(unsigned char port, StreamParameters params) {
 
     try {
         while(getInfo(server).getStatus() == StreamStatus::LISTEN) {
-            int stream = accept(server);
+            int stream = accept(server, recvCallback);
             Thread::create(streamThread, 1536, MAIN_PRIORITY, new StreamThreadPar(stream, delay_stats));
         }
     } catch(exception& e) {
@@ -400,6 +444,9 @@ void openStream(unsigned char dest, unsigned char port, StreamParameters params)
     }
     /* Delay the Stream opening so it gets opened after the StreamServer */
     Thread::sleep(1000);
+
+    networkId = ctx->getNetworkId();
+
     /* Open Stream from node */
     while(true){
         try{
@@ -412,28 +459,18 @@ void openStream(unsigned char dest, unsigned char port, StreamParameters params)
             printf("[A] Opening stream to node %d\n", dest);
             int stream = connect(dest,          // Destination node
                                  port,          // Destination port
-                                 params);       // Stream parameters
+                                 params,
+                                 sendCallback);       // Stream parameters
             if(stream < 0) {                
                 printf("[A] Stream opening failed! error=%d\n", stream);
                 continue;
             }
-            unsigned int counter = 1;
-            bool first=true;
+
+            //unsigned int counter = 1;
+            //bool first=true;
             while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
-                Data data(ctx->getNetworkId(), counter);
-                int ret = mxnet::write(stream, &data, sizeof(data));
-                if(first) {
-                    first=false;
-                    printf("[A] Stream opened \n");
-                }
-                if(ret >= 0) {
-                    printf("[A] Sent ID=%d Time=%lld NetTime=%lld MinHeap=%u Heap=%u Counter=%u\n",
-                              data.getId(), data.getTime(), data.getNetworkTime(), data.getMinHeap(), data.getHeap(), data.getCounter());
-                }
-                else
-                    printf("[E] Error sending data, result=%d\n", ret);
-                counter++;
             }
+
             printf("[A] Stream (%d,%d) closed, status=", ctx->getNetworkId(), dest);
             printStatus(getInfo(stream).getStatus());
             // NOTE: Remember to call close() after the stream has been closed
@@ -475,7 +512,8 @@ int main()
         t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(2), Thread::JOINABLE);
         break;
     case 0x243537025155c346:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
+        t1 = Thread::create(masterNode, macThreadStack, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+        //t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
         break;
     case 0x243537035155c356:
         t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(4), Thread::JOINABLE);
@@ -530,11 +568,11 @@ int main()
     // You don't need to change the server parameters, but just the
     // ones of the client
     StreamParameters serverParams(Redundancy::TRIPLE_SPATIAL,
-                                  Period::P1,
+                                  Period::P10,
                                   1,     // payload size
                                   Direction::TX);
     StreamParameters clientParams(Redundancy::TRIPLE_SPATIAL,
-                                  Period::P10,
+                                  Period::P1,
                                   1,     // payload size
                                   Direction::TX);
     unsigned char port = 1;

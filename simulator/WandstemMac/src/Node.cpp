@@ -21,18 +21,18 @@
 #include <iostream>
 #include <stdexcept>
 #include <chrono>
+#include <functional>
 
 Define_Module(Node);
 
 using namespace std;
 using namespace miosix;
 using namespace mxnet;
-
 struct Data
 {
     Data() {}
     Data(int id, unsigned int counter, long long timestamp) : 
-                        id(id), counter(counter), timestamp(timestamp){}
+                        id(id), counter(counter), timestamp(timestamp) {}
     unsigned char id;
     unsigned int counter;
     long long timestamp;
@@ -124,8 +124,20 @@ void Node::application() {
     MACContext* ctx = tdmh->getMACContext();
     while(!ctx->isReady()) ;
     Period p = Period::P1;
-    Redundancy r = Redundancy::NONE;
+    Redundancy r = Redundancy::TRIPLE_SPATIAL;
     sendData(ctx, 0, p, r);
+}
+
+int networkId;
+unsigned int msgCounter = 0;
+
+void sendCallback(void* data, unsigned int* size)
+{
+    msgCounter++;
+    Data d(networkId, msgCounter, miosix::getTime());
+    *size = sizeof(Data);
+    memcpy(data, &d, *size);
+    printf("Send callback : msg time = %llu counter = %u \n", d.timestamp, d.counter);
 }
 
 void Node::sendData(MACContext* ctx, unsigned char dest, Period period, Redundancy redundancy) {
@@ -138,26 +150,30 @@ void Node::sendData(MACContext* ctx, unsigned char dest, Period period, Redundan
         printf("[A] N=%d Waiting to authenticate master node\n", ctx->getNetworkId());
         mgr->waitForMasterTrusted();
 
+        networkId = ctx->getNetworkId();
+
         /* Open a Stream to another node */
         int stream;
         do{
             printf("[A] Node %d: Opening stream to node %d\n", address, dest);
-            stream = mgr->connect(dest,          // Destination node
+            stream = mgr->connect(dest,     // Destination node
                              1,             // Destination port
-                             params);       // Stream parameters
+                             params,        // Stream parameters
+                             sendCallback);    
+
             if(stream < 0) {                
                 printf("[A] Stream opening failed! error=%d\n", stream);
             }
         }while(stream < 0);
         StreamId id = mgr->getInfo(stream).getStreamId();
         printf("[A] Stream (%d,%d) opened \n", id.src, id.dst);
-        unsigned int counter = 1;
+
         while(mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
-            Data data(ctx->getNetworkId(), counter, getTime());
+            /*msgCounter++;
+            Data data(ctx->getNetworkId(), msgCounter, getTime());
             int len = mgr->write(stream, &data, sizeof(data));
             printf("[A] Sent ID=%d Counter=%u Time=%llu, result=%d \n", 
-                                    data.id, data.counter, data.timestamp, len);
-            counter++;
+                                    data.id, data.counter, data.timestamp, len);*/
         }
         printf("[A] Stream was closed\n");
     } catch(exception& e) {

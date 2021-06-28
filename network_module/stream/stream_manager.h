@@ -115,6 +115,10 @@ public:
     // Creates a new Stream and returns the file-descriptor of the new Stream
     int connect(unsigned char dst, unsigned char dstPort, StreamParameters params);
 
+    // Creates a new Stream and returns the file-descriptor of the new Stream
+    int connect(unsigned char dst, unsigned char dstPort, StreamParameters params, 
+                              std::function<void(void*,unsigned int*)> sendCallback);
+
     // Puts data to be sent to a stream in a buffer, return the number of bytes sent
     int write(int fd, const void* data, int size);
 
@@ -134,6 +138,9 @@ public:
 
     // Wait for incoming Streams, if a stream is present return the new Stream file-descriptor
     int accept(int serverfd);
+
+    // Wait for incoming Streams, if a stream is present return the new Stream file-descriptor
+    int accept(int serverfd, std::function<void(void*,unsigned int*)> recvCallback);
 
     /**
      * The following methods are called by other TDMH modules,

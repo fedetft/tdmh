@@ -58,6 +58,14 @@ int connect(unsigned char dst, unsigned char dstPort, StreamParameters params) {
     return streamManager->connect(dst, dstPort, params);
 }
 
+int connect(unsigned char dst, unsigned char dstPort, StreamParameters params,
+                       std::function<void(void*,unsigned int*)> sendCallback) {
+    StreamManager* streamManager = getStreamManager();
+    if(streamManager == nullptr)
+        return -1;
+    return streamManager->connect(dst, dstPort, params, sendCallback);
+}
+
 int write(int fd, const void* data, int size) {
     StreamManager* streamManager = getStreamManager();
     if(streamManager == nullptr)
@@ -97,6 +105,13 @@ int accept(int serverfd) {
     if(streamManager == nullptr)
         return -1;
     return streamManager->accept(serverfd);
+}
+
+int accept(int serverfd, std::function<void(void*,unsigned int*)> recvCallback) {
+    StreamManager* streamManager = getStreamManager();
+    if(streamManager == nullptr)
+        return -1;
+    return streamManager->accept(serverfd, recvCallback);
 }
 #endif
 

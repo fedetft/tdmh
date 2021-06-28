@@ -157,6 +157,9 @@ public:
     // Used by derived class Stream and Server
     virtual bool desync() = 0;
 
+    virtual void setSendCallback(std::function<void(void*,unsigned int*)> callback) {}
+    virtual void setReceiveCallback(std::function<void(void*,unsigned int*)> callback) {}
+
 protected:
     // Change the status saved in StreamInfo
     void setStatus(StreamStatus status) {
@@ -284,6 +287,18 @@ public:
     // Returns true if the Stream class can be deleted
     bool desync() override;
 
+    void setSendCallback(std::function<void(void*,unsigned int*)> callback)
+    {
+        sendCallback = callback;
+        hasSendCallback = true;
+    }
+
+    void setReceiveCallback(std::function<void(void*,unsigned int*)> callback)
+    {
+        recvCallback = callback;
+        hasRecvCallback = true;
+    }
+
 #ifdef CRYPTO
     void setNewKey(const unsigned char newKey[16]) {
         AesOcb tmp(newKey);
@@ -296,7 +311,6 @@ public:
 
     AesOcb& getOCB() { return ocb; }
 #endif
-
 
 private:
     const unsigned short panId;
@@ -319,8 +333,12 @@ private:
     Packet rxPacketShared;
     Packet nextTxPacket;
 
-
     unsigned long long seqNo = 1;
+
+    std::function<void(void*,unsigned int*)>  sendCallback;
+    bool hasSendCallback = false;
+    std::function<void(void*,unsigned int*)>  recvCallback;
+    bool hasRecvCallback = false;
 
 #ifdef CRYPTO
     AesOcb ocb;
@@ -358,6 +376,9 @@ private:
     // at the end of every period.
     // Used to update txPacket, the packet being sent
     void updateTxPacket();
+
+    void receivePacketWithCallback();
+    void sendPacketWithCallback();
 };
 
 /**

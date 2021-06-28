@@ -166,6 +166,53 @@ bool Stream::sendPacket(Packet& data) {
     return txPacketReady;
 }
 
+void Stream::receivePacketWithCallback()
+{
+    if (receivedShared) // if something received in the current period
+    {
+        receivedShared = false;
+        
+        StreamId id;
+        rxPacketShared.removePanHeader();
+        rxPacketShared.get(&id, sizeof(StreamId));
+
+        unsigned int dataSize = std::min<unsigned int>(rxPacketShared.maxSize(), rxPacketShared.size());
+        unsigned char bytes[dataSize];
+        rxPacketShared.get(bytes, dataSize);
+        rxPacketShared.clear();
+
+        recvCallback(bytes, &dataSize);
+    }
+    else { // if only misses in current period
+        unsigned char bytes[rxPacketShared.maxSize()];
+        unsigned int dataSize = 0;
+        recvCallback(bytes, &dataSize);
+    }
+}
+
+void Stream::sendPacketWithCallback()
+{
+        unsigned char bytes[nextTxPacket.maxSize()];
+        unsigned int dataSize; // actual data size to be put in packet
+        sendCallback(bytes, &dataSize);
+
+        StreamId id = info.getStreamId();
+
+        nextTxPacket.clear();
+
+#ifdef CRYPTO
+        if (authData) nextTxPacket.reserveTag();
+#endif
+        // Set data into the DataPhase
+        // Put panHeader to distinguish TDMH packets from other 802.15.4 packets
+        nextTxPacket.putPanHeader(panId);
+        // Put streamId to distinguish TDMH packets of this streams
+        nextTxPacket.put(&id, sizeof(StreamId));
+        nextTxPacket.put(bytes, dataSize);
+        
+        nextTxPacketReady = true;
+}
+
 void Stream::addedStream(StreamParameters newParams) {
     // Lock mutex for concurrent access at StreamInfo
     {
@@ -490,12 +537,22 @@ bool Stream::updateRxPacket() {
             rx_cv.notify_one();
 #endif
         }
+
+        if (hasRecvCallback) // Callback executed once in a period
+        {
+            receivePacketWithCallback();
+        }
+
         return true;
     }
     return false;
 }
 
 void Stream::updateTxPacket() {
+
+    if (hasSendCallback) // Callback executed once in a period
+        sendPacketWithCallback();
+
     // Lock mutex for shared access with application thread
 #ifdef _MIOSIX
     miosix::Lock<miosix::FastMutex> lck(tx_mutex);
