@@ -335,9 +335,9 @@ private:
 
     unsigned long long seqNo = 1;
 
-    std::function<void(void*,unsigned int*)>  sendCallback;
+    std::function<void(void*,unsigned int*)>  sendCallback = nullptr;
     bool hasSendCallback = false;
-    std::function<void(void*,unsigned int*)>  recvCallback;
+    std::function<void(void*,unsigned int*)>  recvCallback = nullptr;
     bool hasRecvCallback = false;
 
 #ifdef CRYPTO

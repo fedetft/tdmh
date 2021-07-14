@@ -47,10 +47,6 @@ int waitForMasterTrusted();
 // Creates a new Stream and returns the file-descriptor of the new Stream
 int connect(unsigned char dst, unsigned char dstPort, StreamParameters params);
 
-// Creates a new Stream and returns the file-descriptor of the new Stream
-int connect(unsigned char dst, unsigned char dstPort, StreamParameters params,
-                       std::function<void(void*,unsigned int*)> sendCallback);
-
 // Puts data to be sent to a stream in a buffer, return the number of bytes sent
 int write(int fd, const void* data, int size);
 
@@ -71,8 +67,8 @@ int listen(unsigned char port, StreamParameters params);
 // Wait for incoming Streams, if a stream is present return the new Stream file-descriptor
 int accept(int serverfd);
 
-// Wait for incoming Streams, if a stream is present return the new Stream file-descriptor
-int accept(int serverfd, std::function<void(void*,unsigned int*)> recvCallback);
+bool setSendCallback(int fd, std::function<void(void*,unsigned int*)> sendCallback);
+bool setReceiveCallback(int fd, std::function<void(void*,unsigned int*)> sendCallback);
 
 class MACContext;
 class UplinkPhase;

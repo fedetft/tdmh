@@ -111,17 +111,6 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
     return fd;
 }
 
-int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParameters params, 
-                                std::function<void(void*,unsigned int*)> sendCallback) {
-    int fd = connect(dst, dstPort, params);
-    if (fd != -1)
-    {
-        auto stream = fdt.find(fd)->second;
-        stream->setSendCallback(sendCallback);
-    }
-    return fd;
-}
-
 int StreamManager::write(int fd, const void* data, int size) {
     REF_PTR_EP stream;
     {
@@ -276,15 +265,40 @@ int StreamManager::accept(int serverfd) {
     return fd;
 }
 
-int StreamManager::accept(int serverfd,
-                       std::function<void(void*,unsigned int*)> recvCallback) {
-    int fd = accept(serverfd);
-    if (fd != -1) 
-    {
-        auto stream = fdt.find(fd)->second;
-        stream->setReceiveCallback(recvCallback);
-    }
-    return fd;
+bool StreamManager::setSendCallback(int fd, std::function<void(void*,unsigned int*)> sendCallback) {
+    if (config.getCallbacksExecutionTime() == 0)
+            throwRuntimeError("Stream::setSendCallback: invalid callback execution time");
+    
+    // Lock stream_manager_mutex to access the shared Stream map
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_manager_mutex);
+#endif
+    auto it = fdt.find(fd);
+    if(it == fdt.end()) return false;
+    auto stream = it->second;
+    stream->setSendCallback(sendCallback);
+
+    return true;
+}
+
+bool StreamManager::setReceiveCallback(int fd, std::function<void(void*,unsigned int*)> recvCallback) {
+    if (config.getCallbacksExecutionTime() == 0)
+            throwRuntimeError("Stream::setReceiveCallback: invalid callback execution time");
+    
+    // Lock stream_manager_mutex to access the shared Stream map
+#ifdef _MIOSIX
+    miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
+#else
+    std::unique_lock<std::mutex> lck(stream_manager_mutex);
+#endif
+    auto it = fdt.find(fd);
+    if(it == fdt.end()) return false;
+    auto stream = it->second;
+    stream->setReceiveCallback(recvCallback);
+
+    return true;
 }
 
 void StreamManager::periodicUpdate() {
