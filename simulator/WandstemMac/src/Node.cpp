@@ -65,6 +65,7 @@ try {
             1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
+            100000,        //callbacksExecutionTime
             3,             //maxRoundsUnavailableBecomesDead
             16,            //maxRoundsWeakLinkBecomesDead
             -75,           //minNeighborRSSI
@@ -158,12 +159,15 @@ void Node::sendData(MACContext* ctx, unsigned char dest, Period period, Redundan
             printf("[A] Node %d: Opening stream to node %d\n", address, dest);
             stream = mgr->connect(dest,     // Destination node
                              1,             // Destination port
-                             params,        // Stream parameters
-                             sendCallback);    
+                             params);        // Stream parameters 
 
             if(stream < 0) {                
                 printf("[A] Stream opening failed! error=%d\n", stream);
             }
+            else {
+                mxnet::setSendCallback(stream, sendCallback);
+            }
+
         }while(stream < 0);
         StreamId id = mgr->getInfo(stream).getStreamId();
         printf("[A] Stream (%d,%d) opened \n", id.src, id.dst);

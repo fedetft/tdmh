@@ -42,6 +42,7 @@
 // #define SMALL_DATA
 
 using namespace std;
+using namespace std::placeholders;
 using namespace mxnet;
 using namespace miosix;
 
@@ -145,6 +146,7 @@ void masterNode(void*)
             1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
+            1000000,        //callbacksExecutionTime
             8,             //maxRoundsUnavailableBecomesDead
             128,           //maxRoundsWeakLinkBecomesDead
             -75,           //minNeighborRSSI
@@ -198,6 +200,7 @@ void dynamicNode(void* argv)
             1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
+            1000000,       //callbacksExecutionTime
             8,             //maxRoundsUnavailableBecomesDead
             128,           //maxRoundsWeakLinkBecomesDead
             -75,           //minNeighborRSSI
@@ -292,39 +295,47 @@ struct Data
 
 #endif //SMALL_DATA
 
-int networkId;
-unsigned int counter = 0;
-bool received        = false;
-int receivedBytes    = 0;
-Data receivedData;
-miosix::FastMutex receiveMutex;
-miosix::ConditionVariable receiveCv;
+// RECEIVE CALLBACK
+struct CallbackData
+{
+    int stream;
+    bool received;
+    int receivedBytes;
+    Data receivedData;
+    miosix::FastMutex receiveMutex;
 
+    CallbackData(int stream) : stream(stream), received(false), receivedBytes(-1) {}
+
+    ~CallbackData() { /*receiveCv.signal();*/ }
+
+    void recvCallback(void* data, unsigned int* size)
+    {
+        miosix::Lock<miosix::FastMutex> lck(receiveMutex);
+        
+        received = true;
+
+        if (*size != 0) {
+            receivedBytes = *size;
+            memcpy(&receivedData, data, receivedBytes);
+        }
+        else {
+            receivedBytes = -1;
+            receivedData = Data{-1, 0};
+        }
+
+        //receiveCv.signal();
+    }
+};
+
+// SEND CALLBACK
+int networkId;
+unsigned int sendMsgCounter = 0;
 void sendCallback(void* data, unsigned int* size)
 {
-    counter++;
-    Data d(networkId, counter);
+    sendMsgCounter++;
+    Data d(networkId, sendMsgCounter);
     *size = sizeof(Data);
     memcpy(data, &d, *size);
-}
-
-void recvCallback(void* data, unsigned int* size)
-{
-    miosix::Lock<miosix::FastMutex> lck(receiveMutex);
-    
-    received = true;
-
-    if (*size != 0) {
-        receivedBytes = *size;
-        memcpy(&receivedData, data, receivedBytes);
-    }
-    else {
-        printf("!!!!!!! MISS !!!!!!! \n");
-        receivedBytes = -1;
-        receivedData = Data{0, 0};
-    }
-
-    receiveCv.signal();
 }
 
 void streamThread(void *arg)
@@ -332,65 +343,74 @@ void streamThread(void *arg)
     printStackRange("stream");
     auto *s = reinterpret_cast<StreamThreadPar*>(arg);
     int stream = s->stream;
-    Stats* delay_stats = s->delay_stats;
+
     StreamInfo info = getInfo(stream);
     StreamId id = info.getStreamId();
     printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
-    //int cnt = 0;
+
+    Stats* delay_stats = &(s->delay_stats[id.src]);
+
+    CallbackData c_data(stream);
+    std::function<void(void*, unsigned int*)> recvCallback = 
+                                std::bind(&CallbackData::recvCallback, &c_data, _1, _2);
+    printf("[A] Set receive callback \n");
+    if (!setReceiveCallback(stream, recvCallback)) {
+        printf("[A] Error : failed to set receive callback! \n");
+        return;
+    }
 
     while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
 
         Data data;
         int len = -1;
 
-        // wait for callback to be executed
+        if (c_data.received)
         {
-            miosix::Lock<miosix::FastMutex> lck(receiveMutex);
-
-            while(!received)
-                receiveCv.wait(lck);
-
-            received = false;
-            data = receivedData;
-            len = receivedBytes;
-        }
-
-        if(len >= 0) {
-            if(len == sizeof(data))
             {
-                long long now = NetworkTime::now().get();
+                miosix::Lock<miosix::FastMutex> lck(c_data.receiveMutex);
 
-                if(COMPRESSED_DBG==false)
-                    printf("[A] Received data from (%d,%d): ID=%d MinHeap=%u Heap=%u Counter=%u Time=%llu NetTime=%llu \n",
-                    id.src, id.dst, data.getId(), data.getMinHeap(), data.getHeap(), data.getCounter(), miosix::getTime(), now);
-                else {
-                    printf("[A] R (%d,%d) ID=%d MH=%u C=%u T=%llu NT=%llu\n",
-                    id.src, id.dst, data.getId(), data.getMinHeap(), data.getCounter(), miosix::getTime(), now);
-                }
+                c_data.received = false;
+                data = c_data.receivedData;
+                len = c_data.receivedBytes;
+            }
 
-                long long delay = now - data.getNetworkTime();
-                if (delay != 0)
+            if(len >= 0) {
+                if(len == sizeof(Data))
                 {
-                    delay_stats[id.src].add(delay);
-                    printf("[A] Delay (%d,%d): D=%lld N=%u\n", id.src, id.dst, delay, delay_stats[id.src].getStats().n);
-                    printf("[A] Mean Delay (%d,%d): MD=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().mean);
-                    printf("[A] Delay Standard Deviation (%d,%d): DV=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().stdev);
+                    long long now = NetworkTime::now().get();
+
+                    if(COMPRESSED_DBG==false)
+                        printf("[A] Received data from (%d,%d): ID=%d MinHeap=%u Heap=%u Counter=%u Time=%llu NetTime=%llu \n",
+                        id.src, id.dst, data.getId(), data.getMinHeap(), data.getHeap(), data.getCounter(), miosix::getTime(), now);
+                    else {
+                        printf("[A] R (%d,%d) ID=%d MH=%u C=%u T=%llu NT=%llu\n",
+                        id.src, id.dst, data.getId(), data.getMinHeap(), data.getCounter(), miosix::getTime(), now);
+                    }
+
+                    long long delay = now - data.getNetworkTime();
+                    if (delay != 0)
+                    {
+                        delay_stats->add(delay);
+                        printf("[A] Delay (%d,%d): D=%lld N=%u\n", id.src, id.dst, delay, delay_stats->getStats().n);
+                        printf("[A] Mean Delay (%d,%d): MD=%lld\n", id.src, id.dst, delay_stats->getStats().mean);
+                        printf("[A] Delay Standard Deviation (%d,%d): DV=%lld\n", id.src, id.dst, delay_stats->getStats().stdev);
+                    }
+                }
+                else {
+                    if(COMPRESSED_DBG==false)
+                        printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
+                        id.src, id.dst, len);
+                    else
+                        printf("[E] W (%d,%d) %d\n", id.src, id.dst, len);
                 }
             }
             else {
                 if(COMPRESSED_DBG==false)
-                    printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
+                    printf("[E] No data received from Stream (%d,%d): %d\n",
                     id.src, id.dst, len);
-                else
-                    printf("[E] W (%d,%d) %d\n", id.src, id.dst, len);
-            }
-        }
-        else {
-            if(COMPRESSED_DBG==false)
-                printf("[E] No data received from Stream (%d,%d): %d\n",
-                id.src, id.dst, len);
-            else {
-                printf("[E] M (%d,%d)\n", id.src, id.dst);
+                else {
+                    printf("[E] M (%d,%d)\n", id.src, id.dst);
+                }
             }
         }
     }
@@ -423,7 +443,7 @@ void openServer(unsigned char port, StreamParameters params) {
 
     try {
         while(getInfo(server).getStatus() == StreamStatus::LISTEN) {
-            int stream = accept(server, recvCallback);
+            int stream = accept(server);
             Thread::create(streamThread, 1536, MAIN_PRIORITY, new StreamThreadPar(stream, delay_stats));
         }
     } catch(exception& e) {
@@ -459,11 +479,16 @@ void openStream(unsigned char dest, unsigned char port, StreamParameters params)
             printf("[A] Opening stream to node %d\n", dest);
             int stream = connect(dest,          // Destination node
                                  port,          // Destination port
-                                 params,
-                                 sendCallback);       // Stream parameters
+                                 params);       // Stream parameters
             if(stream < 0) {                
                 printf("[A] Stream opening failed! error=%d\n", stream);
                 continue;
+            }
+            else {
+                printf("[A] Set send callback \n");
+                if (!setSendCallback(stream, &sendCallback)) {
+                    printf("[A] Error : failed to set send callback! \n");
+                }
             }
 
             //unsigned int counter = 1;

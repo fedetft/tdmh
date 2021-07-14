@@ -66,6 +66,7 @@ void RootNode::activity() {
       1,                                              // numUplinkPackets
       100000000,                                      // tileDuration
       150000,                                         // maxAdmittedRcvWindow
+      100000,                                         //callbacksExecutionTime
       3,                // maxRoundsUnavailableBecomesDead
       16,               // maxRoundsWeakLinkBecomesDead
       -75,              // minNeighborRSSI
@@ -175,7 +176,8 @@ void RootNode::openServer(MACContext *ctx, unsigned char port, Period period,
     Stats delay_stats[nodesNum];
 
     while (mgr->getInfo(server).getStatus() == StreamStatus::LISTEN) {
-      int stream = mgr->accept(server, callback);
+      int stream = mgr->accept(server);
+      mxnet::setReceiveCallback(stream, callback);
       // pair<int, StreamManager*> arg = make_pair(stream, mgr);
       thread t1(&RootNode::streamThread, this,
                 new StreamThreadPar(stream, mgr, delay_stats));
