@@ -57,8 +57,9 @@ public:
     /**
      * \return the duration in nanoseconds of an uplink slot
      */
-    static unsigned long long getDuration(unsigned char numUplinkPackets)
-    {
+    static unsigned long long getDuration(const NetworkConfiguration& netConfig)
+    {   
+        unsigned char numUplinkPackets = netConfig.getNumUplinkPackets();
         unsigned long long duration = (packetArrivalAndProcessingTime + transmissionInterval) * numUplinkPackets;
 #ifdef CRYPTO
         //NOTE: assuming maxControlPktSize is equal to maxDataPktSize == 125

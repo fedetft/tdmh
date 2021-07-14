@@ -61,9 +61,9 @@ public:
     void advanceBy(unsigned int slots) {
         incrementSlot(slots);
     }
-    static unsigned long long getDuration() {
+    static unsigned long long getDuration(const NetworkConfiguration& netConfig) {
         // TODO: make configurable on maxDataPktSize
-        long long processingTime=847000;
+        long long processingTime=847000 + netConfig.getCallbacksExecutionTime();
 #ifdef CRYPTO
         //NOTE: account for presence/absence of print_dbg. The time is actually
         //even lower if encryption is disabled
@@ -74,7 +74,7 @@ public:
             processingTime+=179000  // max packet authenticated encryption
                            +197000; // max packet authenticated decryption
 #endif //ENABLE_CRYPTO_DATA_DBG
-        return align(MACContext::radioTime(MediumAccessController::maxDataPktSize)+processingTime,1000000LL);
+        return processingTime;
     }
     /**
      * Reset the internal status of the DataPhase after resynchronization

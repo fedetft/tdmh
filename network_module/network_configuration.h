@@ -103,6 +103,7 @@ public:
             unsigned int baseFrequency, unsigned long long clockSyncPeriod,
             unsigned char guaranteedTopologies, unsigned char numUplinkPackets,
             unsigned long long tileDuration, unsigned long long maxAdmittedRcvWindow,
+            unsigned long long callbacksExecutionTime,
             unsigned short maxRoundsUnavailableBecomesDead,
             unsigned short maxRoundsWeakLinkBecomesDead,
             short minNeighborRSSI, short minWeakNeighborRSSI,
@@ -152,6 +153,15 @@ public:
      */
     unsigned getMaxAdmittedRcvWindow() const {
         return maxAdmittedRcvWindow;
+    }
+
+    /**
+     * @return the maximum time, among all the nodes, for executing receive/send
+     * callbacks (i.e. time needed by the application to copy/read data to/from 
+     * the dataphase), if callbacks are used.
+     */
+    unsigned long long getCallbacksExecutionTime() const {
+        return callbacksExecutionTime;
     }
     
     /**
@@ -388,6 +398,7 @@ private:
     const unsigned long long clockSyncPeriod;
     const unsigned long long tileDuration;
     const unsigned long long maxAdmittedRcvWindow;
+    const unsigned long long callbacksExecutionTime;
     const unsigned char maxMissedTimesyncs;
     const unsigned char guaranteedTopologies;
     const unsigned char numUplinkPackets;

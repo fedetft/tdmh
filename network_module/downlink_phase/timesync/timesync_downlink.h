@@ -45,7 +45,8 @@ public:
     TimesyncDownlink() = delete;
     TimesyncDownlink(const TimesyncDownlink& orig) = delete;
 
-    static unsigned long long getDuration(unsigned short hops) {
+    static unsigned long long getDuration(const NetworkConfiguration& netConfig) {
+        unsigned short hops = netConfig.getMaxHops();
         int phaseStartupTime = 450000;
 #ifdef CRYPTO
         if(ENABLE_CRYPTO_TIMESYNC_DBG)

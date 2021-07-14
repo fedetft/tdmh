@@ -62,15 +62,17 @@ MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiv
 }
 
 void MACContext::calculateDurations() {
-    dataSlotDuration = DataPhase::getDuration();
-    uplinkSlotDuration = UplinkPhase::getDuration(networkConfig.getNumUplinkPackets());
+    dataSlotDuration = DataPhase::getDuration(networkConfig);
+    printf("Data slot duration (unaligned) : %lld\n", dataSlotDuration);
+    dataSlotDuration = align(MACContext::radioTime(MediumAccessController::maxDataPktSize)+dataSlotDuration, 1000000LLU);
+    uplinkSlotDuration = UplinkPhase::getDuration(networkConfig);
     printf("Radio time (maxDataPktSize) : %lld\n"
            "Uplink slot duration (unaligned): %lld\n",
            MACContext::radioTime(MediumAccessController::maxDataPktSize),uplinkSlotDuration);
     /* Align the Uplink slot duration is a multiple of the Data slot duration */
     uplinkSlotDuration = align(uplinkSlotDuration, dataSlotDuration);
     auto scheduleDownlinkDuration = ScheduleDownlinkPhase::getDuration(networkConfig);
-    auto timesyncDownlinkDuration = TimesyncDownlink::getDuration(networkConfig.getMaxHops());
+    auto timesyncDownlinkDuration = TimesyncDownlink::getDuration(networkConfig);
     /* Align the Downlink slot duration is a multiple of the Data slot duration */
     downlinkSlotDuration = align(std::max(scheduleDownlinkDuration, timesyncDownlinkDuration), dataSlotDuration);
 
