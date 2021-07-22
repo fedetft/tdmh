@@ -223,7 +223,7 @@ bool ScheduleComputation::reschedule()
         for(auto change : changes)
             if(change.second != StreamChange::REJECT) scheduleChanged = true;
         if((SCHEDULER_DETAILED_DBG || SCHEDULER_SUMMARY_DBG) && !scheduleChanged)
-            puts("[SC] No schedule changes beyond REJECT, not sending");
+            puts("[SC] No schedule changes, not sending");
     }
     
     //If schedule has really changed, send it
