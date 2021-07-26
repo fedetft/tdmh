@@ -130,15 +130,13 @@ void Node::application() {
 }
 
 int networkId;
-unsigned int msgCounter = 0;
-
+unsigned int sendMsgCounter = 0;
 void sendCallback(void* data, unsigned int* size)
 {
-    msgCounter++;
-    Data d(networkId, msgCounter, miosix::getTime());
+    sendMsgCounter++;
+    Data d(networkId, sendMsgCounter, miosix::getTime());
     *size = sizeof(Data);
     memcpy(data, &d, *size);
-    printf("Send callback : msg time = %llu counter = %u \n", d.timestamp, d.counter);
 }
 
 void Node::sendData(MACContext* ctx, unsigned char dest, Period period, Redundancy redundancy) {
@@ -159,13 +157,15 @@ void Node::sendData(MACContext* ctx, unsigned char dest, Period period, Redundan
             printf("[A] Node %d: Opening stream to node %d\n", address, dest);
             stream = mgr->connect(dest,     // Destination node
                              1,             // Destination port
-                             params);        // Stream parameters 
+                             params);       // Stream parameters 
 
             if(stream < 0) {                
                 printf("[A] Stream opening failed! error=%d\n", stream);
             }
             else {
-                mxnet::setSendCallback(stream, sendCallback);
+                if (!mgr->setSendCallback(stream, &sendCallback)) {
+                    printf("[A] Error : failed to set send callback! \n");
+                }
             }
 
         }while(stream < 0);

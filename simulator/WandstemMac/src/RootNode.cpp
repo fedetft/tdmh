@@ -29,6 +29,7 @@ Define_Module(RootNode);
 
 using namespace std;
 using namespace mxnet;
+using namespace std::placeholders;
 
 struct Data {
   Data() {}
@@ -129,29 +130,37 @@ void RootNode::application() {
   openServer(ctx, 1, Period::P1, Redundancy::TRIPLE_SPATIAL);
 }
 
-unsigned int counter = 0;
-bool received = false;
-unsigned int receivedBytes = 0;
-Data receivedData;
-std::mutex callbackMutex;
-std::condition_variable callbackCv;
+struct CallbackData
+{
+    int stream;
+    bool received;
+    int receivedBytes;
+    Data receivedData;
+    std::mutex receiveMutex;
+    long long recvTime = 0;
 
-void callback(void *data, unsigned int *size) {
-  std::unique_lock<std::mutex> lck(callbackMutex);
-  
-  received = true;
+    CallbackData(int stream) : stream(stream), received(false), receivedBytes(-1) {}
 
-  if (*size != 0) {
-      receivedBytes = *size;
-      memcpy(&receivedData, data, receivedBytes);
-  }
-  else {
-      receivedBytes = -1;
-      receivedData = Data(0, 0, 0);
-  }
+    ~CallbackData() {}
 
-  callbackCv.notify_one();
-}
+    void recvCallback(void* data, unsigned int* size)
+    {
+        recvTime = NetworkTime::now().get();
+
+        std::unique_lock<std::mutex> lck(receiveMutex);
+    
+        received = true;
+
+        if (*size != 0) {
+            receivedBytes = *size;
+            memcpy(&receivedData, data, receivedBytes);
+        }
+        else {
+            receivedBytes = -1;
+            receivedData = Data(-1, 0, miosix::getTime());
+        }
+    }
+};
 
 void RootNode::openServer(MACContext *ctx, unsigned char port, Period period,
                           Redundancy redundancy) {
@@ -167,6 +176,7 @@ void RootNode::openServer(MACContext *ctx, unsigned char port, Period period,
     /* Open a Server to listen for incoming streams */
     int server = mgr->listen(port,    // Destination port
                              params); // Server parameters
+
     if (server < 0) {
       printf("[A] Server opening failed! error=%d\n", server);
       return;
@@ -177,7 +187,7 @@ void RootNode::openServer(MACContext *ctx, unsigned char port, Period period,
 
     while (mgr->getInfo(server).getStatus() == StreamStatus::LISTEN) {
       int stream = mgr->accept(server);
-      mxnet::setReceiveCallback(stream, callback);
+
       // pair<int, StreamManager*> arg = make_pair(stream, mgr);
       thread t1(&RootNode::streamThread, this,
                 new StreamThreadPar(stream, mgr, delay_stats));
@@ -199,61 +209,74 @@ void RootNode::streamThread(void *arg) {
     Stats *delay_stats = s->delay_stats;
     StreamId id = mgr->getInfo(stream).getStreamId();
     printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
+
+    StreamInfo streamInfo = mgr->getInfo(stream);
+    CallbackData c_data(stream);
+    std::function<void(void*, unsigned int*)> recvCallback = 
+                              std::bind(&CallbackData::recvCallback, &c_data, _1, _2);
+    printf("[A] Set receive callback for stream (%d,%d) \n", streamInfo.getSrc(), streamInfo.getDst());
+    if (!mgr->setReceiveCallback(stream, recvCallback)) {
+        printf("[A] Error : failed to set receive callback for stream (%d,%d) \n", streamInfo.getSrc(), streamInfo.getDst());
+        return;
+    }
+
     // Receive data until the stream is closed
     while (mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
         
         Data data;
         int len = -1;
+        long long receiveTime = 0;
 
-        // wait for callback to be executed
+        if (c_data.received)
         {
-            std::unique_lock<std::mutex> lck(callbackMutex);
 
-            while(!received)
-                callbackCv.wait(lck);
+          // wait for callback to be executed
+          {
+              std::unique_lock<std::mutex> lck(c_data.receiveMutex);
 
-            received = false;
-            data = receivedData;
-            len = receivedBytes;
-        }
+              c_data.received = false;
+              data = c_data.receivedData;
+              len = c_data.receivedBytes;
+          }
 
-        if(len >= 0) {
-            if(len == sizeof(data))
-            {
-              long long now = miosix::getTime();
+          if(len >= 0) {
+              if(len == sizeof(data))
+              {
+                long long now = miosix::getTime();
 
-                if(COMPRESSED_DBG==false)
-                    printf("[A] Received data from (%d,%d): ID=%d MinHeap=0 Heap=0 Counter=%u Time=%llu\n",
-                    id.src, id.dst, data.id, data.counter, now);
-                else {
-                    printf("[A] R (%d,%d) ID=%d MH=0 C=%u T=%llu\n",
-                    id.src, id.dst, data.id, data.counter, now);
-                }
+                  if(COMPRESSED_DBG==false)
+                      printf("[A] Received data from (%d,%d): ID=%d MinHeap=0 Heap=0 Counter=%u Time=%llu\n",
+                      id.src, id.dst, data.id, data.counter, now);
+                  else {
+                      printf("[A] R (%d,%d) ID=%d MH=0 C=%u T=%llu\n",
+                      id.src, id.dst, data.id, data.counter, now);
+                  }
 
-                long long delay = now - data.timestamp;
-                if (delay != 0)
-                {
-                    delay_stats[id.src].add(delay);
-                    printf("[A] Delay (%d,%d): D=%lld N=%u\n", id.src, id.dst, delay, delay_stats[id.src].getStats().n);
-                    printf("[A] Mean Delay (%d,%d): MD=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().mean);
-                    printf("[A] Delay Standard Deviation (%d,%d): DV=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().stdev);
-                }
-            }
-            else {
-                if(COMPRESSED_DBG==false)
-                    printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
-                    id.src, id.dst, len);
-                else
-                    printf("[E] W (%d,%d) %d\n", id.src, id.dst, len);
-            }
-        }
-        else {
-            if(COMPRESSED_DBG==false)
-                printf("[E] No data received from Stream (%d,%d): %d\n",
-                id.src, id.dst, len);
-            else {
-                printf("[E] M (%d,%d)\n", id.src, id.dst);
-            }
+                  long long delay = now - data.timestamp;
+                  if (delay != 0)
+                  {
+                      delay_stats[id.src].add(delay);
+                      printf("[A] Delay (%d,%d): D=%lld N=%u\n", id.src, id.dst, delay, delay_stats[id.src].getStats().n);
+                      printf("[A] Mean Delay (%d,%d): MD=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().mean);
+                      printf("[A] Delay Standard Deviation (%d,%d): DV=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().stdev);
+                  }
+              }
+              else {
+                  if(COMPRESSED_DBG==false)
+                      printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
+                      id.src, id.dst, len);
+                  else
+                      printf("[E] W (%d,%d) %d\n", id.src, id.dst, len);
+              }
+          }
+          else {
+              if(COMPRESSED_DBG==false)
+                  printf("[E] No data received from Stream (%d,%d): %d\n",
+                  id.src, id.dst, len);
+              else {
+                  printf("[E] M (%d,%d)\n", id.src, id.dst);
+              }
+          }
         }
     }
     printf("[A] Stream (%d,%d) was closed\n", id.src, id.dst);
