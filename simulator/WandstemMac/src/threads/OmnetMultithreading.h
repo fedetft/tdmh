@@ -23,6 +23,19 @@
 
 using namespace omnetpp;
 
+/**
+ * Helper class for creating "threads" inside the simulator.
+ * Threads are actually run inside a new simulator coroutine.
+ * 
+ * NOTE : inside a normal thread the sleepUntil() function provided by TDMH 
+ * can't be used, since it needs a reference to a valid current "node". 
+ * To overcome this issue, create a new OMNET module which is executed in a 
+ * new coroutine, which in some sense emulates the multithreaded execution. 
+ * When the sleepUntil() function is called now it finds a reference to a 
+ * valid current node, that is the one whose activity() method is executed 
+ * by the new coroutine.
+ * 
+ */
 class OmnetMultithreading : public cSimpleModule
 {
 public:
