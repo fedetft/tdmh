@@ -29,6 +29,12 @@
 
 #define CRYPTO
 
+/**
+* enables propagation delay compensation
+*/
+//#define PROPAGATION_DELAY_COMPENSATION
+
+
 namespace mxnet {
 
 /**
