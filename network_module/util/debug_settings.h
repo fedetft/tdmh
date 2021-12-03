@@ -83,6 +83,9 @@ const bool ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY = false;
 //prints the stream context debug info
 const bool ENABLE_STREAM_INFO_DBG = true;
 
+//prints the stream wakeup scheduler debug info
+const bool ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG = false;
+
 //prints summary information on scheduling in the master node
 const bool SCHEDULER_SUMMARY_DBG = true;
 
