@@ -55,6 +55,11 @@ public:
      */
     void start();
 
+    /**
+     * @return boolean indicating if the thread was already started or not.
+     */
+    bool isStarted();
+
 protected:
     virtual void initialize() override;
     virtual void activity() override;

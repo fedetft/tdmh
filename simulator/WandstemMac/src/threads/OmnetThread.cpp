@@ -47,6 +47,10 @@ void OmnetThread::start() {
     }
 }
 
+bool OmnetThread::isStarted() {
+    return started;
+}
+
 void OmnetThread::initialize() { /* emtpy */ }
 
 void OmnetThread::activity() {
