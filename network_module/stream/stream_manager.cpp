@@ -29,6 +29,7 @@
 #include "../util/debug_settings.h"
 #include <algorithm>
 #include <set>
+#include "../mac_context.h"
 
 namespace mxnet {
 
@@ -65,7 +66,70 @@ void StreamManager::desync() {
     }
 }
 
-int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParameters params) {
+int StreamManager::wait(MACContext* ctx, int fd)
+{
+    REF_PTR_EP stream;
+    {
+        // Lock stream_manager_mutex to access the shared Stream map
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
+#else
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
+#endif
+        if(!masterTrusted) { 
+            return -10; 
+        }
+        auto it = fdt.find(fd);
+        if(it == fdt.end()) {
+            return -1; 
+        }
+        
+        stream = it->second;
+    }
+
+    stream->wait();
+
+    return 0;
+}
+
+bool StreamManager::wakeup(StreamId id)
+{
+    REF_PTR_EP stream;
+    {
+        // Lock stream_manager_mutex to access the shared Stream map
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
+#else
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
+#endif
+        auto streamit = streams.find(id);
+        if(streamit == streams.end()) return false;
+        stream = streamit->second;
+    }
+
+    stream->wakeup();
+
+    return true;
+}
+
+unsigned int StreamManager::getWakeupAdvance(StreamId id) {
+    REF_PTR_EP stream;
+    {
+        // Lock stream_manager_mutex to access the shared Stream map
+#ifdef _MIOSIX
+        miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
+#else
+        std::unique_lock<std::mutex> lck(stream_manager_mutex);
+#endif
+        auto streamit = streams.find(id);
+        if(streamit == streams.end()) return false;
+        stream = streamit->second;
+    }
+
+    return stream->getWakeupAdvance();
+}
+
+int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParameters params, unsigned int wakeupAdvance) {
     int fd = -1;
     REF_PTR_EP stream;
     StreamId streamId;
@@ -94,6 +158,16 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
         stream = res.second;
     }
 
+    if (wakeupAdvance != 0) {
+        // wakeup advance at most equal to the duration of a tile
+        if (wakeupAdvance >= (ctx.getSlotsInTileCount() * ctx.getDataSlotDuration())) {
+            return -3;
+        }
+        unsigned int n = wakeupAdvance / ctx.getDataSlotDuration();
+        wakeupAdvance = n * ctx.getDataSlotDuration();
+        stream->setWakeupAdvance(wakeupAdvance);
+    }
+
     // Make the stream wait for a schedule
     // NOTE: Make sure that stream enqueues a CONNECT SME
     int error = stream->connect(this);
@@ -107,6 +181,7 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
         removeStream(streamId);
         return -1;
     }
+
     printStreamStatus(streamId, stream->getInfo().getStatus());
     return fd;
 }
@@ -266,8 +341,10 @@ int StreamManager::accept(int serverfd) {
 }
 
 bool StreamManager::setSendCallback(int fd, std::function<void(void*,unsigned int*)> sendCallback) {
-    if (config.getCallbacksExecutionTime() == 0)
-            throwRuntimeError("Stream::setSendCallback: invalid callback execution time");
+    if (config.getCallbacksExecutionTime() == 0) {
+        print_dbg("[S] Stream::setSendCallback: invalid callback execution time\n");
+        return false;
+    }
     
     // Lock stream_manager_mutex to access the shared Stream map
 #ifdef _MIOSIX
@@ -284,8 +361,10 @@ bool StreamManager::setSendCallback(int fd, std::function<void(void*,unsigned in
 }
 
 bool StreamManager::setReceiveCallback(int fd, std::function<void(void*,unsigned int*)> recvCallback) {
-    if (config.getCallbacksExecutionTime() == 0)
-            throwRuntimeError("Stream::setReceiveCallback: invalid callback execution time");
+    if (config.getCallbacksExecutionTime() == 0) {
+        print_dbg("[S] Stream::setReceiveCallback: invalid callback execution time\n");
+        return false;
+    }
     
     // Lock stream_manager_mutex to access the shared Stream map
 #ifdef _MIOSIX
@@ -443,6 +522,15 @@ void StreamManager::setSchedule(const std::vector<ScheduleElement>& schedule) {
         doStartRekeying();
     }
 #endif
+}
+
+void StreamManager::setScheduleActivationTile(const unsigned int activationTile) {
+    waitScheduler.setScheduleActivationTile(activationTile);
+}
+
+void StreamManager::setStreamsWakeupLists(const std::vector<StreamWakeupInfo>& currList,
+                                            const std::vector<StreamWakeupInfo>& nextList) {
+    waitScheduler.setStreamsWakeupLists(currList, nextList);
 }
 
 void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) {

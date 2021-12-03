@@ -36,13 +36,13 @@
 #include "../crypto/aes_ocb.h"
 #endif
 #include <list>
+#include <mutex>
+#include <condition_variable>
+#include <memory>
 #ifdef _MIOSIX
 #include <miosix.h>
 #include <kernel/intrusive.h>
 #else
-#include <mutex>
-#include <condition_variable>
-#include <memory>
 
 // Enable this to check that second and third redundant packet received
 // are equal to the first one
@@ -84,6 +84,14 @@ public:
              int fd, StreamInfo info) : fd(fd), info(info), smeTimeout(smeTimeoutMax),
                                         failTimeout(failTimeoutMax) {};
     virtual ~Endpoint() {};
+
+    virtual void wait() {}
+
+    virtual void wakeup() {}
+
+    virtual unsigned int getWakeupAdvance() { return 0; }
+
+    virtual void setWakeupAdvance(unsigned int wa) {}
 
     // Used by derived class Stream 
     virtual int connect(StreamManager* mgr) {
@@ -227,6 +235,24 @@ public:
     // used to send CONNECT SME and wait for addedStream()
     int connect(StreamManager* mgr) override;
 
+    void wait() override;
+
+    void wakeup() override;
+
+    void setWakeupAdvance(unsigned int wa) {
+        wakeupAdvance = wa;
+        if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
+            print_dbg("[S] Stream %u -> wakeup advance : %u \n", info.getStreamId().getKey(), wakeupAdvance);
+    }
+    
+    unsigned int getWakeupAdvance() { 
+        if (wakeupAdvance != 0) {
+            return wakeupAdvance; // + wakeupAdvanceSlackTime; 
+        }
+       
+        return wakeupAdvance;
+    }
+
     // Called by StreamAPI, to put in sendBuffer data to be sent
     int write(const void* data, int size) override;
 
@@ -333,6 +359,13 @@ private:
     Packet rxPacketShared;
     Packet nextTxPacket;
 
+    /* Indicate whether the stream is in waiting state or not */
+    bool waiting = false;
+
+    // Streams optimization
+    unsigned int wakeupAdvance = 0; // ns
+    const unsigned int wakeupAdvanceSlackTime = 10000; // ns
+
     unsigned long long seqNo = 1;
 
     std::function<void(void*,unsigned int*)>  sendCallback = nullptr;
@@ -362,6 +395,9 @@ private:
     std::condition_variable tx_cv;
     std::condition_variable rx_cv;
 #endif
+
+    std::mutex wait_mutex;
+    std::condition_variable wait_cv;
 
     // Called by Stream itself, used to update cached redundancy info
     void updateRedundancy();

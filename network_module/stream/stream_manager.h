@@ -31,6 +31,7 @@
 // For StreamId
 #include "stream_management_element.h"
 #include "stream.h"
+#include "stream_wait_scheduler.h"
 #include "../scheduler/schedule_element.h"
 #include "../util/updatable_queue.h"
 // For cryptography
@@ -51,6 +52,12 @@
 #include <set>
 #include <queue>
 
+#ifndef _MIOSIX
+#include <omnetpp.h>
+#include "miosix_utils_sim.h"
+#include "NodeBase.h"
+#endif
+
 namespace mxnet {
 
 /**
@@ -66,8 +73,9 @@ namespace mxnet {
 
 class StreamManager {
 public:
-    StreamManager(const NetworkConfiguration& config, unsigned char myId) : config(config), myId(myId) {
-        // Inizialize clientPorts to false (all ports unused)
+    StreamManager(const MACContext& ctx, const NetworkConfiguration& config, unsigned char myId) 
+                        : ctx(ctx), config(config), myId(myId), waitScheduler(ctx, config, *this) {
+        // Initialize clientPorts to false (all ports unused)
         clientPorts.reserve(maxPorts);
         for (unsigned int i = 0; i < maxPorts; ++i) {
             clientPorts.push_back(false);
@@ -75,6 +83,8 @@ public:
 #ifdef CRYPTO
         if(myId != 0 && config.getDoMasterChallengeAuthentication()) masterTrusted = false;
 #endif
+
+        waitScheduler.start();
     }
 
     ~StreamManager() {
@@ -92,6 +102,12 @@ public:
      * the Timesync synchronization
      */
     void desync();
+
+    int wait(MACContext* ctx, int fd);
+
+    bool wakeup(StreamId id);
+
+    unsigned int getWakeupAdvance(StreamId id);
 
     /**
      * The following methods are called by the StreamAPI and ServerAPI functions
@@ -113,7 +129,7 @@ public:
     }
 
     // Creates a new Stream and returns the file-descriptor of the new Stream
-    int connect(unsigned char dst, unsigned char dstPort, StreamParameters params);
+    int connect(unsigned char dst, unsigned char dstPort, StreamParameters params, unsigned int wakeupAdvance = 0);
 
     // Puts data to be sent to a stream in a buffer, return the number of bytes sent
     int write(int fd, const void* data, int size);
@@ -165,6 +181,11 @@ public:
      * it prepares data structures needed for rekeying operations.
      */
     void setSchedule(const std::vector<ScheduleElement>& schedule);
+
+    void setScheduleActivationTile(const unsigned int activationTile);
+
+    void setStreamsWakeupLists(const std::vector<StreamWakeupInfo>& currList, 
+                                    const std::vector<StreamWakeupInfo>& nextList);
 
     /**
      * Used by ScheduleDistribution to apply a received schedule.
@@ -327,6 +348,9 @@ private:
     // Prints StreamId and status of a given Server 
     void printServerStatus(StreamId id, StreamStatus status);
 
+    /* Reference to the MACContext */
+    const MACContext& ctx;
+
     /* Reference to NetworkConfiguration */
     const NetworkConfiguration& config;
     /* NetworkId of this node */
@@ -432,6 +456,8 @@ private:
 
     std::condition_variable trust_cv;
 #endif
+
+    StreamWaitScheduler waitScheduler;
 };
 
 } /* namespace mxnet */

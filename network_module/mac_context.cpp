@@ -53,7 +53,7 @@ MACContext::~MACContext() {
 MACContext::MACContext(const MediumAccessController& mac, Transceiver& transceiver, const NetworkConfiguration& config) :
                 mac(mac), transceiverConfig(config.getBaseFrequency(), config.getTxPower(), true, false),
                 networkConfig(config), networkId(config.getStaticNetworkId()), transceiver(transceiver),
-                pm(miosix::PowerManager::instance()), streamMgr(config, networkId),
+                pm(miosix::PowerManager::instance()), streamMgr(*this, config, networkId),
                 controlSuperframe(networkConfig.getControlSuperframeStructure()),
                 sendTotal(0), sendErrors(0), rcvTotal(0), rcvErrors(0),
                 running(false)

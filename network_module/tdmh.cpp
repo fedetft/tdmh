@@ -51,11 +51,11 @@ int waitForMasterTrusted() {
     return 0;
 }
 
-int connect(unsigned char dst, unsigned char dstPort, StreamParameters params) {
+int connect(unsigned char dst, unsigned char dstPort, StreamParameters params, unsigned int wakeupAdvance) {
     StreamManager* streamManager = getStreamManager();
     if(streamManager == nullptr)
         return -1;
-    return streamManager->connect(dst, dstPort, params);
+    return streamManager->connect(dst, dstPort, params, wakeupAdvance);
 }
 
 int write(int fd, const void* data, int size) {

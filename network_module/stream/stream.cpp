@@ -60,18 +60,31 @@ int Stream::connect(StreamManager* mgr) {
     }
 }
 
+void Stream::wait() {
+    waiting = true;
+    std::unique_lock<std::mutex> lck(wait_mutex);
+    while(waiting) {
+        wait_cv.wait(lck);
+    }
+}
+
+void Stream::wakeup() {
+    waiting = false;
+    wait_cv.notify_one();
+}
+
 int Stream::write(const void* data, int size) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::FastMutex> lck(tx_mutex);
 #else
     std::unique_lock<std::mutex> lck(tx_mutex);
 #endif
-    // If we were called twice in a period, wait for the end of the period
-    while(nextTxPacketReady == true && info.getStatus() == StreamStatus::ESTABLISHED) {
+    //If we were called twice in a period, wait for the end of the period
+    while((waiting || nextTxPacketReady) && info.getStatus() == StreamStatus::ESTABLISHED) {
         tx_cv.wait(lck);
     }
     // The stream was closed
-    if(info.getStatus() != StreamStatus::ESTABLISHED) { 
+    if(info.getStatus() != StreamStatus::ESTABLISHED) {
         return -2;
     }
     try {
@@ -163,6 +176,7 @@ bool Stream::sendPacket(Packet& data) {
     // Copy the txPacket to the DataPhase
     if(txPacketReady)
         data = txPacket;
+
     return txPacketReady;
 }
 
@@ -461,7 +475,6 @@ bool Stream::desync() {
     wakeWriteRead();
     return deletable;
 }
-
 
 void Stream::updateRedundancy() {
     redundancy = info.getRedundancy();
