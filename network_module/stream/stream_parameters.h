@@ -40,6 +40,22 @@ enum class Redundancy
     TRIPLE_SPATIAL   //Triple redundancy, packets follow more than one path
 };
 
+inline int toInt(Redundancy x)
+{
+    switch(x) {
+        case Redundancy::NONE:
+            return 1;
+        case Redundancy::DOUBLE:
+        case Redundancy::DOUBLE_SPATIAL:
+            return 2;
+        case Redundancy::TRIPLE:
+        case Redundancy::TRIPLE_SPATIAL:
+            return 3;
+        default:
+            return -1;
+    }
+}
+
 enum class Period
 {
 //  P0dot1,        //  0.1*tileDuration (currently unsupported)
