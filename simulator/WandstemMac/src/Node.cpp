@@ -65,7 +65,7 @@ try {
             1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
-            100000,        //callbacksExecutionTime
+            0,        //callbacksExecutionTime
             3,             //maxRoundsUnavailableBecomesDead
             16,            //maxRoundsWeakLinkBecomesDead
             -75,           //minNeighborRSSI
@@ -92,7 +92,6 @@ try {
         Thread::nanoSleepUntil(connectTime);
         print_dbg("===> Starting @ %lld\n", connectTime);
     }
-    
     if(disconnectTime < numeric_limits<long long>::max())
     {
         print_dbg("Note: setting disconnect event\n");
@@ -155,29 +154,35 @@ void Node::sendData(MACContext* ctx, unsigned char dest, Period period, Redundan
         int stream;
         do{
             printf("[A] Node %d: Opening stream to node %d\n", address, dest);
-            stream = mgr->connect(dest,     // Destination node
-                             1,             // Destination port
-                             params);       // Stream parameters 
+            stream = mgr->connect(dest,                            // Destination node
+                                    1,                             // Destination port
+                                    params,                        // Stream parameters 
+                                    2*ctx->getDataSlotDuration()); // Wakeup advance (max 1 tile)
 
             if(stream < 0) {                
                 printf("[A] Stream opening failed! error=%d\n", stream);
             }
-            else {
+            /*else {
                 if (!mgr->setSendCallback(stream, &sendCallback)) {
                     printf("[A] Error : failed to set send callback! \n");
                 }
-            }
+            }*/
 
         }while(stream < 0);
+
         StreamId id = mgr->getInfo(stream).getStreamId();
         printf("[A] Stream (%d,%d) opened \n", id.src, id.dst);
 
+        unsigned int msgCounter = 0;
         while(mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
-            /*msgCounter++;
+            msgCounter++;
             Data data(ctx->getNetworkId(), msgCounter, getTime());
+            printf("\nStream wakeup! NT = %llu\n\n", NetworkTime::now().get());
             int len = mgr->write(stream, &data, sizeof(data));
+            printf("\nStream wait... NT = %llu\n\n", NetworkTime::now().get());
+            mgr->wait(ctx, stream);
             printf("[A] Sent ID=%d Counter=%u Time=%llu, result=%d \n", 
-                                    data.id, data.counter, data.timestamp, len);*/
+                                    data.id, data.counter, data.timestamp, len);
         }
         printf("[A] Stream was closed\n");
     } catch(exception& e) {

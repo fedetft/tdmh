@@ -67,7 +67,7 @@ void RootNode::activity() {
       1,                                              // numUplinkPackets
       100000000,                                      // tileDuration
       150000,                                         // maxAdmittedRcvWindow
-      100000,                                         //callbacksExecutionTime
+      0,                                         //callbacksExecutionTime
       3,                // maxRoundsUnavailableBecomesDead
       16,               // maxRoundsWeakLinkBecomesDead
       -75,              // minNeighborRSSI
@@ -201,6 +201,7 @@ void RootNode::openServer(MACContext *ctx, unsigned char port, Period period,
   }
 }
 
+/*
 void RootNode::streamThread(void *arg) {
   try {
     auto *s = reinterpret_cast<StreamThreadPar *>(arg);
@@ -283,4 +284,47 @@ void RootNode::streamThread(void *arg) {
   } catch (...) {
     printf("Exception thrown in streamThread\n");
   }
+}
+*/
+
+void RootNode::streamThread(void *arg) {
+    try{
+        auto *s = reinterpret_cast<StreamThreadPar*>(arg);
+        int stream = s->stream;
+        StreamManager* mgr = s->mgr;
+        Stats* delay_stats = s->delay_stats;
+        StreamId id = mgr->getInfo(stream).getStreamId();
+        printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
+        // Receive data until the stream is closed
+        while(mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
+            Data data;
+            int len = mgr->read(stream, &data, sizeof(data));
+            if(len >= 0) {
+                if(len == sizeof(data))
+                {
+                    printf("[A] Received data from (%d,%d): ID=%d MinHeap=0 Heap=0 Counter=%u Time=%llu\n",
+                            id.src, id.dst, data.id, data.counter, miosix::getTime());
+
+                    long long delay = miosix::getTime() - data.timestamp;
+                    if (delay != 0)
+                    {
+                        delay_stats[id.src].add(delay);
+                        printf("[A] Delay (%d,%d): D=%lld N=%u\n", id.src, id.dst, delay, delay_stats[id.src].getStats().n);
+                        printf("[A] Mean Delay (%d,%d): MD=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().mean);
+                        printf("[A] Delay Standard Deviation (%d,%d): DV=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().stdev);
+                    }
+                }
+                else
+                    printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
+                            id.src, id.dst, len);
+            }
+            else if(len == -1) {
+                // No data received
+                printf("[E] No data received from Stream (%d,%d)\n", id.src, id.dst);
+            }
+        }
+        printf("[A] Stream (%d,%d) was closed\n", id.src, id.dst);
+    }catch(...){
+        printf("Exception thrown in streamThread\n");
+    }
 }
