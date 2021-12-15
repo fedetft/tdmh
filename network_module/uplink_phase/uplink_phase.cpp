@@ -83,7 +83,7 @@ unsigned char UplinkPhase::getAndUpdateCurrentNode()
  * for beauty.
  */
 
-void UplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode)
+std::pair<int, long long> UplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode)
 {
 #ifdef CRYPTO
     KeyManager& keyManager = *(ctx.getKeyManager());
@@ -98,6 +98,8 @@ void UplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode)
     ReceiveUplinkMessage message(ctx.getNetworkConfig());
 #endif
     
+    std::pair<int, long long> ret;
+
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     if(message.recv(ctx, slotStart))
     {
@@ -112,6 +114,8 @@ void UplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode)
         if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
             print_dbg("<-%d %ddBm\n",currentNode,message.getRssi());
     
+        int rcvPackets = 1;
+
         if(message.getAssignee() == myId)
         {
             topologyQueue.enqueue(currentNode, std::move(senderTopology));
@@ -123,6 +127,7 @@ void UplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode)
                 // do not wait for remaining packets
                 // TODO verify that packetArrivalAndProcessingTime + transmissionInterval are correct
                 slotStart += packetArrivalAndProcessingTime + transmissionInterval;
+                rcvPackets++;
 
 #ifdef CRYPTO
                 if(ctx.getNetworkConfig().getAuthenticateControlMessages()) {
@@ -134,14 +139,25 @@ void UplinkPhase::receiveUplink(long long slotStart, unsigned char currentNode)
                 message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
             }
         }
+
+        ret.first = message.getHop();
+        //if(rcvPackets == numPackets)
+        ret.second = message.getTimestamp();
+        //else
+            //ret.second = slotStart + (packetArrivalAndProcessingTime + transmissionInterval)*(numPackets-rcvPackets);
         
     } else {
         myNeighborTable.missedMessage(currentNode);
         
         if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
             print_dbg("  %d\n",currentNode);
+
+        ret.first = -1;
+        ret.second = -1;
     }
     ctx.transceiverIdle();
+
+    return ret;
 }
 } // namespace mxnet
 

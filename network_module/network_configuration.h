@@ -32,7 +32,7 @@
 /**
 * enables propagation delay compensation
 */
-//#define PROPAGATION_DELAY_COMPENSATION
+#define PROPAGATION_DELAY_COMPENSATION
 
 
 namespace mxnet {

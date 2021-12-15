@@ -69,6 +69,15 @@ public:
      * together with forwarded TopologyElements and SMEs.
      */
     void sendMyUplink(long long slotStart);
+
+    
+#ifdef PROPAGATION_DELAY_COMPENSATION
+    /**
+     * Called after uplink messages are received from other nodes
+     * Master node always trasmits delay = 0
+     */
+    void sendDelayCompensationLedBar(long long slotStart);
+#endif
     
 private:
     StreamCollection* const streamColl;

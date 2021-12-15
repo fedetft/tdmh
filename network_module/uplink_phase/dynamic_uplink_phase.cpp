@@ -32,6 +32,7 @@
 #include "uplink_message.h"
 #include <limits>
 #include <cassert>
+#include "delay_compensation_message.h"
 #ifdef CRYPTO
 #include "../crypto/key_management/key_manager.h"
 #endif
@@ -47,11 +48,30 @@ void DynamicUplinkPhase::execute(long long slotStart)
     if (ENABLE_UPLINK_DYN_VERB_DBG)
          print_dbg("[U] N=%u NT=%lld\n", currentNode, NetworkTime::fromLocalTime(slotStart).get());
     
-    if (currentNode == myId) sendMyUplink(slotStart);
-    else receiveUplink(slotStart, currentNode);
+    if (currentNode == myId) 
+    {
+      long long lastSentTimestamp = sendMyUplink(slotStart);
+
+    #ifdef PROPAGATION_DELAY_COMPENSATION
+      rcvDelayCompensationLedBar(lastSentTimestamp, lastSentTimestamp + packetArrivalAndProcessingTime + transmissionInterval);
+    #endif
+    }
+    else 
+    {
+      auto rcvInfo = receiveUplink(slotStart, currentNode);
+      
+      //rcvInfo.first = sender hop
+      //rcvInfo.second = last received message timestamp
+
+    #ifdef PROPAGATION_DELAY_COMPENSATION
+      //only nodes with hop -1 send their ledbar
+      if(ctx.getHop() == rcvInfo.first-1)
+        sendDelayCompensationLedBar(rcvInfo.second + packetArrivalAndProcessingTime + transmissionInterval);
+    #endif
+    }
 }
 
-void DynamicUplinkPhase::sendMyUplink(long long slotStart)
+long long DynamicUplinkPhase::sendMyUplink(long long slotStart)
 {
 #ifdef CRYPTO
     KeyManager& keyManager = *(ctx.getKeyManager());
@@ -90,6 +110,8 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
         if(ENABLE_UPLINK_DBG){
             message.printHeader();
         }
+
+        return slotStart;
     }
 
     /* Otherwise pick the best predecessor and send enqueued SMEs and topologies */
@@ -132,7 +154,59 @@ void DynamicUplinkPhase::sendMyUplink(long long slotStart)
     
         if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
             print_dbg("->%d\n",ctx.getNetworkId());
+
+        return slotStart - packetArrivalAndProcessingTime - transmissionInterval;
     }
 }
+
+#ifdef PROPAGATION_DELAY_COMPENSATION
+void DynamicUplinkPhase::sendDelayCompensationLedBar(long long slotStart) //param int hop
+{
+  //send led bar only if predecessor delay is knowkn
+  if(compFilter.hasValue())
+  {
+    DelayCompensationMessage message(compFilter.getFilteredValue());
+
+    //configure the transceiver with CRC check disabled
+    ctx.configureTransceiver(ctx.getTransceiverConfig(false));
+    message.send(ctx,slotStart);
+    ctx.transceiverIdle();
+
+    //enable CRC again, maybe not needed
+    //ctx.configureTransceiver(ctx.getTransceiverConfig());
+  }
+}
+
+void DynamicUplinkPhase::rcvDelayCompensationLedBar(long long sentTimeout, long long expectedRcvTimeout)
+{
+    
+    DelayCompensationMessage message;
+
+    //configure the transceiver with CRC check disabled
+    ctx.configureTransceiver(ctx.getTransceiverConfig(false));
+    message.rcv(ctx,expectedRcvTimeout);
+    ctx.transceiverIdle();
+    //enable CRC again, maybe not needed
+    //ctx.configureTransceiver(ctx.getTransceiverConfig());
+
+    int rcvdLedBar = message.getValue();
+
+    //if message received correclty
+    if(rcvdLedBar >= 0)
+    {
+      const int roundTripCalibration = -19; //ns
+      //delta = message.getTimestamp() - sentTimeout
+      //rebroadcastDelay = packetArrivalAndProcessingTime + transmissionInterval
+      //measuredmeasuredCompensationDelayDelay = (delta - rebroadcastdelay)/2
+      int measuredCompensationDelay = ((message.getTimestamp() - sentTimeout - packetArrivalAndProcessingTime - transmissionInterval) >> 1) + roundTripCalibration;
+      compFilter.addValue(rcvdLedBar + measuredCompensationDelay);
+
+      int filterOutput = compFilter.getFilteredValue();
+
+      if(ENABLE_PROPAGATION_DELAY_DBG)
+        print_dbg("[U] Propagation delay: %d, %d, %d\n", rcvdLedBar, measuredCompensationDelay, filterOutput);
+    }
+}
+#endif
 
 } // namespace mxnet

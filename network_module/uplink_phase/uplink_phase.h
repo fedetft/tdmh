@@ -72,7 +72,13 @@ public:
             duration += 342000 * numUplinkPackets + 272000;
         else
             duration += 197000 * numUplinkPackets + 179000;
+#endif	
+
+#ifdef	PROPAGATION_DELAY_COMPENSATION
+        //to do: compute new uplink phase duration
+        duration += (packetArrivalAndProcessingTime + transmissionInterval)*2;
 #endif
+
         return duration;
     }
 
@@ -90,7 +96,7 @@ public:
     
     //TODO: check the duration calculation, it is currently hardcoded
     static const int transmissionInterval = 1000000; //1ms
-    static const int packetArrivalAndProcessingTime = 5000000;//32 us * 127 B + tp = 5ms
+    static const int packetArrivalAndProcessingTime = 5000000;//32 us * 133 B + tp = 5ms
 
 protected:
     UplinkPhase(MACContext& ctx, StreamManager* const streamMgr) :
@@ -107,8 +113,9 @@ protected:
     /**
      * Starts expecting a message from the node to which the slot is assigned
      * and modifies the TopologyContext as needed.
+     * \return a pair containig the hop of the sender(first) and the timestamp of the last received message(second)
      */
-    void receiveUplink(long long slotStart, unsigned char currentNode);
+    std::pair<int, long long> receiveUplink(long long slotStart, unsigned char currentNode);
 
     /**
      * Called at every execute() or advance() updates the state of the

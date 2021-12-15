@@ -30,6 +30,7 @@
 #include "uplink_message.h"
 #include "../util/debug_settings.h"
 #include <limits>
+#include "delay_compensation_message.h"
 
 using namespace miosix;
 
@@ -42,8 +43,23 @@ void MasterUplinkPhase::execute(long long slotStart)
     if(ENABLE_UPLINK_VERB_DBG)
         print_dbg("[U] N=%u NT=%lld\n", currentNode, NetworkTime::fromLocalTime(slotStart).get());
 
-    if (currentNode == myId) sendMyUplink(slotStart);
-    else receiveUplink(slotStart, currentNode);
+    if (currentNode == myId) 
+        sendMyUplink(slotStart);
+    else 
+    {
+      auto rcvInfo = receiveUplink(slotStart, currentNode);
+      if(rcvInfo.first != -1)
+        print_dbg("UPLINK: message from hop %d \n", rcvInfo.first);
+      
+      //rcvInfo.first = sender hop
+      //rcvInfo.second = last received message timestamp
+
+    #ifdef PROPAGATION_DELAY_COMPENSATION
+      //only nodes with hop -1 send their ledbar
+      if(ctx.getHop() == rcvInfo.first-1)
+        sendDelayCompensationLedBar(rcvInfo.second + packetArrivalAndProcessingTime + transmissionInterval);
+    #endif
+    }
 
     // Consume elements from the topology queue
     topology.handleTopologies(topologyQueue);
@@ -70,7 +86,7 @@ void MasterUplinkPhase::execute(long long slotStart)
     #endif
 }
 
-void MasterUplinkPhase::sendMyUplink(long long slotStart)
+void MasterUplinkPhase::MasterUplinkPhase::sendMyUplink(long long slotStart)
 {
 #ifdef CRYPTO
     KeyManager& keyManager = *(ctx.getKeyManager());
@@ -106,5 +122,21 @@ void MasterUplinkPhase::sendMyUplink(long long slotStart)
         message.printHeader();
     }
 }
+
+#ifdef PROPAGATION_DELAY_COMPENSATION
+void MasterUplinkPhase::sendDelayCompensationLedBar(long long slotStart)
+{
+    //master node always send delay 0
+    DelayCompensationMessage message(0);
+
+    //configure the transceiver with CRC check disabled
+    ctx.configureTransceiver(ctx.getTransceiverConfig(false));
+    message.send(ctx,slotStart);
+    ctx.transceiverIdle();
+
+    //enable CRC again, maybe not needed
+    //ctx.configureTransceiver(ctx.getTransceiverConfig());
+}
+#endif
 
 } // namespace mxnet

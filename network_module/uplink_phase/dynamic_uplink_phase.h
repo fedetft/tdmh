@@ -31,6 +31,10 @@
 #include "../network_configuration.h"
 #include "uplink_phase.h"
 
+#ifdef PROPAGATION_DELAY_COMPENSATION
+#include "delay_compensation_filter.h"
+#endif
+
 namespace mxnet {
 
 /**
@@ -71,10 +75,28 @@ public:
      * Called when it's our turn to transmit in the round-robin.
      * It sends the UplinkMessage containing our local TopologyElement and SMEs
      * together with forwarded TopologyElements and SMEs.
+     * /return timestamp of the last send message
      */
-    void sendMyUplink(long long slotStart);
+    long long sendMyUplink(long long slotStart);
+
+
+#ifdef PROPAGATION_DELAY_COMPENSATION
+    /**
+     * Called after uplink messages are received from other nodes
+     */
+    void sendDelayCompensationLedBar(long long slotStart);
+
+    /**
+     * Called after uplink messages are send in the uplink phase reserved to this node
+     */
+    void rcvDelayCompensationLedBar(long long sentTimeout, long long expectedRcvTimeout);
+#endif
 
 private:
+
+#ifdef PROPAGATION_DELAY_COMPENSATION
+    DelayCompensationFilter     compFilter;
+#endif
 };
 
 } // namespace mxnet
