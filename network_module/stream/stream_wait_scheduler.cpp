@@ -96,7 +96,7 @@ void StreamWaitScheduler::run() {
         
         // if current tile is the last before new schedule activation,
         // go to AWAITING_ACTIVATION state and use the new schedule's wakeup lists
-        isLastTileBeforeScheduleActivation = (currentTile >= scheduleActivationTile - 1);
+        isLastTileBeforeScheduleActivation = (currentTile == scheduleActivationTile);
 
         switch(status) {
     
