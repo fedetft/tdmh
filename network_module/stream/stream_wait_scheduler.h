@@ -46,7 +46,7 @@ namespace mxnet {
 /**
  * This class is used to computed the time at which every stream
  * has to be woken up, according the required advance.
- * The execution runs in a separate thread.
+ * The execution runs in a separate thread (active object).
  */
 class StreamWaitScheduler {
 
@@ -54,24 +54,68 @@ public:
     StreamWaitScheduler(const MACContext& ctx_, const NetworkConfiguration& netConfig_, StreamManager& streamMgr_): 
                             ctx(ctx_), netConfig(netConfig_), streamMgr(streamMgr_) {}
 
+    /**
+     * Set the data structures needed for the algorithm to work, i.e. two ordered lists
+     * containing all the streams to be woken up and their realtive wakeup time (in a superframe).
+     * @param currList streams to be woken up and transmitting during the current superframe
+     * @param nextList streams to be woken up in the current superframe, but trasmitting
+     *                 during the next one
+     */
     void setStreamsWakeupLists(const std::vector<StreamWakeupInfo>& currList, 
                                 const std::vector<StreamWakeupInfo>& nextList);
 
+    /**
+     * Set the tile number at which a newly received schedule will become active.
+     * @param activationTile the tile number at which the new schedule will be activated
+     */
     void setScheduleActivationTile(const unsigned int activationTile);
 
+    /**
+     * Start the active object's thread.
+     */
     void start();
 
-    void run(); // needed public for usage with the simulator (executed by OmnetThread class)
+    /**
+     * The method executed by the activa object.
+     * Needed tobe public for usage with the simulator, executed by OmnetThread class.
+     */
+    void run();
 
 private:
+    /**
+     * Replace streams lists relative to an older schedule
+     * with the ones realtive to the new one.
+     */
     void updateLists();
 
+    /**
+     * @return a StreamWakeupInfo object containing all the information 
+     *         needed to know the next time instant to wake up.
+     */
     StreamWakeupInfo getNextWakeupInfo();
 
-    //StreamWakeupInfo getCurrListElement();
+    /**
+     * Transform a stream's wkaeup offset w.r.t. to the superframe,
+     * into an absolute time value.
+     * @param currSuperframeStartTime start time of the current superframe
+     * @param nextSuperframeStartTime start time of the next superframe
+     * @param wt stream's wakeup time (w.r.t. the superframe)
+     */
+    unsigned long long nextAbsoluteWakeupTime(unsigned long long currSuperframeStartTime, 
+                                                unsigned long long nextSuperframeStartTime, 
+                                                unsigned int wt);
 
+    /**
+     * Wakeup a specific stream.
+     * @param sinfo StreamWakeupInfo relative to the stream to be woken up.
+     */
     void wakeupStream(StreamWakeupInfo sinfo);
 
+    /**
+     * @return boolean indicating if all the elements from both the
+     *         current and the next lists of streams have been used
+     *         (i.e. the algorithm iterated over both lists completely)
+     */
     bool allListsElementsUsed();
 
 #ifndef _MIOSIX
@@ -82,6 +126,9 @@ private:
     void printLists() {}
 #endif
 
+    /**
+     * StreamWaitScheduler state machine possible states.
+     */
     enum class StreamWaitSchedulerStatus : unsigned char {
         IDLE,
         AWAITING_ACTIVATION,
@@ -91,15 +138,10 @@ private:
     StreamWaitSchedulerStatus status = StreamWaitSchedulerStatus::IDLE;
 
     unsigned int scheduleActivationTile = 0;
-    //unsigned int scheduleActivationTime = 0;
 
     bool isLastTileBeforeScheduleActivation = false;
-    bool isLastTileInSuperframe             = false;
-
     bool useNextSuperFrameStartTime = false;
-
-    //std::vector<ExplicitScheduleElement> explicitSchedule;
-    //std::map<unsigned int, StreamWaitInfo> streamsTable;
+    bool newScheduleAvailable = false;
 
     // streams that have to send during the current superframe
     StreamWaitList currWakeupList;

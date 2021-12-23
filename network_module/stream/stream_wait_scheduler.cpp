@@ -40,9 +40,10 @@ void StreamWaitScheduler::setStreamsWakeupLists(const std::vector<StreamWakeupIn
     newCurrWakeupList.set(currList);
     newNextWakeupList.set(nextList);
 
-    status = StreamWaitSchedulerStatus::AWAITING_ACTIVATION;
+    newScheduleAvailable = true;
 
     if(ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG) {
+        print_dbg("\n[S] Node : %d - set new lists - NT=%llu\n\n", netConfig.getStaticNetworkId(), NetworkTime::now().get());
         printLists();
     }
 }  
@@ -51,8 +52,7 @@ void StreamWaitScheduler::setScheduleActivationTile(const unsigned int activatio
     std::unique_lock<std::mutex> lck(mutex);
 
     scheduleActivationTile = activationTile;
-    //scheduleActivationTime = scheduleActivationTile * netConfig.getTileDuration();
-
+    
     if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG) {
         print_dbg("[S] Next activation tile : %u\n", scheduleActivationTile);
     }
@@ -96,17 +96,21 @@ void StreamWaitScheduler::run() {
         
         // if current tile is the last before new schedule activation,
         // go to AWAITING_ACTIVATION state and use the new schedule's wakeup lists
-        isLastTileBeforeScheduleActivation = (currentTile == scheduleActivationTile - 1);
-
-        // if current tile is the last tile in the current superframe
-        // TODO : avoid "%", e.g. tileIndexInSuperframe == superframeSize 
-        isLastTileInSuperframe = (currentTile % superframeSize == superframeSize - 1);
+        isLastTileBeforeScheduleActivation = (currentTile >= scheduleActivationTile - 1);
 
         switch(status) {
     
             case StreamWaitSchedulerStatus::IDLE:
-                // do nothing, just wait until a schedule is received
-                ctx.sleepUntil(nextTileStartTime);
+                // check if new schedule available and if needed change state
+                if (newScheduleAvailable) {
+                    print_dbg("\nNode : %d - NEW SCHEDULE AVAILABLE - NT=%llu\n\n", netConfig.getStaticNetworkId(), NetworkTime::now().get());
+                    newScheduleAvailable = false;
+                    status = StreamWaitSchedulerStatus::AWAITING_ACTIVATION;
+                }
+                else {
+                    // do nothing, just wait until a schedule is received
+                    ctx.sleepUntil(nextTileStartTime);
+                }
                 break;
 
             case StreamWaitSchedulerStatus::AWAITING_ACTIVATION:
@@ -126,6 +130,7 @@ void StreamWaitScheduler::run() {
                 }
                 else if (currentTile >= scheduleActivationTile) {
                     status = StreamWaitSchedulerStatus::ACTIVE;
+                    newScheduleAvailable = false;
                     updateLists();
                     wakeupInfo = getNextWakeupInfo();
                     if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG) {
@@ -134,20 +139,23 @@ void StreamWaitScheduler::run() {
                         printLists();
                     }
                 }
-                
-                if (wakeupInfo.wakeupTime != 0) {
-                    if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG) {
-                        print_dbg("[S] Node : %d - NT=%llu - Curr SleepUntil=%llu\n\n", netConfig.getStaticNetworkId(), NetworkTime::now().get(), currTileStartTime + wakeupInfo.wakeupTime);
-                    }
 
-                    ctx.sleepUntil(currSuperframeStartTime + wakeupInfo.wakeupTime);
-                    wakeupStream(wakeupInfo);
-                }
-                else if (wakeupInfo.type == WakeupInfoType::EMPTY) {
-                    ctx.sleepUntil(nextTileStartTime);
-                }
-                else {
-                    Thread::nanoSleep(ctx.getDataSlotDuration());
+                unsigned long long when = nextAbsoluteWakeupTime(currSuperframeStartTime, nextSuperframeStartTime, wakeupInfo.wakeupTime);
+                
+                switch (wakeupInfo.type) {
+                    case WakeupInfoType::STREAM:
+                        if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG) {
+                            print_dbg("[S] Node : %d - NT=%llu - Curr SleepUntil=%llu\n\n", netConfig.getStaticNetworkId(), NetworkTime::now().get(), currTileStartTime + wakeupInfo.wakeupTime);
+                        }
+                        ctx.sleepUntil(when);
+                        wakeupStream(wakeupInfo);
+                        break;
+                    case WakeupInfoType::EMPTY:
+                        ctx.sleepUntil(nextTileStartTime);
+                        break;
+                    default:
+                        Thread::nanoSleep(ctx.getDataSlotDuration());
+                        break;
                 }
 
                 break;
@@ -155,44 +163,45 @@ void StreamWaitScheduler::run() {
 
             case StreamWaitSchedulerStatus::ACTIVE:
             {
-                StreamWakeupInfo wakeupInfo = getNextWakeupInfo();   
+                StreamWakeupInfo wakeupInfo = getNextWakeupInfo();
 
                 if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG) {
                     printStatus(currentTile);
                     print_dbg("[S] Stream wakeup info : %u - %u\n", wakeupInfo.id.getKey(), wakeupInfo.wakeupTime);
-                }            
-
-                if (wakeupInfo.wakeupTime != 0) {
-                    unsigned long long when = 0;
-                    if (useNextSuperFrameStartTime) {
-                        when = nextSuperframeStartTime + wakeupInfo.wakeupTime;
-                        useNextSuperFrameStartTime = false;
-                    }
-                    else {
-                        when = currSuperframeStartTime + wakeupInfo.wakeupTime;
-                    }
-
-                    if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG) {
-                        print_dbg("[S] NT=%llu - Curr tile start=%llu\n", NetworkTime::now().get(), currTileStartTime);
-                        print_dbg("[S] Curr superframe start=%llu - Next superframe start=%llu\n", currSuperframeStartTime, nextSuperframeStartTime);                    
-                        print_dbg("[S] Node : %d - NT=%llu - SleepUntil=%llu\n\n", netConfig.getStaticNetworkId(), NetworkTime::now().get(), when);
-                    }
-
-                    ctx.sleepUntil(when);
-                    wakeupStream(wakeupInfo);
-
-                    // if all the elements from curr and next list have been used,
-                    // start using the next superframe start time as a "base time"
-                    // for computing wakeup times
-                    if (StreamWaitList::allListsElementsUsed(currWakeupList, nextWakeupList)) {
-                        useNextSuperFrameStartTime = true;
-                    }
                 }
-                else if (wakeupInfo.type == WakeupInfoType::EMPTY) {
-                    ctx.sleepUntil(nextTileStartTime);
+
+                unsigned long long when = nextAbsoluteWakeupTime(currSuperframeStartTime, nextSuperframeStartTime, wakeupInfo.wakeupTime);
+                    
+                if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG) {
+                    print_dbg("[S] NT=%llu - Curr tile start=%llu\n", NetworkTime::now().get(), currTileStartTime);
+                    print_dbg("[S] Curr superframe start=%llu - Next superframe start=%llu\n", currSuperframeStartTime, nextSuperframeStartTime);                    
+                    print_dbg("[S] Node : %d - NT=%llu - SleepUntil=%llu\n\n", netConfig.getStaticNetworkId(), NetworkTime::now().get(), when);
                 }
-                else {
-                    Thread::nanoSleep(ctx.getDataSlotDuration());
+
+                switch(wakeupInfo.type) {
+                    case WakeupInfoType::STREAM:
+                        ctx.sleepUntil(when);
+                        wakeupStream(wakeupInfo);
+                        break;
+                    case WakeupInfoType::EMPTY:
+                        ctx.sleepUntil(nextTileStartTime);
+                        break;
+                    case WakeupInfoType::DOWNLINK:
+                        // wait until the end of the downlink slot
+                        ctx.sleepUntil(when);   
+                        //print_dbg("\nNode : %d - DOWNLINK SLOT - NT=%llu\n\n", netConfig.getStaticNetworkId(), NetworkTime::now().get());
+                        // check if new schedule available and if needed change state
+                        if (newScheduleAvailable) {
+                            if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG) {
+                                print_dbg("\nNode : %d - NEW SCHEDULE AVAILABLE - NT=%llu\n\n", netConfig.getStaticNetworkId(), NetworkTime::now().get());
+                            }
+                            newScheduleAvailable = false;
+                            status = StreamWaitSchedulerStatus::AWAITING_ACTIVATION;
+                        }
+                        break;
+                    default:
+                        Thread::nanoSleep(ctx.getDataSlotDuration());
+                        break;
                 }
 
                 break;
@@ -201,6 +210,13 @@ void StreamWaitScheduler::run() {
             default:
                 ctx.sleepUntil(nextTileStartTime);
                 break;
+        }
+
+        // if all the elements from curr and next list have been used,
+        // use the next superframe start time as a "base time"
+        // for computing wakeup times
+        if (StreamWaitList::allListsElementsUsed(currWakeupList, nextWakeupList)) {
+            useNextSuperFrameStartTime = true;
         }
     }
 }
@@ -243,16 +259,21 @@ StreamWakeupInfo StreamWaitScheduler::getNextWakeupInfo() {
     return swi;
 }
 
-/*StreamWakeupInfo StreamWaitScheduler::getCurrListElement() {
-    StreamWakeupInfo swi;
-    if (!currWakeupList.isEmpty()) {
-        swi = currWakeupList.getElement();
-        //print_dbg("swi = %u - %u \n", swi.id.getKey(), swi.wakeupTime);
-        currWakeupList.incrementIndex();
+unsigned long long StreamWaitScheduler::nextAbsoluteWakeupTime(unsigned long long currSuperframeStartTime, 
+                                                                unsigned long long nextSuperframeStartTime, 
+                                                                unsigned int wt) {
+    unsigned long long when = 0;
+
+    if (useNextSuperFrameStartTime) {
+        when = nextSuperframeStartTime + wt;
+        useNextSuperFrameStartTime = false;
+    }
+    else {
+        when = currSuperframeStartTime + wt;
     }
 
-    return swi;
-}*/
+    return when;
+}
 
 void StreamWaitScheduler::wakeupStream(StreamWakeupInfo sinfo) {
     if (sinfo.id.getKey() != 0) {
