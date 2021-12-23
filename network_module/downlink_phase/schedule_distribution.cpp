@@ -264,8 +264,8 @@ void ScheduleDownlinkPhase::computeStreamsWakeupLists(const std::map<unsigned in
     unsigned int numScheduledStreams = p.second;
 
     std::vector<StreamWakeupInfo> currList;
-    currList.reserve(numScheduledStreams - numStreamsWithNegativeOffset);
-                            // + netConfig.getControlSuperframeStructure().countDownlinkSlots());
+    currList.reserve(numScheduledStreams - numStreamsWithNegativeOffset
+                            + netConfig.getControlSuperframeStructure().countDownlinkSlots());
     std::vector<StreamWakeupInfo> nextList;
     nextList.reserve(numStreamsWithNegativeOffset);
 
@@ -279,7 +279,7 @@ void ScheduleDownlinkPhase::computeStreamsWakeupLists(const std::map<unsigned in
             int wakeupSlot = off - (it->second.wakeupAdvance / ctx.getDataSlotDuration());
             if (wakeupSlot < 0) {
                 negativeSlot = true;
-                wakeupSlot = (numSlotsInSuperframe - 1) + wakeupSlot; // convert to positive (referred to previous tile)
+                wakeupSlot = numSlotsInSuperframe + wakeupSlot; // convert to positive (referred to previous tile)
             }
 
             unsigned int wakeupTimeOffset = wakeupSlot * ctx.getDataSlotDuration(); // - 10000;
@@ -296,7 +296,8 @@ void ScheduleDownlinkPhase::computeStreamsWakeupLists(const std::map<unsigned in
         }
     }
 
-    // addDownlinkTimesToWakeupList(currList);
+    // make the streams wait scheduler to wakeup on downlink slots
+    addDownlinkTimesToWakeupList(currList);
     
     // sort but keep elements with the same value in the same order
     std::stable_sort(currList.begin(), currList.end());
@@ -324,11 +325,13 @@ std::pair<unsigned int, unsigned int> ScheduleDownlinkPhase::computeNumStreamsWi
 
 void ScheduleDownlinkPhase::addDownlinkTimesToWakeupList(std::vector<StreamWakeupInfo>& list) {
     ControlSuperframeStructure superframeStructure = ctx.getNetworkConfig().getControlSuperframeStructure();
+    unsigned int numConsecutiveDownlinkSlots = ctx.getDownlinkSlotDuration() / ctx.getDataSlotDuration();
     for (int i = 0; i < superframeStructure.size(); i++) {
         if (superframeStructure.isControlDownlink(i)) {
-            // compute dowlink tile wakeup offset
-            unsigned int downlinkWakeup = i * ctx.getSlotsInTileCount() * ctx.getDataSlotDuration();
-            list.emplace_back(StreamWakeupInfo{WakeupInfoType::DOWNLINK, StreamId(), downlinkWakeup});
+            // compute dowlink tile wakeup offset, wakeup at the end of the downlink slots
+            unsigned int downlinkWakeupSlot = (i * ctx.getSlotsInTileCount()) + numConsecutiveDownlinkSlots;
+            unsigned int downlinkWakeupTimeOffset = downlinkWakeupSlot * ctx.getDataSlotDuration();
+            list.emplace_back(StreamWakeupInfo{WakeupInfoType::DOWNLINK, StreamId(), downlinkWakeupTimeOffset});
         }
     }
 }
