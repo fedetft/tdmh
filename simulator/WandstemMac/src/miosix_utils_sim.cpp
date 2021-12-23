@@ -90,7 +90,9 @@ void Thread::nanoSleep(long long delta) {
     getNode()->waitAndDeletePackets(SimTime(delta, SIMTIME_NS));
 }
 void Thread::nanoSleepUntil(long long when) {
-    getNode()->waitAndDeletePackets(SimTime(when, SIMTIME_NS) - simTime());
+    simtime_t sleepTime = SimTime(when, SIMTIME_NS) - simTime();
+    if (sleepTime.raw() <= 0) return;
+    getNode()->waitAndDeletePackets(sleepTime);
 }
 
 bool Leds::greenOn = false;
