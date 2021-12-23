@@ -52,10 +52,6 @@ struct StreamWaitInfo {
     StreamWaitInfo() : id(StreamId()), period(1), redundancy(1), wakeupAdvance(0) {}
     StreamWaitInfo(StreamId sid, int p, int r, std::list<unsigned int> o, unsigned int wa) : 
                             id(sid), period(p), redundancy(r), offsets(o), wakeupAdvance(wa) {}
-
-    /*bool operator<(const StreamWaitInfo& other) const {
-        return offset < other.offset;
-    }*/
 };
 
 /**

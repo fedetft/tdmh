@@ -34,6 +34,10 @@
 
 namespace mxnet {
 
+/**
+ * Wrapper of a lists of StreamWakeupInfo elements,
+ * which provides some utility methods.
+ */
 class StreamWaitList {
 
 public:
@@ -42,30 +46,69 @@ public:
 
     ~StreamWaitList();
 
+    /**
+     * @return current list index
+     */
     unsigned int getIndex() const;
+
+    /**
+     * @return current list element
+     */
     StreamWakeupInfo getElement();
+
+    /**
+     * @return the entire list 
+     */
     const std::vector<StreamWakeupInfo>& get() const;
 
-    //StreamWakeupInfo getMinWakeupInfo();
-
+    /**
+     * Set the streams list to the specified one.
+     * @param l the new streams list 
+     */
     void set(const std::vector<StreamWakeupInfo>& l);
+
+    /**
+     * Set the streams list to the specified one.
+     * @param other the new streams list 
+     */
     void set(const StreamWaitList& other);
 
+    /**
+     * Reset current list index to zero (first element).
+     */
     void reset();
     
+    /**
+     * Increment the current list index in a circular way.
+     */
     void incrementIndex();
 
+    /**
+     * @return boolean indicating if the current list is empty
+     *         (i.e. does not contain any element).
+     */
     bool isEmpty() const;
 
+    /**
+     * @return boolean indicating if the list index reached the last position.
+     */
     bool isListEnd() const;
 
-    //bool isLastElement() const;
+    /**
+     * @param l1 first of the lists to be considered
+     * @param l2 second of the lists to be considered
+     * @return the StreamWakeupInfo element that has the minimum wakeup time
+     * among the first elements of the two lists passed as parameters. 
+     */
+    static StreamWakeupInfo getMinWakeupInfo(StreamWaitList& l1, StreamWaitList& l2);
 
-    static StreamWakeupInfo getMinWakeupInfo(StreamWaitList& currList,
-                                                StreamWaitList& nextList);
-
-    static bool allListsElementsUsed(const StreamWaitList& currList,
-                                        const StreamWaitList& nextList);
+    /**
+     * @param l1 first of the lists to be considered
+     * @param l2 second of the lists to be considered
+     * @return boolean indicating if all the elements of both lists have been used
+     *         (i.e. the list index reached the last element in both lists)
+     */
+    static bool allListsElementsUsed(const StreamWaitList& l1, const StreamWaitList& l2);
     
 #ifndef _MIOSIX
     void print();
@@ -74,6 +117,7 @@ public:
 private:
 
     std::vector<StreamWakeupInfo> list;
+
     size_t listSize = 0;
     unsigned int listIndex = 0;
     bool listEnd = false;

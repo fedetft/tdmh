@@ -97,13 +97,6 @@ bool StreamWaitList::isEmpty() const { return listSize == 0; }
 
 bool StreamWaitList::isListEnd() const { return listEnd; }
 
-/*bool StreamWaitList::isLastElement() const { 
-    if (isEmpty())
-        return true;
-    else
-        return listIndex == listSize - 1; 
-}*/
-
 #ifndef _MIOSIX
 void StreamWaitList::print() {
     //std::unique_lock<std::mutex> lck(mutex);
@@ -113,87 +106,83 @@ void StreamWaitList::print() {
 }
 #endif
 
-StreamWakeupInfo StreamWaitList::getMinWakeupInfo(StreamWaitList& currList,
-                                                    StreamWaitList& nextList) {
+StreamWakeupInfo StreamWaitList::getMinWakeupInfo(StreamWaitList& l1, StreamWaitList& l2) {
     
-    //print_dbg("curr list end = %d - next list end = %d\n", currList.isListEnd(), nextList.isListEnd());
-
     // both lists empty, return empty struct
-    if (currList.isEmpty() && nextList.isEmpty()) {
+    if (l1.isEmpty() && l2.isEmpty()) {
         if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
             print_dbg("[S] Both curr and next lists empty\n");
         return StreamWakeupInfo{};
     }
 
-    if (currList.isListEnd() && nextList.isListEnd()) {
-        currList.reset();
-        nextList.reset();
+    if (l1.isListEnd() && l2.isListEnd()) {
+        l1.reset();
+        l2.reset();
     }
     
-    StreamWakeupInfo currSwi{};
-    StreamWakeupInfo nextSwi{};
+    StreamWakeupInfo swi1{};
+    StreamWakeupInfo swi2{};
 
     // get first element of both lists (if not empty)
-    if (!currList.isEmpty()) {
-        currSwi = currList.getElement();
+    if (!l1.isEmpty()) {
+        swi1 = l1.getElement();
     }
-    if (!nextList.isEmpty()) {
-        nextSwi = nextList.getElement();
+    if (!l2.isEmpty()) {
+        swi2 = l2.getElement();
     }
 
     // if one of the two lists is empty, return the element from the other list
-    if (currList.isEmpty()) {
+    if (l1.isEmpty()) {
         if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
             print_dbg("[S] Curr list empty : get element from next list\n");
-        nextList.incrementIndex();
-        return nextSwi;
+        l2.incrementIndex();
+        return swi2;
     }
-    else if (nextList.isEmpty()) {
+    else if (l2.isEmpty()) {
         if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
             print_dbg("[S] Next list empty : get element from curr list\n");
-        currList.incrementIndex();
-        return currSwi;
+        l1.incrementIndex();
+        return swi1;
     }
 
     // if already cycled over the entire curr list
     // return element from the other list (next list)
-    if (currList.isListEnd()) {
+    if (l1.isListEnd()) {
         if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
             print_dbg("[S] Curr list is ended : get element from next list\n");
-        nextList.incrementIndex();
-        return nextSwi;
+        l2.incrementIndex();
+        return swi2;
     }
 
     // otherwise, return the minimum among the two lists elements
-    if (currSwi.wakeupTime <= nextSwi.wakeupTime) {
+    if (swi1.wakeupTime <= swi2.wakeupTime) {
         if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
             print_dbg("[S] Get element from curr list\n");
-        currList.incrementIndex();
-        return currSwi;
+        l1.incrementIndex();
+        return swi1;
     }
     else {
         if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
             print_dbg("[S] Get element from next list\n");
-        nextList.incrementIndex();
-        return nextSwi;
+        l2.incrementIndex();
+        return swi2;
     }
 
-    return currSwi;
+    return swi1;
 }
 
-bool StreamWaitList::allListsElementsUsed(const StreamWaitList& currList,
-                                            const StreamWaitList& nextList) {
+bool StreamWaitList::allListsElementsUsed(const StreamWaitList& l1, const StreamWaitList& l2) {
     // if used all elements from both lists
     //              OR
     // one of the two lists is empty,
     // then return true
-    if (currList.isListEnd() && nextList.isListEnd())
+    if (l1.isListEnd() && l2.isListEnd())
         return true;
 
-    if (currList.isListEnd() && nextList.isEmpty())
+    if (l1.isListEnd() && l2.isEmpty())
         return true;
 
-    if (currList.isEmpty() && nextList.isListEnd())
+    if (l1.isEmpty() && l2.isListEnd())
         return true;
 
     // not used all the elements in both lists
