@@ -46,7 +46,6 @@ const std::vector<StreamWakeupInfo>& StreamWaitList::get() const {
 }
 
 StreamWakeupInfo StreamWaitList::getElement() {
-    //std::unique_lock<std::mutex> lck(mutex);
     StreamWakeupInfo swi;
 
     if (isEmpty()) {
@@ -62,27 +61,22 @@ StreamWakeupInfo StreamWaitList::getElement() {
 }
 
 void StreamWaitList::set(const std::vector<StreamWakeupInfo>& l) {
-    //std::unique_lock<std::mutex> lck(mutex);
     list = l;
     listSize = list.size();
     listIndex = 0;
 }
 
 void StreamWaitList::set(const StreamWaitList& other) {
-    //std::unique_lock<std::mutex> lck(mutex);
     set(other.get());
     listIndex = other.getIndex();
 }
 
 void StreamWaitList::reset() {
-    //std::unique_lock<std::mutex> lck(mutex);
     listEnd = false;
     listIndex = 0;
 }
 
 void StreamWaitList::incrementIndex() {
-    //std::unique_lock<std::mutex> lck(mutex);
-
     if (listEnd) {
         listEnd = false;
     }
@@ -99,7 +93,6 @@ bool StreamWaitList::isListEnd() const { return listEnd; }
 
 #ifndef _MIOSIX
 void StreamWaitList::print() {
-    //std::unique_lock<std::mutex> lck(mutex);
     print_dbg("ID \t\tWakeupTime \tType \n");
     for(auto e : list)
         print_dbg("%lu \t%u \t%d\n", e.id.getKey(), e.wakeupTime, e.type);

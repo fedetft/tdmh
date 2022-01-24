@@ -121,8 +121,6 @@ private:
     size_t listSize = 0;
     unsigned int listIndex = 0;
     bool listEnd = false;
-
-    std::mutex mutex;
 };
 
 } /* namespace mxnet */
