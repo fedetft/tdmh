@@ -76,7 +76,7 @@ public:
     void start();
 
     /**
-     * The method executed by the activa object.
+     * The method executed by the active object.
      * Needed tobe public for usage with the simulator, executed by OmnetThread class.
      */
     void run();
@@ -118,6 +118,11 @@ private:
      */
     bool allListsElementsUsed();
 
+
+    static void threadLauncher(void *arg) {
+        reinterpret_cast<StreamWaitScheduler*>(arg)->run();
+    }
+
 #ifndef _MIOSIX
     void printStatus(unsigned int tile);
     void printLists();
@@ -145,7 +150,7 @@ private:
 
     // streams that have to send during the current superframe
     StreamWaitList currWakeupList;
-    // streams that have to send during next tile but need to be 
+    // streams that have to send during next tile but need to be
     // woken up during the current superframe
     StreamWaitList nextWakeupList;
 
@@ -154,7 +159,8 @@ private:
     StreamWaitList newNextWakeupList;
 
 #ifdef _MIOSIX
-    std::thread* swthread = nullptr;
+    miosix::Thread* swthread = nullptr;
+    unsigned int const THREAD_STACK = 3*1024;
 #else
     OmnetMultithreading threadsFactory;
     OmnetThread* swthread = nullptr;

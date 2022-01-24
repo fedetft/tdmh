@@ -80,9 +80,12 @@ int Stream::write(const void* data, int size) {
     std::unique_lock<std::mutex> lck(tx_mutex);
 #endif
     //If we were called twice in a period, wait for the end of the period
-    while((waiting || nextTxPacketReady) && info.getStatus() == StreamStatus::ESTABLISHED) {
-        tx_cv.wait(lck);
+    if (wakeupAdvance == 0) { // only if stream not managed by the StreamWaitScheduler
+        while((waiting || nextTxPacketReady) && info.getStatus() == StreamStatus::ESTABLISHED) {
+            tx_cv.wait(lck);
+        }
     }
+    
     // The stream was closed
     if(info.getStatus() != StreamStatus::ESTABLISHED) {
         return -2;
@@ -206,25 +209,25 @@ void Stream::receivePacketWithCallback()
 
 void Stream::sendPacketWithCallback()
 {
-        unsigned char bytes[nextTxPacket.maxSize()];
-        unsigned int dataSize; // actual data size to be put in packet
-        sendCallback(bytes, &dataSize);
+    unsigned char bytes[nextTxPacket.maxSize()];
+    unsigned int dataSize; // actual data size to be put in packet
+    sendCallback(bytes, &dataSize);
 
-        StreamId id = info.getStreamId();
+    StreamId id = info.getStreamId();
 
-        nextTxPacket.clear();
+    nextTxPacket.clear();
 
 #ifdef CRYPTO
-        if (authData) nextTxPacket.reserveTag();
+    if (authData) nextTxPacket.reserveTag();
 #endif
-        // Set data into the DataPhase
-        // Put panHeader to distinguish TDMH packets from other 802.15.4 packets
-        nextTxPacket.putPanHeader(panId);
-        // Put streamId to distinguish TDMH packets of this streams
-        nextTxPacket.put(&id, sizeof(StreamId));
-        nextTxPacket.put(bytes, dataSize);
-        
-        nextTxPacketReady = true;
+    // Set data into the DataPhase
+    // Put panHeader to distinguish TDMH packets from other 802.15.4 packets
+    nextTxPacket.putPanHeader(panId);
+    // Put streamId to distinguish TDMH packets of this streams
+    nextTxPacket.put(&id, sizeof(StreamId));
+    nextTxPacket.put(bytes, dataSize);
+    
+    nextTxPacketReady = true;
 }
 
 void Stream::addedStream(StreamParameters newParams) {
