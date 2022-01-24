@@ -103,7 +103,7 @@ public:
      */
     void desync();
 
-    int wait(MACContext* ctx, int fd);
+    int wait(int fd);
 
     bool wakeup(StreamId id);
 

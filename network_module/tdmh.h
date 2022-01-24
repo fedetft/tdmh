@@ -53,6 +53,9 @@ int write(int fd, const void* data, int size);
 // Gets data received from a stream, return the number of bytes received
 int read(int fd, void* data, int maxSize);
 
+// Put a stream in "waiting state", wait for it to be woken up at its assigned sending slot
+int wait(int fd);
+
 // Returns a StreamInfo, containing stream status and parameters
 StreamInfo getInfo(int fd);
 

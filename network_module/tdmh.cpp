@@ -72,6 +72,13 @@ int read(int fd, void* data, int maxSize) {
     return streamManager->read(fd, data, maxSize);
 }
 
+int wait(int fd) {
+    StreamManager* streamManager = getStreamManager();
+    if(streamManager == nullptr)
+        return -1;
+    return streamManager->wait(fd);
+}
+
 StreamInfo getInfo(int fd) {
     StreamManager* streamManager = getStreamManager();
     if(streamManager == nullptr)

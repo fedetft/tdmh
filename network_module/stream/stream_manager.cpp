@@ -66,7 +66,7 @@ void StreamManager::desync() {
     }
 }
 
-int StreamManager::wait(MACContext* ctx, int fd)
+int StreamManager::wait(int fd)
 {
     REF_PTR_EP stream;
     {
@@ -86,6 +86,10 @@ int StreamManager::wait(MACContext* ctx, int fd)
         
         stream = it->second;
     }
+
+    // avoid non-sending streams to wait
+    if (stream->getInfo().getDirection() == Direction::RX)
+        return -2;
 
     stream->wait();
 
