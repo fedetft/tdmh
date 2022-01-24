@@ -130,7 +130,7 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
                 }
             }
 
-            if (streamNotYetInserted && offsets.size() > 0) { // && actionSendStream) {
+            if (streamNotYetInserted && offsets.size() > 0) {
                 StreamWaitInfo swi{e.getStreamId(), toInt(e.getParams().getPeriod()),
                                     toInt(e.getParams().getRedundancy()), offsets, wakeupAdvance};
                 streamWaitInfoTable.insert({e.getStreamId().getKey(), swi});
@@ -282,7 +282,9 @@ void ScheduleDownlinkPhase::computeStreamsWakeupLists(const std::map<unsigned in
                 wakeupSlot = numSlotsInSuperframe + wakeupSlot; // convert to positive (referred to previous tile)
             }
 
-            unsigned int wakeupTimeOffset = wakeupSlot * ctx.getDataSlotDuration(); // - 10000;
+            unsigned int tileIndexInSuperframe = wakeupSlot / ctx.getSlotsInTileCount();
+            unsigned int slackTime = ctx.getTileSlackTime() * tileIndexInSuperframe;
+            unsigned int wakeupTimeOffset = wakeupSlot * ctx.getDataSlotDuration() + slackTime;
 
             // if wakeup slot was negative, add element to one list, otherwise to the other
             // to maintan separated the wakeup times relative to the current or to the next superframe

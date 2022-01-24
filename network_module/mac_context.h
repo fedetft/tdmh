@@ -210,6 +210,11 @@ public:
     unsigned getSlotsInTileCount() const { return numSlotInTile; }
 
     /**
+     * @return the slack time of each tile
+     */
+    unsigned long long getTileSlackTime() const { return tileSlackTime; }
+
+    /**
      * @return the number of data slots in an uplink tile
      */
     unsigned getDataSlotsInUplinkTileCount() const { return numDataSlotInUplinkTile; }
