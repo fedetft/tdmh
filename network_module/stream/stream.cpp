@@ -79,8 +79,8 @@ int Stream::write(const void* data, int size) {
 #else
     std::unique_lock<std::mutex> lck(tx_mutex);
 #endif
-    //If we were called twice in a period, wait for the end of the period
-    if (wakeupAdvance == 0) { // only if stream not managed by the StreamWaitScheduler
+    // If we were called twice in a period, wait for the end of the period
+    if (wakeupAdvance == 0) { // only for streams not managed by the StreamWaitScheduler
         while((waiting || nextTxPacketReady) && info.getStatus() == StreamStatus::ESTABLISHED) {
             tx_cv.wait(lck);
         }
@@ -158,20 +158,40 @@ bool Stream::receivePacket(const Packet& data) {
     // NOTE: we use a duplicated rxPacket to acquire data before locking the mutex
     rxPacket = data;
     received = true;
-    return updateRxPacket();
+
+    auto res = updateRxPacket();
+
+     // once per period execute receive callback if needed
+    if (rxCount == 0 && hasRecvCallback) {
+        receivePacketWithCallback();
+    }
+
+    return res;
 }
 
 bool Stream::missPacket() {
     // No data to receive
-    return updateRxPacket();
+    auto res = updateRxPacket();
+
+    // once per period execute receive callback if needed
+    if (rxCount == 0 && hasRecvCallback) {
+        receivePacketWithCallback();
+    }
+    
+    return res;
 }
 
 bool Stream::sendPacket(Packet& data) {
     // Stream Redundancy logic
     // NOTE: We update the packet before sending it
     // for the first time of the current period.
-    if(txCount == 0)
+    if(txCount == 0) {
+        // once per period execute send callback if needed
+        if (hasSendCallback) {
+            sendPacketWithCallback();
+        }
         updateTxPacket();
+    }
     if(++txCount >= redundancyCount) {
         txCount = 0;
         seqNo++;
@@ -187,16 +207,24 @@ void Stream::receivePacketWithCallback()
 {
     if (receivedShared) // if something received in the current period
     {
-        receivedShared = false;
-        
-        StreamId id;
-        rxPacketShared.removePanHeader();
-        rxPacketShared.get(&id, sizeof(StreamId));
-
         unsigned int dataSize = std::min<unsigned int>(rxPacketShared.maxSize(), rxPacketShared.size());
         unsigned char bytes[dataSize];
-        rxPacketShared.get(bytes, dataSize);
-        rxPacketShared.clear();
+
+        {
+            // Lock mutex for shared access with application thread
+#ifdef _MIOSIX
+            miosix::Lock<miosix::FastMutex> lck(rx_mutex);
+#else
+            std::unique_lock<std::mutex> lck(rx_mutex);
+#endif
+            receivedShared = false;
+            
+            StreamId id;
+            rxPacketShared.removePanHeader();
+            rxPacketShared.get(&id, sizeof(StreamId));
+            rxPacketShared.get(bytes, dataSize);
+            rxPacketShared.clear();
+        }
 
         recvCallback(bytes, &dataSize);
     }
@@ -215,19 +243,27 @@ void Stream::sendPacketWithCallback()
 
     StreamId id = info.getStreamId();
 
-    nextTxPacket.clear();
+    {
+        // Lock mutex for shared access with application thread
+#ifdef _MIOSIX
+            miosix::Lock<miosix::FastMutex> lck(rx_mutex);
+#else
+            std::unique_lock<std::mutex> lck(rx_mutex);
+#endif
+        nextTxPacket.clear();
 
 #ifdef CRYPTO
-    if (authData) nextTxPacket.reserveTag();
+        if (authData) nextTxPacket.reserveTag();
 #endif
-    // Set data into the DataPhase
-    // Put panHeader to distinguish TDMH packets from other 802.15.4 packets
-    nextTxPacket.putPanHeader(panId);
-    // Put streamId to distinguish TDMH packets of this streams
-    nextTxPacket.put(&id, sizeof(StreamId));
-    nextTxPacket.put(bytes, dataSize);
-    
-    nextTxPacketReady = true;
+        // Set data into the DataPhase
+        // Put panHeader to distinguish TDMH packets from other 802.15.4 packets
+        nextTxPacket.putPanHeader(panId);
+        // Put streamId to distinguish TDMH packets of this streams
+        nextTxPacket.put(&id, sizeof(StreamId));
+        nextTxPacket.put(bytes, dataSize);
+        
+        nextTxPacketReady = true;
+    }
 }
 
 void Stream::addedStream(StreamParameters newParams) {
@@ -554,21 +590,12 @@ bool Stream::updateRxPacket() {
 #endif
         }
 
-        if (hasRecvCallback) // Callback executed once in a period
-        {
-            receivePacketWithCallback();
-        }
-
         return true;
     }
     return false;
 }
 
 void Stream::updateTxPacket() {
-
-    if (hasSendCallback) // Callback executed once in a period
-        sendPacketWithCallback();
-
     // Lock mutex for shared access with application thread
 #ifdef _MIOSIX
     miosix::Lock<miosix::FastMutex> lck(tx_mutex);

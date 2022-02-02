@@ -85,14 +85,6 @@ public:
                                         failTimeout(failTimeoutMax) {};
     virtual ~Endpoint() {};
 
-    virtual void wait() {}
-
-    virtual void wakeup() {}
-
-    virtual unsigned int getWakeupAdvance() { return 0; }
-
-    virtual void setWakeupAdvance(unsigned int wa) {}
-
     // Used by derived class Stream 
     virtual int connect(StreamManager* mgr) {
         //This method should never be called on the base class
@@ -108,6 +100,16 @@ public:
         //This method should never be called on the base class
         return -1;
     }
+
+    // Used by derived class Stream
+    virtual void wait() {}
+    // Used by derived class Stream
+    virtual void wakeup() {}
+    // Used by derived class Stream
+    virtual unsigned int getWakeupAdvance() { return 0; }
+    // Used by derived class Stream
+    virtual void setWakeupAdvance(unsigned int wa) {}
+
     // TODO: The base class implementation of these functions should throw an error?
     // Used by derived class Stream 
     virtual bool receivePacket(const Packet& data) { return false; }
@@ -165,7 +167,9 @@ public:
     // Used by derived class Stream and Server
     virtual bool desync() = 0;
 
+    // Used by derived class Stream
     virtual void setSendCallback(std::function<void(void*,unsigned int*)> callback) {}
+    // Used by derived class Stream
     virtual void setReceiveCallback(std::function<void(void*,unsigned int*)> callback) {}
 
 protected:
@@ -235,29 +239,31 @@ public:
     // used to send CONNECT SME and wait for addedStream()
     int connect(StreamManager* mgr) override;
 
-    void wait() override;
-
-    void wakeup() override;
-
-    void setWakeupAdvance(unsigned int wa) {
-        wakeupAdvance = wa;
-        if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
-            print_dbg("[S] Stream %u -> wakeup advance : %u \n", info.getStreamId().getKey(), wakeupAdvance);
-    }
-    
-    unsigned int getWakeupAdvance() { 
-        if (wakeupAdvance != 0) {
-            return wakeupAdvance; // + wakeupAdvanceSlackTime; 
-        }
-       
-        return wakeupAdvance;
-    }
-
     // Called by StreamAPI, to put in sendBuffer data to be sent
     int write(const void* data, int size) override;
 
     // Called by StreamAPI, to get from recvBuffer received data
     int read(void* data, int maxSize) override;
+    
+    // Called by the application in order to wait for the next stream sending slot
+    void wait() override;
+
+    // Called by the StreamWaitScheduler in order to wakeup the stream from waiting
+    void wakeup() override;
+
+    // Sets the advance time for waking up slightly before the stream's sending slot
+    void setWakeupAdvance(unsigned int wa) {
+        wakeupAdvance = wa;
+    }
+    
+    // Returns the stream's specified wakeup advance
+    unsigned int getWakeupAdvance() { 
+        if (wakeupAdvance != 0) {
+            return wakeupAdvance;
+        }
+       
+        return wakeupAdvance;
+    }
 
     // Called by StreamManager, to put data to recvBuffer
     // Return true at the end of each period
@@ -313,12 +319,14 @@ public:
     // Returns true if the Stream class can be deleted
     bool desync() override;
 
+    // Set callback to be called by the dataphase before sending a packet
     void setSendCallback(std::function<void(void*,unsigned int*)> callback)
     {
         sendCallback = callback;
         hasSendCallback = true;
     }
 
+    // Set callback to be called by the dataphase after receiving a packet
     void setReceiveCallback(std::function<void(void*,unsigned int*)> callback)
     {
         recvCallback = callback;
