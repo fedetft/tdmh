@@ -30,7 +30,7 @@
 #include "stream.h"
 #include "../scheduler/schedule_element.h"
 #include "stream_wait_data.h"
-#include "stream_wait_list.h"
+#include "stream_queue.h"
 #include "../downlink_phase/timesync/networktime.h"
 
 #include <mutex>
@@ -44,6 +44,43 @@
 namespace mxnet {
 
 /**
+ * Structure used to hold information and streams lists
+ * relative to a specific schedule.
+ */
+struct ScheduleWakeupData {
+
+    // schedule activation tile and time instant
+    unsigned int activationTile       = 0;
+    unsigned long long activationTime = 0;
+    // streams that have to send during the current superframe
+    StreamQueue currWakeupQueue;
+    // streams that have to send during next tile but need to be
+    // woken up during the current superframe
+    StreamQueue nextWakeupQueue;
+
+    /**
+     * Set the two StreamQueue to the two given ones.
+     * @param currQueue queue to be copied to currWakeupQueue
+     * @param nextQueue queue to be copied to nextWakeupQueue
+     */
+    void set(const StreamQueue& currQueue, const StreamQueue& nextQueue) {
+        currWakeupQueue = currQueue;
+        nextWakeupQueue = nextQueue;
+    }
+
+    /**
+     * Copy members of the given objects to the ones of this object.
+     * @param other the object from which members have to be copied
+     */
+    void set(const ScheduleWakeupData& other) {
+        activationTile = other.activationTile;
+        activationTime = other.activationTime;
+        currWakeupQueue = other.currWakeupQueue;
+        nextWakeupQueue = other.nextWakeupQueue;
+    }
+};
+
+/**
  * This class is used to computed the time at which every stream
  * has to be woken up, according the required advance.
  * The execution runs in a separate thread (active object).
@@ -51,12 +88,13 @@ namespace mxnet {
 class StreamWaitScheduler {
 
 public:
+
     StreamWaitScheduler(const MACContext& ctx_, const NetworkConfiguration& netConfig_, StreamManager& streamMgr_): 
                             ctx(ctx_), netConfig(netConfig_), streamMgr(streamMgr_) {}
 
     /**
-     * Set the data structures needed for the algorithm to work, i.e. two ordered lists
-     * containing all the streams to be woken up and their realtive wakeup time (in a superframe).
+     * Set the data structures needed for the algorithm to work, i.e. two StreamQueues
+     * containing all the streams to be woken up and their realtive wakeup time.
      * @param currList streams to be woken up and transmitting during the current superframe
      * @param nextList streams to be woken up in the current superframe, but trasmitting
      *                 during the next one
@@ -83,84 +121,118 @@ public:
 
 private:
     /**
+     * Executed in the IDLE state.
+     */
+    void idle();
+
+    /**
+     * Executed in the AWAITING_ACTIVATION state.
+     */
+    void awaitingActivation(StreamWakeupInfo wakeupInfo);
+
+    /**
+     * Executed in the ACTIVE state.
+     */
+    void active(StreamWakeupInfo wakeupInfo);
+
+    /**
      * Replace streams lists relative to an older schedule
      * with the ones realtive to the new one.
      */
-    void updateLists();
+    void updateScheduleData();
 
     /**
-     * @return a StreamWakeupInfo object containing all the information 
-     *         needed to know the next time instant to wake up.
+     * Get the streams queue from which extracting
+     * the next StreamWakeupInfo element.
+     * @return pointer to the stream queue to be used
+     */
+    StreamQueue* getNextWakeupList();
+
+    /**
+     * @return return StreamWakeupInfo to be used at current iteration
      */
     StreamWakeupInfo getNextWakeupInfo();
 
     /**
-     * Transform a stream's wkaeup offset w.r.t. to the superframe,
-     * into an absolute time value.
-     * @param currSuperframeStartTime start time of the current superframe
-     * @param nextSuperframeStartTime start time of the next superframe
-     * @param wt stream's wakeup time (w.r.t. the superframe)
+     * Push a StreamWakeupInfo element to the streams queue from 
+     * which the last element was extracted
+     * @param sinfo the element to be pushed
      */
-    unsigned long long nextAbsoluteWakeupTime(unsigned long long currSuperframeStartTime, 
-                                                unsigned long long nextSuperframeStartTime, 
-                                                unsigned int wt);
+    void pushWakeupInfo(const StreamWakeupInfo& sinfo);
+
+    /**
+     * Get an StreamWakeupInfo and update its wakeup time
+     * according to that stream's period and the tile duration.
+     * @param sinfo the StreamWakeupInfo to be updated
+     * @return the updated StreamWakeupInfo element
+     */
+    StreamWakeupInfo updateWakeupTime(const StreamWakeupInfo& sinfo);
 
     /**
      * Wakeup a specific stream.
      * @param sinfo StreamWakeupInfo relative to the stream to be woken up.
      */
-    void wakeupStream(StreamWakeupInfo sinfo);
+    void wakeupStream(const StreamWakeupInfo& sinfo);
 
     /**
-     * @return boolean indicating if all the elements from both the
-     *         current and the next lists of streams have been used
-     *         (i.e. the algorithm iterated over both lists completely)
+     * Starts the active object's thread.
      */
-    bool allListsElementsUsed();
-
-
     static void threadLauncher(void *arg) {
         reinterpret_cast<StreamWaitScheduler*>(arg)->run();
     }
 
-#ifndef _MIOSIX
-    void printStatus(unsigned int tile);
-    void printLists();
-#else
-    void printStatus(unsigned int tile) {}
-    void printLists() {}
-#endif
+    /**
+     * Print state machine state.
+     */
+    void printState(unsigned int tile);
 
     /**
-     * StreamWaitScheduler state machine possible states.
+     * Print the given StreamQueues.
+     * @param q1 first queue to be printed
+     * @param q2 second queue to be printed
      */
-    enum class StreamWaitSchedulerStatus : unsigned char {
-        IDLE,
-        AWAITING_ACTIVATION,
-        ACTIVE
+    void printQueues(StreamQueue& q1, StreamQueue& q2);
+
+    /**
+     * Print the StreamWaitScheduler thread stack usage and size.
+     */
+    void printStack();
+
+    /**
+     * StreamWaitScheduler state machine states.
+     */
+    enum class StreamWaitSchedulerState : unsigned char {
+        IDLE,                   // Waiting to receive the first schedule
+        AWAITING_ACTIVATION,    // Schedule received but waiting for it to be activated
+        ACTIVE                  // Schedule active
     };
 
-    StreamWaitSchedulerStatus status = StreamWaitSchedulerStatus::IDLE;
+    // State machine current state
+    StreamWaitSchedulerState state = StreamWaitSchedulerState::IDLE;
 
-    unsigned int scheduleActivationTile = 0;
+    unsigned int currentTile             = 0; // Current tile index
+    unsigned long long currTileStartTime = 0; // Time at which current tile started
+    unsigned long long nextTileStartTime = 0; // Time at which next tile will start
 
+    // Boolean indicating if we are currently inside the last
+    // tile before a new schedule activation
     bool isLastTileBeforeScheduleActivation = false;
-    bool useNextSuperFrameStartTime = false;
+
+    // Boolean indicating if a new schedule has been received
     bool newScheduleAvailable = false;
+    
+    // Current schedule's relative data (activation time and streams queues)
+    ScheduleWakeupData scheduleData;
+    // Next schedule's relative data (activation time and streams queues)
+    ScheduleWakeupData newScheduleData;
 
-    // streams that have to send during the current superframe
-    StreamWaitList currWakeupList;
-    // streams that have to send during next tile but need to be
-    // woken up during the current superframe
-    StreamWaitList nextWakeupList;
+    // StreamQueue from which the last StreamWakeupInfo element was extracted
+    StreamQueue* lastUsedQueue = nullptr;
 
-    // same as above but referred to a new schedule
-    StreamWaitList newCurrWakeupList;
-    StreamWaitList newNextWakeupList;
-
+    // Active object's thread
 #ifdef _MIOSIX
     miosix::Thread* swthread = nullptr;
-    unsigned int const THREAD_STACK = 3*1024;
+    unsigned int const THREAD_STACK = 4*1024;
 #else
     OmnetMultithreading threadsFactory;
     OmnetThread* swthread = nullptr;
@@ -170,6 +242,7 @@ private:
     const NetworkConfiguration& netConfig;
     StreamManager& streamMgr;
 
+    // Mutex used to protect access to the StreamQueue objects
     std::mutex mutex;
 };
 
