@@ -30,97 +30,50 @@
 #include "stream_wait_data.h"
 
 #include <vector>
+#include <queue>
 #include <mutex>
 
 namespace mxnet {
 
+using stream_queue_data_t      = StreamWakeupInfo;
+using stream_queue_container_t = std::vector<stream_queue_data_t>;
+using stream_queue_compare_t   = std::greater<stream_queue_data_t>;
+
+using stream_queue_t = std::priority_queue<stream_queue_data_t, 
+                                           stream_queue_container_t, 
+                                           stream_queue_compare_t>;
+
 /**
- * Wrapper of a lists of StreamWakeupInfo elements,
- * which provides some utility methods.
+ * Priority queue holding streams wakeup times.
  */
-class StreamWaitList {
+class StreamQueue : public stream_queue_t {
 
 public:
-    StreamWaitList();
-    StreamWaitList(const StreamWaitList& other);
-
-    ~StreamWaitList();
-
-    /**
-     * @return current list index
-     */
-    unsigned int getIndex() const;
+    StreamQueue();
+    StreamQueue(const StreamQueue& other);
+    StreamQueue(const stream_queue_container_t& container);
 
     /**
-     * @return current list element
+     * @return the front priority queue element. If the queue
+     *         is empty, an empty StreamWakeupInfo is returned
      */
-    StreamWakeupInfo getElement();
+    StreamWakeupInfo getElement() const;
 
     /**
-     * @return the entire list 
+     * Print the priority queue container elements.
      */
-    const std::vector<StreamWakeupInfo>& get() const;
-
-    /**
-     * Set the streams list to the specified one.
-     * @param l the new streams list 
-     */
-    void set(const std::vector<StreamWakeupInfo>& l);
-
-    /**
-     * Set the streams list to the specified one.
-     * @param other the new streams list 
-     */
-    void set(const StreamWaitList& other);
-
-    /**
-     * Reset current list index to zero (first element).
-     */
-    void reset();
-    
-    /**
-     * Increment the current list index in a circular way.
-     */
-    void incrementIndex();
-
-    /**
-     * @return boolean indicating if the current list is empty
-     *         (i.e. does not contain any element).
-     */
-    bool isEmpty() const;
-
-    /**
-     * @return boolean indicating if the list index reached the last position.
-     */
-    bool isListEnd() const;
-
-    /**
-     * @param l1 first of the lists to be considered
-     * @param l2 second of the lists to be considered
-     * @return the StreamWakeupInfo element that has the minimum wakeup time
-     * among the first elements of the two lists passed as parameters. 
-     */
-    static StreamWakeupInfo getMinWakeupInfo(StreamWaitList& l1, StreamWaitList& l2);
-
-    /**
-     * @param l1 first of the lists to be considered
-     * @param l2 second of the lists to be considered
-     * @return boolean indicating if all the elements of both lists have been used
-     *         (i.e. the list index reached the last element in both lists)
-     */
-    static bool allListsElementsUsed(const StreamWaitList& l1, const StreamWaitList& l2);
-    
-#ifndef _MIOSIX
     void print();
-#endif
 
-private:
-
-    std::vector<StreamWakeupInfo> list;
-
-    size_t listSize = 0;
-    unsigned int listIndex = 0;
-    bool listEnd = false;
+    /**
+     * Compare the two passed stream queues and return a pointer
+     * to the one that contains the StreamWakeupInfo element with 
+     * lower wakeup time. If a queue is empty, the other one is
+     * returned. In case both queues are empty, the first one is 
+     * always returned. 
+     * @return pointer to the stream queue containing the lower
+     *         wakeup time among the two
+     */
+    static StreamQueue* compare(StreamQueue& q1, StreamQueue& q2);
 };
 
 } /* namespace mxnet */
