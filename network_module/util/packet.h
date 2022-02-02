@@ -128,7 +128,24 @@ public:
         miosix::memDump(packet.data(), dataSize);
     }
 
+    /**
+     * Send packet at the specified send time.
+     * @param sendTime time instant at which the packet has to be sent
+     */
     void send(MACContext& ctx, long long sendTime) const;
+
+    /**
+     * Wait until the transceiver wakeup time, according to the specified
+     * send time and advance.
+     * @param sendTime time instant to wait for
+     * @param additionalAdvance advance time w.r.t. sendTime at which returning
+     */
+    void waitUntilSendTime(MACContext& ctx, long long sendTime, long long additionalAdvance = 0) const;
+
+    /**
+     * Send without waiting for the transceiver wakeup time.
+     */
+    void sendWithoutWaiting(MACContext& ctx, long long sendTime) const;
 
     miosix::RecvResult recv(MACContext& ctx, long long tExpected) {
         std::function<bool (const Packet& p, miosix::RecvResult r)> f;

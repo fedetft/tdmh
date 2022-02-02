@@ -118,6 +118,12 @@ void DataPhase::sendFromStream(long long slotStart, StreamId id) {
 #ifdef CRYPTO
     if (config.getAuthenticateDataMessages()) {
         unsigned long long seqNo = stream.getSequenceNumber(id);
+        // time needed to execute the following crypto code
+        const long long cryptoExecTime = 110000; // 110 us
+        // wait until slightly before the slotStart, with an advance equal
+        // to the time needed to execute the following crypto code + the
+        // execution time of the callbacks (if used)
+        pkt.waitUntilSendTime(ctx, slotStart, cryptoExecTime + config.getCallbacksExecutionTime());
         /**
          * NOTE: sendPacket must be called after getSequenceNumber, because
          * sendPacket advances the sequence numbers too.
@@ -139,13 +145,14 @@ void DataPhase::sendFromStream(long long slotStart, StreamId id) {
         pktReady = stream.sendPacket(id, pkt);
     }
 #else
+    pkt.waitUntilSendTime(ctx, slotStart, config.getCallbacksExecutionTime());
     pktReady = stream.sendPacket(id, pkt);
 #endif
 
-
     if(pktReady) {
+        // TODO: should be moved before waitUntilSendTime() call
         ctx.configureTransceiver(ctx.getTransceiverConfig());
-        pkt.send(ctx, slotStart);
+        pkt.sendWithoutWaiting(ctx, slotStart);
         ctx.transceiverIdle();
         if(ENABLE_DATA_INFO_DBG) {
             auto nt = NetworkTime::fromLocalTime(slotStart);
@@ -155,8 +162,15 @@ void DataPhase::sendFromStream(long long slotStart, StreamId id) {
                 print_dbg("[D] s (%d,%d) NT=%lld\n", id.src, id.dst, nt.get());
         }
     }
-    else
+    else {
+        auto nt = NetworkTime::fromLocalTime(slotStart);
+        if(COMPRESSED_DBG==false)
+            print_dbg("[D] Node %d: no packet ready to send for stream (%d,%d) NT=%llu\n", myId, id.src, id.dst, nt.get());
+        else {
+            print_dbg("[D] x (%d,%d) NT=%lld\n", id.src, id.dst, nt.get());
+        }
         this->sleep(slotStart);
+    }
 }
 
 void DataPhase::receiveToStream(long long slotStart, StreamId id) {

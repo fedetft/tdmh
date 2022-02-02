@@ -75,6 +75,23 @@ void Packet::send(MACContext& ctx, long long sendTime) const {
 #endif
 }
 
+void Packet::waitUntilSendTime(MACContext& ctx, long long sendTime, long long additionalAdvance) const {
+    auto wuTime = ctx.getTimesync()->getSenderWakeup(sendTime) - additionalAdvance;
+    auto now = getTime();
+    if (now < wuTime)
+        ctx.sleepUntil(wuTime);
+}
+
+void Packet::sendWithoutWaiting(MACContext& ctx, long long sendTime) const {
+#ifdef _MIOSIX
+    redLed::high();
+#endif
+    ctx.sendAt(packet.data(), dataSize, sendTime);
+#ifdef _MIOSIX
+    redLed::low();
+#endif
+}
+
 RecvResult Packet::recv(MACContext& ctx, long long tExpected, function<bool (const Packet& p, RecvResult r)> pred, Transceiver::Correct corr) {
     RecvResult result;
     long long timeout = infiniteTimeout;
