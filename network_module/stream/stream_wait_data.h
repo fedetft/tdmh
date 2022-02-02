@@ -33,25 +33,30 @@
 
 namespace mxnet {
 
+/**
+ * Structure used to build a table with streams offsets
+ * and wakeup advance information.
+ */
+struct StreamOffsetInfo {
+    StreamId id;
+    int period;
+    unsigned int offset;
+    unsigned int wakeupAdvance;
+
+    StreamOffsetInfo() : id(StreamId()), period(1), wakeupAdvance(0) {}
+    StreamOffsetInfo(StreamId sid, int p, unsigned int o, unsigned int wa) : 
+                            id(sid), period(p), offset(o), wakeupAdvance(wa) {}
+};
+
+/**
+ * Structure used to indicate if the wakeup info struct
+ * is referred to a stream, to a downlink slot
+ * or none of those (i.e. just and empty structure).
+ */
 enum class WakeupInfoType : uint8_t {
     STREAM   = 0,
     DOWNLINK = 1,
     EMPTY    = 2
-};
-
-/**
- * Structure used to build a table with streams information.
- */
-struct StreamWaitInfo {
-    StreamId id;
-    int period;
-    int redundancy;
-    std::list<unsigned int> offsets;
-    unsigned int wakeupAdvance;
-
-    StreamWaitInfo() : id(StreamId()), period(1), redundancy(1), wakeupAdvance(0) {}
-    StreamWaitInfo(StreamId sid, int p, int r, std::list<unsigned int> o, unsigned int wa) : 
-                            id(sid), period(p), redundancy(r), offsets(o), wakeupAdvance(wa) {}
 };
 
 /**
@@ -60,13 +65,19 @@ struct StreamWaitInfo {
 struct StreamWakeupInfo {
     WakeupInfoType type;
     StreamId id;
-    unsigned int wakeupTime;
+    unsigned long long wakeupTime;
+    int period;
 
-    StreamWakeupInfo() : type(WakeupInfoType::EMPTY), id(StreamId()), wakeupTime(0) {} 
-    StreamWakeupInfo(WakeupInfoType t, StreamId sid, unsigned int wa) : type(t), id(sid), wakeupTime(wa) {}
+    StreamWakeupInfo() : type(WakeupInfoType::EMPTY), id(StreamId()), wakeupTime(0), period(0) {} 
+    StreamWakeupInfo(WakeupInfoType t, StreamId sid, long long wa, int p) : 
+                                                   type(t), id(sid), wakeupTime(wa), period(p) {}
 
     bool operator<(const StreamWakeupInfo& other) const {
         return wakeupTime < other.wakeupTime;
+    }
+
+    bool operator>(const StreamWakeupInfo& other) const {
+        return wakeupTime > other.wakeupTime;
     }
 };
 
