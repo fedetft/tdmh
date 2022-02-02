@@ -125,17 +125,20 @@ protected:
      * \param table the list of all the streams that have to transmit togheter with their
      *              main params (period, redundancy and wakeup advance)
      */
-    void computeStreamsWakeupLists(const std::map<unsigned int, StreamWaitInfo>& table);
+    void computeStreamsWakeupLists(const std::map<unsigned int, StreamOffsetInfo>& table);
 
     /**
-     * \param table the list of all the streams that have to transmit togheter with their
+     * \param table the map of all the streams that have to transmit togheter with their
      *              main params (period, redundancy and wakeup advance)
      * \return the number of streams whose wakeup time is contained in the previous superframe
-     *         w.r.t. the superframe of the transmission and the total number of scheduled streams
-     *         (if a stream transmits multiple times in the same superframe it is also counted multiple times).
+     *         (w.r.t. the transmission superframe) and the total number of scheduled streams.
      */
-    std::pair<unsigned int, unsigned int> computeNumStreamsWithNegativeOffset(const std::map<unsigned int, StreamWaitInfo>& table);
+    std::pair<unsigned int, unsigned int> countStreamsWithNegativeOffset(const std::map<unsigned int, StreamOffsetInfo>& table);
     
+    /**
+     * Insert downlink slots end times to the given list.
+     * \param list the list to which downlink slots times have to be added
+     */
     void addDownlinkTimesToWakeupList(std::vector<StreamWakeupInfo>& list);
 
 #ifndef _MIOSIX
@@ -156,12 +159,12 @@ protected:
     void printExplicitSchedule(unsigned char nodeID, bool printHeader,
                                const std::vector<ExplicitScheduleElement>& expSchedule);
     
-    void printStreamsInfoTable(const std::map<unsigned int, StreamWaitInfo>& table, unsigned char nodeID);
+    void printStreamsInfoTable(const std::map<unsigned int, StreamOffsetInfo>& table, unsigned char nodeID);
 #else
     void printCompleteSchedule() {}
     void printExplicitSchedule(unsigned char nodeID, bool printHeader,
                                const std::vector<ExplicitScheduleElement>& expSchedule) {}
-    void printStreamsInfoTable(const std::map<unsigned int, StreamWaitInfo>& table, unsigned char nodeID) {}
+    void printStreamsInfoTable(const std::map<unsigned int, StreamOffsetInfo>& table, unsigned char nodeID) {}
 #endif
 
     static int computeRebroadcastInterval(const NetworkConfiguration& cfg)

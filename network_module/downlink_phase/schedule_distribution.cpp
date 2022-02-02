@@ -47,7 +47,7 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
     auto scheduleSlots = header.getScheduleTiles() * slotsInTile;
     result.resize(scheduleSlots, ExplicitScheduleElement());
 
-    std::map<unsigned int, StreamWaitInfo> streamWaitInfoTable;
+    std::map<unsigned int, StreamOffsetInfo> streamOffsetsTable;
 
     // Scan implicit schedule for element that imply the node action
     for(auto e : schedule)
@@ -105,14 +105,17 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
         // Apply action if different than SLEEP (to avoid overwriting already scheduled slots)
         if(action != Action::SLEEP)
         {
-            std::list<unsigned int> offsets;
+            unsigned int offset = 0;
             bool streamNotYetInserted = false;
             unsigned int wakeupAdvance = 0;
-
-            if (streamWaitInfoTable.count(e.getStreamId().getKey()) == 0) {
+            
+            // only consider first of the redundant apparisons of stream
+            if (streamOffsetsTable.count(e.getStreamId().getKey()) == 0) {
                 streamNotYetInserted = true;
             }
 
+            bool firstSlot = true;
+            bool offsetSet = false;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots)
             {
                 result[slot] = ExplicitScheduleElement(action, e.getStreamInfo());
@@ -121,19 +124,22 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
                 // for those streams of the current node that have to send something,
                 // add their info to a table, which will be later used by the StreamWaitScheduler
                 if (action == Action::SENDSTREAM) {
-                    if (streamNotYetInserted) {
+                    // only use first apparison of stream in schedule as an offset,
+                    // used to later compute the wakeup time of each stream
+                    if (streamNotYetInserted && firstSlot) {
                         wakeupAdvance = streamMgr->getWakeupAdvance(e.getStreamId());
-                        if (wakeupAdvance != 0) { // otherwise no need to wakeup it when requested
-                            offsets.emplace_back(slot);
+                        if (wakeupAdvance > 0) { // otherwise no need to wakeup it when requested
+                            offset = slot;
+                            offsetSet = true;
                         }
+                        firstSlot = false;
                     }
                 }
             }
 
-            if (streamNotYetInserted && offsets.size() > 0) {
-                StreamWaitInfo swi{e.getStreamId(), toInt(e.getParams().getPeriod()),
-                                    toInt(e.getParams().getRedundancy()), offsets, wakeupAdvance};
-                streamWaitInfoTable.insert({e.getStreamId().getKey(), swi});
+            if (streamNotYetInserted && offsetSet) {
+                StreamOffsetInfo swi{e.getStreamId(), toInt(e.getParams().getPeriod()), offset, wakeupAdvance};
+                streamOffsetsTable.insert({e.getStreamId().getKey(), swi});
             }
         }
     }
@@ -146,10 +152,10 @@ std::vector<ExplicitScheduleElement> ScheduleDownlinkPhase::expandSchedule(unsig
     }
 
     if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) {
-        printStreamsInfoTable(streamWaitInfoTable, nodeID);
+        printStreamsInfoTable(streamOffsetsTable, nodeID);
     }
 
-    computeStreamsWakeupLists(streamWaitInfoTable);
+    computeStreamsWakeupLists(streamOffsetsTable);
 
     return result;
 }
@@ -163,8 +169,8 @@ void ScheduleDownlinkPhase::setNewSchedule(long long slotStart) {
     }
     ctx.getKeyManager()->startRekeying();
 #endif
-    streamMgr->setSchedule(schedule);
-    streamMgr->setScheduleActivationTile(header.getActivationTile());
+
+    streamMgr->setSchedule(schedule, header.getActivationTile());
 }
 
 void ScheduleDownlinkPhase::setSameSchedule(long long slotStart) {
@@ -255,11 +261,11 @@ void ScheduleDownlinkPhase::applySameSchedule(long long slotStart) {
     ctx.sleepUntil(slotStart + ctx.getDownlinkSlotDuration() - downlinkEndAdvance);
 }
 
-void ScheduleDownlinkPhase::computeStreamsWakeupLists(const std::map<unsigned int, StreamWaitInfo>& table) {
+void ScheduleDownlinkPhase::computeStreamsWakeupLists(const std::map<unsigned int, StreamOffsetInfo>& table) {
 
     const NetworkConfiguration& netConfig = ctx.getNetworkConfig();
 
-    std::pair<unsigned int, unsigned int> p = computeNumStreamsWithNegativeOffset(table);
+    std::pair<unsigned int, unsigned int> p = countStreamsWithNegativeOffset(table);
     unsigned int numStreamsWithNegativeOffset = p.first;
     unsigned int numScheduledStreams = p.second;
 
@@ -275,50 +281,56 @@ void ScheduleDownlinkPhase::computeStreamsWakeupLists(const std::map<unsigned in
     bool negativeSlot = false;
 
     for (auto it = table.begin(); it != table.end(); it++) {
-        for (auto off : it->second.offsets) {
-            int wakeupSlot = off - (it->second.wakeupAdvance / ctx.getDataSlotDuration());
-            if (wakeupSlot < 0) {
-                negativeSlot = true;
-                wakeupSlot = numSlotsInSuperframe + wakeupSlot; // convert to positive (referred to previous tile)
-            }
+        auto stream = it->second;
 
-            unsigned int tileIndexInSuperframe = wakeupSlot / ctx.getSlotsInTileCount();
-            unsigned int slackTime = ctx.getTileSlackTime() * tileIndexInSuperframe;
-            unsigned int wakeupTimeOffset = wakeupSlot * ctx.getDataSlotDuration() + slackTime;
+        int wakeupSlot = stream.offset - (stream.wakeupAdvance / ctx.getDataSlotDuration());
+        if (wakeupSlot < 0) {
+            negativeSlot = true;
+            wakeupSlot = numSlotsInSuperframe + wakeupSlot; // convert to positive (referred to previous tile)
+        }
 
-            // if wakeup slot was negative, add element to one list, otherwise to the other
-            // to maintan separated the wakeup times relative to the current or to the next superframe
-            if (negativeSlot) {
-                nextList.emplace_back(StreamWakeupInfo{WakeupInfoType::STREAM, it->second.id, wakeupTimeOffset});
-                negativeSlot = false;
-            }
-            else {
-                currList.emplace_back(StreamWakeupInfo{WakeupInfoType::STREAM, it->second.id, wakeupTimeOffset});
-            }
+        unsigned int tileIndexInSuperframe = wakeupSlot / ctx.getSlotsInTileCount();
+        unsigned int slackTime =  tileIndexInSuperframe * ctx.getTileSlackTime();
+        unsigned int wakeupTimeOffset = (wakeupSlot * ctx.getDataSlotDuration()) + slackTime;
+
+        StreamWakeupInfo swi{WakeupInfoType::STREAM, stream.id, wakeupTimeOffset, stream.period};
+
+        // if wakeup slot was negative, add element to one list, otherwise to the other
+        // to maintan separated the wakeup times relative to the current or to the next superframe
+        if (negativeSlot) {
+            // in this case, the wakeup time offset (wakeup slot) is relative
+            // to the previous superframe w.r.t. to the activation one
+            auto tilesAdvance = netConfig.getControlSuperframeStructure().size();
+            auto baseTime = (header.getActivationTile() - tilesAdvance) * ctx.getNetworkConfig().getTileDuration();
+            swi.wakeupTime += NetworkTime::fromNetworkTime(baseTime).toLocalTime();
+            nextList.emplace_back(swi);
+            negativeSlot = false;
+        }
+        else {
+            // the wakeup time offset (wakeup slot) is relative to the activation tile
+            auto baseTime = header.getActivationTile() * ctx.getNetworkConfig().getTileDuration();
+            swi.wakeupTime += NetworkTime::fromNetworkTime(baseTime).toLocalTime();
+            currList.emplace_back(swi);
         }
     }
 
     // make the streams wait scheduler to wakeup on downlink slots
     addDownlinkTimesToWakeupList(currList);
-    
-    // sort but keep elements with the same value in the same order
-    std::stable_sort(currList.begin(), currList.end());
-    std::stable_sort(nextList.begin(), nextList.end());
 
     streamMgr->setStreamsWakeupLists(currList, nextList);
 }
 
-std::pair<unsigned int, unsigned int> ScheduleDownlinkPhase::computeNumStreamsWithNegativeOffset(const std::map<unsigned int, StreamWaitInfo>& table) {
+std::pair<unsigned int, unsigned int> ScheduleDownlinkPhase::countStreamsWithNegativeOffset(const std::map<unsigned int, StreamOffsetInfo>& table) {
     unsigned int countNegativeOffsets = 0;
     unsigned int countScheduledStreams = 0;
 
     for (auto it = table.begin(); it != table.end(); it++) {
         countScheduledStreams++;
-        for (auto off : it->second.offsets) {
-            int wakeupSlot = off - (it->second.wakeupAdvance / ctx.getDataSlotDuration());
-            if (wakeupSlot < 0) {
-                countNegativeOffsets++;
-            }
+        auto off = it->second.offset;
+        auto wakeupAdvance = it->second.wakeupAdvance;
+        int wakeupSlot = off - (wakeupAdvance / ctx.getDataSlotDuration());
+        if (wakeupSlot < 0) {
+            countNegativeOffsets++;
         }
     }
 
@@ -328,12 +340,18 @@ std::pair<unsigned int, unsigned int> ScheduleDownlinkPhase::computeNumStreamsWi
 void ScheduleDownlinkPhase::addDownlinkTimesToWakeupList(std::vector<StreamWakeupInfo>& list) {
     ControlSuperframeStructure superframeStructure = ctx.getNetworkConfig().getControlSuperframeStructure();
     unsigned int numConsecutiveDownlinkSlots = ctx.getDownlinkSlotDuration() / ctx.getDataSlotDuration();
+    // each of the downlink slots will be repeated at each superframe
+    // i.e. period = number_tiles_in_superframe
+    // e.g. if superframe size = 2 => downlink slots period = 2 tile
+    int downlinkSlotPeriod = superframeStructure.size();
     for (int i = 0; i < superframeStructure.size(); i++) {
         if (superframeStructure.isControlDownlink(i)) {
-            // compute dowlink tile wakeup offset, wakeup at the end of the downlink slots
+            // compute downlink tile wakeup offset, wakeup at the end of the downlink slots
             unsigned int downlinkWakeupSlot = (i * ctx.getSlotsInTileCount()) + numConsecutiveDownlinkSlots;
             unsigned int downlinkWakeupTimeOffset = downlinkWakeupSlot * ctx.getDataSlotDuration();
-            list.emplace_back(StreamWakeupInfo{WakeupInfoType::DOWNLINK, StreamId(), downlinkWakeupTimeOffset});
+            // the wakeup time offset (wakeup slot) is relative to the activation tile
+            unsigned long long downlinkWakeupTime = downlinkWakeupTimeOffset + (header.getActivationTile() * ctx.getNetworkConfig().getTileDuration());
+            list.emplace_back(StreamWakeupInfo{WakeupInfoType::DOWNLINK, StreamId(), downlinkWakeupTime, downlinkSlotPeriod});
         }
     }
 }
@@ -406,24 +424,18 @@ void ScheduleDownlinkPhase::printExplicitSchedule(unsigned char nodeID,
     print_dbg("\n");
 }
 
-void ScheduleDownlinkPhase::printStreamsInfoTable(const std::map<unsigned int, StreamWaitInfo>& table, unsigned char nodeID) {
+void ScheduleDownlinkPhase::printStreamsInfoTable(const std::map<unsigned int, StreamOffsetInfo>& table, unsigned char nodeID) {
     if (table.size() == 0) {
-        print_dbg("[SD] Node %d : streams info table is empty\n", nodeID);
+        print_dbg("[SD] Node: %d, streams info table is empty\n", nodeID);
         return;
     }
     
-    print_dbg("ID \t\tPER \tRED \tWakeupAdvance \n");
+    print_dbg("[SD] Node: %d, streams info table\n", nodeID);
+    print_dbg("ID \t\tPER \tOffset \tWakeupAdvance \n");
     print_dbg("------------------------------------------------------------- \n");
     
     for (auto it = table.begin(); it != table.end(); it++) {
-        print_dbg("%lu \t%d \t%d \t%u ", it->second.id.getKey(), it->second.period, it->second.redundancy, it->second.wakeupAdvance);
-        print_dbg(" -> Offsets num : %d\n", it->second.offsets.size());
-        
-        for (auto o : it->second.offsets) {
-            print_dbg("Offset : %u\n", o);
-        }
-
-        print_dbg("\n");
+        print_dbg("%lu \t%d \t%u \t%u \n", it->second.id.getKey(), it->second.period, it->second.offset, it->second.wakeupAdvance);
     }
 }
 #endif

@@ -162,14 +162,17 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
         stream = res.second;
     }
 
-    if (wakeupAdvance != 0) {
+    if (wakeupAdvance > 0) {
         // wakeup advance at most equal to the duration of a tile
         if (wakeupAdvance >= (ctx.getSlotsInTileCount() * ctx.getDataSlotDuration())) {
-            return -3;
+            return -2;
         }
         unsigned int n = wakeupAdvance / ctx.getDataSlotDuration();
         wakeupAdvance = n * ctx.getDataSlotDuration();
         stream->setWakeupAdvance(wakeupAdvance);
+    }
+    else {
+        return -3;
     }
 
     // Make the stream wait for a schedule
@@ -452,7 +455,7 @@ bool StreamManager::sendPacket(StreamId id, Packet& data) {
     return stream->sendPacket(data);
 }
 
-void StreamManager::setSchedule(const std::vector<ScheduleElement>& schedule) {
+void StreamManager::setSchedule(const std::vector<ScheduleElement>& schedule, unsigned int activationTile) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
@@ -526,9 +529,7 @@ void StreamManager::setSchedule(const std::vector<ScheduleElement>& schedule) {
         doStartRekeying();
     }
 #endif
-}
 
-void StreamManager::setScheduleActivationTile(const unsigned int activationTile) {
     waitScheduler.setScheduleActivationTile(activationTile);
 }
 

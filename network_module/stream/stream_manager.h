@@ -180,12 +180,14 @@ public:
      * schedule, but leaves existing streams untouched. When crypto is on,
      * it prepares data structures needed for rekeying operations.
      */
-    void setSchedule(const std::vector<ScheduleElement>& schedule);
+    void setSchedule(const std::vector<ScheduleElement>& schedule, unsigned int activationTile);
 
-    void setScheduleActivationTile(const unsigned int activationTile);
-
+    /**
+     * Used by ScheduleDistribution to pass to the StreamWaitScheduler
+     * the data structures associated to the newly received schedule.
+     */
     void setStreamsWakeupLists(const std::vector<StreamWakeupInfo>& currList, 
-                                    const std::vector<StreamWakeupInfo>& nextList);
+                                const std::vector<StreamWakeupInfo>& nextList);
 
     /**
      * Used by ScheduleDistribution to apply a received schedule.
