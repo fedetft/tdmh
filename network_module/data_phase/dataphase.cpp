@@ -204,6 +204,15 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
         valid = false;
     }
 
+    // Always align the call to receivePacket() and missPacket()
+    // with the readio time computed by the mac context.
+    // This avoids the stream's read() to anticipately return 
+    // in case the last redundant packet is a miss.
+    // Otherwise, for example, a sequence "r r r" would last
+    // more than "r r m", for an amount of time equal to the 
+    // last redundant packet transmission time.
+    this->sleep(slotStart + radioTime);
+
     if (valid) {
         periodEnd = stream.receivePacket(id, pkt);
         if(ENABLE_DATA_INFO_DBG) {

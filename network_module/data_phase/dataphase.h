@@ -196,6 +196,11 @@ private:
      * number of the pair is used as counter and reset after each redundancy
      * group ends */
     std::map<StreamId, std::pair<unsigned char, unsigned char>> bufCtr;
+
+    /**
+     * Time needed to transmit a packet with size equal to the maximum allowed.
+     */
+    unsigned long long radioTime = MACContext::radioTime(MediumAccessController::maxDataPktSize);
 };
 
 }
