@@ -35,6 +35,7 @@
 #endif
 #include "../scheduler/schedule_element.h"
 #include "../util/debug_settings.h"
+#include "schedule_expansion.h"
 
 #define FLOOD_TYPE 1
 
@@ -97,15 +98,9 @@ protected:
     ScheduleDownlinkPhase(MACContext& ctx) : MACPhase(ctx),
                                              rebroadcastInterval(computeRebroadcastInterval(ctx.getNetworkConfig())),
                                              panId(ctx.getNetworkConfig().getPanId()),
+                                             scheduleExpander(ctx),
                                              streamMgr(ctx.getStreamManager()),
                                              dataPhase(ctx.getDataPhase()) {}
-
-    /**
-     * Convert the explicit schedule to an implicit one
-     * \param nodeID node for which the explicit schedule is needed
-     * \return the explicit schedule
-     */
-    std::vector<ExplicitScheduleElement> expandSchedule(unsigned char nodeID);
 
     void setNewSchedule(long long slotStart);
     void setSameSchedule(long long slotStart);
@@ -116,30 +111,6 @@ protected:
      */
     void applyNewSchedule(long long slotStart);
     void applySameSchedule(long long slotStart);
-
-    /**
-     * Create two lists of streams and pass them to the StreamManager.
-     * The two lists contain the streams with their respective wakeup times, divided
-     * in streams that have to transmit in the current superframe and streams that have
-     * to transmit in the next superframe.
-     * \param table the list of all the streams that have to transmit togheter with their
-     *              main params (period, redundancy and wakeup advance)
-     */
-    void computeStreamsWakeupLists(const std::map<unsigned int, StreamOffsetInfo>& table);
-
-    /**
-     * \param table the map of all the streams that have to transmit togheter with their
-     *              main params (period, redundancy and wakeup advance)
-     * \return the number of streams whose wakeup time is contained in the previous superframe
-     *         (w.r.t. the transmission superframe) and the total number of scheduled streams.
-     */
-    std::pair<unsigned int, unsigned int> countStreamsWithNegativeOffset(const std::map<unsigned int, StreamOffsetInfo>& table);
-    
-    /**
-     * Insert downlink slots end times to the given list.
-     * \param list the list to which downlink slots times have to be added
-     */
-    void addDownlinkTimesToWakeupList(std::vector<StreamWakeupInfo>& list);
 
 #ifndef _MIOSIX
     /**
@@ -158,13 +129,10 @@ protected:
      */
     void printExplicitSchedule(unsigned char nodeID, bool printHeader,
                                const std::vector<ExplicitScheduleElement>& expSchedule);
-    
-    void printStreamsInfoTable(const std::map<unsigned int, StreamOffsetInfo>& table, unsigned char nodeID);
 #else
     void printCompleteSchedule() {}
     void printExplicitSchedule(unsigned char nodeID, bool printHeader,
                                const std::vector<ExplicitScheduleElement>& expSchedule) {}
-    void printStreamsInfoTable(const std::map<unsigned int, StreamOffsetInfo>& table, unsigned char nodeID) {}
 #endif
 
     static int computeRebroadcastInterval(const NetworkConfiguration& cfg)
@@ -199,23 +167,14 @@ protected:
     // Copy of last computed/received schedule
     std::vector<ScheduleElement> schedule;
 
-    std::vector<ExplicitScheduleElement> explicitSchedule;
-
     // Number of schedule distribution slots need to distribute the schedule
     unsigned int sendingRounds;
     unsigned int currentSendingRound;
 
-    /* Structure used to keep count of redundancy groups of streams that this
-     * node is scheduled to forward to others. This info will be moved to 
-     * dataphase at the end of schedule explicitation and used to correctly
-     * clear the buffers.
-     * For each stream being forwarded, the second number of the pair is set
-     * to the number of transmissions that this node is assigned. The first 
-     * number of the pair will be set to zero and used as counter by
-     * the dataphase */
-    std::map<StreamId, std::pair<unsigned char, unsigned char>> forwardedStreamCtr;
     // Constant value from NetworkConfiguration
     const unsigned short panId;
+
+    ScheduleExpander scheduleExpander;
 
     // Pointer to StreamManager, used to apply distributed schedule and info elements
     StreamManager* const streamMgr;
