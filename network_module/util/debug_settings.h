@@ -80,12 +80,6 @@ const bool ENABLE_TOPOLOGY_DYN_INFO_DBG = false;
 //prints the slot number, if packets received and RSSI
 const bool ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY = false;
 
-//prints the stream context debug info
-const bool ENABLE_STREAM_INFO_DBG = true;
-
-//prints the stream wakeup scheduler debug info
-const bool ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG = false;
-
 //prints summary information on scheduling in the master node
 const bool SCHEDULER_SUMMARY_DBG = true;
 
@@ -110,6 +104,12 @@ const bool ENABLE_DATA_ERROR_DBG = true;
 //prints the Stream Manager info messages
 const bool ENABLE_STREAM_MGR_INFO_DBG = true;
 
+//prints the stream context debug info
+const bool ENABLE_STREAM_INFO_DBG = true;
+
+//prints the stream wakeup scheduler debug info
+const bool ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG = false;
+
 //prints debug messages for state changes in KeyManager
 const bool ENABLE_CRYPTO_KEY_MGMT_DBG = false;
 
@@ -128,6 +128,9 @@ const bool ENABLE_CRYPTO_DOWNLINK_DBG = false;
 //prints packet synchronization numbers and verify errors in uplink
 //NOTE: this is too verbose. Use only to debug nonces.
 const bool ENABLE_CRYPTO_UPLINK_DBG = false;
+
+// prints threads stack size and usage
+const bool ENABLE_STACK_STATS_DBG = true;
 
 
 #ifdef _MIOSIX
