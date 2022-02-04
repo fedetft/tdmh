@@ -67,7 +67,7 @@ struct StreamWakeupInfo {
     int period;
 
     StreamWakeupInfo() : type(WakeupInfoType::EMPTY), id(StreamId()), wakeupTime(0), period(0) {} 
-    StreamWakeupInfo(WakeupInfoType t, StreamId sid, long long wt, int p) : 
+    StreamWakeupInfo(WakeupInfoType t, StreamId sid, unsigned long long wt, int p) : 
                                                    type(t), id(sid), wakeupTime(wt), period(p) {}
 
     bool operator<(const StreamWakeupInfo& other) const {
