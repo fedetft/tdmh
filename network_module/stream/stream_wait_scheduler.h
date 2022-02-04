@@ -146,7 +146,7 @@ private:
      * the next StreamWakeupInfo element.
      * @return pointer to the stream queue to be used
      */
-    StreamQueue* getNextWakeupList();
+    StreamQueue* getNextWakeupQueue();
 
     /**
      * @return return StreamWakeupInfo to be used at current iteration
@@ -166,7 +166,7 @@ private:
      * @param sinfo the StreamWakeupInfo to be updated
      * @return the updated StreamWakeupInfo element
      */
-    StreamWakeupInfo updateWakeupTime(const StreamWakeupInfo& sinfo);
+    StreamWakeupInfo updateWakeupTime(const StreamWakeupInfo& sinfo) const;
 
     /**
      * Wakeup a specific stream.

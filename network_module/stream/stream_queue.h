@@ -30,37 +30,50 @@
 #include "stream_wait_data.h"
 
 #include <vector>
-#include <queue>
 #include <mutex>
 
 namespace mxnet {
 
-using stream_queue_data_t      = StreamWakeupInfo;
-using stream_queue_container_t = std::vector<stream_queue_data_t>;
-using stream_queue_compare_t   = std::greater<stream_queue_data_t>;
-
-using stream_queue_t = std::priority_queue<stream_queue_data_t, 
-                                           stream_queue_container_t, 
-                                           stream_queue_compare_t>;
-
 /**
  * Priority queue holding streams wakeup times.
  */
-class StreamQueue : public stream_queue_t {
+class StreamQueue {
 
 public:
     StreamQueue();
     StreamQueue(const StreamQueue& other);
-    StreamQueue(const stream_queue_container_t& container);
+    StreamQueue(const std::vector<StreamWakeupInfo>& container);
+
+    // resets index to zero
+    void set(const std::vector<StreamWakeupInfo>& container);  
+
+    // keep same index of "other"
+    void set(const StreamQueue& other);
+
+    const std::vector<StreamWakeupInfo>& get() const;
 
     /**
-     * @return the front priority queue element. If the queue
+     * @return the front queue element. If the queue
      *         is empty, an empty StreamWakeupInfo is returned
      */
     StreamWakeupInfo getElement() const;
 
+    StreamWakeupInfo getNextElement() const;
+
+    unsigned int getIndex() const;
+
+    unsigned int getNextIndex() const;
+
+    void pushElement(const StreamWakeupInfo& other);
+
+    void updateIndex();
+
+    void reset();
+
+    bool empty() const;
+
     /**
-     * Print the priority queue container elements.
+     * Print the queue elements.
      */
     void print();
 
@@ -74,6 +87,16 @@ public:
      *         wakeup time among the two
      */
     static StreamQueue* compare(StreamQueue& q1, StreamQueue& q2);
+
+    // keep same index of "other"
+    void operator=(const StreamQueue& other);
+
+private:
+    unsigned int index = 0;
+
+    size_t queueSize = 0;
+
+    std::vector<StreamWakeupInfo> queue;
 };
 
 } /* namespace mxnet */

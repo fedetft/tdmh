@@ -247,9 +247,6 @@ void StreamWaitScheduler::active(StreamWakeupInfo wakeupInfo) {
 
     auto when = wakeupInfo.wakeupTime;
 
-    print_dbg("when = %llu\n", when);
-    print_dbg("when NT = %llu\n", NetworkTime::fromLocalTime(when).get());
-
     switch(wakeupInfo.type) {
         case WakeupInfoType::STREAM:
             if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG) {
@@ -302,7 +299,7 @@ void StreamWaitScheduler::updateScheduleData() {
 
 }
 
-StreamQueue* StreamWaitScheduler::getNextWakeupList() {
+StreamQueue* StreamWaitScheduler::getNextWakeupQueue() {
 
     switch(state) {
         case StreamWaitSchedulerState::AWAITING_ACTIVATION:
@@ -332,8 +329,8 @@ StreamQueue* StreamWaitScheduler::getNextWakeupList() {
 
 StreamWakeupInfo StreamWaitScheduler::getNextWakeupInfo() {
     std::unique_lock<std::mutex> lck(mutex);
-
-    lastUsedQueue = getNextWakeupList();
+    // get queue from which getting next element
+    lastUsedQueue = getNextWakeupQueue();
     // get element from the correct queue
     StreamWakeupInfo sinfo = lastUsedQueue->getElement();
     
@@ -345,14 +342,14 @@ void StreamWaitScheduler::pushWakeupInfo(const StreamWakeupInfo& sinfo) {
 
     if (sinfo.type != WakeupInfoType::EMPTY) {
         // remove element from the correct queue
-        lastUsedQueue->pop();
+        lastUsedQueue->getElement();
         // update element's wakeup time and add it to the queue again
         StreamWakeupInfo newInfo = updateWakeupTime(sinfo);
-        lastUsedQueue->push(newInfo);
+        lastUsedQueue->pushElement(newInfo);
     }
 }
 
-StreamWakeupInfo StreamWaitScheduler::updateWakeupTime(const StreamWakeupInfo& sinfo) {
+StreamWakeupInfo StreamWaitScheduler::updateWakeupTime(const StreamWakeupInfo& sinfo) const {
     StreamWakeupInfo updatedInfo = sinfo;
 
     // next time the stream relative to this StreamWakeupInfo
@@ -409,7 +406,8 @@ void StreamWaitScheduler::printStack() {
 #ifdef _MIOSIX
     unsigned int stackSize = miosix::MemoryProfiling::getStackSize();
     unsigned int absFreeStack = miosix::MemoryProfiling::getAbsoluteFreeStack();
-    print_dbg("[H] StreamWaitScheduler stack %d/%d\n", stackSize - absFreeStack, stackSize);
+    if (ENABLE_STACK_STATS_DBG)
+        print_dbg("[H] StreamWaitScheduler stack %d/%d\n", stackSize - absFreeStack, stackSize);
 #endif
 }
 

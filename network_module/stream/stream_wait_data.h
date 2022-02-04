@@ -29,8 +29,6 @@
 
 #include "stream.h"
 
-#include <list>
-
 namespace mxnet {
 
 /**
@@ -69,11 +67,45 @@ struct StreamWakeupInfo {
     int period;
 
     StreamWakeupInfo() : type(WakeupInfoType::EMPTY), id(StreamId()), wakeupTime(0), period(0) {} 
-    StreamWakeupInfo(WakeupInfoType t, StreamId sid, long long wa, int p) : 
-                                                   type(t), id(sid), wakeupTime(wa), period(p) {}
+    StreamWakeupInfo(WakeupInfoType t, StreamId sid, long long wt, int p) : 
+                                                   type(t), id(sid), wakeupTime(wt), period(p) {}
 
     bool operator<(const StreamWakeupInfo& other) const {
-        return wakeupTime < other.wakeupTime;
+        //
+        // check if "this" < "other"
+        // i.e. check if "this" priority > "other" priority
+        // => check if "this" will be ordered before "other"
+        //    in streams wakeup list
+        //
+        // Ordering: 
+        //  - elements with lower wakeup time, before elements with higher wakeup time
+        //  - elements with lower period, before elements with higher period
+        //  - streams before downlink elements
+        //
+        // TODO explain why this ordering is needed
+        //
+        
+        if (wakeupTime < other.wakeupTime) {
+            return true;
+        }
+
+        if (wakeupTime == other.wakeupTime) {
+            if (period < other.period) {
+                return true;
+            }
+        }
+
+        if (wakeupTime == other.wakeupTime) {
+            if (period == other.period) {
+                if (type != other.type) {
+                    if (type == WakeupInfoType::STREAM && other.type == WakeupInfoType::DOWNLINK)
+                        return true;
+                }
+            }
+        }
+
+        return false;
+        
     }
 
     bool operator>(const StreamWakeupInfo& other) const {

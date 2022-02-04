@@ -32,17 +32,74 @@ namespace mxnet
 
 StreamQueue::StreamQueue() {}
 
-StreamQueue::StreamQueue(const StreamQueue& other) : stream_queue_t(other) {}
+StreamQueue::StreamQueue(const StreamQueue& other) : queue(other.get()) {}
 
-StreamQueue::StreamQueue(const stream_queue_container_t& container) : stream_queue_t(container.begin(), container.end()) {}
+StreamQueue::StreamQueue(const std::vector<StreamWakeupInfo>& container) : queue(container) {}
+
+void StreamQueue::set(const std::vector<StreamWakeupInfo>& container) {
+    queue     = container;
+    queueSize = container.size();
+    index     = 0;
+}
+
+void StreamQueue::set(const StreamQueue& other) {
+    set(other.get());
+    index = other.getIndex();
+}
+
+const std::vector<StreamWakeupInfo>& StreamQueue::get() const {
+    return queue;
+}
 
 StreamWakeupInfo StreamQueue::getElement() const {
-    if (empty()) {
+    if (queue.empty()) {
         return StreamWakeupInfo{};
     }
     else {
-        return top();
+        return queue[index];
     }
+}
+
+StreamWakeupInfo StreamQueue::getNextElement() const {
+    if (queue.empty()) {
+        return StreamWakeupInfo{};
+    }
+    else {
+        unsigned int nextIndex = getNextIndex();
+        return queue[nextIndex];
+    }
+}
+
+unsigned int StreamQueue::getIndex() const {
+    return index;
+}
+
+unsigned int StreamQueue::getNextIndex() const {
+    return (index + 1) % queueSize;
+}
+
+void StreamQueue::pushElement(const StreamWakeupInfo& e) {
+    // update element at current index,
+    // and move index if next element has a
+    // wakeup time <= than the current one
+    queue[index] = e;
+
+    if (getNextElement().wakeupTime <= e.wakeupTime)
+        updateIndex();
+}
+
+void StreamQueue::updateIndex() {
+    if (!queue.empty()) {
+        index = getNextIndex();
+    }
+}
+
+void StreamQueue::reset() {
+    index = 0;
+}
+
+bool StreamQueue::empty() const {
+    return queue.empty();
 }
 
 void StreamQueue::print() {
@@ -50,11 +107,11 @@ void StreamQueue::print() {
     char header[4][11] = {"ID", "WakeupTime", "Period", "Type"};
     char emptyChar = '-';
     print_dbg("\n%-10s %-13s %-10s %-10s\n", header[0], header[1], header[2], header[3]);
-    if (c.empty()) {
+    if (queue.empty()) {
         print_dbg("%-10c %-13c %-10c %-10c\n", emptyChar, emptyChar, emptyChar, emptyChar);
     }
     else {
-        for(auto e : c) {
+        for(auto e : queue) {
             print_dbg("%-10lu %-13llu %-10d", e.id.getKey(), e.wakeupTime, e.period);
             switch(e.type) {
                 case WakeupInfoType::STREAM:
@@ -123,6 +180,10 @@ StreamQueue* StreamQueue::compare(StreamQueue& q1, StreamQueue& q2) {
     }
 
     return &q1;
+}
+
+void StreamQueue::operator=(const StreamQueue& other) {
+    set(other.get());
 }
     
 } // namespace mxnet
