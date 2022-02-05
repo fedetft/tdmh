@@ -187,7 +187,7 @@ bool DynamicScheduleDownlinkPhase::handleActivationAndRekeying(long long slotSta
                     // it is complete.
                     setSameSchedule(slotStart);
                 }
-                status = ScheduleDownlinkStatus::REKEYING;
+                status = ScheduleDownlinkStatus::PROCESSING;
                 ret = true;
             } else {
                 /* Schedule sending phase still in progress. We must listen
@@ -196,7 +196,7 @@ bool DynamicScheduleDownlinkPhase::handleActivationAndRekeying(long long slotSta
             }
             break;
         }
-        case ScheduleDownlinkStatus::REKEYING:
+        case ScheduleDownlinkStatus::PROCESSING:
         {
             unsigned int currentTile = ctx.getCurrentTile(slotStart);
             if(currentTile >= nextActivationTile) {
@@ -218,20 +218,25 @@ bool DynamicScheduleDownlinkPhase::handleActivationAndRekeying(long long slotSta
                 }
             } else {
                 // before activation tile:
-#ifdef CRYPTO
-                /* Continue rekeying until stream manager has streams to rekey */
                 if(isScheduleComplete()) {
+#ifdef CRYPTO
+                    /* Continue rekeying until stream manager has streams to rekey */
                     streamMgr->continueRekeying();
                     if(!streamMgr->needToContinueRekeying()) {
+                        
+                        if (ENABLE_CRYPTO_REKEYING_DBG)
+                            print_dbg("[SD] N=%d, Rekeying done at NT=%llu\n", ctx.getNetworkId(), NetworkTime::now().get());
+#endif
+                        scheduleExpander.expandSchedule(schedule, header, ctx.getNetworkId());
                         status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
+#ifdef CRYPTO
                     }
+#endif
                 } else {
                     status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
                 }
-#else
-                status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
-#endif
             }
+
             /* We never listen while in this state */
             ret = true;
             break;

@@ -35,6 +35,9 @@ ScheduleExpander::ScheduleExpander(MACContext& c) : ctx(c), streamMgr(c.getStrea
 void ScheduleExpander::expandSchedule(const std::vector<ScheduleElement>& schedule, 
                                                                         const ScheduleHeader& header, unsigned char nodeID)
 {
+    if(ENABLE_SCHEDULE_DIST_DBG)
+        print_dbg("[SD] N=%d, Expanding schedule at NT=%llu\n", nodeID, NetworkTime::now().get());
+
     // New explicitSchedule to return
     std::vector<ExplicitScheduleElement> result;
     std::map<unsigned int,std::shared_ptr<Packet>> buffers;
@@ -155,6 +158,9 @@ void ScheduleExpander::expandSchedule(const std::vector<ScheduleElement>& schedu
     computeStreamsWakeupLists(streamOffsetsTable, header);
 
     explicitSchedule = result;
+
+    if (ENABLE_SCHEDULE_DIST_DBG)
+        print_dbg("[SD] N=%d,  Expansion complete at NT=%llu\n", nodeID, NetworkTime::now().get());
 }
 
 unsigned int ScheduleExpander::getExpansionsPerSlot() const {

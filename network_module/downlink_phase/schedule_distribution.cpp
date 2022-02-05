@@ -70,7 +70,6 @@ void ScheduleDownlinkPhase::applyNewSchedule(long long slotStart) {
     
     auto myID = ctx.getNetworkId();
 
-    scheduleExpander.expandSchedule(schedule, header, myID);
     auto explicitSchedule = scheduleExpander.getExplicitSchedule();
    
     if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) {

@@ -153,7 +153,7 @@ protected:
         APPLIED_SCHEDULE,
         SENDING_SCHEDULE,
         INCOMPLETE_SCHEDULE,
-        REKEYING,
+        PROCESSING,
         AWAITING_ACTIVATION
     };
     

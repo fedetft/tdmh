@@ -60,12 +60,12 @@ public:
     
 private:
     
-    void getScheduleAndComputeActivation(long long slotStart, unsigned int rekeyingSlots);
+    void getScheduleAndComputeActivation(long long slotStart, unsigned int advanceSlots);
     
     unsigned int getActivationTile(unsigned int currentTile, unsigned int numPackets,
-                                    unsigned int rekeyingSlots);
+                                    unsigned int advanceSlots);
 
-    unsigned int getNumDownlinksForRekeying();
+    unsigned int getNumDownlinksForProcessing();
     
     void sendSchedulePkt(long long slotstart);
     
@@ -95,6 +95,10 @@ private:
 
     unsigned char rekeyingSlots = 0;
     unsigned char rekeyingSlotCtr = 0;
+
+    unsigned char expansionSlots = 0;
+
+    unsigned char totalAdvanceSlots = 0;
 
 };
 

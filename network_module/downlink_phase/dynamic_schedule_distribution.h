@@ -63,7 +63,7 @@ public:
      * packets received).
      */
     void forceScheduleActivation(long long slotStart, unsigned int activationTile) override {
-        status = ScheduleDownlinkStatus::REKEYING;
+        status = ScheduleDownlinkStatus::PROCESSING;
         setEmptySchedule(slotStart);
         nextActivationTile = activationTile;
     }

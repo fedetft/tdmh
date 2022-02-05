@@ -54,9 +54,9 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
         {
             if(schedule_comp.needToSendSchedule())
             {
-                rekeyingSlots = getNumDownlinksForRekeying();
+                totalAdvanceSlots = getNumDownlinksForProcessing();
                 rekeyingSlotCtr = 0;
-                getScheduleAndComputeActivation(slotStart, rekeyingSlots);
+                getScheduleAndComputeActivation(slotStart, totalAdvanceSlots);
                 status = ScheduleDownlinkStatus::SENDING_SCHEDULE;
                 //No packet sent in this downlink slot
             } else {
@@ -70,7 +70,7 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
         {
             if(currentSendingRound >= sendingRounds) {
                 setNewSchedule(slotStart);
-                status = ScheduleDownlinkStatus::REKEYING;
+                status = ScheduleDownlinkStatus::PROCESSING;
             } else {
                 sendSchedulePkt(slotStart);
                 header.incrementPacketCounter();
@@ -84,7 +84,7 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
             currentSendingRound++;
             break;
         }
-        case ScheduleDownlinkStatus::REKEYING:
+        case ScheduleDownlinkStatus::PROCESSING:
         {
             unsigned int currentTile = ctx.getCurrentTile(slotStart);
             if(currentTile >= header.getActivationTile())
@@ -103,6 +103,11 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
 #endif
                 rekeyingSlotCtr++;
                 if(rekeyingSlotCtr >= rekeyingSlots) {
+    
+                    if (ENABLE_CRYPTO_REKEYING_DBG)
+                        print_dbg("[SD] N=%d, Rekeying done at NT=%llu\n", ctx.getNetworkId(), NetworkTime::now().get());
+        
+                    scheduleExpander.expandSchedule(schedule, header, ctx.getNetworkId());
                     status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
                 }
             }
@@ -127,8 +132,7 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
     }
 }
 
-void MasterScheduleDownlinkPhase::getScheduleAndComputeActivation(long long slotStart,
-                                                            unsigned int rekeyingSlots)
+void MasterScheduleDownlinkPhase::getScheduleAndComputeActivation(long long slotStart, unsigned int advanceSlots)
 {
     unsigned long id;
     unsigned int tiles;
@@ -143,7 +147,7 @@ void MasterScheduleDownlinkPhase::getScheduleAndComputeActivation(long long slot
 
     // Get the earliest tile when we can activate the schedule, not considering
     // that it must be aligned to the end of the previous schedule, if there is one
-    unsigned int activationTile = getActivationTile(currentTile, numPackets, rekeyingSlots);
+    unsigned int activationTile = getActivationTile(currentTile, numPackets, advanceSlots);
     
     // Get scheduleTiles of the previous schedule (still saved in header)
     unsigned int lastScheduleTiles = header.getScheduleTiles();
@@ -206,7 +210,7 @@ void MasterScheduleDownlinkPhase::getScheduleAndComputeActivation(long long slot
 
 unsigned int MasterScheduleDownlinkPhase::getActivationTile(unsigned int currentTile,
                                                             unsigned int numPackets,
-                                                            unsigned int rekeyingSlots)
+                                                            unsigned int advanceSlots)
 {
     // This function assumes that in the current tile no packet will be sent,
     // then scheduleRepetitions*numPackets need to be sent,
@@ -217,7 +221,7 @@ unsigned int MasterScheduleDownlinkPhase::getActivationTile(unsigned int current
     // as the schedule has "holes" for the downlink and uplink, which are of
     // different number of slots.
     unsigned int numDownlinks = scheduleRepetitions * numPackets;
-    numDownlinks += rekeyingSlots;
+    numDownlinks += advanceSlots;
     
     // The first tile that we consider is currentTile + 1 because in
     // currentTile no packet is sent
@@ -298,8 +302,7 @@ unsigned int MasterScheduleDownlinkPhase::getActivationTile(unsigned int current
     return activationTile;
 }
 
-unsigned int MasterScheduleDownlinkPhase::getNumDownlinksForRekeying() {
-#ifdef CRYPTO
+unsigned int MasterScheduleDownlinkPhase::getNumDownlinksForProcessing() {
     // Compute the worst case: max number of streams that any node must rekey
     std::vector<unsigned int> streamsPerNode;
     streamsPerNode.resize(ctx.getNetworkConfig().getMaxNodes());
@@ -324,13 +327,20 @@ unsigned int MasterScheduleDownlinkPhase::getNumDownlinksForRekeying() {
         if (n > maxStreams) maxStreams = n;
     }
 
-    // Leave enough downlink slots for all streams to be rekeyed. Always
-    // leave at least one slot to change state.
+#ifdef CRYPTO
+    // Leave enough downlink slots for all streams to be rekeyed
     unsigned int hashesPerSlot = streamMgr->getMaxHashesPerSlot();
-    return 1 + align(maxStreams, hashesPerSlot) / hashesPerSlot;
+    rekeyingSlots = align(maxStreams, hashesPerSlot) / hashesPerSlot;
 #else
-    return 1;
+    rekeyingSlots = 0;
 #endif
+
+    // Leave enough downlink slots for all streams to be expanded
+    unsigned int expansionsPerSlot = scheduleExpander.getExpansionsPerSlot();
+    expansionSlots = align(maxStreams, expansionsPerSlot) / expansionsPerSlot;
+
+    // Always leave at least one more slot to change state
+    return 1 + rekeyingSlots + expansionSlots;
 }
 
 void MasterScheduleDownlinkPhase::sendSchedulePkt(long long slotStart)
