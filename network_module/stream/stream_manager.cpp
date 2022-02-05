@@ -172,7 +172,9 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
         stream->setWakeupAdvance(wakeupAdvance);
     }
     else {
-        return -3;
+        if (ENABLE_STREAM_MGR_INFO_DBG) 
+            print_dbg("[S] N=%d, Stream %d wakeup time is null, not handled by StreamWaitScheduler\n", 
+                                                    ctx.getNetworkId(), stream->getStreamId().getKey());
     }
 
     // Make the stream wait for a schedule
@@ -651,7 +653,7 @@ void StreamManager::enqueueSME(StreamManagementElement sme) {
     SMEKey key = sme.getKey();
 #ifdef WITH_SME_SEQNO
     if (ENABLE_STREAM_MGR_INFO_DBG) 
-        print_dbg("Enqueueing %s, seq=%d\n", smeTypeToString(sme.getType()), sme.getSeqNo());
+        print_dbg("[S] Enqueueing %s, seq=%d\n", smeTypeToString(sme.getType()), sme.getSeqNo());
 #endif
     {
         // Lock stream_manager_mutex to access the shared SME queue
