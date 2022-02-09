@@ -94,11 +94,11 @@ private:
     StreamCollection* const streamColl;
 
     unsigned char rekeyingSlots = 0;
-    unsigned char rekeyingSlotCtr = 0;
-
     unsigned char expansionSlots = 0;
-
+    
     unsigned char totalAdvanceSlots = 0;
+
+    unsigned char processingSlotCtr = 0;
 
 };
 

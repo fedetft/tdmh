@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2018-2020 by Federico Amedeo Izzo, Valeria Mazzola      *
+ *   Copyright (C) 2018-2022 by Federico Amedeo Izzo, Valeria Mazzola,     *
+ *                              Luca Conterio                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -46,7 +47,11 @@ void ScheduleDownlinkPhase::setNewSchedule(long long slotStart) {
     ctx.getKeyManager()->startRekeying();
 #endif
 
+    // sets the schedule but also starts the rekeying process in the stream manager
     streamMgr->setSchedule(schedule, header.getActivationTile());
+
+    // computes the necessary structures to proceed with the schedule expansion
+    scheduleExpander.startExpansion(schedule, header);
 }
 
 void ScheduleDownlinkPhase::setSameSchedule(long long slotStart) {
@@ -149,7 +154,6 @@ void ScheduleDownlinkPhase::printCompleteSchedule()
     std::vector<ExplicitScheduleElement> nodeSchedule;
     for(unsigned char node = 0; node < maxNodes; node++)
     {
-        scheduleExpander.expandSchedule(schedule, header, node);
         nodeSchedule = scheduleExpander.getExplicitSchedule();
         printExplicitSchedule(node, (node == 0), nodeSchedule);
     } 

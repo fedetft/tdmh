@@ -1,6 +1,6 @@
 /**************************************************************************
- *   Copyright (C) 2018-2020 by Federico Amedeo Izzo, Federico Terraneo,   *
- *   Valeria Mazzola                                                       *
+ *   Copyright (C) 2018-2022 by Federico Amedeo Izzo, Federico Terraneo,   *
+ *   Valeria Mazzola, Luca Conterio                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -55,7 +55,7 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
             if(schedule_comp.needToSendSchedule())
             {
                 totalAdvanceSlots = getNumDownlinksForProcessing();
-                rekeyingSlotCtr = 0;
+                processingSlotCtr = 0;
                 getScheduleAndComputeActivation(slotStart, totalAdvanceSlots);
                 status = ScheduleDownlinkStatus::SENDING_SCHEDULE;
                 //No packet sent in this downlink slot
@@ -70,6 +70,8 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
         {
             if(currentSendingRound >= sendingRounds) {
                 setNewSchedule(slotStart);
+                // next iteration will be the first slot for processing
+                needToPerformExpansion = true;
                 status = ScheduleDownlinkStatus::PROCESSING;
             } else {
                 sendSchedulePkt(slotStart);
@@ -89,10 +91,24 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
             unsigned int currentTile = ctx.getCurrentTile(slotStart);
             if(currentTile >= header.getActivationTile())
             {
-                applyNewSchedule(slotStart);
-                schedule_comp.scheduleSentAndApplied();
-                status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
-                //No packet sent in this downlink slot
+                // if we still have to perform expansion it means that the
+                // received a schedule that had to be activated in the past,
+                // so perform it now
+                if (needToPerformExpansion) {
+                    scheduleExpander.continueExpansion(schedule);
+                    processingSlotCtr++;
+                    if (processingSlotCtr >= expansionSlots) {
+                        // expansion complete, at next iteration enter  
+                        // the "else branch" and apply the new schedule
+                        needToPerformExpansion = false;
+                    }
+                }
+                else {
+                    applyNewSchedule(slotStart);
+                    schedule_comp.scheduleSentAndApplied();
+                    status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
+                    //No packet sent in this downlink slot
+                }
             } else {
                 /**
                  * Keep rekeying streams. When all dynamic nodes have no
@@ -101,14 +117,28 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
 #ifdef CRYPTO
                 streamMgr->continueRekeying();
 #endif
-                rekeyingSlotCtr++;
-                if(rekeyingSlotCtr >= rekeyingSlots) {
-    
-                    if (ENABLE_CRYPTO_REKEYING_DBG)
-                        print_dbg("[SD] N=%d, Rekeying done at NT=%llu\n", ctx.getNetworkId(), NetworkTime::now().get());
-        
-                    scheduleExpander.expandSchedule(schedule, header, ctx.getNetworkId());
-                    status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
+
+                processingSlotCtr++;
+
+                // Amount of slots needed to rekey reached, start expanding the schedule
+                if(processingSlotCtr >= rekeyingSlots) {
+                    
+                    // This is the first slot for expansion
+                    if (processingSlotCtr == rekeyingSlots) {
+                        if (ENABLE_CRYPTO_REKEYING_DBG) {
+                            print_dbg("N=%d, Rekeying done at NT=%llu\n", ctx.getNetworkId(), NetworkTime::now().get());
+                        }
+                    }
+
+                    // If we also reached the amount of slots needed to expand the schedule, change state
+                    // NOTE: rekeyingSlots + expansionSlots != totalAdvanceSlots
+                    if (processingSlotCtr >= rekeyingSlots + expansionSlots) {
+                        needToPerformExpansion = false; // expansion complete
+                        status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
+                    }
+                    else {
+                        scheduleExpander.continueExpansion(schedule);
+                    }
                 }
             }
             break;
@@ -132,7 +162,8 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
     }
 }
 
-void MasterScheduleDownlinkPhase::getScheduleAndComputeActivation(long long slotStart, unsigned int advanceSlots)
+void MasterScheduleDownlinkPhase::getScheduleAndComputeActivation(long long slotStart,
+                                                            unsigned int advanceSlots)
 {
     unsigned long id;
     unsigned int tiles;
@@ -303,7 +334,8 @@ unsigned int MasterScheduleDownlinkPhase::getActivationTile(unsigned int current
 }
 
 unsigned int MasterScheduleDownlinkPhase::getNumDownlinksForProcessing() {
-    // Compute the worst case: max number of streams that any node must rekey
+    // Compute the worst case: max number of streams that any node must process
+    // (including both rekeying and schedule expansion)
     std::vector<unsigned int> streamsPerNode;
     streamsPerNode.resize(ctx.getNetworkConfig().getMaxNodes());
     std::fill(streamsPerNode.begin(), streamsPerNode.end(), 0);
@@ -328,18 +360,17 @@ unsigned int MasterScheduleDownlinkPhase::getNumDownlinksForProcessing() {
     }
 
 #ifdef CRYPTO
-    // Leave enough downlink slots for all streams to be rekeyed
+    // Leave enough downlink slots for all streams to be rekeyed. Always
+    // leave at least one slot to change state.
     unsigned int hashesPerSlot = streamMgr->getMaxHashesPerSlot();
     rekeyingSlots = align(maxStreams, hashesPerSlot) / hashesPerSlot;
 #else
     rekeyingSlots = 0;
 #endif
 
-    // Leave enough downlink slots for all streams to be expanded
     unsigned int expansionsPerSlot = scheduleExpander.getExpansionsPerSlot();
     expansionSlots = align(maxStreams, expansionsPerSlot) / expansionsPerSlot;
 
-    // Always leave at least one more slot to change state
     return 1 + rekeyingSlots + expansionSlots;
 }
 

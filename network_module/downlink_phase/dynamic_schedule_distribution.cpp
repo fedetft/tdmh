@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2018-2020 by Federico Amedeo Izzo, Federico Terraneo,   *
- *   Valeria Mazzola                                                       *
+ *   Copyright (C) 2018-2022 by Federico Amedeo Izzo, Federico Terraneo,   *
+ *   Valeria Mazzola, Luca Conterio                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -176,6 +176,8 @@ bool DynamicScheduleDownlinkPhase::handleActivationAndRekeying(long long slotSta
                             print_dbg("[SD] full schedule %s\n",
                                       scheduleStatusAsString().c_str());
                         setNewSchedule(slotStart);
+                        // next iteration will be the first slot for processing
+                        needToPerformExpansion = true;
                     } else {
                         /* If the schedule received is incomplete, we still have to
                          * perform rekeying on the key manager to take care of the
@@ -199,17 +201,30 @@ bool DynamicScheduleDownlinkPhase::handleActivationAndRekeying(long long slotSta
         case ScheduleDownlinkStatus::PROCESSING:
         {
             unsigned int currentTile = ctx.getCurrentTile(slotStart);
+             // activation tile handling
             if(currentTile >= nextActivationTile) {
-                // activation tile handling
+                // this schedule is new
                 if(currentScheduleID > lastScheduleID) {
-                    // this schedule is new
-                    if(isScheduleComplete()) {
-                        lastScheduleID = currentScheduleID;
-                        status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
-                        applyNewSchedule(slotStart);
-                    } else {
-                        status = ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE;
-                        applyEmptySchedule(slotStart);
+                    // if we still have to perform expansion it means that the
+                    // received a schedule that had to be activated in the past,
+                    // so perform it now
+                    if (needToPerformExpansion) {
+                        scheduleExpander.continueExpansion(schedule);
+                        if (!scheduleExpander.needToContinueExpansion()) {
+                            // expansion complete, at next iteration enter  
+                            // the "else branch" and apply the new schedule
+                            needToPerformExpansion = false;
+                        }
+                    }
+                    else {
+                        if(isScheduleComplete()) {
+                            lastScheduleID = currentScheduleID;
+                            status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
+                            applyNewSchedule(slotStart);
+                        } else {
+                            status = ScheduleDownlinkStatus::INCOMPLETE_SCHEDULE;
+                            applyEmptySchedule(slotStart);
+                        }
                     }
                 } else {
                     // this schedule is the same, it is being resent
@@ -224,11 +239,16 @@ bool DynamicScheduleDownlinkPhase::handleActivationAndRekeying(long long slotSta
                     streamMgr->continueRekeying();
                     if(!streamMgr->needToContinueRekeying()) {
                         
-                        if (ENABLE_CRYPTO_REKEYING_DBG)
-                            print_dbg("[SD] N=%d, Rekeying done at NT=%llu\n", ctx.getNetworkId(), NetworkTime::now().get());
+                        if (ENABLE_CRYPTO_REKEYING_DBG) {
+                            print_dbg("N=%d, Rekeying done at NT=%llu\n", ctx.getNetworkId(), NetworkTime::now().get());
+                        }
 #endif
-                        scheduleExpander.expandSchedule(schedule, header, ctx.getNetworkId());
-                        status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
+                        scheduleExpander.continueExpansion(schedule);
+                        if (!scheduleExpander.needToContinueExpansion()) {
+                            print_dbg("N=%d, Expansion done at NT=%llu\n", ctx.getNetworkId(), NetworkTime::now().get());
+                            needToPerformExpansion = false; // expansion complete
+                            status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
+                        }
 #ifdef CRYPTO
                     }
 #endif

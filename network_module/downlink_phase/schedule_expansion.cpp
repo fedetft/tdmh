@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2018-2022 by Federico Amedeo Izzo, Valeria Mazzola,     *
- *                              Luca Conterio                              *
+ *   Luca Conterio                                                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -30,28 +30,132 @@
 
 namespace mxnet {
 
-ScheduleExpander::ScheduleExpander(MACContext& c) : ctx(c), streamMgr(c.getStreamManager()) {}
+ScheduleExpander::ScheduleExpander(MACContext& c) : ctx(c), netConfig(c.getNetworkConfig()), streamMgr(c.getStreamManager()) {
+    // rounded to lower bound
+    expansionsPerSlot = ctx.getDownlinkSlotDuration() / singleExpansionTime;
 
-void ScheduleExpander::expandSchedule(const std::vector<ScheduleElement>& schedule, 
-                                                                        const ScheduleHeader& header, unsigned char nodeID)
-{
-    if(ENABLE_SCHEDULE_DIST_DBG)
-        print_dbg("[SD] N=%d, Expanding schedule at NT=%llu\n", nodeID, NetworkTime::now().get());
+    slotsInTile = ctx.getSlotsInTileCount();
+    slotsInSuperframe = netConfig.getControlSuperframeStructure().size() * ctx.getSlotsInTileCount();
+    superframeSize = netConfig.getControlSuperframeStructure().size();
+}
 
-    // New explicitSchedule to return
-    std::vector<ExplicitScheduleElement> result;
-    std::map<unsigned int,std::shared_ptr<Packet>> buffers;
+void ScheduleExpander::startExpansion(const std::vector<ScheduleElement>& schedule, const ScheduleHeader& header) {
+    std::unique_lock<std::mutex> lck(expansionMutex);
+
+    if (inProgress) {
+        if(ENABLE_SCHEDULE_DIST_DBG) {
+            print_dbg("[SD] N=%d BUG: call to startExpansion while schedule expansion is already in progress\n", ctx.getNetworkId());
+        }
+        return;
+    }
+
+    // Reset all the needed varibales and data structures
+    inProgress = true;
+    expansionIndex = 0;
+    explicitScheduleComplete  = false;
+    activationTile = header.getActivationTile();
+
+    // Resize new explicit schedule and fill with default value (sleep)
+    explicitSchedule = std::vector<ExplicitScheduleElement>();
+    scheduleSlots = header.getScheduleTiles() * slotsInTile;
+    explicitSchedule.resize(scheduleSlots, ExplicitScheduleElement());
+
     forwardedStreamCtr = std::map<StreamId, std::pair<unsigned char, unsigned char>>();
-    // Resize new explicitSchedule and fill with default value (sleep)
-    auto slotsInTile = ctx.getSlotsInTileCount();
-    auto scheduleSlots = header.getScheduleTiles() * slotsInTile;
-    result.resize(scheduleSlots, ExplicitScheduleElement());
+    buffers            = std::map<unsigned int, std::shared_ptr<Packet>>();
+    uniqueStreams      = std::set<StreamId>();
 
-    std::map<unsigned int, StreamOffsetInfo> streamOffsetsTable;
+    // Count unique streams in schedule and
+    // preallocate space in streams wakeup lists
+    std::pair<unsigned int, unsigned int> countPair = countStreams(schedule);
+    // Total number of unique streams in the schedule
+    unsigned int numScheduledStreams          = countPair.first;
+    // Number of streams whose wakeup advance is big enough
+    // to require them to be woken up during the previous tile
+    unsigned int numStreamsWithNegativeOffset = countPair.second;
+
+    // Reserve space for streams wakeup lists
+    currList = std::vector<StreamWakeupInfo>();
+    currList.reserve(numScheduledStreams - numStreamsWithNegativeOffset
+                            + netConfig.getControlSuperframeStructure().countDownlinkSlots());
+    nextList = std::vector<StreamWakeupInfo>();
+    nextList.reserve(numStreamsWithNegativeOffset);
+
+    if(ENABLE_SCHEDULE_DIST_DBG) {
+        print_dbg("[SD] N=%d, Expansion started at NT=%llu\n", ctx.getNetworkId(), NetworkTime::now().get());
+    }
+}
+
+void ScheduleExpander::continueExpansion(const std::vector<ScheduleElement>& schedule) {
+    std::unique_lock<std::mutex> lck(expansionMutex);
+
+    if (!inProgress) {
+        if(ENABLE_SCHEDULE_DIST_DBG) {
+            print_dbg("[SD] N=%d BUG: call to continueExpansion without starting schedule expansion first\n", ctx.getNetworkId());
+        }
+        return;
+    }
+    
+
+    if (!explicitScheduleComplete) { // schedule expansion not finished yet
+        // if(ENABLE_SCHEDULE_DIST_DBG) {
+        //     print_dbg("N=%d, Expansion continues at NT=%llu\n", ctx.getNetworkId(), NetworkTime::now().get());
+        // }
+
+        expandSchedule(schedule);
+        
+        if (explicitScheduleComplete) { // schedule expansion can now be finished
+
+            if(ENABLE_SCHEDULE_DIST_DBG) {
+                print_dbg("[SD] N=%d, expandSchedule: allocated %d buffers\n", ctx.getNetworkId(), buffers.size());
+                if(explicitSchedule.size() != scheduleSlots) {
+                    print_dbg("[SD] N=%d, BUG: Schedule expansion inconsistency\n", ctx.getNetworkId());
+                }
+            }
+
+            completeWakeupLists();
+
+            if (ENABLE_SCHEDULE_DIST_DBG) {
+                print_dbg("[SD] N=%d, Expansion complete at NT=%llu\n", ctx.getNetworkId(), NetworkTime::now().get());
+            }
+
+            // all operations done
+            inProgress = false;
+        }
+    }
+}
+
+bool ScheduleExpander::needToContinueExpansion() {
+    return !explicitScheduleComplete;
+}
+
+unsigned int ScheduleExpander::getExpansionsPerSlot() const {
+    return expansionsPerSlot;
+}
+
+const std::map<StreamId, std::pair<unsigned char, unsigned char>>& ScheduleExpander::getForwardedStreams() const {
+    return forwardedStreamCtr;
+}
+
+const std::vector<ExplicitScheduleElement>& ScheduleExpander::getExplicitSchedule() {
+    return explicitSchedule;
+}
+
+void ScheduleExpander::expandSchedule(const std::vector<ScheduleElement>& schedule)
+{
+    unsigned char nodeID = ctx.getNetworkId();
+ 
+    // if(ENABLE_SCHEDULE_DIST_DBG) {
+    //     print_dbg("[SD] N=%d, Expanding schedule at NT=%llu\n", nodeID, NetworkTime::now().get());
+    // }
+
+    // Get index reached at last call to expandSchedule(), during last downlink slot
+    unsigned int lastIndex = expansionIndex;
 
     // Scan implicit schedule for element that imply the node action
-    for(auto e : schedule)
-    {
+    while (expansionIndex - lastIndex < expansionsPerSlot && expansionIndex < schedule.size())
+    {   
+        auto e = schedule[expansionIndex];
+
         // Period is normally expressed in tiles, get period in slots
         auto periodSlots = toInt(e.getPeriod()) * slotsInTile;
         Action action = Action::SLEEP;
@@ -72,8 +176,9 @@ void ScheduleExpander::expandSchedule(const std::vector<ScheduleElement>& schedu
                 buffer=it->second;
             } else {
                 //Should never happen, how can we transmit from a buffer we haven't received from?
-                if(ENABLE_SCHEDULE_DIST_DBG)
+                if(ENABLE_SCHEDULE_DIST_DBG) {
                     print_dbg("[SD] Error: expandSchedule missing buffer\n");
+                }
             }
 
             {
@@ -105,21 +210,18 @@ void ScheduleExpander::expandSchedule(const std::vector<ScheduleElement>& schedu
         // Apply action if different than SLEEP (to avoid overwriting already scheduled slots)
         if(action != Action::SLEEP)
         {
-            unsigned int offset = 0;
+            // indicate if stream already added to wakeup lists
             bool streamNotYetInserted = false;
-            unsigned int wakeupAdvance = 0;
-            
-            // only consider first of the redundant apparisons of stream
-            if (streamOffsetsTable.count(e.getStreamId().getKey()) == 0) {
+            // only consider the first of the redundant apparisons of stream
+            if (uniqueStreams.find(e.getStreamId()) == uniqueStreams.end()) {
                 streamNotYetInserted = true;
             }
 
             bool firstSlot = true;
-            bool offsetSet = false;
             for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots)
             {
-                result[slot] = ExplicitScheduleElement(action, e.getStreamInfo());
-                if(buffer) result[slot].setBuffer(buffer);
+                explicitSchedule[slot] = ExplicitScheduleElement(action, e.getStreamInfo());
+                if(buffer) explicitSchedule[slot].setBuffer(buffer);
 
                 // for those streams of the current node that have to send something,
                 // add their info to a table, which will be later used by the StreamWaitScheduler
@@ -127,109 +229,70 @@ void ScheduleExpander::expandSchedule(const std::vector<ScheduleElement>& schedu
                     // only use first apparison of stream in schedule as an offset,
                     // used to later compute the wakeup time of each stream
                     if (streamNotYetInserted && firstSlot) {
-                        wakeupAdvance = streamMgr->getWakeupAdvance(e.getStreamId());
+                        auto wakeupAdvance = streamMgr->getWakeupAdvance(e.getStreamId());
                         if (wakeupAdvance > 0) { // otherwise no need to wakeup it when requested
-                            offset = slot;
-                            offsetSet = true;
+                            uniqueStreams.insert(e.getStreamId());
+                            // create and add StreamWakeupInfo to stream wakeup list
+                            addStreamToWakeupList(e, wakeupAdvance, activationTile);
                         }
                         firstSlot = false;
                     }
                 }
             }
-
-            if (streamNotYetInserted && offsetSet) {
-                StreamOffsetInfo swi{e.getStreamId(), toInt(e.getParams().getPeriod()), offset, wakeupAdvance};
-                streamOffsetsTable.insert({e.getStreamId().getKey(), swi});
-            }
         }
+
+        expansionIndex++;
     }
     
-    if(ENABLE_SCHEDULE_DIST_DBG)
-    {
-        print_dbg("[SD] expandSchedule: allocated %d buffers\n", buffers.size());
-        if(result.size() != scheduleSlots)
-            print_dbg("[SD] BUG: Schedule expansion inconsistency\n");
+    if (expansionIndex == schedule.size()) {
+        // Computation of the explicit schedule done
+        explicitScheduleComplete = true;
     }
-
-    if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG) {
-        printStreamsInfoTable(streamOffsetsTable, nodeID);
-    }
-
-    computeStreamsWakeupLists(streamOffsetsTable, header);
-
-    explicitSchedule = result;
-
-    if (ENABLE_SCHEDULE_DIST_DBG)
-        print_dbg("[SD] N=%d,  Expansion complete at NT=%llu\n", nodeID, NetworkTime::now().get());
 }
 
-unsigned int ScheduleExpander::getExpansionsPerSlot() const {
-    return expansionsPerSlot;
-}
-
-const std::map<StreamId, std::pair<unsigned char, unsigned char>>& ScheduleExpander::getForwardedStreams() const {
-    return forwardedStreamCtr;
-}
-
-const std::vector<ExplicitScheduleElement>& ScheduleExpander::getExplicitSchedule() {
-    return explicitSchedule;
-}
-
-void ScheduleExpander::computeStreamsWakeupLists(const std::map<unsigned int, StreamOffsetInfo>& table, const ScheduleHeader& header) {
-    const NetworkConfiguration& netConfig = ctx.getNetworkConfig();
-
-    std::pair<unsigned int, unsigned int> p = countStreamsWithNegativeOffset(table);
-    unsigned int numStreamsWithNegativeOffset = p.first;
-    unsigned int numScheduledStreams = p.second;
-
-    std::vector<StreamWakeupInfo> currList;
-    currList.reserve(numScheduledStreams - numStreamsWithNegativeOffset
-                            + netConfig.getControlSuperframeStructure().countDownlinkSlots());
-    std::vector<StreamWakeupInfo> nextList;
-    nextList.reserve(numStreamsWithNegativeOffset);
-
-    unsigned int numSlotsInSuperframe = netConfig.getControlSuperframeStructure().size() * 
-                                        ctx.getSlotsInTileCount();
+void ScheduleExpander::addStreamToWakeupList(const ScheduleElement& stream, unsigned long long wakeupAdvance, unsigned int activationTile) {
 
     bool negativeSlot = false;
 
-    for (auto it = table.begin(); it != table.end(); it++) {
-        auto stream = it->second;
-
-        int wakeupSlot = stream.offset - (stream.wakeupAdvance / ctx.getDataSlotDuration());
-        if (wakeupSlot < 0) {
-            negativeSlot = true;
-            wakeupSlot = numSlotsInSuperframe + wakeupSlot; // convert to positive (referred to previous tile)
-        }
-
-        unsigned int tileIndexInSuperframe = wakeupSlot / ctx.getSlotsInTileCount();
-        unsigned int slackTime =  tileIndexInSuperframe * ctx.getTileSlackTime();
-        unsigned int wakeupTimeOffset = (wakeupSlot * ctx.getDataSlotDuration()) + slackTime;
-
-        StreamWakeupInfo swi{WakeupInfoType::STREAM, stream.id, wakeupTimeOffset, stream.period};
-
-        // if wakeup slot was negative, add element to one list, otherwise to the other
-        // to maintan separated the wakeup times relative to the current or to the next superframe
-        if (negativeSlot) {
-            // in this case, the wakeup time offset (wakeup slot) is relative
-            // to the previous superframe w.r.t. to the activation one
-            auto tilesAdvance = netConfig.getControlSuperframeStructure().size();
-            auto baseTime = (header.getActivationTile() - tilesAdvance) * ctx.getNetworkConfig().getTileDuration();
-            swi.wakeupTime += NetworkTime::fromNetworkTime(baseTime).toLocalTime();
-            nextList.emplace_back(swi);
-            negativeSlot = false;
-        }
-        else {
-            // the wakeup time offset (wakeup slot) is relative to the activation tile
-            auto baseTime = header.getActivationTile() * ctx.getNetworkConfig().getTileDuration();
-            swi.wakeupTime += NetworkTime::fromNetworkTime(baseTime).toLocalTime();
-            currList.emplace_back(swi);
-        }
+    int wakeupSlot = stream.getOffset() - (wakeupAdvance / ctx.getDataSlotDuration());
+    if (wakeupSlot < 0) {
+        negativeSlot = true;
+        wakeupSlot = slotsInSuperframe + wakeupSlot; // convert to positive (referred to previous tile)
     }
 
+    unsigned int tileIndexInSuperframe = wakeupSlot / slotsInTile;
+    unsigned int slackTime =  tileIndexInSuperframe * ctx.getTileSlackTime();
+    unsigned int wakeupTimeOffset = (wakeupSlot * ctx.getDataSlotDuration()) + slackTime;
+    unsigned long long period = toInt(stream.getPeriod()) * netConfig.getTileDuration(); // period converted to time (ns)
+
+    StreamWakeupInfo swi{WakeupInfoType::STREAM, stream.getStreamId(), wakeupTimeOffset, period};
+
+    // If wakeup slot was negative, add element to the "next" list, otherwise to the "curr" list
+    // to maintan separated the wakeup times relative to the next or to the current superframe
+    if (negativeSlot) {
+        // In this case, the wakeup time offset (wakeup slot) is relative
+        // to the previous superframe w.r.t. to the activation one
+        // (so the first time this stream will have to be woken up is the start time of the
+        // last control superframe before schedule's activation time + the stream's offset)
+        auto activationTime = (activationTile - superframeSize) * netConfig.getTileDuration();
+        swi.wakeupTime += NetworkTime::fromNetworkTime(activationTime).toLocalTime();
+        nextList.emplace_back(swi);
+        negativeSlot = false;
+    }
+    else {
+        // The wakeup time offset (wakeup slot) is relative to the activation tile
+        // (so the first time this stream will have to be woken up is the schedule
+        // activation time + the stream's offset)
+        auto activationTime = activationTile * netConfig.getTileDuration();
+        swi.wakeupTime += NetworkTime::fromNetworkTime(activationTime).toLocalTime();
+        currList.emplace_back(swi);
+    }
+}
+
+void ScheduleExpander::completeWakeupLists() {
     // make the streams wait scheduler to wakeup on downlink slots
-    addDownlinkTimesToWakeupList(currList, header); 
-    
+    addDownlinkTimesToWakeupList(currList);
+
     // sort but keep elements with the same value in the same order
     std::stable_sort(currList.begin(), currList.end());
     std::stable_sort(nextList.begin(), nextList.end());
@@ -237,56 +300,54 @@ void ScheduleExpander::computeStreamsWakeupLists(const std::map<unsigned int, St
     streamMgr->setStreamsWakeupLists(currList, nextList);
 }
 
-std::pair<unsigned int, unsigned int> ScheduleExpander::countStreamsWithNegativeOffset(const std::map<unsigned int, StreamOffsetInfo>& table) {
-    unsigned int countNegativeOffsets = 0;
-    unsigned int countScheduledStreams = 0;
-
-    for (auto it = table.begin(); it != table.end(); it++) {
-        countScheduledStreams++;
-        auto off = it->second.offset;
-        auto wakeupAdvance = it->second.wakeupAdvance;
-        int wakeupSlot = off - (wakeupAdvance / ctx.getDataSlotDuration());
-        if (wakeupSlot < 0) {
-            countNegativeOffsets++;
-        }
-    }
-
-    return std::make_pair(countNegativeOffsets, countScheduledStreams);
-}
-
-void ScheduleExpander::addDownlinkTimesToWakeupList(std::vector<StreamWakeupInfo>& list, const ScheduleHeader& header) {
-    ControlSuperframeStructure superframeStructure = ctx.getNetworkConfig().getControlSuperframeStructure();
-    unsigned int numConsecutiveDownlinkSlots = ctx.getDownlinkSlotDuration() / ctx.getDataSlotDuration();
+void ScheduleExpander::addDownlinkTimesToWakeupList(std::vector<StreamWakeupInfo>& list) {
+    ControlSuperframeStructure superframeStructure = netConfig.getControlSuperframeStructure();
+    // Number of data slots that compose a single downlink slot
+    unsigned int dataSlotsInDownlink = ctx.getDownlinkSlotDuration() / ctx.getDataSlotDuration();
+    // Schedule's activation time, corresponding to activation tile
+    auto activationTime = activationTile * netConfig.getTileDuration();
     // each of the downlink slots will be repeated at each superframe
     // i.e. period = number_tiles_in_superframe
     // e.g. if superframe size = 2 => downlink slots period = 2 tile
-    int downlinkSlotPeriod = superframeStructure.size();
-    for (int i = 0; i < superframeStructure.size(); i++) {
+    unsigned long long downlinkSlotPeriod = superframeSize * netConfig.getTileDuration(); // period converted to time (ns)
+    for (int i = 0; i < superframeSize; i++) {
         if (superframeStructure.isControlDownlink(i)) {
             // compute downlink tile wakeup offset, wakeup at the end of the downlink slots
-            unsigned int downlinkWakeupSlot = (i * ctx.getSlotsInTileCount()) + numConsecutiveDownlinkSlots;
+            unsigned int downlinkWakeupSlot = (i * slotsInTile) + dataSlotsInDownlink;
             unsigned int downlinkWakeupTimeOffset = downlinkWakeupSlot * ctx.getDataSlotDuration();
             // the wakeup time offset (wakeup slot) is relative to the activation tile
-            unsigned long long downlinkWakeupTime = downlinkWakeupTimeOffset + (header.getActivationTile() * ctx.getNetworkConfig().getTileDuration());
+            unsigned long long downlinkWakeupTime = downlinkWakeupTimeOffset + NetworkTime::fromNetworkTime(activationTime).toLocalTime();
             list.emplace_back(StreamWakeupInfo{WakeupInfoType::DOWNLINK, StreamId(), downlinkWakeupTime, downlinkSlotPeriod});
         }
     }
 }
 
-void ScheduleExpander::printStreamsInfoTable(const std::map<unsigned int, StreamOffsetInfo>& table, unsigned char nodeID) const {
-#ifndef _MIOSIX
-    if (table.size() == 0) {
-        print_dbg("[SD] Node: %d, streams info table is empty\n", nodeID);
-        return;
+std::pair<unsigned int, unsigned int> ScheduleExpander::countStreams(const std::vector<ScheduleElement>& schedule) {
+    // Implicit schedule contains repeated streams, according to their
+    // redundancy value, keep track of already counted streams
+    std::set<StreamId> countedStreams;
+
+    unsigned char nodeID = ctx.getNetworkId();
+    unsigned int numNegativeOffset = 0;
+    unsigned int numTotal = 0;
+
+    for (auto e : schedule) {
+        if (countedStreams.find(e.getStreamId()) == countedStreams.end()) {
+            // count only this node's streams that have to send
+            if (e.getSrc() == nodeID && e.getTx() == nodeID) {
+                numTotal++;
+                auto wakeupAdvance = streamMgr->getWakeupAdvance(e.getStreamId());
+                int wakeupSlot = e.getOffset() - (wakeupAdvance / ctx.getDataSlotDuration());
+                if (wakeupSlot < 0) {
+                    numNegativeOffset++;
+                }
+            }
+
+            countedStreams.insert(e.getStreamId());
+        }
     }
-    
-    print_dbg("[SD] Node: %d, streams info table\n", nodeID);
-    print_dbg("ID \t\tPER \tOffset \tWakeupAdvance \n");
-    
-    for (auto it = table.begin(); it != table.end(); it++) {
-        print_dbg("%lu \t%d \t%u \t%u \n", it->second.id.getKey(), it->second.period, it->second.offset, it->second.wakeupAdvance);
-    }
-#endif
+
+    return std::make_pair(numTotal, numNegativeOffset);
 }
 
 }; // namespace mxnet

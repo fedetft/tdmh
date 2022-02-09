@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2018-2019 by Federico Amedeo Izzo                       *
+ *   Copyright (C) 2018-2022 by Federico Amedeo Izzo, Valeria Mazzola,     *
+ *                              Luca Conterio                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -170,6 +171,9 @@ protected:
     // Number of schedule distribution slots need to distribute the schedule
     unsigned int sendingRounds;
     unsigned int currentSendingRound;
+
+    // True if the schedule expansion process still has to be performed
+    bool needToPerformExpansion = false;
 
     // Constant value from NetworkConfiguration
     const unsigned short panId;

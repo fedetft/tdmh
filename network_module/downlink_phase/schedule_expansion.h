@@ -1,6 +1,7 @@
 /***************************************************************************
  *   Copyright (C) 2018-2022 by Federico Amedeo Izzo, Valeria Mazzola,     *
- *                              Luca Conterio                              *
+ *   Luca Conterio                                                         *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -34,56 +35,115 @@
 
 namespace mxnet {
 
+/**
+ * Class that is in charge of transforming an implict schedule
+ * to an explicit one (expansion process).
+ * The expansion can be executed over multiple downlink slots.
+ */
 class ScheduleExpander {
 
 public:
     ScheduleExpander(MACContext& c);
 
     /**
-     * Convert the implicit schedule to an explicit one
-     * \param schedule
-     * \param header
+     * Called directly by ScheduleDistribution phase when a schedule is received.
      */
-    void expandSchedule(const std::vector<ScheduleElement>& schedule, const ScheduleHeader& header, unsigned char nodeID);
+    void startExpansion(const std::vector<ScheduleElement>& schedule, const ScheduleHeader& header);
 
+    /**
+     * Called directly by ScheduleDistribution phase in downlink tiles reserved for
+     * expansion.
+     */
+    void continueExpansion(const std::vector<ScheduleElement>& schedule);
+
+    /**
+     * Called by ScheduleDistribution to know when there are no more streams to expand.
+     * \return true if there are streams that need to be expanded and expansion is in progress,
+     *         false otherwise.
+     */
+    bool needToContinueExpansion();
+
+    /**
+     * \return the reference to the explicit (expanded) schedule
+     */
     const std::vector<ExplicitScheduleElement>& getExplicitSchedule();
 
+    /**
+     * \return the number of streams that can be expanded in a single downlink slot
+     */
     unsigned int getExpansionsPerSlot() const;
 
+    /**
+     * \return 
+     */
     const std::map<StreamId, std::pair<unsigned char, unsigned char>>& getForwardedStreams() const;
 
 private:
+    /**
+     * Convert the implicit schedule to an explicit one
+     * \param schedule
+     */
+    void expandSchedule(const std::vector<ScheduleElement>& schedule);
+
     /**
      * Create two lists of streams and pass them to the StreamManager.
      * The two lists contain the streams with their respective wakeup times, divided
      * in streams that have to transmit in the current superframe and streams that have
      * to transmit in the next superframe.
-     * \param table the list of all the streams that have to transmit togheter with their
-     *              main params (period, redundancy and wakeup advance)
-     * \param header
+     * \param stream
+     * \param wakeupAdvance
+     * \param activationTile
      */
-    void computeStreamsWakeupLists(const std::map<unsigned int, StreamOffsetInfo>& table, const ScheduleHeader& header);
-
-    /**
-     * \param table the map of all the streams that have to transmit togheter with their
-     *              main params (period, redundancy and wakeup advance)
-     * \return the number of streams whose wakeup time is contained in the previous superframe
-     *         (w.r.t. the transmission superframe) and the total number of scheduled streams.
-     */
-    std::pair<unsigned int, unsigned int> countStreamsWithNegativeOffset(const std::map<unsigned int, StreamOffsetInfo>& table);
+    void addStreamToWakeupList(const ScheduleElement& stream, unsigned long long wakeupAdvance, unsigned int activationTile);
     
+    /**
+     * 
+     */
+    void completeWakeupLists();
+
     /**
      * Insert downlink slots end times to the given list.
      * \param list the list to which downlink slots times have to be added
      */
-    void addDownlinkTimesToWakeupList(std::vector<StreamWakeupInfo>& list, const ScheduleHeader& header);
+    void addDownlinkTimesToWakeupList(std::vector<StreamWakeupInfo>& list);
 
     /**
-     * 
+     * \return the total number of scheduled streams and the number of streams whose wakeup time is 
+     *         contained in the previous superframe (w.r.t. the transmission superframe).
      */
-    void printStreamsInfoTable(const std::map<unsigned int, StreamOffsetInfo>& table, unsigned char nodeID) const;
+    std::pair<unsigned int, unsigned int> countStreams(const std::vector<ScheduleElement>& schedule);
 
+    // Index used to iterate over the implicit schedule
+    unsigned int expansionIndex = 0;
+
+    // Number of slots included in explicit schedule
+    // i.e. explicit schedule vector size
+    unsigned int scheduleSlots = 0;
+    // Number of slots in a single tile
+    unsigned int slotsInTile = 0;
+    // Number of slots in an entire control superframe
+    unsigned int slotsInSuperframe = 0;
+    // Number of tiles in a single control superframe
+    int superframeSize = 0;
+
+    // Received schedule activation tile
+    unsigned int activationTile = 0;
+
+    // Indicate if the process is still ongoing or not
+    bool inProgress = false;
+    // Indicate if the expansion process reached
+    // the end of the implicit schedule vector
+    bool explicitScheduleComplete = false;
+
+    // Explicit schedule resulting after the expansion is complete
     std::vector<ExplicitScheduleElement> explicitSchedule;
+
+    // 
+    std::map<unsigned int, std::shared_ptr<Packet>> buffers;
+
+    // Keep track of which streams have already been added to streams wakeup lists
+    // (since only unique streams have to be added, without considering their redundancy)
+    std::set<StreamId> uniqueStreams;
 
     /* Structure used to keep count of redundancy groups of streams that this
      * node is scheduled to forward to others. This info will be moved to 
@@ -95,11 +155,38 @@ private:
      * the dataphase */
     std::map<StreamId, std::pair<unsigned char, unsigned char>> forwardedStreamCtr;
 
+    // Streams wakeup lists, needed by the StreamWaitScheduler
+    std::vector<StreamWakeupInfo> currList;
+    std::vector<StreamWakeupInfo> nextList;
+
     const MACContext& ctx;
+    const NetworkConfiguration& netConfig;
     StreamManager* const streamMgr;
 
-    // TODO measure this
-    const unsigned int expansionsPerSlot = 15;
+    //
+    // TODO measure these
+    //
+
+    // Maximum number of elements in the inmplicit schedule
+    // that can be expanded during a downlink slot
+    unsigned int expansionsPerSlot   = 0;
+    // Time needed to get an element from the implicit schedule
+    // and insert it into the explicit one, in nanoseconds
+    // Set to worst case, i.e. action is SENDSTREAM / SENDBUFFER
+    const unsigned long long singleExpansionTime = 32000 + 1000; // 32 us + slack (1 us)
+
+    // addDownlinkTimesToWakeupList() with one downlink = 5.87 us
+    // single downlink slot add to list = 2 us 
+    // ===> 5.87 - 2 ~= 3.9 us
+    const unsigned long long addDownlinkPreparationTime  = 3900;
+    const unsigned long long addDownlinkSingleTime = 2000 + 1000; // 2 us + slack (1 us)
+
+    // total time for schedule with 1 stream and redundancy 3 = 32.625 us
+    // (including creating the needed objects, e.g. the set where seen streams are added)
+    // time for checking if stream exists to the "set" and adding it to the "set" = 20.6 us ~= 21 us
+    const unsigned long long countStreamsSingleTime = 21000 + 1000; // 21 us + slack (1 us)
+
+    std::mutex expansionMutex;
 };
 
 }; // namespace mxnet
