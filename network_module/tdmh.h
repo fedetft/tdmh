@@ -35,6 +35,7 @@
 #include "network_configuration.h"
 #include "stream/stream_parameters.h"
 #include "util/stackrange.h"
+#include "util/debug_settings.h"
 #include <functional>
 
 namespace mxnet {
@@ -117,7 +118,9 @@ protected:
     miosix::Thread* thread;
 private:
     static void runLauncher(void* obj) {
-        printStackRange("MAC (async)");
+        if (ENABLE_STACK_STATS_DBG) {
+            printStackRange("MAC (async)");
+        }
         reinterpret_cast<MediumAccessController*>(obj)->run();
     }
 #else

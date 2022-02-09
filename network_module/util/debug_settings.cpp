@@ -96,7 +96,10 @@ void DebugPrinter::enqueue(const string& s)
 
 void DebugPrinter::run()
 {
-    printStackRange("DebugPrinter");
+    if (ENABLE_STACK_STATS_DBG) {
+        printStackRange("DebugPrinter");
+    }
+    
     const int logMaxSize = 10000; //Log max size every 10000 print_dbg
     int logCounter = 0;
     for(;;)

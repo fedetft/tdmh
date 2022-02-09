@@ -338,10 +338,11 @@ inline void DynamicTimesyncDownlink::execute(long long slotStart)
     }
     
 #ifdef _MIOSIX
-    unsigned int stackSize = MemoryProfiling::getStackSize();
-    unsigned int absFreeStack = MemoryProfiling::getAbsoluteFreeStack();
-    if (ENABLE_STACK_STATS_DBG)
+    if (ENABLE_STACK_STATS_DBG) {
+        unsigned int stackSize = MemoryProfiling::getStackSize();
+        unsigned int absFreeStack = MemoryProfiling::getAbsoluteFreeStack();
         print_dbg("[H] MAC stack %d/%d\n",stackSize-absFreeStack,stackSize);
+    }
 #endif
 }
 

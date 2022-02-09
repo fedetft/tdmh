@@ -79,7 +79,10 @@ void ScheduleComputation::beginScheduling() {
 
 void ScheduleComputation::run()
 {
-    printStackRange("scheduler");
+    if (ENABLE_STACK_STATS_DBG) {
+        printStackRange("scheduler");
+    }
+    
     for(;;)
     {
         {
@@ -153,9 +156,11 @@ bool ScheduleComputation::reschedule()
 {
 #ifdef _MIOSIX
     long long begin = miosix::getTime();
-    unsigned int stackSize = miosix::MemoryProfiling::getStackSize();
-    unsigned int absFreeStack = miosix::MemoryProfiling::getAbsoluteFreeStack();
-    printf("[H] Scheduler stack %d/%d\n",stackSize-absFreeStack,stackSize);
+    if (ENABLE_STACK_STATS_DBG) {
+        unsigned int stackSize = miosix::MemoryProfiling::getStackSize();
+        unsigned int absFreeStack = miosix::MemoryProfiling::getAbsoluteFreeStack();
+        print_dbg("[H] Scheduler stack %d/%d\n",stackSize-absFreeStack,stackSize);
+    }
 #else
     long long begin = 0;
 #endif
@@ -335,7 +340,7 @@ void ScheduleComputation::finalPrint(long long begin) {
     }
 #ifdef _MIOSIX
     long long end = miosix::getTime();
-    printf("[SC] sched time %lldms\n",(end-begin)/1000000);
+    print_dbg("[SC] sched time %lldms\n",(end-begin)/1000000);
 #endif
     // To avoid caching of stdout
     fflush(stdout);
