@@ -107,8 +107,11 @@ const bool ENABLE_STREAM_MGR_INFO_DBG = true;
 //prints the stream context debug info
 const bool ENABLE_STREAM_INFO_DBG = true;
 
-//prints the stream wakeup scheduler debug info
+//prints basic stream wakeup scheduler debug info
 const bool ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG = false;
+
+//prints verbose stream wakeup scheduler debug info
+const bool ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_VERB_DBG = false;
 
 //prints debug messages for state changes in KeyManager
 const bool ENABLE_CRYPTO_KEY_MGMT_DBG = false;
