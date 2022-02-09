@@ -69,10 +69,19 @@ struct ScheduleWakeupData {
     }
 
     /**
+     * Incremenet the wakeup times of all the elements in the two queues.
+     * @param t increment to be applied to the queue elements.
+     */
+    void applyTimeIncrement(unsigned long long t) {
+        currWakeupQueue.applyTimeIncrement(t);
+        nextWakeupQueue.applyTimeIncrement(t);
+    }
+
+    /**
      * Copy members of the given objects to the ones of this object.
      * @param other the object from which members have to be copied
      */
-    void set(const ScheduleWakeupData& other) {
+    void operator=(const ScheduleWakeupData& other) {
         activationTile = other.activationTile;
         activationTime = other.activationTime;
         currWakeupQueue = other.currWakeupQueue;
@@ -139,7 +148,7 @@ private:
      * Replace streams lists relative to an older schedule
      * with the ones realtive to the new one.
      */
-    void updateScheduleData();
+    void applyNewSchedule();
 
     /**
      * Get the streams queue from which extracting
@@ -154,19 +163,10 @@ private:
     StreamWakeupInfo getNextWakeupInfo();
 
     /**
-     * Push a StreamWakeupInfo element to the streams queue from 
-     * which the last element was extracted
-     * @param sinfo the element to be pushed
+     * Update the front element of the streams queue from 
+     * which the last element was extracted.
      */
-    void pushWakeupInfo(const StreamWakeupInfo& sinfo);
-
-    /**
-     * Get an StreamWakeupInfo and update its wakeup time
-     * according to that stream's period and the tile duration.
-     * @param sinfo the StreamWakeupInfo to be updated
-     * @return the updated StreamWakeupInfo element
-     */
-    StreamWakeupInfo updateWakeupTime(const StreamWakeupInfo& sinfo) const;
+    void updateLastUsedQueue();
 
     /**
      * Wakeup a specific stream.
@@ -184,19 +184,18 @@ private:
     /**
      * Print state machine state.
      */
-    void printState(unsigned int tile);
+    void printState(unsigned int tile) const;
 
     /**
      * Print the given StreamQueues.
-     * @param q1 first queue to be printed
-     * @param q2 second queue to be printed
+     * @param scheduleData the struct containing the stream queues to be printed
      */
-    void printQueues(StreamQueue& q1, StreamQueue& q2);
+    void printQueues(const ScheduleWakeupData& sData);
 
     /**
      * Print the StreamWaitScheduler thread stack usage and size.
      */
-    void printStack();
+    void printStack() const;
 
     /**
      * StreamWaitScheduler state machine states.

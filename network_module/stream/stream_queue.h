@@ -44,38 +44,80 @@ public:
     StreamQueue(const StreamQueue& other);
     StreamQueue(const std::vector<StreamWakeupInfo>& container);
 
-    // resets index to zero
-    void set(const std::vector<StreamWakeupInfo>& container);  
+    /**
+     * Assign a StreamQueue to this one. The underlying container
+     * and is size are assigned. This object's index is set to zero
+     * (i.e. to the first element of the container).
+     */
+    void set(const std::vector<StreamWakeupInfo>& container);
 
-    // keep same index of "other"
-    void set(const StreamQueue& other);
-
+    /**
+     * @return reference to the underlying container
+     */
     const std::vector<StreamWakeupInfo>& get() const;
 
     /**
-     * @return the front queue element. If the queue
-     *         is empty, an empty StreamWakeupInfo is returned
+     * @return the front queue element (i.e. the one at current index in the queue).
+     *         If the queue is empty, an empty StreamWakeupInfo is returned
      */
     StreamWakeupInfo getElement() const;
 
+    /**
+     * @return the queue element following the front one.
+     */
     StreamWakeupInfo getNextElement() const;
 
+    /**
+     * @return current queue index.
+     */
     unsigned int getIndex() const;
 
+    /**
+     * @return index following the current queue index.
+     */
     unsigned int getNextIndex() const;
+    
+    /**
+     * Update current from element's wakeup time, 
+     * according to its period, and move index, if needed.
+     * The index is moved only if the element following the
+     * current one has a wakeup time that is lower than
+     * the current element's one.
+     */
+    void updateElement();
 
-    void pushElement(const StreamWakeupInfo& other);
+    /**
+     * Increment wakeup time of all elements in the queue by the 
+     * given amount of time.
+     * @param t increment to be applied to queue elements
+     */
+    void applyTimeIncrement(unsigned long long t);
 
-    void updateIndex();
+    /**
+     * Check if a StreamWakeupInfo object exists in the queue.
+     * @param sinfo the object whose existence has to be checked
+     * @return true if an element equal to @param{sinfo} exists
+     *          in the queue, false otherwise
+     */
+    bool contains(const StreamWakeupInfo& sinfo) const;
 
-    void reset();
-
-    bool empty() const;
+    /**
+     * @return true if queue is empty, false otherwise
+     */
+    bool empty();
 
     /**
      * Print the queue elements.
      */
-    void print();
+    void print() const;
+
+    /**
+     * Assign a StreamQueue to this one. The underlying container
+     * and is size are assigned. The current index of @param{other}
+     * is maintained and assigned too to the index of this object.
+     * @param other the object to be assigned to this one
+     */
+    void operator=(const StreamQueue& other);
 
     /**
      * Compare the two passed stream queues and return a pointer
@@ -83,17 +125,30 @@ public:
      * lower wakeup time. If a queue is empty, the other one is
      * returned. In case both queues are empty, the first one is 
      * always returned. 
+     * @param q1 the first of the queues to be compared
+     * @param q2 the second of the queues to be compared
      * @return pointer to the stream queue containing the lower
      *         wakeup time among the two
      */
     static StreamQueue* compare(StreamQueue& q1, StreamQueue& q2);
 
-    // keep same index of "other"
-    void operator=(const StreamQueue& other);
-
 private:
+    /**
+     * Update the index used to iterate over the queue,
+     * go to the next index.
+     */
+    void updateIndex();
+    
+    /**
+     * Reset current index to zero and queue size to
+     * the actual size of the underlying container.
+     */
+    void reset();
+
+    // Index used to iterate over the queue
     unsigned int index = 0;
 
+    // Number of elements contained in the queue
     size_t queueSize = 0;
 
     std::vector<StreamWakeupInfo> queue;

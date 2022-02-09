@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "stream_queue.h"
+#include "../downlink_phase/timesync/networktime.h"
 
 namespace mxnet
 {
@@ -37,14 +38,8 @@ StreamQueue::StreamQueue(const StreamQueue& other) : queue(other.get()) {}
 StreamQueue::StreamQueue(const std::vector<StreamWakeupInfo>& container) : queue(container) {}
 
 void StreamQueue::set(const std::vector<StreamWakeupInfo>& container) {
-    queue     = container;
-    queueSize = container.size();
-    index     = 0;
-}
-
-void StreamQueue::set(const StreamQueue& other) {
-    set(other.get());
-    index = other.getIndex();
+    queue = container;
+    reset();
 }
 
 const std::vector<StreamWakeupInfo>& StreamQueue::get() const {
@@ -75,44 +70,61 @@ unsigned int StreamQueue::getIndex() const {
 }
 
 unsigned int StreamQueue::getNextIndex() const {
-    return (index + 1) % queueSize;
+    auto nextIndex = index + 1;
+
+    if (nextIndex == queueSize)
+        nextIndex = 0;
+        
+    return nextIndex;
 }
 
-void StreamQueue::pushElement(const StreamWakeupInfo& e) {
-    // update element at current index,
-    // and move index if next element has a
-    // wakeup time <= than the current one
-    queue[index] = e;
-
-    if (getNextElement().wakeupTime <= e.wakeupTime)
-        updateIndex();
-}
-
-void StreamQueue::updateIndex() {
+void StreamQueue::updateElement() {
+    // update front element's wakeup time, only if 
+    // that element exists (i.e. the queue is not empty)
+    // if (queue[index].type != WakeupInfoType::EMPTY) {
     if (!queue.empty()) {
-        index = getNextIndex();
+        queue[index].incrementWakeupTime();
+
+        // move index only if next element has a
+        // wakeup time < than the current one
+        if (getNextElement().wakeupTime < queue[index].wakeupTime) {
+            updateIndex();
+        }
     }
 }
 
-void StreamQueue::reset() {
-    index = 0;
+void StreamQueue::applyTimeIncrement(unsigned long long t) {
+    if (!queue.empty()) {
+        for(unsigned int i = 0; i < queueSize; i++) {
+            queue[i].wakeupTime += t;
+        }
+    }
 }
 
-bool StreamQueue::empty() const {
-    return queue.empty();
+bool StreamQueue::contains(const StreamWakeupInfo& sinfo) const {
+    for(auto e : queue) {
+        if (e == sinfo)
+            return true;
+    }
+
+    return false;
 }
 
-void StreamQueue::print() {
+bool StreamQueue::empty() {
+    return queueSize == 0;
+}
+
+void StreamQueue::print() const {
 #ifndef _MIOSIX
     char header[4][11] = {"ID", "WakeupTime", "Period", "Type"};
     char emptyChar = '-';
-    print_dbg("\n%-10s %-13s %-10s %-10s\n", header[0], header[1], header[2], header[3]);
+    print_dbg("%-10s %-13s %-10s %-10s\n", header[0], header[1], header[2], header[3]);
     if (queue.empty()) {
         print_dbg("%-10c %-13c %-10c %-10c\n", emptyChar, emptyChar, emptyChar, emptyChar);
     }
     else {
         for(auto e : queue) {
-            print_dbg("%-10lu %-13llu %-10d", e.id.getKey(), e.wakeupTime, e.period);
+            print_dbg("%-10lu %-13llu %-10d", e.id.getKey(), NetworkTime::fromLocalTime(e.wakeupTime).get(), e.period);
             switch(e.type) {
                 case WakeupInfoType::STREAM:
                     print_dbg(" STREAM \n"); 
@@ -129,15 +141,33 @@ void StreamQueue::print() {
 #endif
 }
 
+void StreamQueue::operator=(const StreamQueue& other) {
+    set(other.get());
+    // keep same index as "other"'s one
+    index = other.getIndex();
+}
+
 StreamQueue* StreamQueue::compare(StreamQueue& q1, StreamQueue& q2) {
     
-    // both lists empty, return empty struct
+    // if both lists empty, just return one of the two lists
     if (q1.empty() && q2.empty()) {
-        if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
-            print_dbg("[S] Both curr and next lists empty\n");
+        // if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
+        //     print_dbg("[S] Both curr and next lists empty\n");
         return &q1;
     }
-    
+
+    // if one of the two lists is empty, return the element from the other list
+    if (q1.empty()) {
+        // if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
+        //     print_dbg("[S] First list empty : get element from second list\n");
+        return &q2;
+    }
+    else if (q2.empty()) {
+        // if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
+        //     print_dbg("[S] Second list empty : get element from first list\n");
+        return &q1;
+    }
+
     StreamWakeupInfo swi1{};
     StreamWakeupInfo swi2{};
 
@@ -149,41 +179,34 @@ StreamQueue* StreamQueue::compare(StreamQueue& q1, StreamQueue& q2) {
         swi2 = q2.getElement();
     }
 
-    // if one of the two lists is empty, return the element from the other list
-    if (q1.empty()) {
-        if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
-            print_dbg("[S] First list empty : get element from second list\n");
-        return &q2;
-    }
-    else if (q2.empty()) {
-        if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
-            print_dbg("[S] Second list empty : get element from first list\n");
-        return &q1;
-    }
-
-    // otherwise, return the minimum among the two lists elements
-
-    // TODO back to <=
-    if (swi1.wakeupTime < swi2.wakeupTime) {
-        if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
-            print_dbg("[S] Get element from first list\n");
+    // return the minimum among the two lists elements
+    if (swi1.wakeupTime <= swi2.wakeupTime) {
+        // if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
+        //     print_dbg("[S] Get element from first list\n");
         return &q1;
     }
     else {
-        if (swi1.wakeupTime == swi2.wakeupTime) {
-            print_dbg("Two equal wakeup times...\n");
-        }
+        // if (swi1.wakeupTime == swi2.wakeupTime) {
+        //     print_dbg("Two equal wakeup times...\n");
+        // }
 
-        if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
-            print_dbg("[S] Get element from second list\n");
+        // if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG)
+        //     print_dbg("[S] Get element from second list\n");
         return &q2;
     }
 
     return &q1;
 }
 
-void StreamQueue::operator=(const StreamQueue& other) {
-    set(other.get());
+void StreamQueue::updateIndex() {
+    if (!queue.empty()) {
+        index = getNextIndex();
+    }
+}
+
+void StreamQueue::reset() {
+    index = 0;
+    queueSize = queue.size();
 }
     
 } // namespace mxnet
