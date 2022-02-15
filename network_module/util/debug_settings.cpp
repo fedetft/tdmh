@@ -116,9 +116,11 @@ void DebugPrinter::run()
         if(++logCounter >= logMaxSize)
         {
             logCounter = 0;
-            unsigned int stackSize = miosix::MemoryProfiling::getStackSize();
-            unsigned int absFreeStack = miosix::MemoryProfiling::getAbsoluteFreeStack();
-            printf("[L] log max size %d, stack %d/%d\n",maxSize,stackSize-absFreeStack,stackSize);
+            if (ENABLE_STACK_STATS_DBG) {
+                unsigned int stackSize = miosix::MemoryProfiling::getStackSize();
+                unsigned int absFreeStack = miosix::MemoryProfiling::getAbsoluteFreeStack();
+                printf("[L] log max size %d, stack %d/%d\n",maxSize,stackSize-absFreeStack,stackSize);
+            }
         }
     }
 }
