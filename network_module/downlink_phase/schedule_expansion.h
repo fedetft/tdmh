@@ -48,13 +48,14 @@ public:
     /**
      * Called directly by ScheduleDistribution phase when a schedule is received.
      */
-    void startExpansion(const std::vector<ScheduleElement>& schedule, const ScheduleHeader& header);
+    void startExpansion(const std::vector<ScheduleElement>& schedule, 
+                            const ScheduleHeader& header, unsigned char node);
 
     /**
      * Called directly by ScheduleDistribution phase in downlink tiles reserved for
      * expansion.
      */
-    void continueExpansion(const std::vector<ScheduleElement>& schedule);
+    void continueExpansion(const std::vector<ScheduleElement>& schedule, bool setWakeupLists = true);
 
     /**
      * Called by ScheduleDistribution to know when there are no more streams to expand.
@@ -62,6 +63,13 @@ public:
      *         false otherwise.
      */
     bool needToContinueExpansion();
+
+    /**
+     * 
+     */
+    const std::vector<ExplicitScheduleElement>& expandScheduleOneShot(const std::vector<ScheduleElement>& schedule, 
+                                                                        const ScheduleHeader& header, unsigned char node, 
+                                                                        bool setWakeupLists = false); 
 
     /**
      * \return the reference to the explicit (expanded) schedule
@@ -91,21 +99,29 @@ private:
      * in streams that have to transmit in the current superframe and streams that have
      * to transmit in the next superframe.
      * \param stream
+     * \param offset
      * \param wakeupAdvance
      * \param activationTile
      */
-    void addStreamToWakeupList(const ScheduleElement& stream, unsigned long long wakeupAdvance, unsigned int activationTile);
-    
+    void addStream(const ScheduleElement& stream, unsigned int offset, 
+                    unsigned long long wakeupAdvance, unsigned int activationTile);
+
     /**
      * 
      */
-    void completeWakeupLists();
+    unsigned long long findNextDownlinkTime();
 
     /**
      * Insert downlink slots end times to the given list.
+     * \param downlinkTime
      * \param list the list to which downlink slots times have to be added
      */
-    void addDownlinkTimesToWakeupList(std::vector<StreamWakeupInfo>& list);
+    void addDownlink(unsigned long long downlinkTime, std::vector<StreamWakeupInfo>& list);
+
+    /**
+     * 
+     */
+    unsigned int getWakeupSlot(unsigned int offset, unsigned long long wakeupAdvance);
 
     /**
      * \return the total number of scheduled streams and the number of streams whose wakeup time is 
@@ -113,12 +129,28 @@ private:
      */
     std::pair<unsigned int, unsigned int> countStreams(const std::vector<ScheduleElement>& schedule);
 
+    /**
+     * 
+     */
+    unsigned int countDownlinks();
+
+    unsigned char nodeID = 0;
+
     // Index used to iterate over the implicit schedule
     unsigned int expansionIndex = 0;
+
+    //unsigned int addedDownlinksNum = 0;
+    unsigned int numDownlinksInSchedule = 0;
+    unsigned int downlinksIndex = 0;
+    unsigned long long nextDownlinkTime = 0;
 
     // Number of slots included in explicit schedule
     // i.e. explicit schedule vector size
     unsigned int scheduleSlots = 0;
+    // Number of tiles in schedule
+    unsigned int scheduleTiles = 0;
+    // Total duration of a single schedule
+    unsigned long long scheduleDuration = 0; 
     // Number of slots in a single tile
     unsigned int slotsInTile = 0;
     // Number of slots in an entire control superframe
@@ -128,9 +160,11 @@ private:
 
     // Received schedule activation tile
     unsigned int activationTile = 0;
+    // Received schedule activation time
+    unsigned long long activationTime = 0;
 
     // Indicate if the process is still ongoing or not
-    bool inProgress = false;
+    bool expansionInProgress = false;
     // Indicate if the expansion process reached
     // the end of the implicit schedule vector
     bool explicitScheduleComplete = false;
