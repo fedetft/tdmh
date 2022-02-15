@@ -26,49 +26,65 @@
  ***************************************************************************/
 
 #include "stream_wait_data.h"
+#include "../downlink_phase/timesync/networktime.h"
 
 namespace mxnet {
 
-StreamWakeupInfo::StreamWakeupInfo() : type(WakeupInfoType::EMPTY), id(StreamId()), wakeupTime(0), period(0) {}
+StreamWakeupInfo::StreamWakeupInfo() : type(WakeupInfoType::NONE), id(StreamId()), wakeupTime(0) {}
 
-StreamWakeupInfo::StreamWakeupInfo(WakeupInfoType t, StreamId sid, unsigned long long wt, unsigned long long p) : 
-                                                   type(t), id(sid), wakeupTime(wt), period(p) {}
+StreamWakeupInfo::StreamWakeupInfo(WakeupInfoType t, StreamId sid, unsigned long long wt) : type(t), id(sid), wakeupTime(wt) {}
 
-void StreamWakeupInfo::incrementWakeupTime() {
-    // next time the stream relative to this StreamWakeupInfo
-    // needs to be woken up, is the same wakeup time plus 
-    // its period, converted to time (from an integer value)
-    wakeupTime += period;
+void StreamWakeupInfo::print() const {
+    print_dbg("%-10lu %-13llu", id.getKey(), NetworkTime::fromLocalTime(wakeupTime).get());
+    switch(type) {
+        case WakeupInfoType::WAKEUP_STREAM:
+            print_dbg(" STREAM \n"); 
+            break;
+        case WakeupInfoType::WAKEUP_DOWNLINK:
+            print_dbg(" DOWNLINK \n"); 
+            break;
+        default:
+            print_dbg(" ----- \n"); 
+            break;
+    }
 }
 
 bool StreamWakeupInfo::operator<(const StreamWakeupInfo& other) const {
-    
     if (wakeupTime < other.wakeupTime) {
         return true;
     }
-
-    if (wakeupTime == other.wakeupTime) {
-        if (period < other.period) {
+    else if (wakeupTime > other.wakeupTime) {
+        return false;
+    }
+    // Streams have higher priority than downlinks:
+    // if they have same wakeup time, streams must be ordered before
+    else if (type == WakeupInfoType::WAKEUP_STREAM && other.type == WakeupInfoType::WAKEUP_DOWNLINK) {
+        if (wakeupTime == other.wakeupTime) {
             return true;
         }
+        // else {
+        //     return false;
+        // }
     }
-
-    if (wakeupTime == other.wakeupTime) {
-        if (period == other.period) {
-            if (type != other.type) {
-                if (type == WakeupInfoType::STREAM && other.type == WakeupInfoType::DOWNLINK)
-                    return true;
-            }
-        }
-    }
+    // else if (type == WakeupInfoType::WAKEUP_DOWNLINK && other.type == WakeupInfoType::WAKEUP_STREAM) {
+    //     if (wakeupTime == other.wakeupTime) {
+    //         return false;
+    //     }
+    //     else {
+    //         return true;
+    //     }
+    // }
 
     return false;
+}
+
+bool StreamWakeupInfo::operator>(const StreamWakeupInfo& other) const {
+    return wakeupTime > other.wakeupTime;
 }
 
 bool StreamWakeupInfo::operator==(const StreamWakeupInfo& other) const {
     return id == other.id &&
             type == other.type &&
-            period == other.period &&
             wakeupTime == other.wakeupTime;
 }
 

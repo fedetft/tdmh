@@ -37,9 +37,9 @@ namespace mxnet {
  * or none of those (i.e. just and empty structure).
  */
 enum class WakeupInfoType : uint8_t {
-    STREAM   = 0,
-    DOWNLINK = 1,
-    EMPTY    = 2
+    WAKEUP_STREAM   = 0,
+    WAKEUP_DOWNLINK = 1,
+    NONE            = 2
 };
 
 /**
@@ -49,37 +49,26 @@ struct StreamWakeupInfo {
     WakeupInfoType type;
     StreamId id;
     unsigned long long wakeupTime;
-    unsigned long long period; // stream period converted to time (nanoseconds)
 
     StreamWakeupInfo(); 
-    StreamWakeupInfo(WakeupInfoType t, StreamId sid, unsigned long long wt, unsigned long long p);
+    StreamWakeupInfo(WakeupInfoType t, StreamId sid, unsigned long long wt);
 
     /**
-     * Update the current wakeup time. 
-     * The result is the next wakeup time for the stream
-     * associated to this object.
+     * 
      */
-    void incrementWakeupTime();
+    void print() const;
 
     /**
-     * Used to build an ordered list of StreamWakeupInfo objects.
-     * This method checks if "this" < "other", i.e. it checks if
-     * priority of "this" > priority of "other".
-     * If "this" < "other", it will be ordered before "other" in streams wakeup lists.
-    
-     * Ordering: 
-     * - Objects with lower wakeup time, before objects with higher wakeup time
-     * - Objects with lower period, before objects with higher period
-     * - Streams before downlink objects
-     * 
-     * NOTE: this custom ordering is fundamental for the streams wakeup algorithm
-     *       to work, in particular for handling streams that have different periods
-     *       in the same node.
-     * 
      * \param other object to be compared with this object
-     * \return true if "this" < "other", false otherwise
+     * \return true if this object has a lower wakeup time than "other"
      */
     bool operator<(const StreamWakeupInfo& other) const;
+
+    /**
+     * \param other object to be compared with this object
+     * \return true if this object has a higher wakeup time than "other"
+     */
+    bool operator>(const StreamWakeupInfo& other) const;
 
     /**
      * \param other object to be compared with this object
