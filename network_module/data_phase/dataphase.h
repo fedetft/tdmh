@@ -63,7 +63,11 @@ public:
     }
     static unsigned long long getDuration(const NetworkConfiguration& netConfig) {
         // TODO: make configurable on maxDataPktSize
-        long long processingTime=847000 + netConfig.getCallbacksExecutionTime();
+        // Callbacks execution time is considered two times to allocated enough
+        // time also in the case in which the schedule contains an RX stream
+        // and a TX stream consecutively (both receive and send callbacks have to
+        // be executed in the same slot)
+        long long processingTime=847000 + 2 * netConfig.getCallbacksExecutionTime();
 #ifdef CRYPTO
         //NOTE: account for presence/absence of print_dbg. The time is actually
         //even lower if encryption is disabled
@@ -113,18 +117,24 @@ public:
         slotIndex = 0;
         dataSuperframeNumber = 1;
         if(newActivationTile == 0) {
-            print_dbg("[D] N=%d Empty schedule activated\n", myId);
+            if (ENABLE_SCHEDULE_DIST_DBG) {
+                print_dbg("[D] N=%d Empty schedule activated\n", myId);
+            }
         } else if(newActivationTile == currentTile) {
-            print_dbg("[D] N=%d Schedule ID:%lu, StartTile:%lu activated at tile:%2u\n",
-                      myId, newId, newActivationTile, currentTile);
+            if (ENABLE_SCHEDULE_DIST_DBG) {
+                print_dbg("[D] N=%d Schedule ID:%lu, StartTile:%lu activated at tile:%2u\n",
+                          myId, newId, newActivationTile, currentTile);
+            }
         }
         else {
             // Calculate current slotIndex for a late schedule
             // (0 + tileDelay * slotsInTile)
             unsigned int tileDelay = currentTile - newActivationTile;
             incrementSlot(tileDelay * ctx.getSlotsInTileCount());
-            print_dbg("[D] N=%d Schedule ID:%lu, StartTile:%lu activated late at tile:%2u\n",
-                      myId, newId, newActivationTile, currentTile);
+            if (ENABLE_SCHEDULE_DIST_DBG) {
+                print_dbg("[D] N=%d Schedule ID:%lu, StartTile:%lu activated late at tile:%2u\n",
+                        myId, newId, newActivationTile, currentTile);
+            }
         }
     }
     void resetSuperframeNumber() {
