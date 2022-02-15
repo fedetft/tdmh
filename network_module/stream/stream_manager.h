@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2019-2020 by Federico Amedeo Izzo, Valeria Mazzola      *
+ *   Copyright (C) 2019-2022 by Federico Amedeo Izzo, Valeria Mazzola,     *
+ *                              Luca Conterio                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -180,7 +181,7 @@ public:
      * schedule, but leaves existing streams untouched. When crypto is on,
      * it prepares data structures needed for rekeying operations.
      */
-    void setSchedule(const std::vector<ScheduleElement>& schedule, unsigned int activationTile);
+    void setSchedule(const std::vector<ScheduleElement>& schedule, const ScheduleHeader& header);
 
     /**
      * Used by ScheduleDistribution to pass to the StreamWaitScheduler
@@ -459,6 +460,10 @@ private:
     std::condition_variable trust_cv;
 #endif
 
+    /** 
+     * The active object that is in charge of waking up
+     * streams in the required time slot.
+     */
     StreamWaitScheduler waitScheduler;
 };
 

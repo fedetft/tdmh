@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2019-2020 by Federico Amedeo Izzo, Valeria Mazzola      *
+ *   Copyright (C) 2019-2022 by Federico Amedeo Izzo, Valeria Mazzola,     *
+ *                              Luca Conterio                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -364,9 +365,15 @@ bool StreamManager::setSendCallback(int fd, std::function<void(void*,unsigned in
     auto it = fdt.find(fd);
     if(it == fdt.end()) return false;
     auto stream = it->second;
-    stream->setSendCallback(sendCallback);
 
-    return true;
+    if (stream->getInfo().getDirection() != Direction::RX) {
+        stream->setSendCallback(sendCallback);
+        return true;
+    }
+    else {
+        print_dbg("[S] Error: setting send callback to RX stream (%d)\n", stream->getStreamId().getKey());
+        return false;
+    }
 }
 
 bool StreamManager::setReceiveCallback(int fd, std::function<void(void*,unsigned int*)> recvCallback) {
@@ -384,9 +391,15 @@ bool StreamManager::setReceiveCallback(int fd, std::function<void(void*,unsigned
     auto it = fdt.find(fd);
     if(it == fdt.end()) return false;
     auto stream = it->second;
-    stream->setReceiveCallback(recvCallback);
 
-    return true;
+    if (stream->getInfo().getDirection() != Direction::TX) {
+        stream->setReceiveCallback(recvCallback);
+        return true;
+    }
+    else {
+        print_dbg("[S] Error: setting receive callback to TX stream (%d)\n", stream->getStreamId().getKey());
+        return false;
+    }
 }
 
 void StreamManager::periodicUpdate() {
@@ -457,7 +470,7 @@ bool StreamManager::sendPacket(StreamId id, Packet& data) {
     return stream->sendPacket(data);
 }
 
-void StreamManager::setSchedule(const std::vector<ScheduleElement>& schedule, unsigned int activationTile) {
+void StreamManager::setSchedule(const std::vector<ScheduleElement>& schedule, const ScheduleHeader& header) {
 #ifdef _MIOSIX
     miosix::Lock<miosix::FastMutex> lck(stream_manager_mutex);
 #else
@@ -532,7 +545,7 @@ void StreamManager::setSchedule(const std::vector<ScheduleElement>& schedule, un
     }
 #endif
 
-    waitScheduler.setScheduleActivationTile(activationTile);
+    waitScheduler.setScheduleHeader(header);
 }
 
 void StreamManager::setStreamsWakeupLists(const std::vector<StreamWakeupInfo>& currList,
