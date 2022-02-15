@@ -61,16 +61,26 @@ int Stream::connect(StreamManager* mgr) {
 }
 
 void Stream::wait() {
-    waiting = true;
-    std::unique_lock<std::mutex> lck(wait_mutex);
-    while(waiting) {
-        wait_cv.wait(lck);
+    if (info.getDirection() != Direction::RX) {
+        waiting = true;
+        std::unique_lock<std::mutex> lck(wait_mutex);
+        while(waiting) {
+            wait_cv.wait(lck);
+        }
+    }
+    else {
+        print_dbg("[S] Can't wait on RX stream (%d)\n", info.getKey());
     }
 }
 
 void Stream::wakeup() {
-    waiting = false;
-    wait_cv.notify_one();
+    if (info.getDirection() != Direction::RX) {
+        waiting = false;
+        wait_cv.notify_one();
+    }
+    else {
+        print_dbg("[S] Can't wakeup an RX stream (%d)\n", info.getKey());
+    }
 }
 
 int Stream::write(const void* data, int size) {
