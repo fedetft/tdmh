@@ -177,7 +177,8 @@ bool DynamicScheduleDownlinkPhase::handleActivationAndRekeying(long long slotSta
                                       scheduleStatusAsString().c_str());
                         setNewSchedule(slotStart);
                         // next iteration will be the first slot for processing
-                        needToPerformExpansion = true;
+                        needToPerformExpansion  = true;
+                        needToStartExpansion = true;
                     } else {
                         /* If the schedule received is incomplete, we still have to
                          * perform rekeying on the key manager to take care of the
@@ -207,11 +208,16 @@ bool DynamicScheduleDownlinkPhase::handleActivationAndRekeying(long long slotSta
                 if(currentScheduleID > lastScheduleID) {
                     // if we still have to perform expansion it means that the
                     // received a schedule that had to be activated in the past,
-                    // so perform it now
+                    // so perform it now (since the activation tile has already
+                    // been reached)
                     if (needToPerformExpansion) {
+                        if (needToStartExpansion) {
+                            scheduleExpander.startExpansion(schedule, header, ctx.getNetworkId());
+                            needToStartExpansion = false;
+                        }
                         scheduleExpander.continueExpansion(schedule);
                         if (!scheduleExpander.needToContinueExpansion()) {
-                            // expansion complete, at next iteration enter  
+                            // expansion complete, at next iteration enter
                             // the "else branch" and apply the new schedule
                             needToPerformExpansion = false;
                         }
@@ -243,6 +249,11 @@ bool DynamicScheduleDownlinkPhase::handleActivationAndRekeying(long long slotSta
                             print_dbg("N=%d, Rekeying done at NT=%llu\n", ctx.getNetworkId(), NetworkTime::now().get());
                         }
 #endif
+                        if (needToStartExpansion) {
+                            scheduleExpander.startExpansion(schedule, header, ctx.getNetworkId());
+                            needToStartExpansion = false;
+                        }
+
                         scheduleExpander.continueExpansion(schedule);
                         if (!scheduleExpander.needToContinueExpansion()) {
                             print_dbg("N=%d, Expansion done at NT=%llu\n", ctx.getNetworkId(), NetworkTime::now().get());

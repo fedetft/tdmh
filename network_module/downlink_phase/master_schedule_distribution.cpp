@@ -71,6 +71,7 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
             if(currentSendingRound >= sendingRounds) {
                 setNewSchedule(slotStart);
                 // next iteration will be the first slot for processing
+                needToStartExpansion   = true;
                 needToPerformExpansion = true;
                 status = ScheduleDownlinkStatus::PROCESSING;
             } else {
@@ -93,8 +94,13 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
             {
                 // if we still have to perform expansion it means that the
                 // received a schedule that had to be activated in the past,
-                // so perform it now
+                // so perform it now (since the activation tile has already
+                // been reached)
                 if (needToPerformExpansion) {
+                    if (needToStartExpansion) {
+                        scheduleExpander.startExpansion(schedule, header, ctx.getNetworkId());
+                        needToStartExpansion = false;
+                    }
                     scheduleExpander.continueExpansion(schedule);
                     processingSlotCtr++;
                     if (processingSlotCtr >= expansionSlots) {
@@ -125,15 +131,20 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
                     
                     // This is the first slot for expansion
                     if (processingSlotCtr == rekeyingSlots) {
+#ifdef CRYPTO
                         if (ENABLE_CRYPTO_REKEYING_DBG) {
                             print_dbg("N=%d, Rekeying done at NT=%llu\n", ctx.getNetworkId(), NetworkTime::now().get());
                         }
+#endif
+                        scheduleExpander.startExpansion(schedule, header, ctx.getNetworkId());
+                        needToStartExpansion = false;
                     }
 
-                    // If we also reached the amount of slots needed to expand the schedule, change state
+                    // If we also reached the amount of slots needed to expand the schedule,
+                    // the expansion process is done, change state
                     // NOTE: rekeyingSlots + expansionSlots != totalAdvanceSlots
                     if (processingSlotCtr >= rekeyingSlots + expansionSlots) {
-                        needToPerformExpansion = false; // expansion complete
+                        needToPerformExpansion = false;
                         status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
                     }
                     else {
@@ -235,7 +246,7 @@ void MasterScheduleDownlinkPhase::getScheduleAndComputeActivation(long long slot
 
     position = 0;
     
-    if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)        
+    if(ENABLE_SCHEDULE_DIST_MAS_INFO_DBG)    
         printCompleteSchedule();
 }
 
