@@ -48,10 +48,7 @@ void ScheduleDownlinkPhase::setNewSchedule(long long slotStart) {
 #endif
 
     // sets the schedule but also starts the rekeying process in the stream manager
-    streamMgr->setSchedule(schedule, header.getActivationTile());
-
-    // computes the necessary structures to proceed with the schedule expansion
-    scheduleExpander.startExpansion(schedule, header);
+    streamMgr->setSchedule(schedule, header);
 }
 
 void ScheduleDownlinkPhase::setSameSchedule(long long slotStart) {
@@ -98,7 +95,7 @@ void ScheduleDownlinkPhase::applyNewSchedule(long long slotStart) {
     }
     ctx.getKeyManager()->applyRekeying();
 #endif
-    
+
     //NOTE: after we apply the schedule, we need to leave the time for connect() to return
     //in applications, and for them to call write(), otherwise the first transmission
     //fails due to no packet being available. If checkTimeSetSchedule returns immediately,
@@ -106,10 +103,12 @@ void ScheduleDownlinkPhase::applyNewSchedule(long long slotStart) {
     //that the stream in the first slot following the downlink phase does not have enough
     //time to do so.
     //Thus, we wait till a little before the end of the downlink slot.
+    //Subtract also the time needed for executing a stream send callback, if needed.
     auto rwa=MediumAccessController::receivingNodeWakeupAdvance + ctx.getNetworkConfig().getMaxAdmittedRcvWindow();
     auto swa=MediumAccessController::sendingNodeWakeupAdvance;
     const int downlinkEndAdvance = MediumAccessController::downlinkToDataphaseSlack + std::max(rwa,swa);
-    ctx.sleepUntil(slotStart + ctx.getDownlinkSlotDuration() - downlinkEndAdvance);
+    ctx.sleepUntil(slotStart + ctx.getDownlinkSlotDuration() - downlinkEndAdvance
+                                                             - ctx.getNetworkConfig().getCallbacksExecutionTime());
 }
 
 void ScheduleDownlinkPhase::applySameSchedule(long long slotStart) {
@@ -154,7 +153,7 @@ void ScheduleDownlinkPhase::printCompleteSchedule()
     std::vector<ExplicitScheduleElement> nodeSchedule;
     for(unsigned char node = 0; node < maxNodes; node++)
     {
-        nodeSchedule = scheduleExpander.getExplicitSchedule();
+        nodeSchedule = scheduleExpander.expandScheduleOneShot(schedule, header, node);
         printExplicitSchedule(node, (node == 0), nodeSchedule);
     } 
 }

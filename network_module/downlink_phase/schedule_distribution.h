@@ -172,12 +172,15 @@ protected:
     unsigned int sendingRounds;
     unsigned int currentSendingRound;
 
+    // True if the schedule expansion process still has to be started
+    bool needToStartExpansion = false;
     // True if the schedule expansion process still has to be performed
     bool needToPerformExpansion = false;
 
     // Constant value from NetworkConfiguration
     const unsigned short panId;
 
+    // Object used to expand implict schedule and to split it over multiple downlink slots, if needed
     ScheduleExpander scheduleExpander;
 
     // Pointer to StreamManager, used to apply distributed schedule and info elements
