@@ -50,8 +50,9 @@ namespace mxnet {
 struct ScheduleWakeupData {
 
     // schedule activation tile and time instant
-    unsigned int activationTile       = 0;
-    unsigned long long activationTime = 0;
+    unsigned int activationTile         = 0;
+    unsigned long long activationTime   = 0;
+    unsigned long long scheduleDuration = 0;
     // streams that have to send during the current superframe
     StreamQueue currWakeupQueue;
     // streams that have to send during next tile but need to be
@@ -84,6 +85,7 @@ struct ScheduleWakeupData {
     void operator=(const ScheduleWakeupData& other) {
         activationTile = other.activationTile;
         activationTime = other.activationTime;
+        scheduleDuration = other.scheduleDuration;
         currWakeupQueue = other.currWakeupQueue;
         nextWakeupQueue = other.nextWakeupQueue;
     }
@@ -98,8 +100,7 @@ class StreamWaitScheduler {
 
 public:
 
-    StreamWaitScheduler(const MACContext& ctx_, const NetworkConfiguration& netConfig_, StreamManager& streamMgr_): 
-                            ctx(ctx_), netConfig(netConfig_), streamMgr(streamMgr_) {}
+    StreamWaitScheduler(const MACContext& ctx_, const NetworkConfiguration& netConfig_, StreamManager& streamMgr_);
 
     /**
      * Set the data structures needed for the algorithm to work, i.e. two StreamQueues
@@ -113,9 +114,9 @@ public:
 
     /**
      * Set the tile number at which a newly received schedule will become active.
-     * @param activationTile the tile number at which the new schedule will be activated
+     * @param header
      */
-    void setScheduleActivationTile(const unsigned int activationTile);
+    void setScheduleHeader(const ScheduleHeader& header);
 
     /**
      * Start the active object's thread.
@@ -137,12 +138,12 @@ private:
     /**
      * Executed in the AWAITING_ACTIVATION state.
      */
-    void awaitingActivation(StreamWakeupInfo wakeupInfo);
+    void awaitingActivation(const StreamWakeupInfo& wakeupInfo);
 
     /**
      * Executed in the ACTIVE state.
      */
-    void active(StreamWakeupInfo wakeupInfo);
+    void active(const StreamWakeupInfo& wakeupInfo);
 
     /**
      * Replace streams lists relative to an older schedule
@@ -163,7 +164,7 @@ private:
     StreamWakeupInfo getNextWakeupInfo();
 
     /**
-     * Update the front element of the streams queue from 
+     * Update the front element of the streams queue from
      * which the last element was extracted.
      */
     void updateLastUsedQueue();
@@ -212,10 +213,11 @@ private:
     unsigned int currentTile             = 0; // Current tile index
     unsigned long long currTileStartTime = 0; // Time at which current tile started
     unsigned long long nextTileStartTime = 0; // Time at which next tile will start
+    unsigned int superframeSize          = 0; // Number of tiles in control superframe
 
     // Boolean indicating if we are currently inside the last
     // tile before a new schedule activation
-    bool isLastTileBeforeScheduleActivation = false;
+    bool isLastSuperframeBeforeScheduleActivation = false;
 
     // Boolean indicating if a new schedule has been received
     bool newScheduleAvailable = false;
