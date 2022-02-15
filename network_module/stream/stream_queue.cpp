@@ -33,9 +33,9 @@ namespace mxnet
 
 StreamQueue::StreamQueue() {}
 
-StreamQueue::StreamQueue(const StreamQueue& other) : queue(other.get()) {}
+StreamQueue::StreamQueue(const StreamQueue& other, unsigned long long t) : queue(other.get()), timeIncrement(t) {}
 
-StreamQueue::StreamQueue(const std::vector<StreamWakeupInfo>& container) : queue(container) {}
+StreamQueue::StreamQueue(const std::vector<StreamWakeupInfo>& container, unsigned long long t) : queue(container), timeIncrement(t) {}
 
 void StreamQueue::set(const std::vector<StreamWakeupInfo>& container) {
     queue = container;
@@ -78,12 +78,15 @@ unsigned int StreamQueue::getNextIndex() const {
     return nextIndex;
 }
 
+unsigned long long StreamQueue::getTimeIncrement() const {
+    return timeIncrement;
+}
+
 void StreamQueue::updateElement() {
     // update front element's wakeup time, only if 
     // that element exists (i.e. the queue is not empty)
-    // if (queue[index].type != WakeupInfoType::EMPTY) {
     if (!queue.empty()) {
-        queue[index].incrementWakeupTime();
+        queue[index].wakeupTime += timeIncrement;
 
         // move index only if next element has a
         // wakeup time < than the current one
@@ -102,12 +105,20 @@ void StreamQueue::applyTimeIncrement(unsigned long long t) {
 }
 
 bool StreamQueue::contains(const StreamWakeupInfo& sinfo) const {
-    for(auto e : queue) {
-        if (e == sinfo)
-            return true;
-    }
+    // for(auto e : queue) {
+    //     if (e == sinfo) {
+    //         return true;
+    //     }
+    //     // if we find an element with wakeup time > sinfo.wakeupTime,
+    //     // we can already return, since elements in the queue are ordered by time
+    //     else if (e > sinfo) {
+    //         return false;
+    //     }
+    // }
+    // return false;
 
-    return false;
+    // Queues are ordered by wakeup times, a binary search is viable
+    return std::binary_search(queue.begin(), queue.end(), sinfo);
 }
 
 bool StreamQueue::empty() {
@@ -116,20 +127,20 @@ bool StreamQueue::empty() {
 
 void StreamQueue::print() const {
 #ifndef _MIOSIX
-    char header[4][11] = {"ID", "WakeupTime", "Period", "Type"};
+    char header[4][11] = {"ID", "WakeupTime", "Type"};
     char emptyChar = '-';
-    print_dbg("%-10s %-13s %-10s %-10s\n", header[0], header[1], header[2], header[3]);
+    print_dbg("%-10s %-13s %-10s\n", header[0], header[1], header[2]);
     if (queue.empty()) {
-        print_dbg("%-10c %-13c %-10c %-10c\n", emptyChar, emptyChar, emptyChar, emptyChar);
+        print_dbg("%-10c %-13c %-10c\n", emptyChar, emptyChar, emptyChar);
     }
     else {
         for(auto e : queue) {
-            print_dbg("%-10lu %-13llu %-10d", e.id.getKey(), NetworkTime::fromLocalTime(e.wakeupTime).get(), e.period);
+            print_dbg("%-10lu %-13llu", e.id.getKey(), NetworkTime::fromLocalTime(e.wakeupTime).get());
             switch(e.type) {
-                case WakeupInfoType::STREAM:
+                case WakeupInfoType::WAKEUP_STREAM:
                     print_dbg(" STREAM \n"); 
                     break;
-                case WakeupInfoType::DOWNLINK:
+                case WakeupInfoType::WAKEUP_DOWNLINK:
                     print_dbg(" DOWNLINK \n"); 
                     break;
                 default:
@@ -145,6 +156,7 @@ void StreamQueue::operator=(const StreamQueue& other) {
     set(other.get());
     // keep same index as "other"'s one
     index = other.getIndex();
+    timeIncrement = other.getTimeIncrement();
 }
 
 StreamQueue* StreamQueue::compare(StreamQueue& q1, StreamQueue& q2) {

@@ -41,8 +41,8 @@ class StreamQueue {
 
 public:
     StreamQueue();
-    StreamQueue(const StreamQueue& other);
-    StreamQueue(const std::vector<StreamWakeupInfo>& container);
+    StreamQueue(const StreamQueue& other, unsigned long long t);
+    StreamQueue(const std::vector<StreamWakeupInfo>& container, unsigned long long t);
 
     /**
      * Assign a StreamQueue to this one. The underlying container
@@ -76,6 +76,11 @@ public:
      * @return index following the current queue index.
      */
     unsigned int getNextIndex() const;
+
+    /**
+     * 
+     */
+    unsigned long long getTimeIncrement() const;
     
     /**
      * Update current from element's wakeup time, 
@@ -152,6 +157,8 @@ private:
     size_t queueSize = 0;
 
     std::vector<StreamWakeupInfo> queue;
+
+    unsigned long long timeIncrement = 0;
 };
 
 } /* namespace mxnet */
