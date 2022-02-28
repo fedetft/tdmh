@@ -403,6 +403,9 @@ bool Stream::close(StreamManager* mgr) {
             break;
         }
     }
+    // If stream was closed and application is
+    // still blocked on wait() we need to wakeup it
+    wakeup();
     // Wake up the write and read methods
     wakeWriteRead();
     return deletable;
