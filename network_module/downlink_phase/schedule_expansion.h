@@ -169,6 +169,8 @@ private:
     // the end of the implicit schedule vector
     bool explicitScheduleComplete = false;
 
+    unsigned int addedDownlinksNum = 0;
+
     // Explicit schedule resulting after the expansion is complete
     std::vector<ExplicitScheduleElement> explicitSchedule;
 

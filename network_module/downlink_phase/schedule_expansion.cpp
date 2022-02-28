@@ -81,7 +81,7 @@ void ScheduleExpander::startExpansion(const std::vector<ScheduleElement>& schedu
 
     // Count number of downlink slots in complete schedule
     numDownlinksInSchedule = countDownlinks();
-    //addedDownlinksNum = 0;
+    addedDownlinksNum = 0;
 
     // Reserve space for streams wakeup lists
     currList = std::vector<StreamWakeupInfo>();
@@ -101,9 +101,7 @@ void ScheduleExpander::continueExpansion(const std::vector<ScheduleElement>& sch
     std::unique_lock<std::mutex> lck(expansionMutex);
 
     if (!expansionInProgress) {
-        //if(ENABLE_SCHEDULE_DIST_DBG) {
-            print_dbg("[SD] N=%d BUG: call to continueExpansion without starting schedule expansion first\n", nodeID);
-        //}
+        print_dbg("[SD] N=%d BUG: call to continueExpansion without starting schedule expansion first\n", nodeID);
         return;
     }
     
@@ -251,11 +249,27 @@ void ScheduleExpander::expandSchedule(const std::vector<ScheduleElement>& schedu
                     // only use first apparison of stream in schedule as an offset,
                     // used to later compute the wakeup time of each stream
                     if (streamNotYetInserted) {
+                        // not guaranteed that the first stream occurrence has
+                        // the minimum slot among all the other occurrences, 
+                        // find the minimum one
+                        unsigned int minSlot = slot;
+                        for(unsigned int j = 0; j < schedule.size(); j++) {
+                            if(schedule[j].getSrc() == nodeID && schedule[j].getTx() == nodeID) { // action == Action::SENDSTREAM
+                                auto off = schedule[j].getOffset();
+                                if (off < slot) {
+                                    minSlot = off;
+                                }
+                            }
+                        }
+
                         auto wakeupAdvance = streamMgr->getWakeupAdvance(e.getStreamId());
                         if (wakeupAdvance > 0) { // otherwise no need to wakeup it when requested
                             uniqueStreams.insert(e.getStreamId());
                             // create and add StreamWakeupInfo to stream wakeup list
-                            addStream(e, slot, wakeupAdvance, activationTile);
+
+                            printf("Min slot = %u\n", minSlot);
+                            
+                            addStream(e, minSlot, wakeupAdvance, activationTile);
                         }
                     }
                 }
@@ -265,10 +279,8 @@ void ScheduleExpander::expandSchedule(const std::vector<ScheduleElement>& schedu
         expansionIndex++;
     }
 
-    //if (addedDownlinksNum < numDownlinksInSchedule) {
-    if (nextDownlinkTime < activationTime + scheduleDuration) {
-        //while(addedDownlinksNum < numDownlinksInSchedule) {
-        while(nextDownlinkTime < activationTime + scheduleDuration) {
+    if (addedDownlinksNum < numDownlinksInSchedule) {
+        while(addedDownlinksNum < numDownlinksInSchedule) {
             addDownlink(nextDownlinkTime, currList);
         }
     }
@@ -317,8 +329,7 @@ void ScheduleExpander::addStream(const ScheduleElement& stream,
 
     if (nextDownlinkTime <= swi.wakeupTime) {
         // Avoid inserting more downlinks than needed
-        if (nextDownlinkTime < activationTime + scheduleDuration) {
-        //if (addedDownlinksNum < numDownlinksInSchedule) {
+        if (addedDownlinksNum < numDownlinksInSchedule) {
             addDownlink(nextDownlinkTime, currList);
         }
     }
@@ -367,7 +378,7 @@ void ScheduleExpander::addDownlink(unsigned long long downlinkTime, std::vector<
     // ordered insert
     currList.insert(std::upper_bound(currList.begin(), currList.end(), swi), swi);
     nextDownlinkTime = findNextDownlinkTime();
-    //addedDownlinksNum++;
+    addedDownlinksNum++;
 }
 
 unsigned int ScheduleExpander::getWakeupSlot(unsigned int offset, unsigned long long wakeupAdvance) {
