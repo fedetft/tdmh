@@ -61,26 +61,17 @@ int Stream::connect(StreamManager* mgr) {
 }
 
 void Stream::wait() {
-    if (info.getDirection() != Direction::RX) {
-        waiting = true;
-        std::unique_lock<std::mutex> lck(wait_mutex);
-        while(waiting) {
-            wait_cv.wait(lck);
-        }
-    }
-    else {
-        print_dbg("[S] Can't wait on RX stream (%d)\n", info.getKey());
+    std::unique_lock<std::mutex> lck(wait_mutex);
+    waiting = true;
+    while(waiting) {
+        wait_cv.wait(lck);
     }
 }
 
 void Stream::wakeup() {
-    if (info.getDirection() != Direction::RX) {
-        waiting = false;
-        wait_cv.notify_one();
-    }
-    else {
-        print_dbg("[S] Can't wakeup an RX stream (%d)\n", info.getKey());
-    }
+    std::unique_lock<std::mutex> lck(wait_mutex);
+    waiting = false;
+    wait_cv.notify_one();
 }
 
 int Stream::write(const void* data, int size) {
@@ -217,24 +208,17 @@ void Stream::receivePacketWithCallback()
 {
     if (receivedShared) // if something received in the current period
     {
+        receivedShared = false;
+        
+        StreamId id;
+        rxPacketShared.removePanHeader();
+        rxPacketShared.get(&id, sizeof(StreamId));
+        
         unsigned int dataSize = std::min<unsigned int>(rxPacketShared.maxSize(), rxPacketShared.size());
         unsigned char bytes[dataSize];
 
-        {
-            // Lock mutex for shared access with application thread
-#ifdef _MIOSIX
-            miosix::Lock<miosix::FastMutex> lck(rx_mutex);
-#else
-            std::unique_lock<std::mutex> lck(rx_mutex);
-#endif
-            receivedShared = false;
-            
-            StreamId id;
-            rxPacketShared.removePanHeader();
-            rxPacketShared.get(&id, sizeof(StreamId));
-            rxPacketShared.get(bytes, dataSize);
-            rxPacketShared.clear();
-        }
+        rxPacketShared.get(bytes, dataSize);
+        rxPacketShared.clear();
 
         recvCallback(bytes, &dataSize);
     }
@@ -253,27 +237,19 @@ void Stream::sendPacketWithCallback()
 
     StreamId id = info.getStreamId();
 
-    {
-        // Lock mutex for shared access with application thread
-#ifdef _MIOSIX
-            miosix::Lock<miosix::FastMutex> lck(rx_mutex);
-#else
-            std::unique_lock<std::mutex> lck(rx_mutex);
-#endif
-        nextTxPacket.clear();
+    nextTxPacket.clear();
 
 #ifdef CRYPTO
-        if (authData) nextTxPacket.reserveTag();
+    if (authData) nextTxPacket.reserveTag();
 #endif
-        // Set data into the DataPhase
-        // Put panHeader to distinguish TDMH packets from other 802.15.4 packets
-        nextTxPacket.putPanHeader(panId);
-        // Put streamId to distinguish TDMH packets of this streams
-        nextTxPacket.put(&id, sizeof(StreamId));
-        nextTxPacket.put(bytes, dataSize);
-        
-        nextTxPacketReady = true;
-    }
+    // Set data into the DataPhase
+    // Put panHeader to distinguish TDMH packets from other 802.15.4 packets
+    nextTxPacket.putPanHeader(panId);
+    // Put streamId to distinguish TDMH packets of this streams
+    nextTxPacket.put(&id, sizeof(StreamId));
+    nextTxPacket.put(bytes, dataSize);
+    
+    nextTxPacketReady = true;
 }
 
 void Stream::addedStream(StreamParameters newParams) {
@@ -544,7 +520,8 @@ void Stream::updateRedundancy() {
 }
 
 void Stream::wakeWriteRead() {
-    {    // Lock mutex for shared access with application thread
+    {
+        // Lock mutex for shared access with application thread
 #ifdef _MIOSIX
         miosix::Lock<miosix::FastMutex> lck(tx_mutex);
 #else
