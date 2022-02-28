@@ -1,7 +1,7 @@
 #!/bin/bash
 
 fail() {
-    echo "use: ./stats.sh logfile"
+    echo "use: ./mem_stats.sh logfile"
     exit 1
 }
 
@@ -14,6 +14,6 @@ perl -e 'my $l=0;while(<>){$l++;next unless /MAC stack (\d+)/; print "$l $1\n";}
 perl -e 'my $l=0;while(<>){$l++;next unless /max size (\d+)/; print "$l $1\n";}'        < $1 > logBytes.txt
 perl -e 'my $l=0;while(<>){$l++;next unless /MinHeap=(\d+)/; print "$l $1\n";}'         < $1 > heapFree.txt
 
-scilab -f "$(dirname "$0")"/stats.sce
+scilab -f "$(dirname "$0")"/mem_stats.sce
 
 rm schedStack.txt macStack.txt logBytes.txt heapFree.txt
