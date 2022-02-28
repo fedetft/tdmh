@@ -88,10 +88,6 @@ int StreamManager::wait(int fd)
         stream = it->second;
     }
 
-    // avoid non-sending streams to wait
-    if (stream->getInfo().getDirection() == Direction::RX)
-        return -2;
-
     stream->wait();
 
     return 0;
@@ -366,14 +362,9 @@ bool StreamManager::setSendCallback(int fd, std::function<void(void*,unsigned in
     if(it == fdt.end()) return false;
     auto stream = it->second;
 
-    if (stream->getInfo().getDirection() != Direction::RX) {
-        stream->setSendCallback(sendCallback);
-        return true;
-    }
-    else {
-        print_dbg("[S] Error: setting send callback to RX stream (%d)\n", stream->getStreamId().getKey());
-        return false;
-    }
+    stream->setSendCallback(sendCallback);
+
+    return true;
 }
 
 bool StreamManager::setReceiveCallback(int fd, std::function<void(void*,unsigned int*)> recvCallback) {
@@ -392,14 +383,9 @@ bool StreamManager::setReceiveCallback(int fd, std::function<void(void*,unsigned
     if(it == fdt.end()) return false;
     auto stream = it->second;
 
-    if (stream->getInfo().getDirection() != Direction::TX) {
-        stream->setReceiveCallback(recvCallback);
-        return true;
-    }
-    else {
-        print_dbg("[S] Error: setting receive callback to TX stream (%d)\n", stream->getStreamId().getKey());
-        return false;
-    }
+    stream->setReceiveCallback(recvCallback);
+
+    return true;
 }
 
 void StreamManager::periodicUpdate() {
