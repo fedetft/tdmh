@@ -329,6 +329,8 @@ bool Stream::removedStream() {
     }
     // Wake up the write and read methods
     wakeWriteRead();
+    // If the application is blocked on wait() we need to wakeup it
+    wakeup();
     return deletable;
 }
 
@@ -403,11 +405,10 @@ bool Stream::close(StreamManager* mgr) {
             break;
         }
     }
-    // If stream was closed and application is
-    // still blocked on wait() we need to wakeup it
-    wakeup();
     // Wake up the write and read methods
     wakeWriteRead();
+    // If the application is blocked on wait() we need to wakeup it
+    wakeup();
     return deletable;
 }
 
@@ -501,6 +502,8 @@ bool Stream::desync() {
 #endif
     // Wake up the write and read methods
     wakeWriteRead();
+    // If the application is blocked on wait() we need to wakeup it
+    wakeup();
     return deletable;
 }
 
