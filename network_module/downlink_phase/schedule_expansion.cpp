@@ -266,9 +266,6 @@ void ScheduleExpander::expandSchedule(const std::vector<ScheduleElement>& schedu
                         if (wakeupAdvance > 0) { // otherwise no need to wakeup it when requested
                             uniqueStreams.insert(e.getStreamId());
                             // create and add StreamWakeupInfo to stream wakeup list
-
-                            printf("Min slot = %u\n", minSlot);
-                            
                             addStream(e, minSlot, wakeupAdvance, activationTile);
                         }
                     }
