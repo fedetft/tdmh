@@ -71,8 +71,6 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
             if(currentSendingRound >= sendingRounds) {
                 setNewSchedule(slotStart);
                 // next iteration will be the first slot for processing
-                needToStartExpansion   = true;
-                needToPerformExpansion = true;
                 status = ScheduleDownlinkStatus::PROCESSING;
             } else {
                 sendSchedulePkt(slotStart);
@@ -92,29 +90,10 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
             unsigned int currentTile = ctx.getCurrentTile(slotStart);
             if(currentTile >= header.getActivationTile())
             {
-                // if we still have to perform expansion it means that the
-                // received a schedule that had to be activated in the past,
-                // so perform it now (since the activation tile has already
-                // been reached)
-                if (needToPerformExpansion) {
-                    if (needToStartExpansion) {
-                        scheduleExpander.startExpansion(schedule, header, ctx.getNetworkId());
-                        needToStartExpansion = false;
-                    }
-                    scheduleExpander.continueExpansion(schedule);
-                    processingSlotCtr++;
-                    if (processingSlotCtr >= expansionSlots) {
-                        // expansion complete, at next iteration enter  
-                        // the "else branch" and apply the new schedule
-                        needToPerformExpansion = false;
-                    }
-                }
-                else {
-                    applyNewSchedule(slotStart);
-                    schedule_comp.scheduleSentAndApplied();
-                    status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
-                    //No packet sent in this downlink slot
-                }
+                applyNewSchedule(slotStart);
+                schedule_comp.scheduleSentAndApplied();
+                status = ScheduleDownlinkStatus::APPLIED_SCHEDULE;
+                //No packet sent in this downlink slot
             } else {
                 /**
                  * Keep rekeying streams. When all dynamic nodes have no
@@ -137,14 +116,12 @@ void MasterScheduleDownlinkPhase::execute(long long slotStart)
                         }
 #endif
                         scheduleExpander.startExpansion(schedule, header, ctx.getNetworkId());
-                        needToStartExpansion = false;
                     }
 
                     // If we also reached the amount of slots needed to expand the schedule,
                     // the expansion process is done, change state
                     // NOTE: rekeyingSlots + expansionSlots != totalAdvanceSlots
                     if (processingSlotCtr >= rekeyingSlots + expansionSlots) {
-                        needToPerformExpansion = false;
                         status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
                     }
                     else {

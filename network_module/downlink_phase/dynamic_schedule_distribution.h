@@ -111,6 +111,11 @@ private:
     unsigned int currentScheduleID = 0;
 
     unsigned int nextActivationTile;
+
+    // True if the schedule expansion process still has to be started
+    bool needToStartExpansion = false;
+    // True if the schedule expansion process still has to be performed
+    bool needToPerformExpansion = false;
 };
 
 }
