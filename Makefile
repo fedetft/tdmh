@@ -34,6 +34,14 @@ LIBS :=
 ##
 INCLUDE_DIRS :=
 
+##
+## Command line to flash WandStem nodes
+##
+PROGRAM_SCRIPT_PATH   := scripts/wandstem-flash-utility/build
+PROGRAM_EXEC_FILE     := main.bin
+PROGRAM_SCRIPT_PARAMS := -m u -f $(PROGRAM_EXEC_FILE)
+PROGRAM_CMDLINE       := $(PROGRAM_SCRIPT_PATH)/wandstem-flash $(PROGRAM_SCRIPT_PARAMS)
+
 ##############################################################################
 ## You should not need to modify anything below                             ##
 ##############################################################################
