@@ -6,6 +6,13 @@ This codebase has been tested only on Linux so far. It may or may not work under
 
 More in detail, it relies on symbolic links and bash scripts.
 
+### Setup Tools
+Two main tools are needed:
+- The [wandstem-flash-utility](https://github.com/legobrick/wandstem-flash-utility) for flashing a binary file to the WandStem nodes. `cmake` is needed to compile this tool.
+- The [tdmh-visualizer](https://github.com/Gdvhev/tdmh_visualizer) which enriches the debugging experience by showing the network topology in real-time. To compile it, `qt5` and `qmake` are needed.
+
+Make sure to have the required dependencies installed and then use the provided `scripts/install_tools.sh` script to correctly setup them.
+
 ### OMNeT++ Setup
 - Download OMNeT++ 5.3 from [https://www.omnetpp.org/](www.omnetpp.org)
 - Extract the downloaded file
@@ -67,6 +74,17 @@ they are located in `WandstemMac/simulations`
 - Another window will open, you can run the simulation by using the "Start" buttons on the top left.
 
 
-## Getting started with Wandstem nodes
+## Getting started with WandStem nodes
 
 TODO
+
+WandStem nodes webpage: [https://miosix.org/wandstem.html](https://miosix.org/wandstem.html)
+
+### Flashing an executable
+WandStem nodes have two buttons: one is used for resetting the board while the other one is a user programmable button.  
+The WandStem user button is also needed for flashing an executable to the board: keep it pressed while powering up the device to make it entering the programming mode, then use the `wandstem-flash-utility` to flash it.
+
+`wandstem-flash-utility -m u -f main.bin` can be used to flash the `main.bin` file using the USB mode. 
+
+Otherwise, the TDMH makefile provides the `make program` command to achieve the same result.  
+Command `make all program` can alternatively be used both for compiling the project and automatically flashing the resulting executable to the WandStem board.
