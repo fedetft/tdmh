@@ -29,17 +29,18 @@
 
 #include <miosix.h>
 #include <network_module/tdmh.h>
-#include <control_demo/utils.h>
+#include <experiments/control_demo/src/utils.h>
+#include <experiments/control_demo/src/temp_sensor.h>
+#include <thread>
 
 using namespace std;
 using namespace mxnet;
 using namespace miosix;
 
-class Sensor {
+class SensorNode {
 
 public:
-    Sensor(MACContext* c, StreamParameters cp, unsigned char d = 0, unsigned char p = 1) : 
-                                                ctx(c), clientParams(cp), dest(d), port(p) {}
+    SensorNode(MACContext* c, TempSerialSensor* s, unsigned char p = 1) : ctx(c), sensor(s), port(p) {}
 
     void run() {
         while(!ctx->isReady()) {
@@ -49,11 +50,10 @@ public:
         Thread::sleep(streamOpeningDelay);
 
         while(true) {
-            // TODO make destination node and port parametric
-            int stream = openStream();
+            int stream = openStream(controllerNodeID);
             if(stream < 0) {                
                 printf("[A] Stream opening failed! error=%d\n", stream);
-                Thread::sleep(2000);
+                Thread::sleep(1000);
                 continue;
             }
 
@@ -65,10 +65,11 @@ public:
                         printf("[A] Stream opened \n");
                     }
 
-                    send(stream);
+                    int lastSensorNodeSample = sensor->getLastSample();
+                    send(stream, lastSensorNodeSample);
                 }
 
-                printf("[A] Stream (%d,%d) closed, status=", ctx->getNetworkId(), dest);
+                printf("[A] Stream (%d,%d) closed, status=", ctx->getNetworkId(), controllerNodeID);
                 printStatus(getInfo(stream).getStatus());
                 // NOTE: Remember to call close() after the stream has been closed
                 mxnet::close(stream);
@@ -81,13 +82,11 @@ public:
 private:
     const unsigned int streamOpeningDelay = 1000;
     MACContext *ctx;
-    StreamParameters clientParams;
+    TempSerialSensor* sensor;
     const unsigned char port = 0;
-    const unsigned char dest = 0;
     unsigned int counter = 0;
-    int sampleValue = 0;
 
-    int openStream() {
+    int openStream(unsigned char dest) {
         // TODO può lanciare eccezioni?
         try {
             printf("[A] N=%d Waiting to authenticate master node\n", ctx->getNetworkId());
@@ -100,7 +99,7 @@ private:
             int stream = connect(dest,         // Destination node
                                 port,          // Destination port
                                 clientParams,  // Stream parameters 
-                                2*ctx->getDataSlotDuration()); // Wakeup advance (max 1 tile)
+                                1*ctx->getDataSlotDuration()); // Wakeup advance (max 1 tile)
 
             return stream;
 
@@ -110,26 +109,19 @@ private:
         }
     }
 
-    void sample() {
-        //scanf("%d\n", &sampleValue);
-        sampleValue = counter;
-        printf("[A] Sample: s=%d\n", sampleValue);
-    }
-
-    void send(int stream) {
+    void send(int stream, int sensorData) {
         int res = mxnet::wait(stream);
         if (res != 0) {
             printf("[A] Stream wait error\n");
         }
 
         counter++;
-        sample();
-        Data data(ctx->getNetworkId(), counter, sampleValue);
+        Data data(ctx->getNetworkId(), counter, sensorData);
 
         int ret = mxnet::write(stream, &data, sizeof(data));      
         if(ret >= 0) {
-            printf("[A] Sent ID=%d Time=%lld NetTime=%lld MinHeap=%u Heap=%u Counter=%u\n",
-                    data.getId(), data.getTime(), data.getNetworkTime(), data.getMinHeap(), data.getHeap(), data.getCounter());
+            printf("[A] Sent ID=%d Time=%lld NetTime=%lld Counter=%u\n",
+                    data.getId(), data.getTime(), data.getNetworkTime(), data.getCounter());
         }
         else
             printf("[E] Error sending data, result=%d\n", ret);

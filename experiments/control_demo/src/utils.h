@@ -26,7 +26,12 @@ StreamParameters clientParams(Redundancy::TRIPLE_SPATIAL,
                             1,     // payload size
                             Direction::TX);
 
-const unsigned char PORT = 1;
+const unsigned char actuatorNodeID   = 9;    // controller node destination
+const unsigned char controllerNodeID = 0;    // sensor node destination
+const unsigned char sensorNodeID     = 12;
+
+const unsigned char PORT1 = 1;
+const unsigned char PORT2 = 2;
 
 class Arg
 {
@@ -48,56 +53,41 @@ public:
     void* obj;
 };
 
-#ifndef SMALL_DATA
-
 struct Data
 {
     Data() {}
-    Data(int id, unsigned int counter, int value) : id(id), time(miosix::getTime()), 
-                   netTime(NetworkTime::now().get()),
-                   minHeap(MemoryProfiling::getAbsoluteFreeHeap()),
-                   heap(MemoryProfiling::getCurrentFreeHeap()),
-                   counter(counter), value(value) {}
+
+    // For sensor data
+    Data(int id, unsigned int counter, int value) : 
+                    id(id), time(miosix::getTime()), netTime(NetworkTime::now().get()),
+                    sampleTime(NetworkTime::now().get()), counter(counter), latency(0), value(value) {}
+
+    // For control action and sample time forwarding
+    Data(int id, unsigned int counter, long long sampleTime, int value) :
+                    id(id), time(miosix::getTime()), netTime(NetworkTime::now().get()),
+                    sampleTime(sampleTime), counter(counter), latency(0), value(value) {}
+
+    // To send back to the master the latency among sensor and actuator
+    Data(int id, unsigned int counter, long long sampleTime, long long latency) : 
+                    id(id), time(miosix::getTime()), netTime(NetworkTime::now().get()),
+                    sampleTime(sampleTime), counter(counter), latency(latency), value(0) {}
                    
     unsigned char getId()          const { return id; }
     long long     getTime()        const { return time; }
     long long     getNetworkTime() const { return netTime; }
-    int           getMinHeap()     const { return minHeap; }
-    int           getHeap()        const { return heap; }
+    long long     getSampleTime()  const { return sampleTime; }
     unsigned int  getCounter()     const { return counter; }
+    long long     getLatency()     const { return latency; }
     int           getValue()       const { return value; }
     
     unsigned char id;
     long long time;
     long long netTime;
-    int minHeap;
-    int heap;
+    long long sampleTime;
     unsigned int counter;
-    int value;
+    long long latency;
+    int value; // either sensor data or control action
 }__attribute__((packed));
-
-#else //SMALL_DATA
-
-struct Data
-{
-    Data() {}
-    Data(int id, unsigned int counter): id(id),
-        minHeap(MemoryProfiling::getAbsoluteFreeHeap()), counter(counter) {}
-    
-    unsigned char getId()          const { return id; }
-    long long     getTime()        const { return -1; }
-    long long     getNetworkTime() const { return -1; }
-    int           getMinHeap()     const { return minHeap; }
-    int           getHeap()        const { return -1; }
-    unsigned int  getCounter()     const { return counter; }
-    
-    unsigned char id;
-    int minHeap;
-    unsigned int counter;
-}__attribute__((packed));
-
-#endif //SMALL_DATA
-
 
 void printStatus(StreamStatus status) {
     switch(status){

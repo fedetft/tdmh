@@ -29,19 +29,17 @@
 
 #include <miosix.h>
 #include <network_module/tdmh.h>
-#include <control_demo/utils.h>
+#include <experiments/control_demo/src/utils.h>
+#include <experiments/control_demo/src/temp_controller.h>
 
 using namespace std;
 using namespace mxnet;
 using namespace miosix;
 
-// TODO log both the sensor value received and the control action
-
-class Controller {
+class ControllerNode {
 
 public:
-    Controller(MACContext* c, StreamParameters sp, StreamParameters cp,  unsigned char d, unsigned char p = 1) : 
-                ctx(c), serverParams(sp), clientParams(cp) , dest(d), port(p) {}
+    ControllerNode(MACContext* c) : ctx(c) {}
 
     void run() {
         while(!ctx->isReady()) {
@@ -49,43 +47,8 @@ public:
         }
 
         // thread that accepts incoming connections
-        Thread::create(&Controller::serverThreadLauncher, 2048, MAIN_PRIORITY, this);
-
-        Thread::sleep(streamOpeningDelay);
-        
         while(true) {
-            // TODO make destination node and port parametric
-            int stream = openStream(); // dest == 2 (controller) && port == 1
-            if(stream < 0) {                
-                printf("[A] Stream opening failed! error=%d\n", stream);
-                Thread::sleep(2000);
-                continue;
-            }
-
-            bool first = true;
-            try {
-                while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
-                    if(first) {
-                        first=false;
-                        printf("[A] Stream opened \n");
-                    }
-
-                    send(stream);
-                }
-
-                printf("[A] Stream (%d,%d) closed, status=", ctx->getNetworkId(), dest);
-                printStatus(getInfo(stream).getStatus());
-                // NOTE: Remember to call close() after the stream has been closed
-                mxnet::close(stream);
-            } catch(exception& e) {
-                printf("exception %s\n",e.what());
-            }
-        }
-    }
-
-    void serverThread() {
-        while(true) {
-            int server = openServer();
+            int server = openServer(PORT1);
             if(server < 0) {                
                 printf("[A] Server opening failed! error=%d\n", server);
                 Thread::sleep(2000);
@@ -95,7 +58,7 @@ public:
             try {
                 while(getInfo(server).getStatus() == StreamStatus::LISTEN) {
                     int stream = accept(server);
-                    Thread::create(&Controller::receiveThreadLauncher, 1536, 
+                    Thread::create(&ControllerNode::processingThreadLauncher, 1536, 
                                     MAIN_PRIORITY+1, new StreamThreadPar(this, stream));
                 }
             } catch(exception& e) {
@@ -103,67 +66,101 @@ public:
             } catch(...) {
                 printf("Unexpected unknown exception while server accept\n");
             }
-            printf("[A] Server on port %d closed, status=", port);
+            printf("[A] Server on port %d closed, status=", PORT1);
             printStatus(getInfo(server).getStatus());
             mxnet::close(server);
         }
     }
 
-    void receive(int stream) {
-        StreamInfo info = getInfo(stream);
+    void process(StreamThreadPar* arg) {
+        auto *s = reinterpret_cast<StreamThreadPar*>(arg);
+        int inStream = s->stream;
+        StreamInfo info = getInfo(inStream);
         StreamId id = info.getStreamId();
         print_dbg("[A] Stream (%d,%d) accepted\n", id.src, id.dst);
 
-        while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
+        Thread::sleep(streamOpeningDelay);
+        
+        bool outStreamOpened = false;
+        int outStream = -1;
+        //printf("Info %d %d\n", info.getSrc(), info.getDst());
+        if (info.getSrc() != actuatorNodeID) { // appena ricevo connect dal sensore
+            while(!outStreamOpened) { // open stream to actuator
+                outStream = openStream(actuatorNodeID, PORT1);
+                if(outStream < 0) {                
+                    printf("[A] Stream opening failed! error=%d\n", outStream);
+                    Thread::sleep(1000);
+                }
+                else {
+                    outStreamOpened = true;
+                    printf("[A] Output stream opened to node %d\n", actuatorNodeID);
+                }
+            }
+        }
+        
+        while(getInfo(inStream).getStatus() == StreamStatus::ESTABLISHED &&
+                getInfo(outStream).getStatus() == StreamStatus::ESTABLISHED) {
+
             Data data;
-            int len = mxnet::read(stream, &data, sizeof(data));
+            int len = mxnet::read(inStream, &data, sizeof(data));
             long long now = mxnet::NetworkTime::now().get();
 
             if(len > 0) {
                 if(len == sizeof(data))
                 {
-                    sensorData = data.getValue();
-                    controlAction = runController(sensorData);
+                    if (data.getId() != actuatorNodeID) { // message received from sensor
+                        int controlAction = runController(data.getValue());
+                        
+                        send(outStream, controlAction, data.getSampleTime(), data.getCounter());
+                    }
+                    else { // message received from actuator
+                        // latency sensor-actuator, counter needed to match with received sensor data
+                        printf("[A] (%d,%d): L=%lld C=%u\n", sensorNodeID, actuatorNodeID, data.getLatency(), data.getCounter());
+                        // latency controller-actuator (set into the sampleTime member of Data)
+                        long long latencyCA = now - data.getSampleTime();
+                        printf("[A] (%d,%d): L=%lld\n", controllerNodeID, actuatorNodeID, latencyCA, data.getCounter());
+                    }
                     
-                    printf("[A] R (%d,%d) ID=%d T=%lld MH=%u C=%u\n",
-                    id.src, id.dst, data.getId(), data.getTime(), data.getMinHeap(), data.getCounter());
-                    long long delay = now - data.getNetworkTime();
-                    printf("[A] (%d,%d): L=%lld\n", id.src, id.dst, delay);
+                    printf("[A] R (%d,%d) ID=%d NT=%lld C=%u\n",
+                    id.src, id.dst, data.getId(), data.getNetworkTime(), data.getCounter());
+                    long long latency = now - data.getNetworkTime();
+                    printf("[A] (%d,%d): L=%lld\n", id.src, id.dst, latency);
                 } else {
                     printf("[E] W (%d,%d) %d\n", id.src, id.dst, len);
                 }
             }
             else if(len == -1) {
+                tempController.skipStep();
                 print_dbg("[E] M (%d,%d)\n", id.src, id.dst);
             }
             else {
                 print_dbg("[E] M (%d,%d) Read returned %d\n", id.src, id.dst, len);
             }
         }
-        printf("[A] Stream (%d,%d) has been closed, status=", id.src, id.dst);
-        printStatus(getInfo(stream).getStatus());
+        printf("[A] Input stream (%d,%d), status=", id.src, id.dst);
+        printStatus(getInfo(inStream).getStatus());
         // NOTE: Remember to call close() after the stream has been closed remotely
-        mxnet::close(stream);
+        mxnet::close(inStream);
+        delete s;
+        if (outStreamOpened) {
+            StreamInfo outInfo = getInfo(inStream);
+            printf("[A] Output stream (%d,%d), status=", outInfo.getSrc(), outInfo.getDst());
+            printStatus(getInfo(outStream).getStatus());
+            // NOTE: Remember to call close() after the stream has been closed remotely
+            mxnet::close(outStream);
+        }
     }
 
 private:
-    const unsigned int streamOpeningDelay = 20000;
+    const unsigned int streamOpeningDelay = 10000;
     MACContext *ctx;
-    StreamParameters serverParams;
-    StreamParameters clientParams;
-    unsigned char port = 0;
-    const unsigned char dest = 0;
     unsigned int counter = 0;
-    int sensorData = 0;
-    int controlAction = 0;
+    TemperatureController tempController;
+    int tempSetPoint = 500;
 
-    int openServer() {
-        // Not needed, the controller runs on the master
-        // printf("[A] N=%d Waiting to authenticate master node\n", ctx->getNetworkId());
-        // while(waitForMasterTrusted()) {
-        //     //printf("[A] N=%d StreamManager not present! \n", ctx->getNetworkId());
-        // }
+    bool first = true;
 
+    int openServer(unsigned char port) {
         printf("[A] Opening server on port %d\n", port);
         /* Open a Server to listen for incoming streams */
         int server = listen(port,          // Destination port
@@ -172,20 +169,15 @@ private:
         return server;
     }
 
-    int openStream() {
+    int openStream(unsigned char dest, unsigned char port) {
         // TODO può lanciare eccezioni?
         try {
-            // printf("[A] N=%d Waiting to authenticate master node\n", ctx->getNetworkId());
-            // while(waitForMasterTrusted()) {
-            //     //printf("[A] N=%d StreamManager not present! \n", ctx->getNetworkId());
-            // }
-
             /* Open a Stream to another node */
             printf("[A] Opening stream to node %d\n", dest);
             int stream = connect(dest,                         // Destination node
                                 port,                          // Destination port
-                                clientParams,                  // Stream parameters 
-                                2*ctx->getDataSlotDuration()); // Wakeup advance (max 1 tile)
+                                clientParams);                  // Stream parameters 
+                                //2*ctx->getDataSlotDuration()); // Wakeup advance (max 1 tile)
 
             return stream;
 
@@ -195,38 +187,31 @@ private:
         }
     }
 
-    void send(int stream) {
-        int res = mxnet::wait(stream);
-        if (res != 0) {
-            printf("[A] Stream wait error\n");
-        }
-
-        counter++;
-        Data data(ctx->getNetworkId(), counter, controlAction);
+    void send(int stream, int cv, long long sensorTimestamp, unsigned int c) {
+        // Put last sensor data timestamp as a network time, so that
+        // the actuator will be able to compute the end-to-end latency
+        Data data(ctx->getNetworkId(), c, sensorTimestamp, cv);
 
         int ret = mxnet::write(stream, &data, sizeof(data));      
         if(ret >= 0) {
-            printf("[A] Sent ID=%d Time=%lld NetTime=%lld MinHeap=%u Heap=%u Counter=%u\n",
-                    data.getId(), data.getTime(), data.getNetworkTime(), data.getMinHeap(), data.getHeap(), data.getCounter());
+            printf("[A] Sent ID=%d Time=%lld NetTime=%lld Counter=%u\n",
+                    data.getId(), data.getTime(), data.getNetworkTime(), data.getCounter());
         }
         else
             printf("[E] Error sending data, result=%d\n", ret);
     }
 
     int runController(int s) {
-        //scanf("%d\n", &sampleValue);
-        int cv = s * 2;
-        printf("[A] Controller: s=%d cv=%d\n", s, cv);
+        //int cv = s * 2;
+        float cvFloat = tempController.step(s, tempSetPoint) * 60000.f;
+        int cv = static_cast<int>(cvFloat);
+        printf("[A] S=%d CV=%d (%d %%)\n", s, cv, cv * 100 / 60000);
         return cv;
     }
 
-    static void receiveThreadLauncher(void *arg) {
+    static void processingThreadLauncher(void *arg) {
         auto* s = reinterpret_cast<StreamThreadPar*>(arg);
-        auto* c = reinterpret_cast<Controller*>(s->obj);
-        c->receive(s->stream);
-    }
-
-    static void serverThreadLauncher(void *arg) {
-        reinterpret_cast<Controller*>(arg)->serverThread();
+        auto* c = reinterpret_cast<ControllerNode*>(s->obj);
+        c->process(s);
     }
 };

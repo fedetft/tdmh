@@ -34,10 +34,11 @@
 #include "network_module/util/stats.h"
 #include "interfaces-impl/gpio_timer_corr.h"
 
-#include "control_demo/controller.h"
-#include "control_demo/sensor.h"
-#include "control_demo/actuator.h"
-#include "control_demo/utils.h"
+#include "experiments/control_demo/src/controller_node.h"
+#include "experiments/control_demo/src/sensor_node.h"
+#include "experiments/control_demo/src/actuator_node.h"
+#include "experiments/control_demo/src/temp_sensor.h"
+#include "experiments/control_demo/src/utils.h"
 
 using namespace std;
 using namespace mxnet;
@@ -47,8 +48,6 @@ using namespace std::placeholders;
 const int maxNodes = 16;
 const int maxHops = 6;
 const int txPower = 5; //dBm
-
-//#define SMALL_DATA
 
 FastMutex m;
 MediumAccessController *tdmh = nullptr;
@@ -131,9 +130,9 @@ void dynamicNode(void* argv)
 
     try {
         auto arg = reinterpret_cast<Arg*>(argv);
-        printf("Dynamic node %d",arg->id);
-        if(arg->hop) printf(" forced hop %d",arg->hop);
-        printf("\n");
+        //printf("Dynamic node %d",arg->id);
+        //if(arg->hop) printf(" forced hop %d",arg->hop);
+        //printf("\n");
         bool useWeakTopologies=true;
         const NetworkConfiguration config(
             maxHops,       //maxHops
@@ -167,7 +166,7 @@ void dynamicNode(void* argv)
             3000           //rekeyingPeriod
 #endif
         );
-        printf("Starting TDMH with guaranteedTopologies=%d\n", guaranteedTopologies(maxNodes,useWeakTopologies));
+        //printf("Starting TDMH with guaranteedTopologies=%d\n", guaranteedTopologies(maxNodes,useWeakTopologies));
         DynamicMediumAccessController controller(Transceiver::instance(), config);
         {
             Lock<FastMutex> l(m);
@@ -200,8 +199,11 @@ int main()
         printStackRange("main");
     }
     
+    TempSerialSensor sensor;
+    sensor.run();
+    
     unsigned long long nodeID = getUniqueID();
-    printf("### TDMH Test code ###\nNodeID=%llx\n", nodeID);
+    //printf("### TDMH Test code ###\nNodeID=%llx\n", nodeID);
     const int macThreadStack = 4096;
     Thread* t1;
     /* Start TDMH thread mapping node unique ID to network ID */
@@ -267,25 +269,22 @@ int main()
     MACContext* ctx = tdmh->getMACContext();
     unsigned char netID = ctx->getNetworkId();
 
-    const unsigned char controllerDestination = 9; // actuator node
-    const unsigned char sensorDestination = 0;     // controller node
-
-    Controller c(ctx, clientParams, serverParams, controllerDestination, PORT);
-    Sensor s(ctx, clientParams, sensorDestination, PORT);
-    Actuator a(ctx, serverParams, PORT);
+    ControllerNode c(ctx);
+    SensorNode s(ctx, &sensor);
+    ActuatorNode a(ctx); // miss client params
 
     /* Perform actions depending on your network ID */
     switch(netID) {
-    case 0: // Controller node
+    case controllerNodeID: // Controller node
         printf("[A] Running controller\n");
         c.run();
         break;
-    case 8: // Sensor node
+    case sensorNodeID: // Sensor node
         printf("[A] Running sensor\n");
         s.run();
         break;
-    case 9: // Actuator node
-        printf("[A] Running actuator\n");
+    case actuatorNodeID: // Actuator node
+        //printf("[A] Running actuator\n");
         a.run();
         break;
     default:
