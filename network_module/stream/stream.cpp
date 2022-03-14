@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2019 by Federico Amedeo Izzo                            *
+ *   Copyright (C) 2019-2022 by Federico Amedeo Izzo, Luca Conterio        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -75,6 +75,11 @@ void Stream::wakeup() {
 }
 
 int Stream::write(const void* data, int size) {
+
+    if (hasSendCallback) {
+        return -3;
+    }
+
 #ifdef _MIOSIX
     miosix::Lock<miosix::FastMutex> lck(tx_mutex);
 #else
@@ -112,6 +117,11 @@ int Stream::write(const void* data, int size) {
 }
 
 int Stream::read(void* data, int maxSize) {
+
+    if (hasRecvCallback) {
+        return -3;
+    }
+
 #ifdef _MIOSIX
     miosix::Lock<miosix::FastMutex> lck(rx_mutex);
 #else
@@ -162,7 +172,7 @@ bool Stream::receivePacket(const Packet& data) {
 
     auto res = updateRxPacket();
 
-     // once per period execute receive callback if needed
+    // once per period execute receive callback if needed
     if (rxCount == 0 && hasRecvCallback) {
         receivePacketWithCallback();
     }
@@ -215,17 +225,15 @@ void Stream::receivePacketWithCallback()
         rxPacketShared.get(&id, sizeof(StreamId));
         
         unsigned int dataSize = std::min<unsigned int>(rxPacketShared.maxSize(), rxPacketShared.size());
-        unsigned char bytes[dataSize];
-
+        unsigned char bytes[dataSize] = {0};
         rxPacketShared.get(bytes, dataSize);
         rxPacketShared.clear();
-
-        recvCallback(bytes, &dataSize);
+        recvCallback(bytes, &dataSize, info.getStatus());
     }
     else { // if only misses in current period
-        unsigned char bytes[rxPacketShared.maxSize()];
+        unsigned char bytes[rxPacketShared.maxSize()] = {0};
         unsigned int dataSize = 0;
-        recvCallback(bytes, &dataSize);
+        recvCallback(bytes, &dataSize, info.getStatus());
     }
 }
 
@@ -233,10 +241,9 @@ void Stream::sendPacketWithCallback()
 {
     unsigned char bytes[nextTxPacket.maxSize()];
     unsigned int dataSize; // actual data size to be put in packet
-    sendCallback(bytes, &dataSize);
+    sendCallback(bytes, &dataSize, info.getStatus());
 
     StreamId id = info.getStreamId();
-
     nextTxPacket.clear();
 
 #ifdef CRYPTO
@@ -331,6 +338,7 @@ bool Stream::removedStream() {
     wakeWriteRead();
     // If the application is blocked on wait() we need to wakeup it
     wakeup();
+    wakeCallbacks();
     return deletable;
 }
 
@@ -409,6 +417,7 @@ bool Stream::close(StreamManager* mgr) {
     wakeWriteRead();
     // If the application is blocked on wait() we need to wakeup it
     wakeup();
+    wakeCallbacks();
     return deletable;
 }
 
@@ -504,6 +513,7 @@ bool Stream::desync() {
     wakeWriteRead();
     // If the application is blocked on wait() we need to wakeup it
     wakeup();
+    wakeCallbacks();
     return deletable;
 }
 
@@ -555,6 +565,18 @@ void Stream::wakeWriteRead() {
 #endif
     }
 }
+
+ void Stream::wakeCallbacks() {
+    // call both callbacks, if specified, in order to signal to the
+    // application the new stream status (application may be stuck waiting
+    // on some condition variable or simply a feedback is needed)
+    if (hasSendCallback) { // && info.getStatus() == StreamStatus::ESTABLISHED) {
+        sendPacketWithCallback();
+    }
+    if (hasRecvCallback) { // && info.getStatus() == StreamStatus::ESTABLISHED) {
+        receivePacketWithCallback();
+    }
+ }
 
 bool Stream::updateRxPacket() {
     // Stream Redundancy logic

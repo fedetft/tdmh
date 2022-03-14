@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2019 by Federico Amedeo Izzo                            *
+ *   Copyright (C) 2019-2022 by Federico Amedeo Izzo, Luca Conterio        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -168,9 +168,9 @@ public:
     virtual bool desync() = 0;
 
     // Used by derived class Stream
-    virtual void setSendCallback(std::function<void(void*,unsigned int*)> callback) {}
+    virtual void setSendCallback(std::function<void(void*,unsigned int*,StreamStatus)> callback) {}
     // Used by derived class Stream
-    virtual void setReceiveCallback(std::function<void(void*,unsigned int*)> callback) {}
+    virtual void setReceiveCallback(std::function<void(void*,unsigned int*,StreamStatus)> callback) {}
 
 protected:
     // Change the status saved in StreamInfo
@@ -320,14 +320,14 @@ public:
     bool desync() override;
 
     // Set callback to be called by the dataphase before sending a packet
-    void setSendCallback(std::function<void(void*,unsigned int*)> callback)
+    void setSendCallback(std::function<void(void*,unsigned int*,StreamStatus)> callback)
     {
         sendCallback = callback;
         hasSendCallback = true;
     }
 
     // Set callback to be called by the dataphase after receiving a packet
-    void setReceiveCallback(std::function<void(void*,unsigned int*)> callback)
+    void setReceiveCallback(std::function<void(void*,unsigned int*,StreamStatus)> callback)
     {
         recvCallback = callback;
         hasRecvCallback = true;
@@ -376,9 +376,9 @@ private:
 
     unsigned long long seqNo = 1;
 
-    std::function<void(void*,unsigned int*)>  sendCallback = nullptr;
+    std::function<void(void*,unsigned int*,StreamStatus)>  sendCallback = nullptr;
     bool hasSendCallback = false;
-    std::function<void(void*,unsigned int*)>  recvCallback = nullptr;
+    std::function<void(void*,unsigned int*,StreamStatus)>  recvCallback = nullptr;
     bool hasRecvCallback = false;
 
 #ifdef CRYPTO
@@ -412,6 +412,9 @@ private:
     // Called by Stream itself, when the stream status changes and we need to wake up
     // the write and read methods
     void wakeWriteRead();
+    // Called by Stream itself, when the stream status changes and we need to signal
+    // to the application the state change
+    void wakeCallbacks();
     // Called by Stream::receivedPacket(), Stream::missedPacket(),
     // Used to update internal variables every stream period
     // Return true at the end of each period

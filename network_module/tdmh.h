@@ -73,10 +73,10 @@ int listen(unsigned char port, StreamParameters params);
 int accept(int serverfd);
 
 // Set the callback to be executed before sending a packet for the given stream
-bool setSendCallback(int fd, std::function<void(void*,unsigned int*)> sendCallback);
+bool setSendCallback(int fd, std::function<void(void*,unsigned int*,StreamStatus)> sendCallback);
 
 // Set the callback to be executed after receiving a packet for the given stream
-bool setReceiveCallback(int fd, std::function<void(void*,unsigned int*)> sendCallback);
+bool setReceiveCallback(int fd, std::function<void(void*,unsigned int*,StreamStatus)> sendCallback);
 
 class MACContext;
 class UplinkPhase;

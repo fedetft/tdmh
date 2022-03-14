@@ -106,14 +106,14 @@ int accept(int serverfd) {
     return streamManager->accept(serverfd);
 }
 
-bool setSendCallback(int fd, std::function<void(void*,unsigned int*)> sendCallback) {
+bool setSendCallback(int fd, std::function<void(void*,unsigned int*,StreamStatus)> sendCallback) {
     StreamManager* streamManager = getStreamManager();
     if(streamManager == nullptr)
         return -1;
     return streamManager->setSendCallback(fd, sendCallback);
 }
 
-bool setReceiveCallback(int fd, std::function<void(void*,unsigned int*)> recvCallback) {
+bool setReceiveCallback(int fd, std::function<void(void*,unsigned int*,StreamStatus)> recvCallback) {
     StreamManager* streamManager = getStreamManager();
     if(streamManager == nullptr)
         return -1;

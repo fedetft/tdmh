@@ -152,8 +152,11 @@ public:
     // Wait for incoming Streams, if a stream is present return the new Stream file-descriptor
     int accept(int serverfd);
     
-    bool setSendCallback(int fd, std::function<void(void*,unsigned int*)> sendCallback);
-    bool setReceiveCallback(int fd, std::function<void(void*,unsigned int*)> recvCallback);
+    // Set the callback to be executed before sending a packet for the given stream
+    bool setSendCallback(int fd, std::function<void(void*,unsigned int*,StreamStatus)> sendCallback);
+
+    // Set the callback to be executed after receiving a packet for the given stream
+    bool setReceiveCallback(int fd, std::function<void(void*,unsigned int*,StreamStatus)> recvCallback);
 
     /**
      * The following methods are called by other TDMH modules,
@@ -419,7 +422,7 @@ private:
 
     bool rekeyingInProgress = false;
     // TODO: tweak this value
-    const unsigned int maxHashesPerSlot = 15;
+    const unsigned int maxHashesPerSlot = 5;
     // const unsigned int maxHashesPerSlot = totalRekeyingTime/streamRekeyingTime;
     // const unsigned int totalRekeyingTime...
     const unsigned int streamRekeyingTime = 60000; // measuring 60 us betewwen hash and OCB contructor

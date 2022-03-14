@@ -77,7 +77,7 @@ int StreamManager::wait(int fd)
 #else
         std::unique_lock<std::mutex> lck(stream_manager_mutex);
 #endif
-        if(!masterTrusted) { 
+        if(!masterTrusted) {
             return -10; 
         }
         auto it = fdt.find(fd);
@@ -88,8 +88,15 @@ int StreamManager::wait(int fd)
         stream = it->second;
     }
 
+    if (stream->getWakeupAdvance() == 0) {
+        if (ENABLE_STREAM_MGR_INFO_DBG) {
+            print_dbg("[S] Cannot wait on stream % with null wakeup advance\n", stream->getStreamId().getKey());
+        }
+        return -2;
+    }
+    
     stream->wait();
-
+    
     return 0;
 }
 
@@ -346,7 +353,7 @@ int StreamManager::accept(int serverfd) {
     return fd;
 }
 
-bool StreamManager::setSendCallback(int fd, std::function<void(void*,unsigned int*)> sendCallback) {
+bool StreamManager::setSendCallback(int fd, std::function<void(void*,unsigned int*,StreamStatus)> sendCallback) {
     if (config.getCallbacksExecutionTime() == 0) {
         print_dbg("[S] Stream::setSendCallback: invalid callback execution time\n");
         return false;
@@ -367,7 +374,7 @@ bool StreamManager::setSendCallback(int fd, std::function<void(void*,unsigned in
     return true;
 }
 
-bool StreamManager::setReceiveCallback(int fd, std::function<void(void*,unsigned int*)> recvCallback) {
+bool StreamManager::setReceiveCallback(int fd, std::function<void(void*,unsigned int*,StreamStatus)> recvCallback) {
     if (config.getCallbacksExecutionTime() == 0) {
         print_dbg("[S] Stream::setReceiveCallback: invalid callback execution time\n");
         return false;
