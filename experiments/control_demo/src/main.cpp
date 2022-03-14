@@ -105,7 +105,7 @@ void masterNode(void*)
             true,          //authenticateDataMessages
             true,          //encryptDataMessages
             true,          //doMasterChallengeAuthentication
-            3000,          //masterChallengeAuthenticationTimeout
+            500, //3000,          //masterChallengeAuthenticationTimeout
             3000           //rekeyingPeriod
 #endif
         );
@@ -162,7 +162,7 @@ void dynamicNode(void* argv)
             true,          //authenticateDataMessages
             true,          //encryptDataMessages
             true,          //doMasterChallengeAuthentication
-            3000,          //masterChallengeAuthenticationTimeout
+            500, //3000,          //masterChallengeAuthenticationTimeout
             3000           //rekeyingPeriod
 #endif
         );
@@ -205,54 +205,54 @@ int main()
     unsigned long long nodeID = getUniqueID();
     //printf("### TDMH Test code ###\nNodeID=%llx\n", nodeID);
     const int macThreadStack = 4096;
-    Thread* t1;
+    //Thread* t1;
     /* Start TDMH thread mapping node unique ID to network ID */
     switch(nodeID) {
     case 0x243537035155c338:
-        t1 = Thread::create(masterNode, macThreadStack, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+        /*t1 =*/ Thread::create(masterNode, macThreadStack, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
         break;
     case 0x243537005155c356:
-        //t1 = Thread::create(masterNode, macThreadStack, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(1), Thread::JOINABLE);
+        /*t1 =*/ Thread::create(masterNode, macThreadStack, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+        ///*t1 =*/ Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(1), Thread::JOINABLE);
         break;
     case 0x243537005155c346:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(2), Thread::JOINABLE);
+        /*t1 =*/ Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(2), Thread::JOINABLE);
         break;
     case 0x243537025155c346:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
+        /*t1 =*/ Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
         break;
     case 0x243537035155c356:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(4), Thread::JOINABLE);
+        /*t1 =*/ Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(4), Thread::JOINABLE);
         break;
     case 0x243537035155bdca:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(5), Thread::JOINABLE);
+        /*t1 =*/ Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(5), Thread::JOINABLE);
         break;
     case 0x243537015155bdab:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(6), Thread::JOINABLE);
+        /*t1 =*/ Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(6), Thread::JOINABLE);
         break;
     case 0x243537015155c9bf:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(7), Thread::JOINABLE);
+        /*t1 =*/ Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(7), Thread::JOINABLE);
         break;
     case 0x2435370352c6aa9a:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(8), Thread::JOINABLE);
+        /*t1 =*/ Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(8), Thread::JOINABLE);
         break;
     case 0x243537015155bdba:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(9), Thread::JOINABLE);
+        /*t1 =*/ Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(9), Thread::JOINABLE);
         break;
     case 0x243537025155bdba:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(10), Thread::JOINABLE);
+        /*t1 =*/ Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(10), Thread::JOINABLE);
         break;
     case 0x243537025155bdca:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(11), Thread::JOINABLE);
+        /*t1 =*/ Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(11), Thread::JOINABLE);
         break;
     case 0x243537005155bdba:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(12), Thread::JOINABLE);
+        /*t1 =*/ Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(12), Thread::JOINABLE);
         break;
     case 0x243537035155bdba:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(13), Thread::JOINABLE);
+        /*t1 =*/ Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(13), Thread::JOINABLE);
         break;
     case 0x243537005155bdab:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(14), Thread::JOINABLE);
+        /*t1 =*/ Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(14), Thread::JOINABLE);
         break;
     default:     
         printf("ERROR: nodeID is not mapped to any node, halting!\n");
