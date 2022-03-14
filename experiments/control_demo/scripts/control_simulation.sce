@@ -32,11 +32,11 @@ ylabel("Pz", "fontsize", 4);
 ax = get("current_axes");
 ax.font_size = 4;
 //plot(t, csim(u, t, syslin('c', P)));
-plot(t, dsimul(tf2ss(Pz), u));
+plot(t, dsimul(syslin('d', tf2ss(Pz)), u));
 
 // Step response simulation
 //stepresponse = csim(u, t, syslin('c', F));
-stepresponse = dsimul(tf2ss(F), u);
+stepresponse = dsimul(syslin('d', tf2ss(F)), u);
 subplot(412);
 xlabel("t", "fontsize", 4);
 ylabel("Step response", "fontsize", 4);
@@ -44,7 +44,7 @@ ax = get("current_axes");
 ax.font_size = 4;
 plot(t, stepresponse);
 
-printf("\nResponse time to 99%% = %f (minutes) \n\n", find(stepresponse>0.99)(1) / 60);
+printf("\nResponse time to 99%% = %f (minutes) \n\n", find(stepresponse > 0.99)(1) / 60);
 
 printf("Simulating process controller : \n")
 
@@ -53,20 +53,26 @@ u = zeros(t);
 e = zeros(t);
 l = length(t);
 
+//noise = 0.5*rand(t, "normal"); // gaussian noise
+noise = zeros(t);
+
 setPoint = 500;
+startTemp = 20; // start temperature
 
 u1 = 0;
 u2 = 0;
 e1 = 0;
 e2 = 0;
 e3 = 0;
-startTemp = 20; // start temperature
 y1 = startTemp;
+
 for i = 1:length(t)
     
     e(i) = setPoint - y1;
     u(i) = a*u1 + (1-a)*u2 + (1-a)*((T+Ts)/(mu*Ts))*e2 - (1-a)*(T/(mu*Ts))*e3;
     y(i) = (T / (T + Ts)) * y1 + mu * (Ts / (T + Ts)) * u(i);
+    
+    y(i) = y(i) + noise(i);
     
     //printf("Iteration %d: e1=%f e2=%f e3=%f u1=%f u2=%f y1=%f\n", i, e1, e2, e3, u1, u2, y1);
     if i == 1 || pmodulo(i, 100) == 0 then

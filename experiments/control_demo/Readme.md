@@ -22,3 +22,20 @@ stateDiagram-v2
 <!--# Controller
 
 As a note, the controller is a __PI controller__ with __anti windup__. The output control action depends on the two previous steps.-->
+
+# Execution
+In `utils.h` specify the IDs of the nodes you're going to use as controller, sensor and actuator nodes.  
+Use the same `main.cpp` entrypoint for all the boards you're going to use.  
+A controller, a sensor and an actuator node will be automatically instantiated to the correct boards.
+
+## Simulations
+### Scilab
+The script `scripts/control_simulation.sce` simulates the process and the obtained controller in the `scilab` environment.
+### TDMH Simulation
+The file `main_sim_fornace.cpp` simulates the system. It reads the control action from a serial port and outputs the new simulated temperature on the same serial port. It was used with an `STM32` board to simulate the furnace.  
+`main.cpp` is instead the entry for the WandStem nodes. This way the control can be tested through the network but using the simulated process.
+
+# Logs
+A simple script is provided for plotting the sensor data and the control action. It can be found in `scripts/plot_control_demo.sh`.  
+
+Logs are compatible with the usual TDMH scripts for analyzing network reliability, streams latency, etc.
