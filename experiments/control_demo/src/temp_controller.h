@@ -15,10 +15,8 @@ public:
      * \param K controller gain
      * \param T controller pole
      * \param Ts sample time, period in seconds at which the run() method is called
-     * 
-     * Controller transfer function is K*(1+sT)/s
      */
-    TemperatureController(float K = 1.4e-6f, float T = 200.0f, float Ts = 1.0f) : K(K), T(T), Ts(Ts) {}
+    TemperatureController(float T = 200.0f, float Ts = 1.0f) : T(T), Ts(Ts) {}
 
     /**
      * Run one step of the controller. To be called periodically every Ts seconds
@@ -56,7 +54,7 @@ public:
 private:
     const float a = 0.9985;
     const float mu = 1250;
-    const float K, T, Ts;
+    const float T, Ts;
     float u1=0.f, u2=0.f;
     float e1=0.f, e2=0.f, e3=0.f;
 };

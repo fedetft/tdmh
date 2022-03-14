@@ -43,13 +43,13 @@ public:
 
     void sample() {
         while(true) {
-            // scanf should only read 1 value and it 
+            // scanf should only read 1 value and it
             // returns the number of read values
-            while(scanf("%d", &lastSample) != 1) { // consume input until finally the scanf only reads 1 value
+            while(scanf("s:%d", &lastSample) != 1) { // consume input until finally the scanf only reads 1 value
                 while(fgetc(stdin) != '\n'); // if it is not 1, consume the entire line
             }
             
-            printf("[A] Sample: s=%d\n", lastSample);
+            //printf("[A] Sample: s=%d\n", lastSample);
         }
     }
 

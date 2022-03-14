@@ -26,12 +26,11 @@ StreamParameters clientParams(Redundancy::TRIPLE_SPATIAL,
                             1,     // payload size
                             Direction::TX);
 
-const unsigned char actuatorNodeID   = 9;    // controller node destination
+const unsigned char actuatorNodeID   = 3;  //9;    // controller node destination
 const unsigned char controllerNodeID = 0;    // sensor node destination
-const unsigned char sensorNodeID     = 12;
+const unsigned char sensorNodeID     = 10; //12;
 
 const unsigned char PORT1 = 1;
-const unsigned char PORT2 = 2;
 
 class Arg
 {

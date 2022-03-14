@@ -49,11 +49,47 @@ public:
         /* Delay the Stream opening so it gets opened after the StreamServer */
         Thread::sleep(streamOpeningDelay);
 
+        /* Used to have higher priority than main */
+        Thread::create(&SensorNode::streamThreadLauncher, 2048, MAIN_PRIORITY+1, this);
+
+        while(true);
+    }
+
+private:
+    const unsigned int streamOpeningDelay = 1000;
+    MACContext *ctx;
+    TempSerialSensor* sensor;
+    const unsigned char port = 0;
+    unsigned int counter = 0;
+
+    int openStream(unsigned char dest) {
+        try {
+            printf("[A] N=%d Waiting to authenticate master node\n", ctx->getNetworkId());
+            while(waitForMasterTrusted()) {
+                //printf("[A] N=%d StreamManager not present! \n", ctx->getNetworkId());
+            }
+
+            /* Open a Stream to another node */
+            printf("[A] Opening stream to node %d\n", dest);
+            int stream = connect(dest,         // Destination node
+                                port,          // Destination port
+                                clientParams,  // Stream parameters 
+                                2*ctx->getDataSlotDuration()); // Wakeup advance (max 1 tile)
+
+            return stream;
+
+        } catch(exception& e) {
+            printf("exception %s\n",e.what());
+            return -1;
+        }
+    }
+
+    void streamThread() {
         while(true) {
             int stream = openStream(controllerNodeID);
             if(stream < 0) {                
                 printf("[A] Stream opening failed! error=%d\n", stream);
-                Thread::sleep(1000);
+                Thread::sleep(5000);
                 continue;
             }
 
@@ -65,8 +101,22 @@ public:
                         printf("[A] Stream opened \n");
                     }
 
+                    /*int res =*/ mxnet::wait(stream);
+                    // if (res != 0) {
+                    //     printf("[A] Stream wait error\n");
+                    // }
+
                     int lastSensorNodeSample = sensor->getLastSample();
-                    send(stream, lastSensorNodeSample);
+                    counter++;
+                    Data data(sensorNodeID, counter, lastSensorNodeSample);
+
+                    /*int ret =*/ mxnet::write(stream, &data, sizeof(data));      
+                    // if(ret >= 0) {
+                    //     printf("[A] Sent ID=%d NT=%lld C=%u\n",
+                    //             data.getId(), data.getNetworkTime(), data.getCounter());
+                    // }
+                    // else
+                    //     printf("[E] Error sending data, result=%d\n", ret);
                 }
 
                 printf("[A] Stream (%d,%d) closed, status=", ctx->getNetworkId(), controllerNodeID);
@@ -79,51 +129,7 @@ public:
         }
     }
 
-private:
-    const unsigned int streamOpeningDelay = 1000;
-    MACContext *ctx;
-    TempSerialSensor* sensor;
-    const unsigned char port = 0;
-    unsigned int counter = 0;
-
-    int openStream(unsigned char dest) {
-        // TODO può lanciare eccezioni?
-        try {
-            printf("[A] N=%d Waiting to authenticate master node\n", ctx->getNetworkId());
-            while(waitForMasterTrusted()) {
-                //printf("[A] N=%d StreamManager not present! \n", ctx->getNetworkId());
-            }
-
-            /* Open a Stream to another node */
-            printf("[A] Opening stream to node %d\n", dest);
-            int stream = connect(dest,         // Destination node
-                                port,          // Destination port
-                                clientParams,  // Stream parameters 
-                                1*ctx->getDataSlotDuration()); // Wakeup advance (max 1 tile)
-
-            return stream;
-
-        } catch(exception& e) {
-            printf("exception %s\n",e.what());
-            return -1;
-        }
-    }
-
-    void send(int stream, int sensorData) {
-        int res = mxnet::wait(stream);
-        if (res != 0) {
-            printf("[A] Stream wait error\n");
-        }
-
-        counter++;
-        Data data(ctx->getNetworkId(), counter, sensorData);
-
-        int ret = mxnet::write(stream, &data, sizeof(data));      
-        if(ret >= 0) {
-            printf("[A] Sent ID=%d Time=%lld NetTime=%lld Counter=%u\n",
-                    data.getId(), data.getTime(), data.getNetworkTime(), data.getCounter());
-        }
-        else
-            printf("[E] Error sending data, result=%d\n", ret);
+    static void streamThreadLauncher(void* arg) {
+        reinterpret_cast<SensorNode*>(arg)->streamThread();
     }
 };
