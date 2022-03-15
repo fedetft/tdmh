@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cstdlib>
 #include <miosix.h>
+#include <termios.h>
+#include <unistd.h>
 
 using namespace std;
 using namespace miosix;
@@ -42,6 +44,12 @@ float processStep(float u_k, float y_k_1) {
 
 int main()
 {
+    // disable serial echo
+    struct termios tt;
+    tcgetattr(STDIN_FILENO,&tt);
+    tt.c_lflag &= ~ECHO;
+    tcsetattr(STDIN_FILENO,TCSANOW,&tt);
+
     Thread::create(&outputSensorData, 2048, MAIN_PRIORITY, nullptr);
 
     int cv = 0;
