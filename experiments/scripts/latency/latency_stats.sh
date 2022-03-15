@@ -12,7 +12,7 @@
 #     echo "NO"
 # fi
 
-printUsage() {
+function printUsage {
     echo "Usage: ./latency_stats.sh logfile [--plot [streamsrc streamdst]] [--export]"
     echo "Args:"
     echo $'\t--plot \t\toptional, produce latency plots, not only statistics, optionally specify source and destination nodes.'
@@ -52,7 +52,7 @@ function latencyPlot {
     dst=$3
 
     latencyFile=$scriptDirectory/latency_${src}_${dst}.txt
-    plotFile=$scriptDirectory/results/latency_plot_${src}_${dst}.pdf
+    plotFile=$scriptDirectory/results/plot_${src}.pdf #latency_plot_${src}_${dst}.pdf
 
     # compute .txt file with data for plots
     perl $scriptDirectory/latency_stats.pl --plot $src $dst < $logFile > $latencyFile
@@ -70,8 +70,8 @@ function latencyPlot {
             else 
                 scilab -f $scriptDirectory/latency_plots.sce -args $latencyFile false
             fi
-        else
-            echo "No data for Stream ($src,$dst)"
+        #else
+        #    echo "No data for Stream ($src,$dst)"
         fi
         
         rm $latencyFile # remove the temporary file for plotting
@@ -157,7 +157,7 @@ fi
 #
 
 # first of all print stats for all streams
-echo $'Computing statistics for all streams...'
+#echo $'Computing statistics for all streams...'
 computeStats $1 # param = log file
 
 # if needed also produce plots

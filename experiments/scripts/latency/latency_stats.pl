@@ -90,8 +90,8 @@ sub parseLog() {
 
     if ($computeStats) { # print statistics for each stream if needed
         #print "\nSTREAMS LATENCY STATS:\n";
-        local $samplesTot=0, local $maxMinDeltaTot=0, local $stddevTot=0;
-        print "\nStream latency stats (in ms):\n";
+        local $samplesTot=0, local $maxMinDeltaTot=0, local $jitterTot=0, local $stddevTot=0;
+        print "Stream latency stats (in ms):\n";
         foreach(sort keys %streams) {
             local $key=$_;
             local $val=$streams{$_};
@@ -102,20 +102,34 @@ sub parseLog() {
             $avg = sprintf("%.6f", $avg / 1000000);
             #$m2 = sprintf("%.6f", $m2 / 1000000);
             $stddev = sprintf("%.6f", $stddev / 1000000);
+
+            # jitter = max deviation from avg value
+            local $jitter = 0;
+            local $j1 = abs($min - $avg);
+            local $j2 = $max - $avg;
+            if ($j1 > $j2) {
+                $jitter = $j1;
+            }
+            else {
+                $jitter = $j2;
+            }
+            $jitter = sprintf("%.6f", $jitter);
             
             # for overall results
             $samplesTot     += $numSamples;
             $maxMinDeltaTot += $maxMinDelta;
+            $jitterTot      += $jitter;
             $stddevTot      += $stddev;
 
-            print "[$key]: N=$numSamples MIN=$min MAX=$max MAX/MIN_DELTA=$maxMinDelta AVG=$avg STDDEV=$stddev\n";
+            print "[$key]: N=$numSamples AVG=$avg MIN=$min MAX=$max MAX/MIN_DELTA=$maxMinDelta JITTER=$jitter STDDEV=$stddev\n";
         }
         local $numStreams = keys %streams;
-        $maxMinDeltaTot   = sprintf("%.6f", $maxMinDeltaTot / $numStreams);
-        $stddevTot        = sprintf("%.6f", $stddevTot / $numStreams);
+        local $maxMinDeltaAvg   = sprintf("%.6f", $maxMinDeltaTot / $numStreams);
+        local $jitterAvg        = sprintf("%.6f", $jitterTot / $numStreams);
+        local $stddevAvg        = sprintf("%.6f", $stddevTot / $numStreams);
         # non-sense to compute average of min, max, and avg values, they are specific for 
         # each stream and depend on schedule (i.e. latencies are very different in each stream)
-        print "TOTAL: N=$samplesTot MAX/MIN_DELTA=$maxMinDeltaTot STDDEV=$stddevTot\n\n";
+        print "TOTAL: N=$samplesTot MAX/MIN_DELTA=$maxMinDeltaAvg JITTER=$jitterAvg STDDEV=$stddevAvg\n\n";
     }
 }
 
