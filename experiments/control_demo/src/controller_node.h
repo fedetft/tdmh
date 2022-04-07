@@ -43,7 +43,6 @@ public:
 
     void run() {
         while(!ctx->isReady()) {
-            printf("waiting...\n");
             Thread::sleep(1000);
         }
 
@@ -95,6 +94,8 @@ public:
         try {
             while(getInfo(inStream).getStatus() == StreamStatus::ESTABLISHED) {
 
+                checkUserButton();
+
                 Data data;
                 int len = mxnet::read(inStream, &data, sizeof(data));
                 long long now = mxnet::NetworkTime::now().get();
@@ -103,12 +104,13 @@ public:
                     if(len == sizeof(data))
                     {
                         if (outStreamOpened) {
-                            int controlAction = runController(data.getValue());
+                            lastSensorSample = data.getValue();
+                            int controlAction = runController(lastSensorSample);
                             send(outStream, controlAction, data.getSampleTime(), data.getCounter());
                         }
                         
-                        printf("[A] R (%d,%d) ID=%d NT=%lld C=%u V=%d\n",
-                        id.src, id.dst, data.getId(), data.getNetworkTime(), data.getCounter(), data.getValue());
+                        printf("[A] R (%d,%d) ID=%d T=%lld MH=0 C=%u V=%d\n",
+                        id.src, id.dst, data.getId(), data.getTime(), data.getCounter(), data.getValue());
                         long long latency = now - data.getNetworkTime();
                         printf("[A] (%d,%d): L=%lld\n", id.src, id.dst, latency);
                     } else {
@@ -159,6 +161,8 @@ public:
         try {
             while(getInfo(inStream).getStatus() == StreamStatus::ESTABLISHED) {
 
+                checkUserButton();
+
                 Data data;
                 int len = mxnet::read(inStream, &data, sizeof(data));
                 long long now = mxnet::NetworkTime::now().get();
@@ -172,8 +176,8 @@ public:
                         long long latencyCA = data.getSampleTime();
                         printf("[A] (%d,%d): L=%lld C=%u\n", controllerNodeID, actuatorNodeID, latencyCA, data.getCounter());
                         
-                        printf("[A] R (%d,%d) ID=%d NT=%lld C=%u V=%d\n",
-                        id.src, id.dst, data.getId(), data.getNetworkTime(), data.getCounter(), data.getValue());
+                        printf("[A] R (%d,%d) ID=%d T=%lld MH=0 C=%u\n",
+                        id.src, id.dst, data.getId(), data.getTime(), data.getCounter());
                         long long latency = now - data.getNetworkTime(); // latency from actuator to controller (computed on received message)
                         printf("[A] (%d,%d): L=%lld\n", id.src, id.dst, latency);
                     } else {
@@ -195,12 +199,20 @@ public:
         }
     }
 
+    void checkUserButton() {
+        if (miosix::userButton::value() == 0) {
+            tempSetPoint = 25;
+        }
+    }
+
 private:
     const unsigned int streamOpeningDelay = 1000;
     MACContext *ctx;
     unsigned int counter = 0;
     TemperatureController tempController;
-    float tempSetPoint = 500.f;
+    float tempSetPoint = 1000.f;
+
+    float lastSensorSample = 0;
 
     int outStream = -1;
     bool outStreamOpened = false;
@@ -215,7 +227,6 @@ private:
     }
 
     int openStream(unsigned char dest, unsigned char port) {
-        // TODO può lanciare eccezioni?
         try {
             /* Open a Stream to another node */
             printf("[A] Opening stream to node %d\n", dest);

@@ -26,9 +26,9 @@ StreamParameters clientParams(Redundancy::TRIPLE_SPATIAL,
                             1,     // payload size
                             Direction::TX);
 
-const unsigned char actuatorNodeID   = 3;  //9;    // controller node destination
-const unsigned char controllerNodeID = 0;    // sensor node destination
-const unsigned char sensorNodeID     = 10; //12;
+const unsigned char actuatorNodeID   = 9;  // controller node destination
+const unsigned char controllerNodeID = 0;  // sensor node destination
+const unsigned char sensorNodeID     = 12;
 
 const unsigned char PORT1 = 1;
 
@@ -57,7 +57,7 @@ struct Data
     Data() {}
 
     // For sensor data
-    Data(int id, unsigned int counter, int value) : 
+    Data(int id, unsigned int counter, int value) :
                     id(id), time(miosix::getTime()), netTime(NetworkTime::now().get()),
                     sampleTime(NetworkTime::now().get()), counter(counter), latency(0), value(value) {}
 
@@ -67,7 +67,7 @@ struct Data
                     sampleTime(sampleTime), counter(counter), latency(0), value(value) {}
 
     // To send back to the master the latency among sensor and actuator
-    Data(int id, unsigned int counter, long long sampleTime, long long latency) : 
+    Data(int id, unsigned int counter, long long sampleTime, long long latency) :
                     id(id), time(miosix::getTime()), netTime(NetworkTime::now().get()),
                     sampleTime(sampleTime), counter(counter), latency(latency), value(0) {}
                    

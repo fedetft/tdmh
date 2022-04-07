@@ -45,7 +45,7 @@ public:
         while(true) {
             // scanf should only read 1 value and it
             // returns the number of read values
-            while(scanf("s:%d", &lastSample) != 1) { // consume input until finally the scanf only reads 1 value
+            while(scanf("%d", &lastSample) != 1) { // consume input until finally the scanf only reads 1 value
                 while(fgetc(stdin) != '\n'); // if it is not 1, consume the entire line
             }
             

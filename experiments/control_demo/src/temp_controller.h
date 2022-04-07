@@ -25,18 +25,23 @@ public:
      * \return actuator power in [0..1] range
      */
     float step(float pv, float sp) {
+        // r:k*(1+s*T)/s;
+        // ratsimp(subst(s=(z-1)/z/Ts,r));
         if(pv == -1) { // sensor error
-            u1 = u2 = e1 = e2 = e3 = 0.f;
+            u1 = u2 = e3 = 0.f;
         } else {
-            // r:k*(1+s*T)/s;
-            // ratsimp(subst(s=(z-1)/z/Ts,r));
 
-            float e = sp - pv;
+            float e2 = sp - pv;
+
+            if (skipped) {
+                skipped = false;
+                u2 = u1;
+                e3 = e2;
+            }
+
             float u = a*u1 + (1-a)*u2 + (((1-a)*(Ts+T))/(mu*Ts))*e2 - (((1-a)*T)/(mu*Ts))*e3;
 
             e3 = e2;
-            e2 = e1;
-            e1 = e;
 
             u2 = u1;
             u1 = max(0.f, min(1.f, u));
@@ -46,17 +51,16 @@ public:
     }
 
     void skipStep() {
-        e3 = e2;
-        e2 = e1;
-        u2 = u1;
+        skipped = true;
     }
 
 private:
+    bool skipped = false;
     const float a = 0.9985;
     const float mu = 1250;
     const float T, Ts;
     float u1=0.f, u2=0.f;
-    float e1=0.f, e2=0.f, e3=0.f;
+    float e3=0.f;
 };
 
 /*

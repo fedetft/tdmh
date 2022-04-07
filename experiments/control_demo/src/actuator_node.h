@@ -146,7 +146,7 @@ public:
             //     mxnet::close(outStream);
             // }
             // disable output
-            actuate(0);
+            // actuate(0);
         } catch(exception& e) {
             printf("exception %s\n",e.what());
         }
@@ -237,7 +237,7 @@ private:
 
     void actuate(int cv) {
         ////printf("[A] Actuate: cv=%d\n", cv);
-        printf("cv:%d\n", cv);
+        printf("%d\n", cv);
     }
 
     static void processThreadLauncher(void *arg) {
