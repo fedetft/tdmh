@@ -566,15 +566,17 @@ void Stream::wakeWriteRead() {
     }
 }
 
-void Stream::wakeCallbacks() {
+ void Stream::wakeCallbacks() {
     // call both callbacks, if specified, in order to signal to the
     // application the new stream status (application may be stuck waiting
     // on some condition variable or simply a feedback is needed)
-    if (hasSendCallback) { // && info.getStatus() == StreamStatus::ESTABLISHED) {
-        sendPacketWithCallback();
+    unsigned char bytes[rxPacketShared.maxSize()] = {0};
+    unsigned int dataSize = 0;
+    if (hasSendCallback) {
+        sendCallback(bytes, &dataSize, info.getStatus());
     }
-    if (hasRecvCallback) { // && info.getStatus() == StreamStatus::ESTABLISHED) {
-        receivePacketWithCallback();
+    if (hasRecvCallback) {
+        recvCallback(bytes, &dataSize, info.getStatus());
     }
  }
 
