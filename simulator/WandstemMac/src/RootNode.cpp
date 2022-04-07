@@ -43,11 +43,10 @@ struct Data {
 
 class StreamThreadPar {
 public:
-  StreamThreadPar(int stream, StreamManager *mgr, Stats *delay_stats)
-      : stream(stream), mgr(mgr), delay_stats(delay_stats){};
+  StreamThreadPar(int stream, StreamManager *mgr)
+      : stream(stream), mgr(mgr) {};
   int stream;
   StreamManager *mgr;
-  Stats *delay_stats;
 };
 
 void RootNode::activity() {
@@ -67,7 +66,7 @@ void RootNode::activity() {
       1,                                              // numUplinkPackets
       100000000,                                      // tileDuration
       150000,                                         // maxAdmittedRcvWindow
-      0,                                         //callbacksExecutionTime
+      0,                                              //callbacksExecutionTime
       3,                // maxRoundsUnavailableBecomesDead
       16,               // maxRoundsWeakLinkBecomesDead
       -75,              // minNeighborRSSI
@@ -130,38 +129,6 @@ void RootNode::application() {
   openServer(ctx, 1, Period::P1, Redundancy::TRIPLE_SPATIAL);
 }
 
-struct CallbackData
-{
-    int stream;
-    bool received;
-    int receivedBytes;
-    Data receivedData;
-    std::mutex receiveMutex;
-    long long recvTime = 0;
-
-    CallbackData(int stream) : stream(stream), received(false), receivedBytes(-1) {}
-
-    ~CallbackData() {}
-
-    void recvCallback(void* data, unsigned int* size)
-    {
-        recvTime = NetworkTime::now().get();
-
-        std::unique_lock<std::mutex> lck(receiveMutex);
-    
-        received = true;
-
-        if (*size != 0) {
-            receivedBytes = *size;
-            memcpy(&receivedData, data, receivedBytes);
-        }
-        else {
-            receivedBytes = -1;
-            receivedData = Data(-1, 0, miosix::getTime());
-        }
-    }
-};
-
 void RootNode::openServer(MACContext *ctx, unsigned char port, Period period,
                           Redundancy redundancy) {
   try {
@@ -172,6 +139,7 @@ void RootNode::openServer(MACContext *ctx, unsigned char port, Period period,
                                    period,         // Period
                                    1,              // Payload size
                                    Direction::TX); // Direction
+
     printf("[A] Opening server on port %d\n", port);
     /* Open a Server to listen for incoming streams */
     int server = mgr->listen(port,    // Destination port
@@ -182,15 +150,12 @@ void RootNode::openServer(MACContext *ctx, unsigned char port, Period period,
       return;
     }
 
-    // map used to compute mean delay for each node
-    Stats delay_stats[nodesNum];
-
     while (mgr->getInfo(server).getStatus() == StreamStatus::LISTEN) {
       int stream = mgr->accept(server);
 
       // pair<int, StreamManager*> arg = make_pair(stream, mgr);
       thread t1(&RootNode::streamThread, this,
-                new StreamThreadPar(stream, mgr, delay_stats));
+                new StreamThreadPar(stream, mgr));
       t1.detach();
     }
   } catch (exception &e) {
@@ -201,99 +166,13 @@ void RootNode::openServer(MACContext *ctx, unsigned char port, Period period,
   }
 }
 
-/*
-void RootNode::streamThread(void *arg) {
-  try {
-    auto *s = reinterpret_cast<StreamThreadPar *>(arg);
-    int stream = s->stream;
-    StreamManager *mgr = s->mgr;
-    Stats *delay_stats = s->delay_stats;
-    StreamId id = mgr->getInfo(stream).getStreamId();
-    printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
-
-    StreamInfo streamInfo = mgr->getInfo(stream);
-    CallbackData c_data(stream);
-    std::function<void(void*, unsigned int*)> recvCallback = 
-                              std::bind(&CallbackData::recvCallback, &c_data, _1, _2);
-    printf("[A] Set receive callback for stream (%d,%d) \n", streamInfo.getSrc(), streamInfo.getDst());
-    if (!mgr->setReceiveCallback(stream, recvCallback)) {
-        printf("[A] Error : failed to set receive callback for stream (%d,%d) \n", streamInfo.getSrc(), streamInfo.getDst());
-        return;
-    }
-
-    // Receive data until the stream is closed
-    while (mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
-        
-        Data data;
-        int len = -1;
-        long long receiveTime = 0;
-
-        if (c_data.received)
-        {
-
-          // wait for callback to be executed
-          {
-              std::unique_lock<std::mutex> lck(c_data.receiveMutex);
-
-              c_data.received = false;
-              data = c_data.receivedData;
-              len = c_data.receivedBytes;
-          }
-
-          if(len >= 0) {
-              if(len == sizeof(data))
-              {
-                long long now = miosix::getTime();
-
-                  if(COMPRESSED_DBG==false)
-                      printf("[A] Received data from (%d,%d): ID=%d MinHeap=0 Heap=0 Counter=%u Time=%llu\n",
-                      id.src, id.dst, data.id, data.counter, now);
-                  else {
-                      printf("[A] R (%d,%d) ID=%d MH=0 C=%u T=%llu\n",
-                      id.src, id.dst, data.id, data.counter, now);
-                  }
-
-                  long long delay = now - data.timestamp;
-                  if (delay != 0)
-                  {
-                      delay_stats[id.src].add(delay);
-                      printf("[A] Delay (%d,%d): D=%lld N=%u\n", id.src, id.dst, delay, delay_stats[id.src].getStats().n);
-                      printf("[A] Mean Delay (%d,%d): MD=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().mean);
-                      printf("[A] Delay Standard Deviation (%d,%d): DV=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().stdev);
-                  }
-              }
-              else {
-                  if(COMPRESSED_DBG==false)
-                      printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
-                      id.src, id.dst, len);
-                  else
-                      printf("[E] W (%d,%d) %d\n", id.src, id.dst, len);
-              }
-          }
-          else {
-              if(COMPRESSED_DBG==false)
-                  printf("[E] No data received from Stream (%d,%d): %d\n",
-                  id.src, id.dst, len);
-              else {
-                  printf("[E] M (%d,%d)\n", id.src, id.dst);
-              }
-          }
-        }
-    }
-    printf("[A] Stream (%d,%d) was closed\n", id.src, id.dst);
-  } catch (...) {
-    printf("Exception thrown in streamThread\n");
-  }
-}
-*/
-
 void RootNode::streamThread(void *arg) {
     try{
         auto *s = reinterpret_cast<StreamThreadPar*>(arg);
         int stream = s->stream;
         StreamManager* mgr = s->mgr;
-        Stats* delay_stats = s->delay_stats;
         StreamId id = mgr->getInfo(stream).getStreamId();
+        unsigned int receivedCounter = 0;
         printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
         // Receive data until the stream is closed
         while(mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
@@ -301,18 +180,14 @@ void RootNode::streamThread(void *arg) {
             int len = mgr->read(stream, &data, sizeof(data));
             if(len >= 0) {
                 if(len == sizeof(data))
-                {
-                    printf("[A] Received data from (%d,%d): ID=%d MinHeap=0 Heap=0 Counter=%u Time=%llu\n",
-                            id.src, id.dst, data.id, data.counter, miosix::getTime());
-
-                    long long delay = miosix::getTime() - data.timestamp;
-                    if (delay != 0)
-                    {
-                        delay_stats[id.src].add(delay);
-                        printf("[A] Delay (%d,%d): D=%lld N=%u\n", id.src, id.dst, delay, delay_stats[id.src].getStats().n);
-                        printf("[A] Mean Delay (%d,%d): MD=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().mean);
-                        printf("[A] Delay Standard Deviation (%d,%d): DV=%lld\n", id.src, id.dst, delay_stats[id.src].getStats().stdev);
-                    }
+                {   
+                    receivedCounter++;
+                    printf("[A] Received data from (%d,%d): ID=%d MinHeap=0 Heap=0 Time=%llu Counter=%u Received=%u\n",
+                            id.src, id.dst, data.id, miosix::getTime(), data.counter, receivedCounter);
+#ifdef LATENCY_PROFILING
+                    long long latency = miosix::getTime() - data.timestamp;
+                    printf("[A] (%d,%d): L=%lld\n", id.src, id.dst, latency);
+#endif
                 }
                 else
                     printf("[E] Received wrong size data from Stream (%d,%d): %d\n",

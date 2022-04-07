@@ -65,7 +65,7 @@ try {
             1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
-            0,        //callbacksExecutionTime
+            0,             //callbacksExecutionTime
             3,             //maxRoundsUnavailableBecomesDead
             16,            //maxRoundsWeakLinkBecomesDead
             -75,           //minNeighborRSSI
@@ -123,19 +123,9 @@ void Node::application() {
     /* Wait for TDMH to become ready */
     MACContext* ctx = tdmh->getMACContext();
     while(!ctx->isReady()) ;
-    Period p = Period::P1;
+    Period p = Period::P10;
     Redundancy r = Redundancy::TRIPLE_SPATIAL;
     sendData(ctx, 0, p, r);
-}
-
-int networkId;
-unsigned int sendMsgCounter = 0;
-void sendCallback(void* data, unsigned int* size)
-{
-    sendMsgCounter++;
-    Data d(networkId, sendMsgCounter, miosix::getTime());
-    *size = sizeof(Data);
-    memcpy(data, &d, *size);
 }
 
 void Node::sendData(MACContext* ctx, unsigned char dest, Period period, Redundancy redundancy) {
@@ -148,11 +138,9 @@ void Node::sendData(MACContext* ctx, unsigned char dest, Period period, Redundan
         printf("[A] N=%d Waiting to authenticate master node\n", ctx->getNetworkId());
         mgr->waitForMasterTrusted();
 
-        networkId = ctx->getNetworkId();
-
         /* Open a Stream to another node */
         int stream;
-        do{
+        do {
             printf("[A] Node %d: Opening stream to node %d\n", address, dest);
             stream = mgr->connect(dest,                            // Destination node
                                     1,                             // Destination port
@@ -162,25 +150,20 @@ void Node::sendData(MACContext* ctx, unsigned char dest, Period period, Redundan
             if(stream < 0) {                
                 printf("[A] Stream opening failed! error=%d\n", stream);
             }
-            /*else {
-                if (!mgr->setSendCallback(stream, &sendCallback)) {
-                    printf("[A] Error : failed to set send callback! \n");
-                }
-            }*/
 
-        }while(stream < 0);
+        } while(stream < 0);
 
         StreamId id = mgr->getInfo(stream).getStreamId();
         printf("[A] Stream (%d,%d) opened \n", id.src, id.dst);
 
         unsigned int msgCounter = 0;
         while(mgr->getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
+            //printf("\nStream wait... NT = %llu\n\n", NetworkTime::now().get());
+            mgr->wait(stream);    
+            //printf("\nStream wakeup! NT = %llu\n\n", NetworkTime::now().get());
             msgCounter++;
             Data data(ctx->getNetworkId(), msgCounter, getTime());
-            printf("\nStream wakeup! NT = %llu\n\n", NetworkTime::now().get());
             int len = mgr->write(stream, &data, sizeof(data));
-            printf("\nStream wait... NT = %llu\n\n", NetworkTime::now().get());
-            mgr->wait(ctx, stream);
             printf("[A] Sent ID=%d Counter=%u Time=%llu, result=%d \n", 
                                     data.id, data.counter, data.timestamp, len);
         }
