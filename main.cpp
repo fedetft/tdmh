@@ -41,14 +41,28 @@
 // For tests with a 50ms tile and 2ms slots
 // #define SMALL_DATA
 
+// For using callbacks API instead of the write/read one
+#define USE_CALLBACKS
+
+// For benchmarking end-to-end latency
+//#define LATENCY_PROFILING
+
 using namespace std;
-using namespace std::placeholders;
 using namespace mxnet;
 using namespace miosix;
+using namespace std::placeholders;
 
 const int maxNodes = 16;
 const int maxHops = 6;
 const int txPower = 5; //dBm
+
+#ifdef USE_CALLBACKS
+// send callback    ~= 55000
+// receive callback ~= 21000
+const unsigned int callbacksExecTime = 500000;
+#else
+const unsigned int callbacksExecTime = 0;
+#endif
 
 FastMutex m;
 MediumAccessController *tdmh = nullptr;
@@ -64,10 +78,8 @@ public:
 class StreamThreadPar
 {
 public:
-    StreamThreadPar(int stream, Stats* delay_stats) : 
-                stream(stream), delay_stats(delay_stats) {};
+    StreamThreadPar(int stream) : stream(stream) {};
     int stream;
-    Stats* delay_stats;
 };
 
 inline int guaranteedTopologies(int maxNumNodes, bool useWeakTopologies)
@@ -129,7 +141,10 @@ void printStatus(StreamStatus status) {
 
 void masterNode(void*)
 {
-    printStackRange("MAC (master)");
+    if (ENABLE_STACK_STATS_DBG) {
+        printStackRange("MAC (master)");
+    }
+
     try {
         printf("Master node\n");
         bool useWeakTopologies=true;
@@ -146,7 +161,7 @@ void masterNode(void*)
             1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
-            1000000,        //callbacksExecutionTime
+            callbacksExecTime, //callbacksExecutionTime
             8,             //maxRoundsUnavailableBecomesDead
             128,           //maxRoundsWeakLinkBecomesDead
             -75,           //minNeighborRSSI
@@ -161,7 +176,7 @@ void masterNode(void*)
             true,          //authenticateDataMessages
             true,          //encryptDataMessages
             true,          //doMasterChallengeAuthentication
-            3000,          //masterChallengeAuthenticationTimeout
+            500, //3000,          //masterChallengeAuthenticationTimeout
             3000           //rekeyingPeriod
 #endif
         );
@@ -180,7 +195,10 @@ void masterNode(void*)
 
 void dynamicNode(void* argv)
 {
-    printStackRange("MAC (dynamic)");
+    if (ENABLE_STACK_STATS_DBG) {
+        printStackRange("MAC (dynamic)");
+    }
+
     try {
         auto arg = reinterpret_cast<Arg*>(argv);
         printf("Dynamic node %d",arg->id);
@@ -200,7 +218,7 @@ void dynamicNode(void* argv)
             1,             //numUplinkPackets
             100000000,     //tileDuration
             150000,        //maxAdmittedRcvWindow
-            1000000,       //callbacksExecutionTime
+            callbacksExecTime, //callbacksExecutionTime
             8,             //maxRoundsUnavailableBecomesDead
             128,           //maxRoundsWeakLinkBecomesDead
             -75,           //minNeighborRSSI
@@ -215,7 +233,7 @@ void dynamicNode(void* argv)
             true,          //authenticateDataMessages
             true,          //encryptDataMessages
             true,          //doMasterChallengeAuthentication
-            3000,          //masterChallengeAuthenticationTimeout
+            500, //3000,          //masterChallengeAuthenticationTimeout
             3000           //rekeyingPeriod
 #endif
         );
@@ -237,10 +255,13 @@ void dynamicNode(void* argv)
 
 void statThread(void *)
 {
-    printStackRange("stat");
+    if (ENABLE_STACK_STATS_DBG) {
+        printStackRange("stat");
+    }
+
     for(;;)
     {
-        printf("[H] Time=%lld MinHeap=%u Heap=%u\n", miosix::getTime(),
+        print_dbg("[H] Time=%lld MinHeap=%u Heap=%u\n", miosix::getTime(),
                miosix::MemoryProfiling::getAbsoluteFreeHeap(),
                miosix::MemoryProfiling::getCurrentFreeHeap());
         Thread::sleep(2000);
@@ -295,26 +316,47 @@ struct Data
 
 #endif //SMALL_DATA
 
+#ifdef USE_CALLBACKS
+int networkId;
+
+// SEND CALLBACK
+unsigned int sendMsgCounter = 0;
+void sendCallback(void* data, unsigned int* size, StreamStatus status)
+{
+    if (status == StreamStatus::ESTABLISHED) {
+        sendMsgCounter++;
+        Data d(networkId, sendMsgCounter);
+        *size = sizeof(Data);
+        memcpy(data, &d, *size);
+    }
+    else {
+        printf("[A] Send callback : stream status=");
+        printStatus(status);
+    }
+}
+
 // RECEIVE CALLBACK
 struct CallbackData
 {
-    int stream;
     bool received;
     int receivedBytes;
+    StreamStatus streamStatus;
     Data receivedData;
-    miosix::FastMutex receiveMutex;
+    long long receiveTime;
+    std::mutex receiveMutex;
+    std::condition_variable receiveCv;
 
-    CallbackData(int stream) : stream(stream), received(false), receivedBytes(-1) {}
+    CallbackData() : received(false), receivedBytes(-1), streamStatus(StreamStatus::UNINITIALIZED),
+                        receivedData(Data()), receiveTime(0) {}
+    ~CallbackData() {}
 
-    ~CallbackData() { /*receiveCv.signal();*/ }
-
-    void recvCallback(void* data, unsigned int* size)
+    void recvCallback(void* data, unsigned int* size, StreamStatus status)
     {
-        miosix::Lock<miosix::FastMutex> lck(receiveMutex);
-        
-        received = true;
+        std::unique_lock<std::mutex> lck(receiveMutex);
 
-        if (*size != 0) {
+        streamStatus = status;
+
+        if (*size != 0) { // && streamStatus == StreamStatus::ESTABLISHED) {
             receivedBytes = *size;
             memcpy(&receivedData, data, receivedBytes);
         }
@@ -322,25 +364,20 @@ struct CallbackData
             receivedBytes = -1;
             receivedData = Data{-1, 0};
         }
-
-        //receiveCv.signal();
+        // take timestamp after the data has been
+        // really made available to the application
+        receiveTime = NetworkTime::now().get();
+        received = true;
+        receiveCv.notify_one();
     }
 };
 
-// SEND CALLBACK
-int networkId;
-unsigned int sendMsgCounter = 0;
-void sendCallback(void* data, unsigned int* size)
-{
-    sendMsgCounter++;
-    Data d(networkId, sendMsgCounter);
-    *size = sizeof(Data);
-    memcpy(data, &d, *size);
-}
-
 void streamThread(void *arg)
 {
-    printStackRange("stream");
+    if (ENABLE_STACK_STATS_DBG) {
+        printStackRange("stream");
+    }
+    
     auto *s = reinterpret_cast<StreamThreadPar*>(arg);
     int stream = s->stream;
 
@@ -348,69 +385,69 @@ void streamThread(void *arg)
     StreamId id = info.getStreamId();
     printf("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
 
-    Stats* delay_stats = &(s->delay_stats[id.src]);
-
-    CallbackData c_data(stream);
-    std::function<void(void*, unsigned int*)> recvCallback = 
-                                std::bind(&CallbackData::recvCallback, &c_data, _1, _2);
-    printf("[A] Set receive callback \n");
+    CallbackData c_data;
+    std::function<void(void*,unsigned int*,StreamStatus)> recvCallback = 
+                                std::bind(&CallbackData::recvCallback, &c_data, _1, _2, _3);
+    printf("[A] Set receive callback for stream (%d,%d) \n", info.getSrc(), info.getDst());
     if (!setReceiveCallback(stream, recvCallback)) {
-        printf("[A] Error : failed to set receive callback! \n");
+        printf("[A] Error : failed to set receive callback for stream (%d,%d) \n", info.getSrc(), info.getDst());
         return;
     }
 
-    while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
-
+    while(true) { // getInfo(stream).getStatus() == StreamStatus::ESTABLISHED
         Data data;
         int len = -1;
+        long long now = 0;
+        StreamStatus streamStatus;
 
-        if (c_data.received)
         {
+            std::unique_lock<std::mutex> lck(c_data.receiveMutex);
+
+            while(!c_data.received) {
+                c_data.receiveCv.wait(lck);
+            }
+
+            c_data.received = false;
+            now = c_data.receiveTime;
+            data = c_data.receivedData;
+            len = c_data.receivedBytes;
+            streamStatus = c_data.streamStatus;
+        }
+
+        if (c_data.streamStatus != StreamStatus::ESTABLISHED) {
+            printf("[A] Stream status != ESTABLISHED, closing stream\n");
+            break;
+        }
+
+        if(len >= 0) {
+            if(len == sizeof(Data))
             {
-                miosix::Lock<miosix::FastMutex> lck(c_data.receiveMutex);
-
-                c_data.received = false;
-                data = c_data.receivedData;
-                len = c_data.receivedBytes;
-            }
-
-            if(len >= 0) {
-                if(len == sizeof(Data))
-                {
-                    long long now = NetworkTime::now().get();
-
-                    if(COMPRESSED_DBG==false)
-                        printf("[A] Received data from (%d,%d): ID=%d MinHeap=%u Heap=%u Counter=%u Time=%llu NetTime=%llu \n",
-                        id.src, id.dst, data.getId(), data.getMinHeap(), data.getHeap(), data.getCounter(), miosix::getTime(), now);
-                    else {
-                        printf("[A] R (%d,%d) ID=%d MH=%u C=%u T=%llu NT=%llu\n",
-                        id.src, id.dst, data.getId(), data.getMinHeap(), data.getCounter(), miosix::getTime(), now);
-                    }
-
-                    long long delay = now - data.getNetworkTime();
-                    if (delay != 0)
-                    {
-                        delay_stats->add(delay);
-                        printf("[A] Delay (%d,%d): D=%lld N=%u\n", id.src, id.dst, delay, delay_stats->getStats().n);
-                        printf("[A] Mean Delay (%d,%d): MD=%lld\n", id.src, id.dst, delay_stats->getStats().mean);
-                        printf("[A] Delay Standard Deviation (%d,%d): DV=%lld\n", id.src, id.dst, delay_stats->getStats().stdev);
-                    }
-                }
-                else {
-                    if(COMPRESSED_DBG==false)
-                        printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
-                        id.src, id.dst, len);
-                    else
-                        printf("[E] W (%d,%d) %d\n", id.src, id.dst, len);
-                }
-            }
-            else {
                 if(COMPRESSED_DBG==false)
-                    printf("[E] No data received from Stream (%d,%d): %d\n",
-                    id.src, id.dst, len);
-                else {
-                    printf("[E] M (%d,%d)\n", id.src, id.dst);
+                {
+                    printf("[A] Received data from (%d,%d): ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
+                       id.src, id.dst, data.getId(), data.getNetworkTime(), data.getMinHeap(), data.getHeap(), data.getCounter());
+                } else {
+                    printf("[A] R (%d,%d) ID=%d T=%lld MH=%u C=%u\n",
+                       id.src, id.dst, data.getId(), data.getTime(), data.getMinHeap(), data.getCounter());
+#ifdef LATENCY_PROFILING
+                    long long latency = now - data.getNetworkTime();
+                    printf("[A] (%d,%d): L=%lld\n", id.src, id.dst, latency);
+#endif
                 }
+            } else {
+                if(COMPRESSED_DBG==false)
+                    printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
+                       id.src, id.dst, len);
+                else
+                    printf("[E] W (%d,%d) %d\n", id.src, id.dst, len);
+            }
+        }
+        else {
+            if(COMPRESSED_DBG==false)
+                printf("[E] No data received from Stream (%d,%d): %d\n",
+                id.src, id.dst, len);
+            else {
+                printf("[E] M (%d,%d)\n", id.src, id.dst);
             }
         }
     }
@@ -422,12 +459,95 @@ void streamThread(void *arg)
     delete s;
 }
 
+#else // !defined USE_CALLBACKS
+
+void streamThread(void *arg)
+{
+    if (ENABLE_STACK_STATS_DBG) {
+        printStackRange("stream");
+    }
+
+    auto *s = reinterpret_cast<StreamThreadPar*>(arg);
+    int stream = s->stream;
+    StreamInfo info = getInfo(stream);
+    StreamId id = info.getStreamId();
+    print_dbg("[A] Master node: Stream (%d,%d) accepted\n", id.src, id.dst);
+    int cnt = 0;
+
+    while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
+        Data data;
+        int len = mxnet::read(stream, &data, sizeof(data));
+        
+#ifdef LATENCY_PROFILING
+        long long now = mxnet::NetworkTime::now().get();
+#endif
+
+        if(++cnt>300) {
+            cnt = 0;
+#ifdef _MIOSIX
+            if (ENABLE_STACK_STATS_DBG) {
+                unsigned int stackSize = MemoryProfiling::getStackSize();
+                unsigned int absFreeStack = MemoryProfiling::getAbsoluteFreeStack();
+                print_dbg("[H] Stream thread stack %d/%d\n", stackSize - absFreeStack, stackSize);
+            }
+#endif
+        }
+
+        if(len > 0) {
+            if(len == sizeof(data))
+            {
+                if(COMPRESSED_DBG==false)
+                {
+                    printf("[A] Received data from (%d,%d): ID=%d Time=%lld MinHeap=%u Heap=%u Counter=%u\n",
+                       id.src, id.dst, data.getId(), data.getNetworkTime(), data.getMinHeap(), data.getHeap(), data.getCounter());
+                } else {
+                    printf("[A] R (%d,%d) ID=%d T=%lld MH=%u C=%u\n",
+                       id.src, id.dst, data.getId(), data.getTime(), data.getMinHeap(), data.getCounter());
+
+#ifdef LATENCY_PROFILING
+                    long long latency = now - data.getNetworkTime();
+                    printf("[A] (%d,%d): L=%lld\n", id.src, id.dst, latency);
+#endif
+                }
+            } else {
+                if(COMPRESSED_DBG==false)
+                    printf("[E] Received wrong size data from Stream (%d,%d): %d\n",
+                       id.src, id.dst, len);
+                else
+                    printf("[E] W (%d,%d) %d\n", id.src, id.dst, len);
+            }
+        }
+        else if(len == -1) {
+            if(COMPRESSED_DBG==false)
+                printf("[E] No data received from Stream (%d,%d): %d\n",
+                   id.src, id.dst, len);
+            else {
+                print_dbg("[E] M (%d,%d)\n", id.src, id.dst);
+            }
+        }
+        else {
+            print_dbg("[E] M (%d,%d) Read returned %d\n", id.src, id.dst, len);
+        }
+    }
+    printf("[A] Stream (%d,%d) has been closed, status=", id.src, id.dst);
+    printStatus(getInfo(stream).getStatus());
+    // NOTE: Remember to call close() after the stream has been closed remotely
+    mxnet::close(stream);
+    delete s;
+}
+#endif
+
 void openServer(unsigned char port, StreamParameters params) {
     /* Wait for TDMH to become ready */
     MACContext* ctx = tdmh->getMACContext();
     while(!ctx->isReady()) {
         Thread::sleep(1000);
     }
+
+#ifdef USE_CALLBACKS
+    networkId = ctx->getNetworkId();
+#endif
+
     printf("[A] Opening server on port %d\n", port);
     /* Open a Server to listen for incoming streams */
     int server = listen(port,              // Destination port
@@ -437,14 +557,10 @@ void openServer(unsigned char port, StreamParameters params) {
         return;
     }
 
-    // array of delay statistics maintained by the master
-    // statistics are update online at each packet received from dynamic nodes
-    Stats delay_stats[maxNodes];
-
     try {
         while(getInfo(server).getStatus() == StreamStatus::LISTEN) {
             int stream = accept(server);
-            Thread::create(streamThread, 1536, MAIN_PRIORITY, new StreamThreadPar(stream, delay_stats));
+            Thread::create(streamThread, 1536, MAIN_PRIORITY+1, new StreamThreadPar(stream));
         }
     } catch(exception& e) {
         printf("Unexpected exception while server accept: %s\n",e.what());
@@ -465,7 +581,9 @@ void openStream(unsigned char dest, unsigned char port, StreamParameters params)
     /* Delay the Stream opening so it gets opened after the StreamServer */
     Thread::sleep(1000);
 
+#ifdef USE_CALLBACKS
     networkId = ctx->getNetworkId();
+#endif
 
     /* Open Stream from node */
     while(true){
@@ -477,29 +595,65 @@ void openStream(unsigned char dest, unsigned char port, StreamParameters params)
             }
             /* Open a Stream to another node */
             printf("[A] Opening stream to node %d\n", dest);
+#ifdef USE_CALLBACKS
             int stream = connect(dest,          // Destination node
                                  port,          // Destination port
                                  params);       // Stream parameters
+#else
+            int stream = connect(dest,          // Destination node
+                                 port,          // Destination port
+                                 params,        // Stream parameters 
+                                 2*ctx->getDataSlotDuration()); // Wakeup advance (max 1 tile)
+#endif
             if(stream < 0) {                
                 printf("[A] Stream opening failed! error=%d\n", stream);
                 continue;
             }
+#ifdef USE_CALLBACKS
             else {
                 printf("[A] Set send callback \n");
                 if (!setSendCallback(stream, &sendCallback)) {
                     printf("[A] Error : failed to set send callback! \n");
                 }
             }
-
-            //unsigned int counter = 1;
-            //bool first=true;
+#endif
+            unsigned int counter = 0;
+            bool first = true;
             while(getInfo(stream).getStatus() == StreamStatus::ESTABLISHED) {
+                if(first) {
+                    first=false;
+                    printf("[A] Stream opened \n");
+                }
+
+#ifdef USE_CALLBACKS
+                // avoid loop to continuously spin
+                Thread::sleep(1000);
+#else
+                //printf("\n[A] Stream wait! NT = %llu\n\n", NetworkTime::now().get());
+                int res = mxnet::wait(stream);
+                if (res != 0) {
+                    printf("[A] Stream wait error\n");
+                }
+
+                counter++;
+
+                //printf("\n[A] Stream wakeup! NT=%llu C=%u\n", NetworkTime::now().get(), counter);
+                Data data(ctx->getNetworkId(), counter);
+                int ret = mxnet::write(stream, &data, sizeof(data));      
+                if(ret >= 0) {
+                    printf("[A] Sent ID=%d Time=%lld NetTime=%lld MinHeap=%u Heap=%u Counter=%u\n",
+                              data.getId(), data.getTime(), data.getNetworkTime(), data.getMinHeap(), data.getHeap(), data.getCounter());
+                }
+                else
+                    printf("[E] Error sending data, result=%d\n", ret);
+#endif
             }
 
             printf("[A] Stream (%d,%d) closed, status=", ctx->getNetworkId(), dest);
             printStatus(getInfo(stream).getStatus());
             // NOTE: Remember to call close() after the stream has been closed
             mxnet::close(stream);
+        
         } catch(exception& e) {
             printf("exception %s\n",e.what());
         }
@@ -519,58 +673,59 @@ void idle() {
 
 int main()
 {
-    printStackRange("main");
-
+    if (ENABLE_STACK_STATS_DBG) {
+        printStackRange("main");
+    }
+    
     unsigned long long nodeID = getUniqueID();
     printf("### TDMH Test code ###\nNodeID=%llx\n", nodeID);
     const int macThreadStack = 4096;
-    Thread* t1;
     /* Start TDMH thread mapping node unique ID to network ID */
     switch(nodeID) {
     case 0x243537035155c338:
-        t1 = Thread::create(masterNode, macThreadStack, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+        Thread::create(masterNode, macThreadStack, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
         break;
     case 0x243537005155c356:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(1), Thread::JOINABLE);
+        Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(1), Thread::JOINABLE);
         break;
     case 0x243537005155c346:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(2), Thread::JOINABLE);
+        Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(2), Thread::JOINABLE);
         break;
     case 0x243537025155c346:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
+        Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(3), Thread::JOINABLE);
         break;
     case 0x243537035155c356:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(4), Thread::JOINABLE);
+        Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(4), Thread::JOINABLE);
         break;
     case 0x243537035155bdca:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(5), Thread::JOINABLE);
+        Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(5), Thread::JOINABLE);
         break;
     case 0x243537015155bdab:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(6), Thread::JOINABLE);
+        Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(6), Thread::JOINABLE);
         break;
     case 0x243537015155c9bf:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(7), Thread::JOINABLE);
+        Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(7), Thread::JOINABLE);
         break;
     case 0x2435370352c6aa9a:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(8), Thread::JOINABLE);
+        Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(8), Thread::JOINABLE);
         break;
     case 0x243537015155bdba:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(9), Thread::JOINABLE);
+        Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(9), Thread::JOINABLE);
         break;
-    case 0x243537025155bdba:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(10), Thread::JOINABLE);
+    case 0x243537025155bdba:        
+        Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(10), Thread::JOINABLE);
         break;
     case 0x243537025155bdca:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(11), Thread::JOINABLE);
+        Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(11), Thread::JOINABLE);
         break;
     case 0x243537005155bdba:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(12), Thread::JOINABLE);
+        Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(12), Thread::JOINABLE);
         break;
     case 0x243537035155bdba:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(13), Thread::JOINABLE);
+        Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(13), Thread::JOINABLE);
         break;
     case 0x243537005155bdab:
-        t1 = Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(14), Thread::JOINABLE);
+        Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(14), Thread::JOINABLE);
         break;
     default:     
         printf("ERROR: nodeID is not mapped to any node, halting!\n");
@@ -592,11 +747,11 @@ int main()
     // You don't need to change the server parameters, but just the
     // ones of the client
     StreamParameters serverParams(Redundancy::TRIPLE_SPATIAL,
-                                  Period::P10,
+                                  Period::P1,
                                   1,     // payload size
                                   Direction::TX);
     StreamParameters clientParams(Redundancy::TRIPLE_SPATIAL,
-                                  Period::P1,
+                                  Period::P10,
                                   1,     // payload size
                                   Direction::TX);
     unsigned char port = 1;
@@ -604,7 +759,9 @@ int main()
     switch(netID) {
     case 0:
         // Master node code
-        Thread::create(statThread, 2048, MAIN_PRIORITY);
+        if (ENABLE_STACK_STATS_DBG) {
+            Thread::create(statThread, 2048, MAIN_PRIORITY);
+        }
         for(;;) openServer(port, serverParams);
         break;
     case 1:
