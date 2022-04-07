@@ -25,7 +25,7 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "stream_wait_scheduler.h"
+#include "stream_wakeup_scheduler.h"
 #include "../downlink_phase/timesync/networktime.h"
 #include "../mac_context.h"
 
@@ -33,11 +33,11 @@ using namespace miosix;
 
 namespace mxnet {
 
-StreamWaitScheduler::StreamWaitScheduler(const MACContext& ctx_, const NetworkConfiguration& netConfig_, StreamManager& streamMgr_): 
+StreamWakeupScheduler::StreamWakeupScheduler(const MACContext& ctx_, const NetworkConfiguration& netConfig_, StreamManager& streamMgr_): 
                                             superframeSize(netConfig_.getControlSuperframeStructure().size()), ctx(ctx_), 
                                             netConfig(netConfig_), streamMgr(streamMgr_) {}
 
-void StreamWaitScheduler::setStreamsWakeupLists(const std::vector<StreamWakeupInfo>& currList,
+void StreamWakeupScheduler::setStreamsWakeupLists(const std::vector<StreamWakeupInfo>& currList,
                                                     const std::vector<StreamWakeupInfo>& nextList) {
     std::unique_lock<std::mutex> lck(mutex);
 
@@ -48,34 +48,30 @@ void StreamWaitScheduler::setStreamsWakeupLists(const std::vector<StreamWakeupIn
 
     // If the received stream had to be activated in the past
     // (e.g. cause a retransmission was needed), align wakeup
-    // times to the next control superframe start time, in order
-    // to always guarantee an entire tile between the receiving of
-    // the schedule and its first wakeup time.
+    // times to the next schedule repetition (data superframe).
     // The increment depends on the amount of tiles between the given
     // activation tile and the first tile in the next control superframe
     auto currTile = ctx.getCurrentTileAndSlot(NetworkTime::now()).first;
     if (currTile >= newScheduleData.activationTile) {
-        auto tilesInSuperframe = netConfig.getControlSuperframeStructure().size();
-        // nextSuperframeTile =       nextSuperframeIndex            * tilesInSuperframe
-        //                    = (    currentSuperframeIndex     + 1) * tilesInSuperframe
-        //                    = ((currTile / tilesInSuperframe) + 1) * tilesInSuperframe
-        auto nextSuperframeTile = ((currTile / tilesInSuperframe) + 1) * tilesInSuperframe;
-        auto activationTimeIncrement = (nextSuperframeTile - newScheduleData.activationTile) * netConfig.getTileDuration();
+        auto elapsedTiles = currTile - newScheduleData.activationTile;
+        auto elapsedSchedules = elapsedTiles / newScheduleData.scheduleTiles;
+        auto activationTimeIncrement = (elapsedSchedules + 1) * newScheduleData.scheduleDuration;
         newScheduleData.applyTimeIncrement(activationTimeIncrement);
     }
 
     newScheduleAvailable = true;
     if(ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG) {
-        print_dbg("[S] N=%d, Set new stream wakeup lists, NT=%llu\n", 
+        print_dbg("[S] N=%d, Set new stream wakeup lists, NT=%llu\n",
                         ctx.getNetworkId(), NetworkTime::now().get());
     }
 }  
 
-void StreamWaitScheduler::setScheduleHeader(const ScheduleHeader& header) {
+void StreamWakeupScheduler::setScheduleHeader(const ScheduleHeader& header) {
     std::unique_lock<std::mutex> lck(mutex);
 
     newScheduleData.activationTile   = header.getActivationTile();
     newScheduleData.activationTime   = header.getActivationTile() * netConfig.getTileDuration();
+    newScheduleData.scheduleTiles    = header.getScheduleTiles();
     newScheduleData.scheduleDuration = header.getScheduleTiles() * netConfig.getTileDuration();
 
     // convert activation time from network time to local time
@@ -88,16 +84,16 @@ void StreamWaitScheduler::setScheduleHeader(const ScheduleHeader& header) {
     }
 }
 
-void StreamWaitScheduler::start() {
+void StreamWakeupScheduler::start() {
     if (swthread == nullptr) {
 #ifdef _MIOSIX
-        swthread = miosix::Thread::create(&StreamWaitScheduler::threadLauncher, 
-                                            THREAD_STACK, miosix::MAIN_PRIORITY, this);
+        swthread = miosix::Thread::create(&StreamWakeupScheduler::threadLauncher,
+                                            THREAD_STACK, miosix::MAIN_PRIORITY+1, this);
         if (ENABLE_STACK_STATS_DBG) {
-            printStackRange("StreamWaitScheduler");
+            printStackRange("StreamWakeupScheduler");
         }
 #else
-        swthread = threadsFactory.create(std::bind(&StreamWaitScheduler::run, this));
+        swthread = threadsFactory.create(std::bind(&StreamWakeupScheduler::run, this));
         swthread->start();
 
         if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG) {
@@ -112,7 +108,7 @@ void StreamWaitScheduler::start() {
     }
 }
 
-void StreamWaitScheduler::run() {
+void StreamWakeupScheduler::run() {
 
     while(true) {
         
@@ -124,7 +120,7 @@ void StreamWaitScheduler::run() {
         switch(state) {
             
             // Waiting to receive the first schedule
-            case StreamWaitSchedulerState::IDLE:
+            case StreamWakeupSchedulerState::IDLE:
             {
                 if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_VERB_DBG) {
                     printState(currentTile);
@@ -134,7 +130,7 @@ void StreamWaitScheduler::run() {
                 break;
             }
             // Schedule received but waiting for it to be activated
-            case StreamWaitSchedulerState::AWAITING_ACTIVATION:
+            case StreamWakeupSchedulerState::AWAITING_ACTIVATION:
             {
                 // NOTE: it is guaranteed that the thread always wakes up during the last tile before activation
                 //       only if there exist a stream with period 1 or at least one element exists in 
@@ -145,7 +141,7 @@ void StreamWaitScheduler::run() {
                 //       (i.e. at least once per control superframe).
 
                 // True if current superframe is the last one before the new schedule activation tile
-                isLastSuperframeBeforeScheduleActivation = (currentTile / superframeSize == (newScheduleData.activationTile - 1) / superframeSize);
+                isLastSuperframeBeforeScheduleActivation = (currentTile / superframeSize == (newScheduleData.activationTile / superframeSize) - 1);
 
                 if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_VERB_DBG) {
                     printState(currentTile);       
@@ -160,7 +156,7 @@ void StreamWaitScheduler::run() {
                     if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG) {
                         print_dbg("[S] N=%d, Activation tile reached, move to ACTIVE state\n", ctx.getNetworkId());
                     }
-                    state = StreamWaitSchedulerState::ACTIVE;
+                    state = StreamWakeupSchedulerState::ACTIVE;
                     newScheduleAvailable = false;
                     applyNewSchedule();
                 }
@@ -175,7 +171,7 @@ void StreamWaitScheduler::run() {
                 break;
             }
             // Schedule active, regime state
-            case StreamWaitSchedulerState::ACTIVE:
+            case StreamWakeupSchedulerState::ACTIVE:
             {
                 StreamWakeupInfo wakeupInfo = getNextWakeupInfo();
                 
@@ -190,7 +186,7 @@ void StreamWaitScheduler::run() {
     }
 }
 
-void StreamWaitScheduler::idle() {
+void StreamWakeupScheduler::idle() {
 
     // If new schedule available change state to AWAITING_ACTIVATION
     if (newScheduleAvailable) {
@@ -199,7 +195,7 @@ void StreamWaitScheduler::idle() {
         }
 
         newScheduleAvailable = false;
-        state = StreamWaitSchedulerState::AWAITING_ACTIVATION;
+        state = StreamWakeupSchedulerState::AWAITING_ACTIVATION;
         
         printStack();
         if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG) {
@@ -218,7 +214,7 @@ void StreamWaitScheduler::idle() {
     }
 }
 
-void StreamWaitScheduler::awaitingActivation(const StreamWakeupInfo& wakeupInfo) {
+void StreamWakeupScheduler::awaitingActivation(const StreamWakeupInfo& wakeupInfo) {
     
     auto when = wakeupInfo.wakeupTime;
 
@@ -228,7 +224,7 @@ void StreamWaitScheduler::awaitingActivation(const StreamWakeupInfo& wakeupInfo)
     // activation tile and  the algorithm will update the streams lists and move to
     // the ACTIVE state. Moreover if when > activation time, we don't have streams
     // in the next list or we already "consumed" and handled them for this tile.
-    if (when >= newScheduleData.activationTime && state == StreamWaitSchedulerState::AWAITING_ACTIVATION) {
+    if (when >= newScheduleData.activationTime && state == StreamWakeupSchedulerState::AWAITING_ACTIVATION) {
         if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_VERB_DBG) {
             print_dbg("[S] N=%d - when=%llu > next activation time=%llu, wait until next activation tile \n", 
                         ctx.getNetworkId(), NetworkTime::fromLocalTime(when).get(), newScheduleData.activationTime);
@@ -249,24 +245,7 @@ void StreamWaitScheduler::awaitingActivation(const StreamWakeupInfo& wakeupInfo)
                 }
                 // sleep until next stream's wakeup time and wakeup it
                 ctx.sleepUntil(when);
-
-                if (isLastSuperframeBeforeScheduleActivation) {
-                    if (lastUsedQueue == &newScheduleData.nextWakeupQueue) {
-                        StreamWakeupInfo updatedInfo = wakeupInfo;
-                        updatedInfo.wakeupTime = wakeupInfo.wakeupTime + scheduleData.scheduleDuration;
-                        if (scheduleData.nextWakeupQueue.contains(updatedInfo)) {
-                            // this makes the element of nextWakeupQueue surely greater
-                            // and it will not be used... otherwise we wakeup the stream two times
-                            scheduleData.nextWakeupQueue.updateElement();
-                        }
-                    }
-                    else {
-                        wakeupStream(wakeupInfo);
-                    }
-                }
-                else {
-                    wakeupStream(wakeupInfo);
-                }
+                wakeupStream(wakeupInfo);
                 break;
             case WakeupInfoType::WAKEUP_DOWNLINK:
                 // do nothing, we're still waiting for a schedule to be activated,
@@ -290,7 +269,7 @@ void StreamWaitScheduler::awaitingActivation(const StreamWakeupInfo& wakeupInfo)
     }
 }
 
-void StreamWaitScheduler::active(const StreamWakeupInfo& wakeupInfo) {
+void StreamWakeupScheduler::active(const StreamWakeupInfo& wakeupInfo) {
 
     if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_VERB_DBG) {
         printState(currentTile);
@@ -315,7 +294,7 @@ void StreamWaitScheduler::active(const StreamWakeupInfo& wakeupInfo) {
             break;
         case WakeupInfoType::WAKEUP_DOWNLINK:
             if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_VERB_DBG) {
-                print_dbg("[S] N=%d, Sleep until %llu (Downlink), NT=%llu\n", 
+                print_dbg("[S] N=%d, Sleep until %llu (Downlink), NT=%llu\n",
                                 ctx.getNetworkId(), NetworkTime::fromLocalTime(when).get(), 
                                 NetworkTime::now().get());
             }
@@ -328,7 +307,7 @@ void StreamWaitScheduler::active(const StreamWakeupInfo& wakeupInfo) {
                                     ctx.getNetworkId(), NetworkTime::now().get());
                 }
                 newScheduleAvailable = false;
-                state = StreamWaitSchedulerState::AWAITING_ACTIVATION;
+                state = StreamWakeupSchedulerState::AWAITING_ACTIVATION;
                 printStack();
             }
             break;
@@ -346,7 +325,7 @@ void StreamWaitScheduler::active(const StreamWakeupInfo& wakeupInfo) {
     }
 }
 
-void StreamWaitScheduler::applyNewSchedule() {
+void StreamWakeupScheduler::applyNewSchedule() {
     std::unique_lock<std::mutex> lck(mutex);
     scheduleData = newScheduleData;
 
@@ -358,22 +337,24 @@ void StreamWaitScheduler::applyNewSchedule() {
     }
 }
 
-StreamQueue* StreamWaitScheduler::getNextWakeupQueue() {
+StreamQueue* StreamWakeupScheduler::getNextWakeupQueue() {
 
     switch(state) {
-        case StreamWaitSchedulerState::AWAITING_ACTIVATION:
+        case StreamWakeupSchedulerState::AWAITING_ACTIVATION:
             if (isLastSuperframeBeforeScheduleActivation) {
                 // use the curr list and the next list
                 // relative to the newly received schedule
-                return StreamQueue::compare(scheduleData.currWakeupQueue, newScheduleData.nextWakeupQueue);
+                StreamQueue* usedQueue = StreamQueue::compare(scheduleData.currWakeupQueue, newScheduleData.nextWakeupQueue);
+                return usedQueue;
             }
             else {
                 // use the curr list and the next list
                 // relative to the currently active schedule
-                return StreamQueue::compare(scheduleData.currWakeupQueue, scheduleData.nextWakeupQueue);
+                StreamQueue* usedQueue = StreamQueue::compare(scheduleData.currWakeupQueue, scheduleData.nextWakeupQueue);
+                return usedQueue;
             }
             break;
-        case StreamWaitSchedulerState::ACTIVE:
+        case StreamWakeupSchedulerState::ACTIVE:
             // compare both the curr and next lists and 
             // take the element with minimum wakeup time
             return StreamQueue::compare(scheduleData.currWakeupQueue, scheduleData.nextWakeupQueue);
@@ -386,7 +367,7 @@ StreamQueue* StreamWaitScheduler::getNextWakeupQueue() {
     return StreamQueue::compare(scheduleData.currWakeupQueue, scheduleData.nextWakeupQueue);
 }
 
-StreamWakeupInfo StreamWaitScheduler::getNextWakeupInfo() {
+StreamWakeupInfo StreamWakeupScheduler::getNextWakeupInfo() {
     std::unique_lock<std::mutex> lck(mutex);
     // get queue from which getting next element
     lastUsedQueue = getNextWakeupQueue();
@@ -395,12 +376,12 @@ StreamWakeupInfo StreamWaitScheduler::getNextWakeupInfo() {
     return sinfo;
 }
 
-void StreamWaitScheduler::updateLastUsedQueue() {
+void StreamWakeupScheduler::updateLastUsedQueue() {
     std::unique_lock<std::mutex> lck(mutex);
     lastUsedQueue->updateElement();
 }
 
-void StreamWaitScheduler::wakeupStream(const StreamWakeupInfo& sinfo) {
+void StreamWakeupScheduler::wakeupStream(const StreamWakeupInfo& sinfo) {
     if (sinfo.id.getKey() != 0) {
         bool res = streamMgr.wakeup(sinfo.id);
         if (ENABLE_STREAM_WAKEUP_SCHEDULER_INFO_DBG) {
@@ -411,16 +392,16 @@ void StreamWaitScheduler::wakeupStream(const StreamWakeupInfo& sinfo) {
     }
 }
 
-void StreamWaitScheduler::printState(unsigned int tile) const {
+void StreamWakeupScheduler::printState(unsigned int tile) const {
 #ifndef _MIOSIX
     switch(state) {
-        case StreamWaitSchedulerState::IDLE:
-            print_dbg("[S] N=%d - State = IDLE - Tile = %u\n", ctx.getNetworkId(), tile);
+        case StreamWakeupSchedulerState::IDLE:
+            //print_dbg("[S] N=%d - State = IDLE - Tile = %u\n", ctx.getNetworkId(), tile);
             break;
-        case StreamWaitSchedulerState::AWAITING_ACTIVATION:
+        case StreamWakeupSchedulerState::AWAITING_ACTIVATION:
             print_dbg("[S] N=%d - State = AWAITING_ACTIVATION - Tile = %u\n", ctx.getNetworkId(), tile);
             break;
-        case StreamWaitSchedulerState::ACTIVE:
+        case StreamWakeupSchedulerState::ACTIVE:
             print_dbg("[S] N=%d - State = ACTIVE - Tile = %u\n", ctx.getNetworkId(), tile);
             break;
         default:
@@ -429,7 +410,7 @@ void StreamWaitScheduler::printState(unsigned int tile) const {
 #endif
 }
 
-void StreamWaitScheduler::printQueues(const ScheduleWakeupData& sData) {
+void StreamWakeupScheduler::printQueues(const ScheduleWakeupData& sData) {
 #ifndef _MIOSIX
     //std::unique_lock<std::mutex> lck(mutex);
     print_dbg("\n[S] N=%d - Wakeup lists\n", ctx.getNetworkId());
@@ -438,12 +419,12 @@ void StreamWaitScheduler::printQueues(const ScheduleWakeupData& sData) {
 #endif
 }
 
-void StreamWaitScheduler::printStack() const {
+void StreamWakeupScheduler::printStack() const {
 #ifdef _MIOSIX
     if (ENABLE_STACK_STATS_DBG) {
         unsigned int stackSize = miosix::MemoryProfiling::getStackSize();
         unsigned int absFreeStack = miosix::MemoryProfiling::getAbsoluteFreeStack();
-        print_dbg("[H] StreamWaitScheduler stack %d/%d\n", stackSize - absFreeStack, stackSize);
+        print_dbg("[H] StreamWakeupScheduler stack %d/%d\n", stackSize - absFreeStack, stackSize);
     }
 #endif
 }

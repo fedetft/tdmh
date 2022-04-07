@@ -86,7 +86,7 @@ int Stream::write(const void* data, int size) {
     std::unique_lock<std::mutex> lck(tx_mutex);
 #endif
     // If we were called twice in a period, wait for the end of the period
-    if (wakeupAdvance == 0) { // only for streams not managed by the StreamWaitScheduler
+    if (wakeupAdvance == 0) { // only for streams not managed by the StreamWakeupScheduler
         while((waiting || nextTxPacketReady) && info.getStatus() == StreamStatus::ESTABLISHED) {
             tx_cv.wait(lck);
         }
@@ -566,7 +566,7 @@ void Stream::wakeWriteRead() {
     }
 }
 
- void Stream::wakeCallbacks() {
+void Stream::wakeCallbacks() {
     // call both callbacks, if specified, in order to signal to the
     // application the new stream status (application may be stuck waiting
     // on some condition variable or simply a feedback is needed)

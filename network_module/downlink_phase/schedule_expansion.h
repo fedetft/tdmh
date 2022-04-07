@@ -30,7 +30,7 @@
 
 #include "../mac_context.h"
 #include "../scheduler/schedule_element.h"
-#include "../stream/stream_wait_data.h"
+#include "../stream/stream_wakeup_data.h"
 #include <vector>
 
 namespace mxnet {
@@ -179,7 +179,7 @@ private:
 
     // Keep track of which streams have already been added to streams wakeup lists
     // (since only unique streams have to be added, without considering their redundancy)
-    std::set<StreamId> uniqueStreams;
+    std::set<unsigned int> uniqueStreams;
 
     /* Structure used to keep count of redundancy groups of streams that this
      * node is scheduled to forward to others. This info will be moved to 
@@ -191,17 +191,13 @@ private:
      * the dataphase */
     std::map<StreamId, std::pair<unsigned char, unsigned char>> forwardedStreamCtr;
 
-    // Streams wakeup lists, needed by the StreamWaitScheduler
+    // Streams wakeup lists, needed by the StreamWakeupScheduler
     std::vector<StreamWakeupInfo> currList;
     std::vector<StreamWakeupInfo> nextList;
 
     const MACContext& ctx;
     const NetworkConfiguration& netConfig;
     StreamManager* const streamMgr;
-
-    //
-    // TODO measure these
-    //
 
     // Maximum number of elements in the inmplicit schedule
     // that can be expanded during a downlink slot
@@ -210,17 +206,6 @@ private:
     // and insert it into the explicit one, in nanoseconds
     // Set to worst case, i.e. action is SENDSTREAM / SENDBUFFER
     const unsigned long long singleExpansionTime = 32000 + 1000; // 32 us + slack (1 us)
-
-    // addDownlinkTimesToWakeupList() with one downlink = 5.87 us
-    // single downlink slot add to list = 2 us 
-    // ===> 5.87 - 2 ~= 3.9 us
-    const unsigned long long addDownlinkPreparationTime  = 3900;
-    const unsigned long long addDownlinkSingleTime = 2000 + 1000; // 2 us + slack (1 us)
-
-    // total time for schedule with 1 stream and redundancy 3 = 32.625 us
-    // (including creating the needed objects, e.g. the set where seen streams are added)
-    // time for checking if stream exists to the "set" and adding it to the "set" = 20.6 us ~= 21 us
-    const unsigned long long countStreamsSingleTime = 21000 + 1000; // 21 us + slack (1 us)
 
     std::mutex expansionMutex;
 };

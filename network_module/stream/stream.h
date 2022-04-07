@@ -248,7 +248,7 @@ public:
     // Called by the application in order to wait for the next stream sending slot
     void wait() override;
 
-    // Called by the StreamWaitScheduler in order to wakeup the stream from waiting
+    // Called by the StreamWakeupScheduler in order to wakeup the stream from waiting
     void wakeup() override;
 
     // Sets the advance time for waking up slightly before the stream's sending slot

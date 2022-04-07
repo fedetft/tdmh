@@ -25,7 +25,7 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "stream_wait_data.h"
+#include "stream_wakeup_data.h"
 #include "../downlink_phase/timesync/networktime.h"
 
 namespace mxnet {
@@ -62,18 +62,7 @@ bool StreamWakeupInfo::operator<(const StreamWakeupInfo& other) const {
         if (wakeupTime == other.wakeupTime) {
             return true;
         }
-        // else {
-        //     return false;
-        // }
     }
-    // else if (type == WakeupInfoType::WAKEUP_DOWNLINK && other.type == WakeupInfoType::WAKEUP_STREAM) {
-    //     if (wakeupTime == other.wakeupTime) {
-    //         return false;
-    //     }
-    //     else {
-    //         return true;
-    //     }
-    // }
 
     return false;
 }

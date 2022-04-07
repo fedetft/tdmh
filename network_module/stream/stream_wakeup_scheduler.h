@@ -29,7 +29,7 @@
 
 #include "stream.h"
 #include "../scheduler/schedule_element.h"
-#include "stream_wait_data.h"
+#include "stream_wakeup_data.h"
 #include "stream_queue.h"
 #include "../downlink_phase/timesync/networktime.h"
 
@@ -53,6 +53,7 @@ struct ScheduleWakeupData {
     unsigned int activationTile         = 0;
     unsigned long long activationTime   = 0;
     unsigned long long scheduleDuration = 0;
+    unsigned int scheduleTiles          = 0;
     // streams that have to send during the current superframe
     StreamQueue currWakeupQueue;
     // streams that have to send during next tile but need to be
@@ -83,11 +84,12 @@ struct ScheduleWakeupData {
      * @param other the object from which members have to be copied
      */
     void operator=(const ScheduleWakeupData& other) {
-        activationTile = other.activationTile;
-        activationTime = other.activationTime;
+        activationTile   = other.activationTile;
+        activationTime   = other.activationTime;
         scheduleDuration = other.scheduleDuration;
-        currWakeupQueue = other.currWakeupQueue;
-        nextWakeupQueue = other.nextWakeupQueue;
+        scheduleTiles    = other.scheduleTiles;
+        currWakeupQueue  = other.currWakeupQueue;
+        nextWakeupQueue  = other.nextWakeupQueue;
     }
 };
 
@@ -96,11 +98,11 @@ struct ScheduleWakeupData {
  * has to be woken up, according the required advance.
  * The execution runs in a separate thread (active object).
  */
-class StreamWaitScheduler {
+class StreamWakeupScheduler {
 
 public:
 
-    StreamWaitScheduler(const MACContext& ctx_, const NetworkConfiguration& netConfig_, StreamManager& streamMgr_);
+    StreamWakeupScheduler(const MACContext& ctx_, const NetworkConfiguration& netConfig_, StreamManager& streamMgr_);
 
     /**
      * Set the data structures needed for the algorithm to work, i.e. two StreamQueues
@@ -179,7 +181,7 @@ private:
      * Starts the active object's thread.
      */
     static void threadLauncher(void *arg) {
-        reinterpret_cast<StreamWaitScheduler*>(arg)->run();
+        reinterpret_cast<StreamWakeupScheduler*>(arg)->run();
     }
 
     /**
@@ -194,21 +196,21 @@ private:
     void printQueues(const ScheduleWakeupData& sData);
 
     /**
-     * Print the StreamWaitScheduler thread stack usage and size.
+     * Print the StreamWakeupScheduler thread stack usage and size.
      */
     void printStack() const;
 
     /**
-     * StreamWaitScheduler state machine states.
+     * StreamWakeupScheduler state machine states.
      */
-    enum class StreamWaitSchedulerState : unsigned char {
+    enum class StreamWakeupSchedulerState : unsigned char {
         IDLE,                   // Waiting to receive the first schedule
         AWAITING_ACTIVATION,    // Schedule received but waiting for it to be activated
         ACTIVE                  // Schedule active
     };
 
     // State machine current state
-    StreamWaitSchedulerState state = StreamWaitSchedulerState::IDLE;
+    StreamWakeupSchedulerState state = StreamWakeupSchedulerState::IDLE;
 
     unsigned int currentTile             = 0; // Current tile index
     unsigned long long currTileStartTime = 0; // Time at which current tile started
@@ -233,7 +235,7 @@ private:
     // Active object's thread
 #ifdef _MIOSIX
     miosix::Thread* swthread = nullptr;
-    unsigned int const THREAD_STACK = 4*1024;
+    unsigned int const THREAD_STACK = 4096;
 #else
     OmnetMultithreading threadsFactory;
     OmnetThread* swthread = nullptr;

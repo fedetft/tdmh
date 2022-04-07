@@ -177,7 +177,7 @@ int StreamManager::connect(unsigned char dst, unsigned char dstPort, StreamParam
     }
     else {
         if (ENABLE_STREAM_MGR_INFO_DBG) 
-            print_dbg("[S] N=%d, Stream %d wakeup time is null, not handled by StreamWaitScheduler\n", 
+            print_dbg("[S] N=%d, Stream %d wakeup time is null, not handled by StreamWakeupScheduler\n", 
                                                     ctx.getNetworkId(), stream->getStreamId().getKey());
     }
 
@@ -538,12 +538,12 @@ void StreamManager::setSchedule(const std::vector<ScheduleElement>& schedule, co
     }
 #endif
 
-    waitScheduler.setScheduleHeader(header);
+    wakeupScheduler.setScheduleHeader(header);
 }
 
 void StreamManager::setStreamsWakeupLists(const std::vector<StreamWakeupInfo>& currList,
                                             const std::vector<StreamWakeupInfo>& nextList) {
-    waitScheduler.setStreamsWakeupLists(currList, nextList);
+    wakeupScheduler.setStreamsWakeupLists(currList, nextList);
 }
 
 void StreamManager::applySchedule(const std::vector<ScheduleElement>& schedule) {

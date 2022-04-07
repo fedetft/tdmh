@@ -256,7 +256,7 @@ bool DynamicScheduleDownlinkPhase::handleActivationAndRekeying(long long slotSta
 
                         scheduleExpander.continueExpansion(schedule);
                         if (!scheduleExpander.needToContinueExpansion()) {
-                            print_dbg("N=%d, Expansion done at NT=%llu\n", ctx.getNetworkId(), NetworkTime::now().get());
+                            //print_dbg("N=%d, Expansion done at NT=%llu\n", ctx.getNetworkId(), NetworkTime::now().get());
                             needToPerformExpansion = false; // expansion complete
                             status = ScheduleDownlinkStatus::AWAITING_ACTIVATION;
                         }

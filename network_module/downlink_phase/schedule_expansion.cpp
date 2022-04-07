@@ -45,7 +45,7 @@ void ScheduleExpander::startExpansion(const std::vector<ScheduleElement>& schedu
 
     if (expansionInProgress) {
         //if(ENABLE_SCHEDULE_DIST_DBG) {
-            print_dbg("[SD] N=%d BUG: call to startExpansion while schedule expansion is already in progress\n", nodeID);
+        //    print_dbg("[SD] N=%d BUG: call to startExpansion while schedule expansion is already in progress\n", nodeID);
         //}
         return;
     }
@@ -68,7 +68,7 @@ void ScheduleExpander::startExpansion(const std::vector<ScheduleElement>& schedu
 
     forwardedStreamCtr = std::map<StreamId, std::pair<unsigned char, unsigned char>>();
     buffers            = std::map<unsigned int, std::shared_ptr<Packet>>();
-    uniqueStreams      = std::set<StreamId>();
+    uniqueStreams      = std::set<unsigned int>();
 
     // Count unique streams in schedule and
     // preallocate space in streams wakeup lists
@@ -101,7 +101,6 @@ void ScheduleExpander::continueExpansion(const std::vector<ScheduleElement>& sch
     std::unique_lock<std::mutex> lck(expansionMutex);
 
     if (!expansionInProgress) {
-        print_dbg("[SD] N=%d BUG: call to continueExpansion without starting schedule expansion first\n", nodeID);
         return;
     }
     
@@ -232,44 +231,52 @@ void ScheduleExpander::expandSchedule(const std::vector<ScheduleElement>& schedu
         // Apply action if different than SLEEP (to avoid overwriting already scheduled slots)
         if(action != Action::SLEEP)
         {
-            // indicate if stream already added to wakeup lists
+            // For those streams of the current node that have to send something,
+            // their info will be added to a table, which will be later used by the StreamWakeupScheduler
             bool streamNotYetInserted = false;
-            // only consider the first of the redundant apparisons of stream
-            if (uniqueStreams.find(e.getStreamId()) == uniqueStreams.end()) {
-                streamNotYetInserted = true;
-            }
-
-            for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) {
-                explicitSchedule[slot] = ExplicitScheduleElement(action, e.getStreamInfo());
-                if(buffer) explicitSchedule[slot].setBuffer(buffer);
-
-                // for those streams of the current node that have to send something,
-                // add their info to a table, which will be later used by the StreamWaitScheduler
-                if (action == Action::SENDSTREAM) {
-                    // only use first apparison of stream in schedule as an offset,
-                    // used to later compute the wakeup time of each stream
-                    if (streamNotYetInserted) {
-                        // not guaranteed that the first stream occurrence has
-                        // the minimum slot among all the other occurrences, 
-                        // find the minimum one
-                        unsigned int minSlot = slot;
-                        for(unsigned int j = 0; j < schedule.size(); j++) {
-                            if(schedule[j].getSrc() == nodeID && schedule[j].getTx() == nodeID) { // action == Action::SENDSTREAM
-                                auto off = schedule[j].getOffset();
-                                if (off < slot) {
-                                    minSlot = off;
-                                }
+            unsigned int streamMinOffset = scheduleSlots;
+            if (action == Action::SENDSTREAM) {
+                // if stream found for first time
+                // (only consider the first of the redundant apparisons of stream)
+                if (uniqueStreams.find(e.getKey()) == uniqueStreams.end()) {
+                    streamNotYetInserted = true;
+                    // not guaranteed that the first stream occurrence has
+                    // the minimum offset among all the other occurrences, 
+                    // so find the minimum one
+                    for(unsigned int i = 0; i < schedule.size(); i++) {
+                        // if action == Action::SENDSTREAM
+                        if(schedule[i].getSrc() == nodeID && schedule[i].getTx() == nodeID) {
+                            auto off = schedule[i].getOffset();
+                            if (off < streamMinOffset) {
+                                streamMinOffset = off;
                             }
-                        }
-
-                        auto wakeupAdvance = streamMgr->getWakeupAdvance(e.getStreamId());
-                        if (wakeupAdvance > 0) { // otherwise no need to wakeup it when requested
-                            uniqueStreams.insert(e.getStreamId());
-                            // create and add StreamWakeupInfo to stream wakeup list
-                            addStream(e, minSlot, wakeupAdvance, activationTile);
                         }
                     }
                 }
+            }
+
+            int periodicRepetitions = 0; // iterations counter
+            for(auto slot = e.getOffset(); slot < scheduleSlots; slot += periodSlots) {
+                explicitSchedule[slot] = ExplicitScheduleElement(action, e.getStreamInfo());
+                if(buffer) 
+                    explicitSchedule[slot].setBuffer(buffer);
+
+                if (action == Action::SENDSTREAM) {
+                    // only use first appearance of stream in schedule as an offset,
+                    // add the periodic occurrencies of the same stream too
+                    if (streamNotYetInserted) {
+                        auto wakeupAdvance = streamMgr->getWakeupAdvance(e.getStreamId());
+                        if (wakeupAdvance > 0) { // otherwise no need to wakeup it when requested
+                            uniqueStreams.insert(e.getKey());
+                            // Create and add StreamWakeupInfo to stream wakeup list
+                            // Add all the appearances of the stream
+                            auto offset = streamMinOffset + periodicRepetitions * periodSlots;
+                            addStream(e, offset, wakeupAdvance, activationTile);
+                        }
+                    }
+                }
+
+                periodicRepetitions++;
             }
         }
 

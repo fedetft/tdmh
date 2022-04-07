@@ -32,7 +32,7 @@
 // For StreamId
 #include "stream_management_element.h"
 #include "stream.h"
-#include "stream_wait_scheduler.h"
+#include "stream_wakeup_scheduler.h"
 #include "../scheduler/schedule_element.h"
 #include "../util/updatable_queue.h"
 // For cryptography
@@ -75,7 +75,7 @@ namespace mxnet {
 class StreamManager {
 public:
     StreamManager(const MACContext& ctx, const NetworkConfiguration& config, unsigned char myId) 
-                        : ctx(ctx), config(config), myId(myId), waitScheduler(ctx, config, *this) {
+                        : ctx(ctx), config(config), myId(myId), wakeupScheduler(ctx, config, *this) {
         // Initialize clientPorts to false (all ports unused)
         clientPorts.reserve(maxPorts);
         for (unsigned int i = 0; i < maxPorts; ++i) {
@@ -85,7 +85,7 @@ public:
         if(myId != 0 && config.getDoMasterChallengeAuthentication()) masterTrusted = false;
 #endif
 
-        waitScheduler.start();
+        wakeupScheduler.start();
     }
 
     ~StreamManager() {
@@ -187,7 +187,7 @@ public:
     void setSchedule(const std::vector<ScheduleElement>& schedule, const ScheduleHeader& header);
 
     /**
-     * Used by ScheduleDistribution to pass to the StreamWaitScheduler
+     * Used by ScheduleDistribution to pass to the StreamWakeupScheduler
      * the data structures associated to the newly received schedule.
      */
     void setStreamsWakeupLists(const std::vector<StreamWakeupInfo>& currList, 
@@ -467,7 +467,7 @@ private:
      * The active object that is in charge of waking up
      * streams in the required time slot.
      */
-    StreamWaitScheduler waitScheduler;
+    StreamWakeupScheduler wakeupScheduler;
 };
 
 } /* namespace mxnet */

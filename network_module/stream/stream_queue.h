@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include "stream_wait_data.h"
+#include "stream_wakeup_data.h"
 
 #include <vector>
 #include <mutex>

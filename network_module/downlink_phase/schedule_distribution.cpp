@@ -31,7 +31,7 @@
 #include "../data_phase/dataphase.h"
 #include "../tdmh.h"
 
-#include "../stream/stream_wait_data.h"
+#include "../stream/stream_wakeup_data.h"
 
 using namespace miosix;
 
