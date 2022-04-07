@@ -9,7 +9,7 @@ More in detail, it relies on symbolic links and bash scripts.
 ### Setup Tools
 Two main tools are needed:
 - The [wandstem-flash-utility](https://github.com/legobrick/wandstem-flash-utility) for flashing a binary file to the WandStem nodes. `cmake` is needed to compile this tool.
-- The [tdmh-visualizer](https://github.com/Gdvhev/tdmh_visualizer) which enriches the debugging experience by showing the network topology in real-time. To compile it, `qt5` and `qmake` are needed.
+- The [tdmh-visualizer](https://github.com/luca-conterio/tdmh_visualizer) which enriches the debugging experience by showing the network topology in real-time. To compile it, `qt5` and `qmake` are needed.
 
 Make sure to have the required dependencies installed and then use the provided `scripts/install_tools.sh` script to correctly setup them.
 
