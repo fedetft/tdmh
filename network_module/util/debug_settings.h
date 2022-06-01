@@ -57,7 +57,7 @@ const bool ENABLE_ROUNDTRIP_ERROR_DBG = false;
 const bool ENABLE_UPLINK_DBG = true;
 
 //prints the uplink phase debug verbose info
-const bool ENABLE_UPLINK_VERB_DBG = true;
+const bool ENABLE_UPLINK_VERB_DBG = false;
 
 //print every bitmask received by the master
 const bool ENABLE_TOPOLOGY_BITMASK_DBG = true;
@@ -78,7 +78,7 @@ const bool ENABLE_UPLINK_DYN_VERB_DBG = true;
 const bool ENABLE_TOPOLOGY_DYN_INFO_DBG = false;
 
 //prints the slot number, if packets received and RSSI
-const bool ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY = true;
+const bool ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY = false;
 
 //prints summary information on scheduling in the master node
 const bool SCHEDULER_SUMMARY_DBG = true;

@@ -76,7 +76,7 @@ public:
      * Called after uplink messages are received from other nodes
      * Master node always trasmits delay = 0
      */
-    void sendDelayCompensationLedBar(long long slotStart);
+    void sendDelayCompensationLedBar(long long sendTime);
 #endif
     
 private:

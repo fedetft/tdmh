@@ -84,12 +84,12 @@ public:
     /**
      * Called after uplink messages are received from other nodes
      */
-    void sendDelayCompensationLedBar(long long slotStart);
+    void sendDelayCompensationLedBar(long long sendTime);
 
     /**
      * Called after uplink messages are send in the uplink phase reserved to this node
      */
-    void rcvDelayCompensationLedBar(long long sentTimeout, long long expectedRcvTimeout);
+    void recvDelayCompensationLedBar(long long sentTimestamp, long long tExpected);
 
     /**
      * Getter for filtered compensation delay
@@ -101,7 +101,7 @@ public:
 private:
 
 #ifdef PROPAGATION_DELAY_COMPENSATION
-    DelayCompensationFilter     compFilter;
+    DelayCompensationFilter compFilter;
 #endif
 };
 

@@ -50,24 +50,23 @@ void DynamicUplinkPhase::execute(long long slotStart)
     
     if (currentNode == myId) 
     {
-      long long lastSentTimestamp = sendMyUplink(slotStart);
+        long long lastSentTimestamp = sendMyUplink(slotStart);
 
-    #ifdef PROPAGATION_DELAY_COMPENSATION
-      rcvDelayCompensationLedBar(lastSentTimestamp, lastSentTimestamp + packetArrivalAndProcessingTime + transmissionInterval);
-    #endif
+        #ifdef PROPAGATION_DELAY_COMPENSATION
+        recvDelayCompensationLedBar(lastSentTimestamp, lastSentTimestamp + packetArrivalAndProcessingTime + transmissionInterval);
+        #endif
     }
     else 
     {
-      auto rcvInfo = receiveUplink(slotStart, currentNode);
-      
-      //rcvInfo.first = sender hop
-      //rcvInfo.second = last received message timestamp
+        auto rcvInfo = receiveUplink(slotStart, currentNode);
+        //rcvInfo.first = sender hop
+        //rcvInfo.second = last received message timestamp
 
-    #ifdef PROPAGATION_DELAY_COMPENSATION
-      //only nodes with hop -1 send their ledbar
-      if(ctx.getHop() == rcvInfo.first-1)
-        sendDelayCompensationLedBar(rcvInfo.second + packetArrivalAndProcessingTime + transmissionInterval);
-    #endif
+        #ifdef PROPAGATION_DELAY_COMPENSATION
+        //only nodes with hop -1 send their ledbar
+        if(ctx.getHop() == rcvInfo.first-1)
+            sendDelayCompensationLedBar(rcvInfo.second + packetArrivalAndProcessingTime + transmissionInterval);
+        #endif
     }
 }
 
@@ -160,31 +159,27 @@ long long DynamicUplinkPhase::sendMyUplink(long long slotStart)
 }
 
 #ifdef PROPAGATION_DELAY_COMPENSATION
-void DynamicUplinkPhase::sendDelayCompensationLedBar(long long slotStart) //param int hop
+void DynamicUplinkPhase::sendDelayCompensationLedBar(long long sendTime) //param int hop
 {
-  //send led bar only if predecessor delay is knowkn
-  if(compFilter.hasValue())
-  {
-    DelayCompensationMessage message(compFilter.getFilteredValue());
+    //send led bar only if predecessor delay is knowkn
+    if(compFilter.hasValue())
+    {
+        DelayCompensationMessage message(compFilter.getFilteredValue());
 
-    //configure the transceiver with CRC check disabled
-    ctx.configureTransceiver(ctx.getTransceiverConfig(false));
-    message.send(ctx,slotStart);
-    ctx.transceiverIdle();
-
-    //enable CRC again, maybe not needed
-    //ctx.configureTransceiver(ctx.getTransceiverConfig());
-  }
+        //configure the transceiver with CRC check disabled
+        ctx.configureTransceiver(ctx.getTransceiverConfig(false));
+        message.send(ctx,sendTime);
+        ctx.transceiverIdle();
+    }
 }
 
-void DynamicUplinkPhase::rcvDelayCompensationLedBar(long long sentTimeout, long long expectedRcvTimeout)
+void DynamicUplinkPhase::recvDelayCompensationLedBar(long long sentTimstamp, long long tExpected)
 {
-    
     DelayCompensationMessage message;
 
     //configure the transceiver with CRC check disabled
     ctx.configureTransceiver(ctx.getTransceiverConfig(false));
-    message.rcv(ctx,expectedRcvTimeout);
+    message.recv(ctx,tExpected);
     ctx.transceiverIdle();
     //enable CRC again, maybe not needed
     //ctx.configureTransceiver(ctx.getTransceiverConfig());
@@ -194,23 +189,23 @@ void DynamicUplinkPhase::rcvDelayCompensationLedBar(long long sentTimeout, long 
     //if message received correctly
     if(rcvdLedBar >= 0)
     {
-      const int roundTripCalibration = -19; //ns
-      //delta = message.getTimestamp() - sentTimeout
-      //rebroadcastDelay = packetArrivalAndProcessingTime + transmissionInterval
-      //measuredmeasuredCompensationDelayDelay = (delta - rebroadcastdelay)/2
-      int measuredCompensationDelay = ((message.getTimestamp() - sentTimeout - packetArrivalAndProcessingTime - transmissionInterval) >> 1) + roundTripCalibration;
-      compFilter.addValue(rcvdLedBar + measuredCompensationDelay);
+        const int roundTripCalibration = -19; //ns
+        //delta = message.getTimestamp() - sentTimeout
+        //rebroadcastDelay = packetArrivalAndProcessingTime + transmissionInterval
+        //measuredmeasuredCompensationDelayDelay = (delta - rebroadcastdelay)/2
+        int measuredCompensationDelay = ((message.getTimestamp() - sentTimstamp - packetArrivalAndProcessingTime - transmissionInterval) >> 1) + roundTripCalibration;
+        compFilter.addValue(rcvdLedBar + measuredCompensationDelay);
 
-      int filterOutput = compFilter.getFilteredValue();
+        int filterOutput = compFilter.getFilteredValue();
 
-      if(ENABLE_PROPAGATION_DELAY_DBG)
-        print_dbg("[U] Propagation delay: %d, %d, %d\n", rcvdLedBar, measuredCompensationDelay, filterOutput);
+        if(ENABLE_PROPAGATION_DELAY_DBG)
+            print_dbg("[U] Propagation delay: %d, %d, %d\n", rcvdLedBar, measuredCompensationDelay, filterOutput);
     }
 }
 
 int DynamicUplinkPhase::getCompensationDelayFromMaster()
 {
-  return compFilter.getFilteredValue();
+    return compFilter.getFilteredValue();
 }
 #endif
 

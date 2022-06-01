@@ -72,16 +72,14 @@ public:
             duration += 342000 * numUplinkPackets + 272000;
         else
             duration += 197000 * numUplinkPackets + 179000;
-#endif	
-
-#ifdef	PROPAGATION_DELAY_COMPENSATION
-        //to do: compute new uplink phase duration
-        duration += (packetArrivalAndProcessingTime + transmissionInterval)*2;
 #endif
 
+#ifdef PROPAGATION_DELAY_COMPENSATION
+        //TODO: compute new uplink phase duration
+        duration += (packetArrivalAndProcessingTime + transmissionInterval)*2;
+#endif
         return duration;
     }
-
 
     /**
      * Align uplink phase to the network time when (re)synchronizing

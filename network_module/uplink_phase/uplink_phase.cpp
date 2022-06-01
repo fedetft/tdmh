@@ -99,6 +99,8 @@ std::pair<int, long long> UplinkPhase::receiveUplink(long long slotStart, unsign
 #endif
     
     std::pair<int, long long> ret;
+    ret.first = -1;
+    ret.second = -1;
 
     ctx.configureTransceiver(ctx.getTransceiverConfig());
     if(message.recv(ctx, slotStart))
@@ -115,6 +117,7 @@ std::pair<int, long long> UplinkPhase::receiveUplink(long long slotStart, unsign
             print_dbg("<-%d %ddBm\n",currentNode,message.getRssi());
     
         int rcvPackets = 1;
+        bool receivedSuccessfully=true; //To handle numPackets==1
 
         if(message.getAssignee() == myId)
         {
@@ -135,25 +138,23 @@ std::pair<int, long long> UplinkPhase::receiveUplink(long long slotStart, unsign
                     message.setIV(tileNumber, seqNo, masterIndex);
                 }
 #endif
-                if(message.recv(ctx, slotStart) == false) break;
+                receivedSuccessfully=message.recv(ctx, slotStart);
+                if(receivedSuccessfully == false) break;
                 message.deserializeTopologiesAndSMEs(topologyQueue, smeQueue);
             }
         }
 
-        ret.first = message.getHop();
-        //if(rcvPackets == numPackets)
-        ret.second = message.getTimestamp();
-        //else
-            //ret.second = slotStart + (packetArrivalAndProcessingTime + transmissionInterval)*(numPackets-rcvPackets);
+        if(receivedSuccessfully)
+        {
+            ret.first = message.getHop();
+            ret.second = message.getTimestamp();
+        }
         
     } else {
         myNeighborTable.missedMessage(currentNode);
         
         if(ENABLE_TOPOLOGY_DYN_SHORT_SUMMARY)
             print_dbg("  %d\n",currentNode);
-
-        ret.first = -1;
-        ret.second = -1;
     }
     ctx.transceiverIdle();
 
