@@ -179,7 +179,7 @@ void DynamicUplinkPhase::recvDelayCompensationLedBar(long long sentTimstamp, lon
 
     //configure the transceiver with CRC check disabled
     ctx.configureTransceiver(ctx.getTransceiverConfig(false));
-    message.recv(ctx,tExpected);
+    bool received = message.recv(ctx,tExpected);
     ctx.transceiverIdle();
     //enable CRC again, maybe not needed
     //ctx.configureTransceiver(ctx.getTransceiverConfig());
@@ -187,7 +187,7 @@ void DynamicUplinkPhase::recvDelayCompensationLedBar(long long sentTimstamp, lon
     int rcvdLedBar = message.getValue();
 
     //if message received correctly
-    if(rcvdLedBar >= 0)
+    if(received && rcvdLedBar >= 0)
     {
         const int roundTripCalibration = -19; //ns
         //delta = message.getTimestamp() - sentTimeout
