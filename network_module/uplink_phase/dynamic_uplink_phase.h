@@ -69,7 +69,12 @@ public:
     /**
      * Called after losing the Timesync synchronization
      */
-    void desync() override {}
+    void desync() override
+    {
+#ifdef PROPAGATION_DELAY_COMPENSATION
+        compFilter.reset();
+#endif
+    }
 
     /**
      * Called when it's our turn to transmit in the round-robin.

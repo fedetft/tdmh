@@ -8,6 +8,12 @@ class DelayCompensationFilter
 {
 public:
     DelayCompensationFilter() {}
+    
+    void reset()
+    {
+        filteredVal=0;
+        first = true;
+    }
 
     void addValue(int newVal)
     {

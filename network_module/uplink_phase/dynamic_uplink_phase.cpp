@@ -190,10 +190,14 @@ void DynamicUplinkPhase::recvDelayCompensationLedBar(long long sentTimstamp, lon
     if(received && rcvdLedBar >= 0)
     {
         const int roundTripCalibration = -19; //ns
+        const int minMeasurableValue = -20; // Allow some negative values to have zero mean if noise
+        const int maxMeasurableValue = 500; // ~150 meters, a 5mW transceiver will realistically do less
         //delta = message.getTimestamp() - sentTimeout
         //rebroadcastDelay = packetArrivalAndProcessingTime + transmissionInterval
         //measuredmeasuredCompensationDelayDelay = (delta - rebroadcastdelay)/2
         int measuredCompensationDelay = ((message.getTimestamp() - sentTimstamp - packetArrivalAndProcessingTime - transmissionInterval) >> 1) + roundTripCalibration;
+        
+        measuredCompensationDelay=max(minMeasurableValue,min(maxMeasurableValue,measuredCompensationDelay));
         compFilter.addValue(rcvdLedBar + measuredCompensationDelay);
 
         int filterOutput = compFilter.getFilteredValue();
