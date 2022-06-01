@@ -2141,6 +2141,7 @@ else ifeq ($(ARCH),cortexM3_efm32gg)
         $(BOARD_INC)/interfaces-impl/rtc.cpp                        \
         $(BOARD_INC)/interfaces-impl/hrtb.cpp                       \
         $(BOARD_INC)/interfaces-impl/gpio_timer.cpp                 \
+        $(BOARD_INC)/interfaces-impl/gpio_timer_corr.cpp            \
         $(BOARD_INC)/interfaces-impl/transceiver_timer.cpp          \
         $(BOARD_INC)/interfaces-impl/gpioirq.cpp                    \
         $(BOARD_INC)/interfaces-impl/transceiver.cpp                \

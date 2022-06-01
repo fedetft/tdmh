@@ -37,6 +37,7 @@
 #include "network_module/util/stackrange.h"
 #include "network_module/util/stats.h"
 #include "interfaces-impl/gpio_timer_corr.h"
+#include "interfaces-impl/power_manager.h"
 
 // For tests with a 50ms tile and 2ms slots
 // #define SMALL_DATA
@@ -671,6 +672,36 @@ void idle() {
     }
 }
 
+void periodicGPIOThread(void* param)
+{
+    //enable power to optical fiber transeiver
+    expansion::gpio16::mode(Mode::OUTPUT);
+    expansion::gpio16::high();
+    auto& timestamp=GPIOtimerCorr::instance();
+    //MACContext *ctx = tdmh->getMACContext();
+
+    /*while(!ctx->isReady())
+        Thread::sleep(1000);*/
+
+    for(;;)
+    {
+
+        auto period=NetworkTime::fromNetworkTime(1000000000);
+        auto now=NetworkTime::fromNetworkTime(((NetworkTime::now().get()/period.get())+2)*period.get());
+        printf("--- %lld %lld %lld\n",now.get(),now.toLocalTime(),period.get());
+        for(auto offset=NetworkTime::fromLocalTime(0).get(); offset == NetworkTime::fromLocalTime(0).get(); now += period) 
+        {
+            //ctx->sleepUntil(now.toLocalTime() - 100000000);
+            //expansion::gpio16::high();
+            timestamp.absoluteWaitTrigger(timestamp.ns2tick(now.toLocalTime()));
+            //ctx->sleepUntil(now.toLocalTime() + 100000000);
+            //expansion::gpio16::low();
+            printf("[TIMESTAMP] %lld %lld %lld\n",now.get(),now.toLocalTime(), NetworkTime::now().get());
+            // MemoryProfiling::print();
+        }
+    } 
+}
+
 int main()
 {
     if (ENABLE_STACK_STATS_DBG) {
@@ -682,9 +713,9 @@ int main()
     const int macThreadStack = 4096;
     /* Start TDMH thread mapping node unique ID to network ID */
     switch(nodeID) {
-    case 0x243537035155c338:
-        Thread::create(masterNode, macThreadStack, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
-        break;
+    //case 0x243537035155c338:
+      //  Thread::create(masterNode, macThreadStack, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+      //  break;
     case 0x243537005155c356:
         Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(1), Thread::JOINABLE);
         break;
@@ -722,7 +753,8 @@ int main()
         Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(12), Thread::JOINABLE);
         break;
     case 0x243537035155bdba:
-        Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(13), Thread::JOINABLE);
+        //Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(13), Thread::JOINABLE);
+    Thread::create(masterNode, macThreadStack, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
         break;
     case 0x243537005155bdab:
         Thread::create(dynamicNode, macThreadStack, PRIORITY_MAX-1, new Arg(14), Thread::JOINABLE);
@@ -730,6 +762,7 @@ int main()
     default:     
         printf("ERROR: nodeID is not mapped to any node, halting!\n");
     }
+
 
     /* Wait for tdmh pointer to become valid */
     for(;;)
@@ -741,6 +774,8 @@ int main()
 
     MACContext* ctx = tdmh->getMACContext();
     unsigned char netID = ctx->getNetworkId();
+
+    Thread::create(periodicGPIOThread, macThreadStack, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
     // NOTE: the server parameters represent the maximum values accepted
     // by the server, the actual stream parameters are negotiated with
     // the value required by the client.
@@ -837,19 +872,5 @@ int main()
     default:
         idle();
     }
-
-
-/*    auto& timestamp=GPIOtimerCorr::instance();
-    for(;;)
-    {
-        auto period=NetworkTime::fromNetworkTime(10000000000);
-        auto now=NetworkTime::fromNetworkTime(((NetworkTime::now().get()/period.get())+2)*period.get());
-        printf("--- %lld %lld %lld\n",now.get(),now.toLocalTime(),period.get());
-        for(auto offset=NetworkTime::fromLocalTime(0).get(); offset == NetworkTime::fromLocalTime(0).get(); now += period) {
-            timestamp.absoluteWaitTrigger(timestamp.ns2tick(now.toLocalTime()));
-            printf("[TIMESTAMP] %lld %lld\n",now.get(),now.toLocalTime());
-            // MemoryProfiling::print();
-        }
-    }
-*/  
+ 
 }

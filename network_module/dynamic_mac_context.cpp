@@ -42,6 +42,9 @@ DynamicMACContext::DynamicMACContext(const MediumAccessController& mac, miosix::
     timesync = new DynamicTimesyncDownlink(*this);
     data = new DataPhase(*this, *getStreamManager());
     uplink = new DynamicUplinkPhase(*this, getStreamManager());
+    #ifdef PROPAGATION_DELAY_COMPENSATION
+    	dynamic_cast<DynamicTimesyncDownlink*>(timesync)->setUplinkPhasePtr(dynamic_cast<DynamicUplinkPhase*>(uplink));
+    #endif
     scheduleDistribution = new DynamicScheduleDownlinkPhase(*this);
 };
 

@@ -158,7 +158,12 @@ void DynamicTimesyncDownlink::doPeriodicSync(long long correctedStart,
     if(newPacketCounter != packetCounter)
         print_dbg("[T] Received wrong packetCounter=%d (should be %d)", newPacketCounter, packetCounter);
 
-    error = rcvResult.timestamp - computedFrameStart;
+    error = rcvResult.timestamp - computedFrameStart; //aggiungere - delay compensazione dal master
+
+    #ifdef PROPAGATION_DELAY_COMPENSATION
+      error -= uplinkPhasePtr->getCompensationDelayFromMaster();
+    #endif
+
     std::pair<int,int> clockCorrectionReceiverWindow = synchronizer->computeCorrection(error);
     missedPackets = 0;
     clockCorrection = clockCorrectionReceiverWindow.first;
@@ -434,5 +439,12 @@ void DynamicTimesyncDownlink::desyncMAC() {
     ctx.getDataPhase()->desync();
     ctx.getStreamManager()->desync();
 }
+
+#ifdef PROPAGATION_DELAY_COMPENSATION
+void DynamicTimesyncDownlink::setUplinkPhasePtr(DynamicUplinkPhase *uplinkPhase)
+{
+    this->uplinkPhasePtr = uplinkPhase;
+}
+#endif
 
 }

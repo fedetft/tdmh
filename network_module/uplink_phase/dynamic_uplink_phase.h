@@ -90,7 +90,13 @@ public:
      * Called after uplink messages are send in the uplink phase reserved to this node
      */
     void rcvDelayCompensationLedBar(long long sentTimeout, long long expectedRcvTimeout);
+
+    /**
+     * Getter for filtered compensation delay
+     */
+    int getCompensationDelayFromMaster();
 #endif
+
 
 private:
 

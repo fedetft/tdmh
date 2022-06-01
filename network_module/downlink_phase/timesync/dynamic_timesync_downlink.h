@@ -34,6 +34,8 @@
 #include "interfaces-impl/transceiver.h"
 #include "kernel/timeconversion.h"
 #include "../../util/packet.h"
+#include "../../uplink_phase/dynamic_uplink_phase.h"
+#include "network_module/network_configuration.h"
 #include <limits>
 
 namespace mxnet {
@@ -60,6 +62,10 @@ public:
     inline void execute(long long slotStart) override;
     
     virtual long long getSlotframeStart() const override { return measuredFrameStart - (ctx.getHop() - 1) * rebroadcastInterval; }
+
+    #ifdef PROPAGATION_DELAY_COMPENSATION
+        void setUplinkPhasePtr(DynamicUplinkPhase *uplinkPhase);
+    #endif
 
     /**
      * Called by context to force desync
@@ -200,6 +206,10 @@ protected:
 
     int clockCorrection;
     unsigned char missedPackets;
+
+    #ifdef PROPAGATION_DELAY_COMPENSATION
+        DynamicUplinkPhase* uplinkPhasePtr;
+    #endif
 };
 }
 

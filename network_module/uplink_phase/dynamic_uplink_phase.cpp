@@ -191,7 +191,7 @@ void DynamicUplinkPhase::rcvDelayCompensationLedBar(long long sentTimeout, long 
 
     int rcvdLedBar = message.getValue();
 
-    //if message received correclty
+    //if message received correctly
     if(rcvdLedBar >= 0)
     {
       const int roundTripCalibration = -19; //ns
@@ -206,6 +206,11 @@ void DynamicUplinkPhase::rcvDelayCompensationLedBar(long long sentTimeout, long 
       if(ENABLE_PROPAGATION_DELAY_DBG)
         print_dbg("[U] Propagation delay: %d, %d, %d\n", rcvdLedBar, measuredCompensationDelay, filterOutput);
     }
+}
+
+int DynamicUplinkPhase::getCompensationDelayFromMaster()
+{
+  return compFilter.getFilteredValue();
 }
 #endif
 

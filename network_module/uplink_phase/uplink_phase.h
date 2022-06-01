@@ -82,6 +82,7 @@ public:
         return duration;
     }
 
+
     /**
      * Align uplink phase to the network time when (re)synchronizing
      */
