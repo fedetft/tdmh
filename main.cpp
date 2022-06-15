@@ -775,7 +775,7 @@ int main()
     MACContext* ctx = tdmh->getMACContext();
     unsigned char netID = ctx->getNetworkId();
 
-    Thread::create(periodicGPIOThread, macThreadStack, PRIORITY_MAX-1, nullptr, Thread::JOINABLE);
+    Thread::create(periodicGPIOThread, macThreadStack, MAIN_PRIORITY, nullptr, Thread::JOINABLE);
     // NOTE: the server parameters represent the maximum values accepted
     // by the server, the actual stream parameters are negotiated with
     // the value required by the client.
