@@ -1,6 +1,19 @@
 Install OMNeT++ version 5.3. Newer versions may work but have not been tested.
+To install OMNeT++, download it, extract the source code and compile with:
+. setenv
+CC=gcc CXX=g++ ./configure WITH_OSG=no WITH_OSGEARTH=no
+make -j4
 
-Run the OMNeT++ eclipse ide
+Run the OMNeT++ eclipse ide.
+To run the eclipse ide, open a shell in the tdmh directory and run the following commands
+cd <path to omnetpp-5.3 directory>
+. setenv
+cd -
+omnetpp
+
+If you get an error you may be using a too new version of java, install java 8
+sudo apt install openjdk-8-jre
+sudo update-alternatives --config java
 
 Select as workspace the "simulator" directory in this git repository ("file" > "switch workspace" if no popup appears)
 
@@ -22,8 +35,8 @@ Once eclipse builds the binaries, you can run then also from the command line
 (from the "simulator/WandstemMac" directory:
 
 # First, make sure the omnet setenv script is executed
-cd ../../../omnet++/omnetpp-5.3/
-. ./setenv
+cd <path to omnetpp-5.3 directory>
+. setenv
 cd -
 
 # Then compile and run 
