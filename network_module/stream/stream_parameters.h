@@ -28,6 +28,7 @@
 #pragma once
 
 #include <cstring>
+#include <cstdint>
 
 namespace mxnet {
 
