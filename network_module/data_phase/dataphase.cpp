@@ -222,7 +222,7 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
     if (valid) {
         periodEnd = stream.receivePacket(id, pkt);
         if(ENABLE_DATA_INFO_DBG) {
-            auto nt = NetworkTime::fromLocalTime(slotStart);
+            auto nt = NetworkTime::fromLocalTime(rcvResult.timestamp); //Print actual receive time
             if(COMPRESSED_DBG==false)
                 print_dbg("[D] Node %d: Received packet for stream (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
             else
@@ -232,7 +232,7 @@ void DataPhase::receiveToStream(long long slotStart, StreamId id) {
         // Avoid overwriting valid data
         periodEnd = stream.missPacket(id);
         if(ENABLE_DATA_ERROR_DBG) {
-            auto nt = NetworkTime::fromLocalTime(slotStart);
+            auto nt = NetworkTime::fromLocalTime(slotStart); //Print nominal receive time
             if(COMPRESSED_DBG==false)
                 print_dbg("[D] Node %d: Missed packet for stream (%d,%d) NT=%lld\n", myId, id.src, id.dst, nt.get());
             else

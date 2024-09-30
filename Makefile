@@ -17,7 +17,7 @@ SUBDIRS := $(KPATH)
 ## List here your source files (both .s, .c and .cpp)
 ##
 SRC :=                                  \
-main.cpp
+main.cpp adc.cpp ntc.cpp
 
 NET_SRC :=\
 $(wildcard network_module/*.cpp) $(wildcard network_module/*/*.cpp) $(wildcard network_module/*/*/*.cpp) $(wildcard network_module/*/*/*/*.cpp)

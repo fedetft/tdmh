@@ -35,12 +35,12 @@ using namespace miosix;
 namespace mxnet {
 
 std::pair<long long, long long> TimesyncDownlink::getWakeupAndTimeout(long long tExpected) {
+    unsigned int w=networkConfig.getMaxAdmittedRcvWindow();
+    if(internalStatus!=IN_SYNC) w=receiverWindow;
     return std::make_pair(
-        tExpected - (MediumAccessController::receivingNodeWakeupAdvance +
-                     networkConfig.getMaxAdmittedRcvWindow()),
-        tExpected + networkConfig.getMaxAdmittedRcvWindow() +
-                    MediumAccessController::packetPreambleTime +
-                    MediumAccessController::maxPropagationDelay
+        tExpected - (MediumAccessController::receivingNodeWakeupAdvance + w),
+        tExpected + w + MediumAccessController::packetPreambleTime +
+        MediumAccessController::maxPropagationDelay
     );
 }
 

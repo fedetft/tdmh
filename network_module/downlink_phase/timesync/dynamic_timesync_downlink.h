@@ -34,14 +34,18 @@
 #include "interfaces-impl/transceiver.h"
 #include "kernel/timeconversion.h"
 #include "../../util/packet.h"
+#include "../../../adc.h"
+#include "../../../ntc.h"
 #include <limits>
+
+#define FEEDFORWARD_TEMPERTURE_COMPENSATION
 
 namespace mxnet {
 class DynamicTimesyncDownlink : public TimesyncDownlink {
 public:
     DynamicTimesyncDownlink() = delete;
     explicit DynamicTimesyncDownlink(MACContext& ctx) :
-            TimesyncDownlink(ctx, DESYNCHRONIZED, std::numeric_limits<unsigned>::max()),
+            TimesyncDownlink(ctx, DESYNCHRONIZED, Flopsync2::wMax),
             tc(new miosix::TimeConversion(EFM32_HFXO_FREQ)),
             vt(miosix::VirtualClock::instance()),
             synchronizer(new Flopsync2()),
@@ -51,6 +55,16 @@ public:
             clockCorrection(0),
             missedPackets(0) {
                 vt.setSyncPeriod(networkConfig.getClockSyncPeriod());
+                #ifdef FEEDFORWARD_TEMPERTURE_COMPENSATION
+                {
+                    miosix::FastInterruptDisableLock dLock;
+                    //GPIO digital logic must be disabled to use as ADC input
+                    miosix::expansion::gpio0::mode(miosix::Mode::DISABLED); //GPIO0 is PD3 or ADC0_CH3
+                    miosix::expansion::gpio1::mode(miosix::Mode::OUTPUT_HIGH);
+                }
+                adc=&Adc::instance();
+                adc->powerMode(Adc::OnDemand);
+                #endif //FEEDFORWARD_TEMPERTURE_COMPENSATION
         };
     DynamicTimesyncDownlink(const DynamicTimesyncDownlink& orig) = delete;
     virtual ~DynamicTimesyncDownlink() {
@@ -69,6 +83,9 @@ public:
         synchronizer->reset();
         desyncMAC();
     }
+    
+    void feedForwardTemperatureCompensation(long long slotEnd) override;
+
 protected:
     void rebroadcast(const Packet& pkt, long long arrivalTs);
     
@@ -200,6 +217,12 @@ protected:
 
     int clockCorrection;
     unsigned char missedPackets;
+    #ifdef FEEDFORWARD_TEMPERTURE_COMPENSATION
+    Adc *adc=nullptr;
+    int callCount=0;
+    float txo;
+    bool txoValid=false;
+    #endif //FEEDFORWARD_TEMPERTURE_COMPENSATION
 };
 }
 

@@ -45,7 +45,7 @@
  * Note that for best clock skew correction you should avoid entering the
  * deep sleep state if you disable FLOSPYNCVHT
  */
-#define DISABLE_FLOPSYNCVHT
+//#define DISABLE_FLOPSYNCVHT
 
 namespace miosix {
 

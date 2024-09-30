@@ -201,6 +201,9 @@ void MACContext::run()
                 timesync->execute(currentNextDeadline);
                 currentNextDeadline = timesync->getSlotframeStart();
             } else {
+                
+                timesync->feedForwardTemperatureCompensation(currentNextDeadline);
+                
                 // Send a notify to the scheduler thread, to begin scheduling
                 beginScheduling();
                 scheduleDistribution->run(currentNextDeadline);

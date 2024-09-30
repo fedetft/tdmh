@@ -27,7 +27,7 @@
 
 #pragma once
 
-#define CRYPTO
+//#define CRYPTO
 
 namespace mxnet {
 

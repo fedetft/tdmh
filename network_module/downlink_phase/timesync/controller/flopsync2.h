@@ -78,6 +78,9 @@ public:
      */
     int getReceiverWindow() const { return dw; }
     
+    static const int wMin=  50000; //50us
+    static const int wMax=6000000; //6ms
+    
 private:
     int eo, eoo;
     int uo, uoo;
@@ -87,9 +90,6 @@ private:
     int dw;
     unsigned char count;
     char init;
-    
-    static const int wMin=  50000; //50us
-    static const int wMax=6000000; //6ms
 
     static const int numSamples=5; //Number of samples for variance compuation
     static const int controllerScaleFactor=6;

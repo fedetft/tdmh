@@ -163,6 +163,7 @@ void DynamicTimesyncDownlink::doPeriodicSync(long long correctedStart,
     missedPackets = 0;
     clockCorrection = clockCorrectionReceiverWindow.first;
     receiverWindow = clockCorrectionReceiverWindow.second;
+    //TODO: shouldn't we transition to IN_SYNC only when the error is sufficiently low
     internalStatus = IN_SYNC;
     updateVt();
     if (ENABLE_TIMESYNC_DL_INFO_DBG) {
@@ -344,6 +345,54 @@ inline void DynamicTimesyncDownlink::execute(long long slotStart)
         print_dbg("[H] MAC stack %d/%d\n",stackSize-absFreeStack,stackSize);
     }
 #endif
+
+    #ifdef FEEDFORWARD_TEMPERTURE_COMPENSATION
+    callCount=0;
+    #endif //FEEDFORWARD_TEMPERTURE_COMPENSATION
+}
+
+void DynamicTimesyncDownlink::feedForwardTemperatureCompensation(long long slotEnd)
+{
+    #ifdef FEEDFORWARD_TEMPERTURE_COMPENSATION
+    //TODO: make it depend on network parameters, code to run every 1s
+    if(++callCount<5) return;
+    callCount=0;
+    
+    auto result=computeTemperature(adc->readChannel(3)*16);
+    if(result.status==NtcResult::OK)
+    {
+        const float a=-0.03525e-6f; //1/°C^2
+        const float T0=19.7f;       //°C
+        const float Tcx=2.5f;       //s
+        const float Tsampling=1.f;  //s
+        
+        //xtal case temperature
+        float tc=max(-20.f,min(70.f,result.temperature));
+        //Mcx = 1/(1+s*tcx) filter discretized with implicit Euler at Tsampling
+        if(txoValid)
+        {
+            txo=txo*Tcx/(Tsampling+Tcx)+tc*Tsampling/(Tsampling+Tcx);
+        } else {
+            txoValid=true;
+            txo=tc;
+        }
+        
+        //f = f0*(1-kppm*1e-6*(T-T0)^2)
+        //df = (f - f0)/f0 = -kppm*1e-6*(T-T0)^2
+        //Dt = ts*f/f0-Ts = ts*(f/f0-1) = ts*(f-f0)/f0 = ts*df = -ts*kppm*1e-6*(T-T0)^2
+        float deltaT=txo-T0;
+        float timeErr=Tsampling*a*deltaT*deltaT;
+        int timeErrNs=timeErr*1e9f;
+        
+        clockCorrection+=timeErrNs;
+        updateVt();
+        
+        print_dbg("[T] now=%lld slot=%lld temperatue=%.2f correction=%d\n",getTime(),slotEnd,txo,timeErrNs);
+    } else {
+        print_dbg("[T] Temperature reading error\n");
+        txoValid=false;
+    }
+    #endif //FEEDFORWARD_TEMPERTURE_COMPENSATION
 }
 
 void DynamicTimesyncDownlink::rebroadcast(const Packet& pkt, long long arrivalTs){

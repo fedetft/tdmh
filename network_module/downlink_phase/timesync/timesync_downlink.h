@@ -127,6 +127,8 @@ public:
     void advance(long long slotStart) override;
 
     virtual void forceDesync() = 0;
+    
+    virtual void feedForwardTemperatureCompensation(long long slotEnd) {}
 
 protected:
     TimesyncDownlink(MACContext& ctx, MacroStatus initStatus, unsigned receivingWindow) :
